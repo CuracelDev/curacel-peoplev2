@@ -64,6 +64,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Updated documentation with Blue AI and Personality & Values sections
 - Comprehensive API documentation with webhooks, error handling, and rate limits
 - MCP server recommendations in AGENTS.md (GitHub, Postgres, Puppeteer)
+- Project context reference doc (`CONTEXT.md`) for V1/V2 scope, links, and design decisions
+- Hiring flow editor in Recruiting settings with shared flow data used in job creation, JD templates, and question stage selection
 
 ### Changed
 - Renamed "AI Agent" and "AI Assistant" to "Blue AI" throughout the application

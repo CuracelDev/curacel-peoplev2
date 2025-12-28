@@ -1,29 +1,10 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { useState } from 'react'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Switch } from '@/components/ui/switch'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from '@/components/ui/dialog'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,39 +23,44 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs'
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Plus,
-  Upload,
   Briefcase,
   MoreHorizontal,
   Pencil,
   Trash2,
   Copy,
-  FileText,
   Code,
   Palette,
   Users,
   TrendingUp,
   Megaphone,
   Settings,
-  CheckCircle,
-  AlertCircle,
-  X,
-  Link as LinkIcon,
-  Loader2,
-  Globe,
   Eye,
   EyeOff,
+  Search,
+  GitBranch,
+  History,
+  ChevronRight,
 } from 'lucide-react'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import { cn } from '@/lib/utils'
 
-interface JDTemplate {
+interface JD {
   id: string
   name: string
   department: string
@@ -82,12 +68,15 @@ interface JDTemplate {
   flowType: string
   isActive: boolean
   createdAt: string
+  updatedAt: string
+  version: number
+  parentId?: string // Reference to the parent JD if this is a version
   requirements?: string
   responsibilities?: string
 }
 
-// Mock JD templates data
-const mockTemplates: JDTemplate[] = [
+// Mock JD data with versioning
+const mockJDs: JD[] = [
   {
     id: '1',
     name: 'Senior Backend Engineer',
@@ -96,8 +85,34 @@ const mockTemplates: JDTemplate[] = [
     flowType: 'ENGINEERING',
     isActive: true,
     createdAt: '2025-01-15',
+    updatedAt: '2025-01-20',
+    version: 3,
     requirements: '- 5+ years backend experience\n- Proficient in Node.js or Python\n- Experience with databases',
     responsibilities: '- Design and implement APIs\n- Optimize application performance\n- Collaborate with frontend team',
+  },
+  {
+    id: '1-v2',
+    name: 'Senior Backend Engineer',
+    department: 'Engineering',
+    description: 'Design and maintain backend services with focus on scalability.',
+    flowType: 'ENGINEERING',
+    isActive: false,
+    createdAt: '2025-01-10',
+    updatedAt: '2025-01-10',
+    version: 2,
+    parentId: '1',
+  },
+  {
+    id: '1-v1',
+    name: 'Senior Backend Engineer',
+    department: 'Engineering',
+    description: 'Build backend services.',
+    flowType: 'ENGINEERING',
+    isActive: false,
+    createdAt: '2025-01-05',
+    updatedAt: '2025-01-05',
+    version: 1,
+    parentId: '1',
   },
   {
     id: '2',
@@ -107,6 +122,8 @@ const mockTemplates: JDTemplate[] = [
     flowType: 'STANDARD',
     isActive: true,
     createdAt: '2025-01-10',
+    updatedAt: '2025-01-10',
+    version: 1,
   },
   {
     id: '3',
@@ -116,6 +133,8 @@ const mockTemplates: JDTemplate[] = [
     flowType: 'SALES',
     isActive: true,
     createdAt: '2025-01-08',
+    updatedAt: '2025-01-08',
+    version: 1,
   },
   {
     id: '4',
@@ -125,6 +144,8 @@ const mockTemplates: JDTemplate[] = [
     flowType: 'EXECUTIVE',
     isActive: true,
     createdAt: '2025-01-05',
+    updatedAt: '2025-01-05',
+    version: 2,
   },
   {
     id: '5',
@@ -134,6 +155,8 @@ const mockTemplates: JDTemplate[] = [
     flowType: 'ENGINEERING',
     isActive: false,
     createdAt: '2024-12-20',
+    updatedAt: '2024-12-20',
+    version: 1,
   },
 ]
 
@@ -147,640 +170,228 @@ const DEPARTMENTS = [
   { value: 'Finance', icon: Briefcase, color: 'text-emerald-500 bg-emerald-50' },
 ]
 
-const FLOW_TYPES = [
-  { value: 'STANDARD', label: 'Standard', description: 'Interest → HR Screen → Panel → Trial → Offer' },
-  { value: 'ENGINEERING', label: 'Engineering', description: 'Interest → HR Screen → Technical → Panel → Trial' },
-  { value: 'SALES', label: 'Sales', description: 'Interest → HR Screen → Panel → Trial with POC → Offer' },
-  { value: 'EXECUTIVE', label: 'Executive', description: 'Interest → HR Screen → Multiple Panels → Case Study → CEO' },
-]
-
 function getDepartmentInfo(department: string) {
   return DEPARTMENTS.find(d => d.value === department) || { icon: Briefcase, color: 'text-gray-500 bg-gray-50' }
 }
 
-export default function JDTemplatesPage() {
-  const [templates, setTemplates] = useState<JDTemplate[]>(mockTemplates)
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+export default function JDsPage() {
+  const [jds, setJds] = useState<JD[]>(mockJDs)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [departmentFilter, setDepartmentFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [templateToDelete, setTemplateToDelete] = useState<JDTemplate | null>(null)
-  const [activeTab, setActiveTab] = useState('manual')
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
-  const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
-  const [importUrl, setImportUrl] = useState('')
-  const [importStatus, setImportStatus] = useState<'idle' | 'importing' | 'success' | 'error'>('idle')
-  const [importError, setImportError] = useState('')
-  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [jdToDelete, setJdToDelete] = useState<JD | null>(null)
+  const [expandedJds, setExpandedJds] = useState<Set<string>>(new Set())
 
-  // Form state for create/edit
-  const [formData, setFormData] = useState({
-    id: '',
-    name: '',
-    department: '',
-    description: '',
-    flowType: '',
-    requirements: '',
-    responsibilities: '',
-    isActive: true,
+  // Get only the latest versions (JDs without parentId)
+  const latestJDs = jds.filter(jd => !jd.parentId)
+
+  // Filter JDs
+  const filteredJDs = latestJDs.filter(jd => {
+    const matchesSearch = jd.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      jd.department.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      jd.description.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesDepartment = departmentFilter === 'all' || jd.department === departmentFilter
+    const matchesStatus = statusFilter === 'all' ||
+      (statusFilter === 'published' && jd.isActive) ||
+      (statusFilter === 'draft' && !jd.isActive)
+    return matchesSearch && matchesDepartment && matchesStatus
   })
 
-  const resetForm = () => {
-    setFormData({
-      id: '',
-      name: '',
-      department: '',
-      description: '',
-      flowType: '',
-      requirements: '',
-      responsibilities: '',
-      isActive: true,
-    })
-    setUploadedFiles([])
-    setUploadStatus('idle')
-    setImportUrl('')
-    setImportStatus('idle')
-    setImportError('')
-    setActiveTab('manual')
+  // Get version history for a JD
+  const getVersionHistory = (jdId: string) => {
+    return jds.filter(jd => jd.parentId === jdId).sort((a, b) => b.version - a.version)
   }
 
-  const handleCreateTemplate = () => {
-    if (!formData.name.trim() || !formData.department) return
-
-    const template: JDTemplate = {
-      id: Date.now().toString(),
-      name: formData.name,
-      department: formData.department,
-      description: formData.description,
-      flowType: formData.flowType || 'STANDARD',
-      isActive: formData.isActive,
-      createdAt: new Date().toISOString().split('T')[0],
-      requirements: formData.requirements,
-      responsibilities: formData.responsibilities,
-    }
-
-    setTemplates([template, ...templates])
-    setIsCreateDialogOpen(false)
-    resetForm()
-  }
-
-  const handleEditTemplate = (template: JDTemplate) => {
-    setFormData({
-      id: template.id,
-      name: template.name,
-      department: template.department,
-      description: template.description,
-      flowType: template.flowType,
-      requirements: template.requirements || '',
-      responsibilities: template.responsibilities || '',
-      isActive: template.isActive,
-    })
-    setIsEditDialogOpen(true)
-  }
-
-  const handleUpdateTemplate = () => {
-    if (!formData.name.trim() || !formData.department) return
-
-    setTemplates(templates.map(t =>
-      t.id === formData.id
-        ? {
-            ...t,
-            name: formData.name,
-            department: formData.department,
-            description: formData.description,
-            flowType: formData.flowType || 'STANDARD',
-            isActive: formData.isActive,
-            requirements: formData.requirements,
-            responsibilities: formData.responsibilities,
-          }
-        : t
-    ))
-    setIsEditDialogOpen(false)
-    resetForm()
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    const validFiles = files.filter(file =>
-      file.type === 'application/pdf' ||
-      file.type === 'application/msword' ||
-      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      file.type === 'text/plain'
-    )
-    setUploadedFiles(prev => [...prev, ...validFiles])
-  }
-
-  const removeFile = (index: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index))
-  }
-
-  const handleBulkUpload = async () => {
-    if (uploadedFiles.length === 0) return
-
-    setUploadStatus('uploading')
-
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    // Mock: Add uploaded files as templates
-    const newTemplates: JDTemplate[] = uploadedFiles.map((file, index) => ({
-      id: `uploaded-${Date.now()}-${index}`,
-      name: file.name.replace(/\.(pdf|doc|docx|txt)$/i, ''),
-      department: 'Engineering', // Default department
-      description: 'Uploaded JD template - review and customize',
-      flowType: 'STANDARD',
-      isActive: false, // Start as draft
-      createdAt: new Date().toISOString().split('T')[0],
-    }))
-
-    setTemplates([...newTemplates, ...templates])
-    setUploadStatus('success')
-
-    // Reset after success
-    setTimeout(() => {
-      setIsCreateDialogOpen(false)
-      resetForm()
-    }, 1500)
-  }
-
-  const handleImportFromUrl = async () => {
-    if (!importUrl.trim()) return
-
-    // Validate URL format
-    try {
-      new URL(importUrl)
-    } catch {
-      setImportError('Please enter a valid URL')
-      return
-    }
-
-    setImportStatus('importing')
-    setImportError('')
-
-    try {
-      // Call API to fetch and parse JD from URL
-      const response = await fetch('/api/jd/import', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: importUrl }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Failed to import JD from URL')
-      }
-
-      const data = await response.json()
-
-      // Populate form with imported data
-      setFormData({
-        ...formData,
-        name: data.title || '',
-        department: data.department || '',
-        description: data.description || '',
-        flowType: data.flowType || 'STANDARD',
-        requirements: data.requirements || '',
-        responsibilities: data.responsibilities || '',
-      })
-
-      setImportStatus('success')
-
-      // Switch to manual tab to review/edit
-      setTimeout(() => {
-        setActiveTab('manual')
-        setImportStatus('idle')
-      }, 1000)
-
-    } catch {
-      // Mock success for demo - in production this would actually fail
-      // Simulate parsing a YC job posting
-      const mockParsedData = {
-        name: 'Senior Executive Operations (AI-Pilled)',
-        department: 'Operations',
-        description: 'We are looking for a Senior Executive Operations professional to partner directly with the CEO. This role is for someone who is deeply curious about AI and wants to help build the future of insurance infrastructure in Africa.',
-        flowType: 'EXECUTIVE',
-        requirements: `- 5+ years of experience in operations, strategy, or chief of staff roles
-- Strong analytical and problem-solving skills
-- Experience working directly with C-level executives
-- Familiarity with AI tools and willingness to leverage them daily
-- Excellent written and verbal communication
-- Based in Lagos or willing to relocate`,
-        responsibilities: `- Partner with the CEO on strategic initiatives and day-to-day operations
-- Manage cross-functional projects and ensure timely execution
-- Prepare board materials, investor updates, and strategic documents
-- Identify operational inefficiencies and implement improvements
-- Build and maintain relationships with key stakeholders
-- Use AI tools to enhance productivity and decision-making`,
-      }
-
-      setFormData({
-        ...formData,
-        name: mockParsedData.name,
-        department: mockParsedData.department,
-        description: mockParsedData.description,
-        flowType: mockParsedData.flowType,
-        requirements: mockParsedData.requirements,
-        responsibilities: mockParsedData.responsibilities,
-      })
-
-      setImportStatus('success')
-
-      // Switch to manual tab to review/edit
-      setTimeout(() => {
-        setActiveTab('manual')
-        setImportStatus('idle')
-      }, 1000)
-    }
-  }
-
-  const handleDeleteClick = (template: JDTemplate) => {
-    setTemplateToDelete(template)
+  const handleDeleteClick = (jd: JD) => {
+    setJdToDelete(jd)
     setDeleteDialogOpen(true)
   }
 
   const confirmDelete = () => {
-    if (templateToDelete) {
-      setTemplates(templates.filter(t => t.id !== templateToDelete.id))
+    if (jdToDelete) {
+      // Delete the JD and all its versions
+      setJds(jds.filter(jd => jd.id !== jdToDelete.id && jd.parentId !== jdToDelete.id))
       setDeleteDialogOpen(false)
-      setTemplateToDelete(null)
+      setJdToDelete(null)
     }
   }
 
-  const handleDuplicateTemplate = (template: JDTemplate) => {
-    const duplicate: JDTemplate = {
-      ...template,
+  const handleDuplicate = (jd: JD) => {
+    const duplicate: JD = {
+      ...jd,
       id: Date.now().toString(),
-      name: `${template.name} (Copy)`,
+      name: `${jd.name} (Copy)`,
       createdAt: new Date().toISOString().split('T')[0],
-      isActive: false, // Duplicates start as draft
+      updatedAt: new Date().toISOString().split('T')[0],
+      isActive: false,
+      version: 1,
+      parentId: undefined,
     }
-    setTemplates([duplicate, ...templates])
+    setJds([duplicate, ...jds])
   }
 
-  const handleToggleStatus = (template: JDTemplate) => {
-    setTemplates(templates.map(t =>
-      t.id === template.id ? { ...t, isActive: !t.isActive } : t
+  const handleToggleStatus = (jd: JD) => {
+    setJds(jds.map(j =>
+      j.id === jd.id ? { ...j, isActive: !j.isActive } : j
     ))
   }
 
-  const activeTemplates = templates.filter(t => t.isActive)
-  const draftTemplates = templates.filter(t => !t.isActive)
-
-  // Form component used in both create and edit dialogs
-  const TemplateForm = ({ isEdit = false }: { isEdit?: boolean }) => (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="templateName">Job Title *</Label>
-          <Input
-            id="templateName"
-            value={formData.name}
-            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-            placeholder="e.g., Senior Backend Engineer"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="department">Department *</Label>
-          <Select
-            value={formData.department}
-            onValueChange={(value) => setFormData({ ...formData, department: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select department" />
-            </SelectTrigger>
-            <SelectContent>
-              {DEPARTMENTS.map((dept) => (
-                <SelectItem key={dept.value} value={dept.value}>
-                  {dept.value}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="flowType">Hiring Flow</Label>
-          <Select
-            value={formData.flowType}
-            onValueChange={(value) => setFormData({ ...formData, flowType: value })}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select hiring flow type" />
-            </SelectTrigger>
-            <SelectContent>
-              {FLOW_TYPES.map((flow) => (
-                <SelectItem key={flow.value} value={flow.value}>
-                  <div>
-                    <div className="font-medium">{flow.label}</div>
-                    <div className="text-xs text-gray-500">{flow.description}</div>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Status</Label>
-          <div className="flex items-center justify-between rounded-md border border-input px-3 py-2 h-10">
-            <span className="text-sm">
-              {formData.isActive ? (
-                <span className="flex items-center gap-2 text-green-600">
-                  <Eye className="h-4 w-4" />
-                  Published
-                </span>
-              ) : (
-                <span className="flex items-center gap-2 text-amber-600">
-                  <EyeOff className="h-4 w-4" />
-                  Draft
-                </span>
-              )}
-            </span>
-            <Switch
-              checked={formData.isActive}
-              onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-            />
-          </div>
-        </div>
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="description">Job Summary</Label>
-        <Textarea
-          id="description"
-          value={formData.description}
-          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Brief overview of the role and its impact..."
-          rows={3}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="responsibilities">Key Responsibilities</Label>
-        <Textarea
-          id="responsibilities"
-          value={formData.responsibilities}
-          onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })}
-          placeholder="List the main responsibilities (one per line)..."
-          rows={4}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label htmlFor="requirements">Requirements</Label>
-        <Textarea
-          id="requirements"
-          value={formData.requirements}
-          onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-          placeholder="List required qualifications and skills (one per line)..."
-          rows={4}
-        />
-      </div>
-
-      <DialogFooter className="mt-6">
-        <Button variant="outline" onClick={() => isEdit ? setIsEditDialogOpen(false) : setIsCreateDialogOpen(false)}>
-          Cancel
-        </Button>
-        <Button
-          onClick={isEdit ? handleUpdateTemplate : handleCreateTemplate}
-          disabled={!formData.name.trim() || !formData.department}
-        >
-          {isEdit ? 'Save Changes' : 'Create Template'}
-        </Button>
-      </DialogFooter>
-    </div>
-  )
+  const toggleExpanded = (jdId: string) => {
+    const newExpanded = new Set(expandedJds)
+    if (newExpanded.has(jdId)) {
+      newExpanded.delete(jdId)
+    } else {
+      newExpanded.add(jdId)
+    }
+    setExpandedJds(newExpanded)
+  }
 
   return (
     <div className="space-y-6">
       <SettingsPageHeader
-        title="Job Description Templates"
+        title="Job Descriptions"
+        description="Manage job descriptions for your hiring pipeline. Create new JDs or new versions of existing ones."
         actions={
-          <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
-            setIsCreateDialogOpen(open)
-            if (!open) resetForm()
-          }}>
-            <DialogTrigger asChild>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Template
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>Create JD Template</DialogTitle>
-                <DialogDescription>
-                  Create a new job description template manually, upload files, or import from a URL.
-                </DialogDescription>
-              </DialogHeader>
-
-              <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
-                <TabsList className="grid w-full grid-cols-3">
-                  <TabsTrigger value="manual" className="gap-2">
-                    <Pencil className="h-4 w-4" />
-                    Manual
-                  </TabsTrigger>
-                  <TabsTrigger value="upload" className="gap-2">
-                    <Upload className="h-4 w-4" />
-                    Upload Files
-                  </TabsTrigger>
-                  <TabsTrigger value="import" className="gap-2">
-                    <Globe className="h-4 w-4" />
-                    Import from URL
-                  </TabsTrigger>
-                </TabsList>
-
-                {/* Manual Creation Tab */}
-                <TabsContent value="manual" className="mt-4">
-                  <TemplateForm />
-                </TabsContent>
-
-                {/* Bulk Upload Tab */}
-                <TabsContent value="upload" className="space-y-4 mt-4">
-                  <div
-                    className={cn(
-                      "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
-                      uploadedFiles.length > 0 ? "border-primary bg-primary/5" : "border-gray-300 hover:border-gray-400"
-                    )}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      className="hidden"
-                      multiple
-                      accept=".pdf,.doc,.docx,.txt"
-                      onChange={handleFileChange}
-                    />
-                    <Upload className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-                    <p className="text-sm font-medium text-gray-700">Click to upload or drag and drop</p>
-                    <p className="text-xs text-gray-500 mt-1">PDF, DOC, DOCX, TXT up to 10MB each</p>
-                  </div>
-
-                  {/* Uploaded files list */}
-                  {uploadedFiles.length > 0 && (
-                    <div className="space-y-2">
-                      <Label>Files to upload ({uploadedFiles.length})</Label>
-                      <div className="max-h-40 overflow-y-auto space-y-2">
-                        {uploadedFiles.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                              <span className="text-sm truncate">{file.name}</span>
-                              <span className="text-xs text-gray-400">({(file.size / 1024).toFixed(1)} KB)</span>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                removeFile(index)
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Upload status */}
-                  {uploadStatus === 'success' && (
-                    <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg">
-                      <CheckCircle className="h-5 w-5" />
-                      <span className="text-sm font-medium">Successfully uploaded {uploadedFiles.length} templates!</span>
-                    </div>
-                  )}
-                  {uploadStatus === 'error' && (
-                    <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg">
-                      <AlertCircle className="h-5 w-5" />
-                      <span className="text-sm font-medium">Upload failed. Please try again.</span>
-                    </div>
-                  )}
-
-                  <DialogFooter className="mt-6">
-                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleBulkUpload}
-                      disabled={uploadedFiles.length === 0 || uploadStatus === 'uploading'}
-                    >
-                      {uploadStatus === 'uploading' ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Uploading...
-                        </>
-                      ) : (
-                        <>Upload {uploadedFiles.length || ''} File{uploadedFiles.length !== 1 ? 's' : ''}</>
-                      )}
-                    </Button>
-                  </DialogFooter>
-                </TabsContent>
-
-                {/* Import from URL Tab */}
-                <TabsContent value="import" className="space-y-4 mt-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="importUrl">Job Posting URL</Label>
-                    <div className="flex gap-2">
-                      <div className="relative flex-1">
-                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                        <Input
-                          id="importUrl"
-                          value={importUrl}
-                          onChange={(e) => {
-                            setImportUrl(e.target.value)
-                            setImportError('')
-                          }}
-                          placeholder="https://www.ycombinator.com/companies/..."
-                          className="pl-10"
-                        />
-                      </div>
-                    </div>
-                    <p className="text-xs text-gray-500">
-                      Paste a link to a job posting from YC Work at a Startup, LinkedIn, Greenhouse, Lever, or other job boards.
-                    </p>
-                  </div>
-
-                  {/* Supported sources */}
-                  <div className="p-4 bg-gray-50 rounded-lg">
-                    <p className="text-sm font-medium text-gray-700 mb-2">Supported sources:</p>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="outline">YC Work at a Startup</Badge>
-                      <Badge variant="outline">LinkedIn Jobs</Badge>
-                      <Badge variant="outline">Greenhouse</Badge>
-                      <Badge variant="outline">Lever</Badge>
-                      <Badge variant="outline">Workable</Badge>
-                      <Badge variant="outline">Any public URL</Badge>
-                    </div>
-                  </div>
-
-                  {/* Import status */}
-                  {importStatus === 'success' && (
-                    <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg">
-                      <CheckCircle className="h-5 w-5" />
-                      <span className="text-sm font-medium">Successfully imported! Switching to edit view...</span>
-                    </div>
-                  )}
-                  {importError && (
-                    <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg">
-                      <AlertCircle className="h-5 w-5" />
-                      <span className="text-sm font-medium">{importError}</span>
-                    </div>
-                  )}
-
-                  <DialogFooter className="mt-6">
-                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleImportFromUrl}
-                      disabled={!importUrl.trim() || importStatus === 'importing'}
-                    >
-                      {importStatus === 'importing' ? (
-                        <>
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                          Importing...
-                        </>
-                      ) : (
-                        <>
-                          <Globe className="h-4 w-4 mr-2" />
-                          Import JD
-                        </>
-                      )}
-                    </Button>
-                  </DialogFooter>
-                </TabsContent>
-              </Tabs>
-            </DialogContent>
-          </Dialog>
+          <Button asChild>
+            <Link href="/settings/jd-templates/new">
+              <Plus className="h-4 w-4 mr-2" />
+              Create JD
+            </Link>
+          </Button>
         }
       />
 
-      {/* Active Templates */}
-      {activeTemplates.length > 0 && (
-        <>
-          <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Published Templates</h2>
-            <p className="text-sm text-gray-500">Templates available for creating new job positions</p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {activeTemplates.map((template) => {
-              const deptInfo = getDepartmentInfo(template.department)
-              const DeptIcon = deptInfo.icon
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Input
+            placeholder="Search JDs..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="All Departments" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Departments</SelectItem>
+            {DEPARTMENTS.map((dept) => (
+              <SelectItem key={dept.value} value={dept.value}>
+                {dept.value}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="All Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Status</SelectItem>
+            <SelectItem value="published">Published</SelectItem>
+            <SelectItem value="draft">Draft</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
-              return (
-                <Card key={template.id} className="group hover:shadow-lg transition-shadow cursor-pointer relative">
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-2">
-                      <div className={cn("p-2 rounded-lg", deptInfo.color)}>
-                        <DeptIcon className="h-5 w-5" />
-                      </div>
-                      <div className="flex items-center gap-1">
+      {/* JD List */}
+      {filteredJDs.length > 0 ? (
+        <div className="border rounded-lg">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[300px]">Job Title</TableHead>
+                <TableHead>Department</TableHead>
+                <TableHead>Hiring Flow</TableHead>
+                <TableHead>Version</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Last Updated</TableHead>
+                <TableHead className="w-[50px]"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredJDs.map((jd) => {
+                const deptInfo = getDepartmentInfo(jd.department)
+                const DeptIcon = deptInfo.icon
+                const versionHistory = getVersionHistory(jd.id)
+                const hasVersions = versionHistory.length > 0
+                const isExpanded = expandedJds.has(jd.id)
+
+                return (
+                  <>
+                    <TableRow key={jd.id} className="group">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          {hasVersions && (
+                            <button
+                              onClick={() => toggleExpanded(jd.id)}
+                              className="p-1 hover:bg-gray-100 rounded transition-colors"
+                            >
+                              <ChevronRight
+                                className={cn(
+                                  "h-4 w-4 text-gray-400 transition-transform",
+                                  isExpanded && "rotate-90"
+                                )}
+                              />
+                            </button>
+                          )}
+                          {!hasVersions && <div className="w-6" />}
+                          <div className={cn("p-2 rounded-lg", deptInfo.color)}>
+                            <DeptIcon className="h-4 w-4" />
+                          </div>
+                          <div>
+                            <Link
+                              href={`/settings/jd-templates/${jd.id}`}
+                              className="font-medium text-gray-900 hover:text-primary hover:underline"
+                            >
+                              {jd.name}
+                            </Link>
+                            <p className="text-sm text-gray-500 line-clamp-1 max-w-[250px]">
+                              {jd.description}
+                            </p>
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{jd.department}</Badge>
+                      </TableCell>
+                      <TableCell>
                         <Badge variant="secondary" className="text-xs">
-                          {template.flowType}
+                          {jd.flowType}
                         </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1.5">
+                          <GitBranch className="h-3.5 w-3.5 text-gray-400" />
+                          <span className="text-sm">v{jd.version}</span>
+                          {hasVersions && (
+                            <span className="text-xs text-gray-400">
+                              ({versionHistory.length} older)
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {jd.isActive ? (
+                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+                            <Eye className="h-3 w-3 mr-1" />
+                            Published
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                            <EyeOff className="h-3 w-3 mr-1" />
+                            Draft
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-gray-500">
+                        {jd.updatedAt}
+                      </TableCell>
+                      <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -788,158 +399,164 @@ export default function JDTemplatesPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={() => handleEditTemplate(template)}>
-                              <Pencil className="h-4 w-4 mr-2" />
-                              Edit
+                            <DropdownMenuItem asChild>
+                              <Link href={`/settings/jd-templates/${jd.id}`}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit
+                              </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleDuplicateTemplate(template)}>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/settings/jd-templates/new?from=${jd.id}`}>
+                                <GitBranch className="h-4 w-4 mr-2" />
+                                Create New Version
+                              </Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleDuplicate(jd)}>
                               <Copy className="h-4 w-4 mr-2" />
                               Duplicate
                             </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleToggleStatus(template)}>
-                              <EyeOff className="h-4 w-4 mr-2" />
-                              Move to Draft
+                            <DropdownMenuItem onSelect={() => handleToggleStatus(jd)}>
+                              {jd.isActive ? (
+                                <>
+                                  <EyeOff className="h-4 w-4 mr-2" />
+                                  Unpublish
+                                </>
+                              ) : (
+                                <>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  Publish
+                                </>
+                              )}
                             </DropdownMenuItem>
+                            {hasVersions && (
+                              <DropdownMenuItem onSelect={() => toggleExpanded(jd.id)}>
+                                <History className="h-4 w-4 mr-2" />
+                                {isExpanded ? 'Hide' : 'Show'} Version History
+                              </DropdownMenuItem>
+                            )}
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-red-600"
-                              onSelect={() => handleDeleteClick(template)}
+                              onSelect={() => handleDeleteClick(jd)}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                      </div>
-                    </div>
-                    <CardTitle className="text-lg">{template.name}</CardTitle>
-                    <Badge variant="outline" className="w-fit text-xs">
-                      {template.department}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm line-clamp-2">
-                      {template.description}
-                    </CardDescription>
-                    <p className="text-xs text-gray-400 mt-3">Created {template.createdAt}</p>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </>
-      )}
-
-      {/* Draft Templates */}
-      {draftTemplates.length > 0 && (
-        <>
-          <div className="mt-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Drafts</h2>
-            <p className="text-sm text-gray-500">Templates that need review before publishing</p>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-            {draftTemplates.map((template) => {
-              const deptInfo = getDepartmentInfo(template.department)
-              const DeptIcon = deptInfo.icon
-
-              return (
-                <Card key={template.id} className="group hover:shadow-lg transition-shadow cursor-pointer relative opacity-75">
-                  <CardHeader>
-                    <div className="flex items-start justify-between mb-2">
-                      <div className={cn("p-2 rounded-lg", deptInfo.color)}>
-                        <DeptIcon className="h-5 w-5" />
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Badge variant="outline" className="text-xs text-amber-600 border-amber-300 bg-amber-50">
-                          Draft
-                        </Badge>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem onSelect={() => handleEditTemplate(template)}>
-                              <Pencil className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleToggleStatus(template)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              Publish
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onSelect={() => handleDuplicateTemplate(template)}>
-                              <Copy className="h-4 w-4 mr-2" />
-                              Duplicate
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              className="text-red-600"
-                              onSelect={() => handleDeleteClick(template)}
+                      </TableCell>
+                    </TableRow>
+                    {/* Version History Rows */}
+                    {isExpanded && versionHistory.map((version) => (
+                      <TableRow key={version.id} className="bg-gray-50/50">
+                        <TableCell>
+                          <div className="flex items-center gap-3 pl-12">
+                            <div className="w-0.5 h-8 bg-gray-200 -ml-3" />
+                            <Link
+                              href={`/settings/jd-templates/${version.id}`}
+                              className="text-sm text-gray-600 hover:text-primary hover:underline"
                             >
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
-                    </div>
-                    <CardTitle className="text-lg">{template.name}</CardTitle>
-                    <Badge variant="outline" className="w-fit text-xs">
-                      {template.department}
-                    </Badge>
-                  </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-sm line-clamp-2">
-                      {template.description}
-                    </CardDescription>
-                    <p className="text-xs text-gray-400 mt-3">Created {template.createdAt}</p>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </>
-      )}
-
-      {/* Empty state */}
-      {templates.length === 0 && (
-        <div className="text-center py-12">
+                              {version.name}
+                            </Link>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-gray-500">{version.department}</span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-gray-500">{version.flowType}</span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1.5 text-gray-500">
+                            <History className="h-3.5 w-3.5" />
+                            <span className="text-sm">v{version.version}</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="text-gray-500">
+                            Archived
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-400">
+                          {version.updatedAt}
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem asChild>
+                                <Link href={`/settings/jd-templates/${version.id}`}>
+                                  <Eye className="h-4 w-4 mr-2" />
+                                  View
+                                </Link>
+                              </DropdownMenuItem>
+                              <DropdownMenuItem asChild>
+                                <Link href={`/settings/jd-templates/new?from=${version.id}`}>
+                                  <Copy className="h-4 w-4 mr-2" />
+                                  Restore as New
+                                </Link>
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </>
+                )
+              })}
+            </TableBody>
+          </Table>
+        </div>
+      ) : (
+        <div className="text-center py-12 border rounded-lg bg-gray-50">
           <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No JD templates yet</h3>
-          <p className="text-gray-500 mb-4">Get started by creating your first job description template.</p>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Template
-          </Button>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {searchQuery || departmentFilter !== 'all' || statusFilter !== 'all'
+              ? 'No JDs match your filters'
+              : 'No job descriptions yet'}
+          </h3>
+          <p className="text-gray-500 mb-4">
+            {searchQuery || departmentFilter !== 'all' || statusFilter !== 'all'
+              ? 'Try adjusting your search or filters'
+              : 'Get started by creating your first job description.'}
+          </p>
+          {!searchQuery && departmentFilter === 'all' && statusFilter === 'all' && (
+            <Button asChild>
+              <Link href="/settings/jd-templates/new">
+                <Plus className="h-4 w-4 mr-2" />
+                Create JD
+              </Link>
+            </Button>
+          )}
         </div>
       )}
 
-      {/* Edit Dialog */}
-      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
-        setIsEditDialogOpen(open)
-        if (!open) resetForm()
-      }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit JD Template</DialogTitle>
-            <DialogDescription>
-              Update the job description template details.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="mt-4">
-            <TemplateForm isEdit />
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Stats */}
+      {latestJDs.length > 0 && (
+        <div className="flex items-center gap-6 text-sm text-gray-500">
+          <span>{latestJDs.length} job description{latestJDs.length !== 1 ? 's' : ''}</span>
+          <span>{latestJDs.filter(jd => jd.isActive).length} published</span>
+          <span>{latestJDs.filter(jd => !jd.isActive).length} draft{latestJDs.filter(jd => !jd.isActive).length !== 1 ? 's' : ''}</span>
+        </div>
+      )}
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Template</AlertDialogTitle>
+            <AlertDialogTitle>Delete Job Description</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{templateToDelete?.name}&quot;? This action cannot be undone.
+              Are you sure you want to delete &quot;{jdToDelete?.name}&quot;?
+              {jdToDelete && getVersionHistory(jdToDelete.id).length > 0 && (
+                <span className="block mt-2 text-amber-600">
+                  This will also delete {getVersionHistory(jdToDelete.id).length} older version(s).
+                </span>
+              )}
+              This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
