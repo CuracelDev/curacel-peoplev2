@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Curacel Recruiter</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: var(--space-6);
+      min-height: calc(100vh - 200px);
+    }
+
+    .settings-nav {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-3);
+      height: fit-content;
+      position: sticky;
+      top: 80px;
+    }
+    .settings-nav-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-radius: var(--radius-md);
+      color: var(--gray-600);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-decoration: none;
+    }
+    .settings-nav-item:hover {
+      background: var(--gray-50);
+      color: var(--gray-900);
+    }
+    .settings-nav-item.active {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+    }
+
+    .settings-section {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-6);
+    }
+    .settings-section-header {
+      padding: var(--space-5);
+      border-bottom: 1px solid var(--gray-200);
+    }
+    .settings-section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: var(--space-1);
+    }
+    .settings-section-desc {
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+    .settings-section-body {
+      padding: var(--space-5);
+    }
+
+    .value-card {
+      display: flex;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-3);
+    }
+    .value-card:last-child {
+      margin-bottom: 0;
+    }
+    .value-letter {
+      width: 48px;
+      height: 48px;
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      color: white;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .value-content {
+      flex: 1;
+    }
+    .value-name {
+      font-weight: 600;
+      margin-bottom: var(--space-1);
+    }
+    .value-description {
+      font-size: 14px;
+      color: var(--gray-600);
+    }
+
+    .competency-list {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-3);
+    }
+    .competency-card {
+      padding: var(--space-4);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+    }
+    .competency-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: var(--space-2);
+    }
+    .competency-name {
+      font-weight: 600;
+    }
+    .competency-level {
+      font-size: 12px;
+      padding: 2px 8px;
+      background: var(--gray-100);
+      border-radius: var(--radius-full);
+      color: var(--gray-600);
+    }
+    .competency-desc {
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+
+    .integration-card {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-3);
+    }
+    .integration-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gray-100);
+      flex-shrink: 0;
+    }
+    .integration-info {
+      flex: 1;
+    }
+    .integration-name {
+      font-weight: 600;
+      margin-bottom: var(--space-1);
+    }
+    .integration-status {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+    .integration-status.connected {
+      color: var(--success);
+    }
+
+    .personality-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+    .personality-item {
+      text-align: center;
+      padding: var(--space-3);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+    }
+    .personality-label {
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-bottom: var(--space-2);
+    }
+    .personality-value {
+      font-size: 18px;
+      font-weight: 600;
+    }
+    .personality-slider {
+      width: 100%;
+      margin-top: var(--space-2);
+    }
+
+    .team-member {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .team-member:last-child {
+      border-bottom: none;
+    }
+
+    .api-key-display {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      font-family: monospace;
+      font-size: 13px;
+    }
+    .api-key-value {
+      flex: 1;
+      color: var(--gray-600);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">C</div>
+        <span class="sidebar-title">Curacel Recruit</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <a class="nav-item" href="01-dashboard.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Dashboard</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Hiring</div>
+          <a class="nav-item" href="02-jobs-list.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Jobs</span>
+            <span class="nav-item-badge">3</span>
+          </a>
+
+          <a class="nav-item" href="04-candidates-list.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">All Candidates</span>
+          </a>
+
+          <a class="nav-item" href="07-questions.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Question Bank</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">System</div>
+          <a class="nav-item active">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Settings</span>
+          </a>
+
+          <a class="nav-item">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Integrations</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <div class="breadcrumb">
+            <a href="01-dashboard.html">Dashboard</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Settings</span>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <button class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save Changes
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <div class="page-header">
+          <h1 class="page-title">Settings</h1>
+          <p class="page-subtitle">Configure company-wide hiring criteria and integrations</p>
+        </div>
+
+        <div class="settings-layout">
+          <!-- Settings Navigation -->
+          <div class="settings-nav">
+            <a class="settings-nav-item active">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+              </svg>
+              Company Values
+            </a>
+            <a class="settings-nav-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+              Competencies
+            </a>
+            <a class="settings-nav-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                <line x1="9" y1="9" x2="9.01" y2="9"/>
+                <line x1="15" y1="9" x2="15.01" y2="9"/>
+              </svg>
+              Personality Templates
+            </a>
+            <a class="settings-nav-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+              Team Profiles
+            </a>
+            <a class="settings-nav-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+              </svg>
+              Integrations
+            </a>
+            <a class="settings-nav-item">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4"/>
+              </svg>
+              API & Keys
+            </a>
+          </div>
+
+          <!-- Settings Content -->
+          <div>
+            <!-- Company Values -->
+            <div class="settings-section" id="values">
+              <div class="settings-section-header">
+                <h2 class="settings-section-title">Company Values (PRESS)</h2>
+                <p class="settings-section-desc">Define the core values that guide your hiring decisions. These are used by the AI to evaluate cultural fit.</p>
+              </div>
+              <div class="settings-section-body">
+                <div class="value-card">
+                  <div class="value-letter">P</div>
+                  <div class="value-content">
+                    <div class="value-name">Passionate Work</div>
+                    <textarea class="form-input" rows="2" style="margin-top: var(--space-2);">We approach every challenge with enthusiasm and dedication. We don't just do our jobs - we care deeply about the impact of our work.</textarea>
+                  </div>
+                </div>
+
+                <div class="value-card">
+                  <div class="value-letter">R</div>
+                  <div class="value-content">
+                    <div class="value-name">Relentless Growth</div>
+                    <textarea class="form-input" rows="2" style="margin-top: var(--space-2);">We continuously push ourselves to learn, improve, and expand our capabilities. Comfort zones are meant to be challenged.</textarea>
+                  </div>
+                </div>
+
+                <div class="value-card">
+                  <div class="value-letter">E</div>
+                  <div class="value-content">
+                    <div class="value-name">Empowered Action</div>
+                    <textarea class="form-input" rows="2" style="margin-top: var(--space-2);">We take ownership and make decisions. We don't wait for permission to do what's right for our customers and colleagues.</textarea>
+                  </div>
+                </div>
+
+                <div class="value-card">
+                  <div class="value-letter">S</div>
+                  <div class="value-content">
+                    <div class="value-name">Sense of Urgency</div>
+                    <textarea class="form-input" rows="2" style="margin-top: var(--space-2);">We move quickly and decisively. In insurance, timing matters - we treat every problem as if it needs solving today.</textarea>
+                  </div>
+                </div>
+
+                <div class="value-card">
+                  <div class="value-letter">S</div>
+                  <div class="value-content">
+                    <div class="value-name">Seeing Possibilities</div>
+                    <textarea class="form-input" rows="2" style="margin-top: var(--space-2);">We see opportunities where others see obstacles. We're building the future of insurance in Africa.</textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Competency Framework -->
+            <div class="settings-section" id="competencies">
+              <div class="settings-section-header">
+                <h2 class="settings-section-title">Competency Framework</h2>
+                <p class="settings-section-desc">Define the competencies expected of all hires at Curacel. Role-specific competencies are set per job.</p>
+              </div>
+              <div class="settings-section-body">
+                <div class="competency-list">
+                  <div class="competency-card">
+                    <div class="competency-header">
+                      <div class="competency-name">Problem Solving</div>
+                      <span class="competency-level">Required</span>
+                    </div>
+                    <div class="competency-desc">Ability to analyze complex problems, identify root causes, and develop effective solutions.</div>
+                  </div>
+
+                  <div class="competency-card">
+                    <div class="competency-header">
+                      <div class="competency-name">Communication</div>
+                      <span class="competency-level">Required</span>
+                    </div>
+                    <div class="competency-desc">Clear and effective written and verbal communication across all levels of the organization.</div>
+                  </div>
+
+                  <div class="competency-card">
+                    <div class="competency-header">
+                      <div class="competency-name">Collaboration</div>
+                      <span class="competency-level">Required</span>
+                    </div>
+                    <div class="competency-desc">Works effectively with cross-functional teams and builds strong working relationships.</div>
+                  </div>
+
+                  <div class="competency-card">
+                    <div class="competency-header">
+                      <div class="competency-name">Adaptability</div>
+                      <span class="competency-level">Required</span>
+                    </div>
+                    <div class="competency-desc">Thrives in ambiguous situations and adapts quickly to changing priorities.</div>
+                  </div>
+
+                  <div class="competency-card">
+                    <div class="competency-header">
+                      <div class="competency-name">Ownership</div>
+                      <span class="competency-level">Required</span>
+                    </div>
+                    <div class="competency-desc">Takes full responsibility for outcomes and follows through on commitments.</div>
+                  </div>
+
+                  <div class="competency-card">
+                    <div class="competency-header">
+                      <div class="competency-name">Customer Focus</div>
+                      <span class="competency-level">Required</span>
+                    </div>
+                    <div class="competency-desc">Prioritizes customer needs and consistently delivers value to end users.</div>
+                  </div>
+                </div>
+
+                <button class="btn btn-secondary" style="margin-top: var(--space-4);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  Add Competency
+                </button>
+              </div>
+            </div>
+
+            <!-- Personality Templates -->
+            <div class="settings-section" id="personality">
+              <div class="settings-section-header">
+                <h2 class="settings-section-title">Personality Templates</h2>
+                <p class="settings-section-desc">Define ideal OCEAN personality profiles for different departments. Used for team fit analysis.</p>
+              </div>
+              <div class="settings-section-body">
+                <div class="form-group">
+                  <label class="form-label">Department</label>
+                  <select class="form-input form-select" style="width: 200px;">
+                    <option>Engineering</option>
+                    <option>Design</option>
+                    <option>Growth</option>
+                    <option>Operations</option>
+                  </select>
+                </div>
+
+                <div style="margin-top: var(--space-4);">
+                  <label class="form-label">OCEAN Profile (Engineering)</label>
+                  <div class="personality-grid">
+                    <div class="personality-item">
+                      <div class="personality-label">Openness</div>
+                      <div class="personality-value">75%</div>
+                      <input type="range" class="personality-slider" value="75" min="0" max="100">
+                    </div>
+                    <div class="personality-item">
+                      <div class="personality-label">Conscientiousness</div>
+                      <div class="personality-value">85%</div>
+                      <input type="range" class="personality-slider" value="85" min="0" max="100">
+                    </div>
+                    <div class="personality-item">
+                      <div class="personality-label">Extraversion</div>
+                      <div class="personality-value">50%</div>
+                      <input type="range" class="personality-slider" value="50" min="0" max="100">
+                    </div>
+                    <div class="personality-item">
+                      <div class="personality-label">Agreeableness</div>
+                      <div class="personality-value">70%</div>
+                      <input type="range" class="personality-slider" value="70" min="0" max="100">
+                    </div>
+                    <div class="personality-item">
+                      <div class="personality-label">Neuroticism</div>
+                      <div class="personality-value">30%</div>
+                      <input type="range" class="personality-slider" value="30" min="0" max="100">
+                    </div>
+                  </div>
+                </div>
+
+                <div style="margin-top: var(--space-4);">
+                  <label class="form-label">Preferred MBTI Types</label>
+                  <div style="display: flex; flex-wrap: wrap; gap: var(--space-2);">
+                    <span class="badge badge-primary">INTJ</span>
+                    <span class="badge badge-primary">INTP</span>
+                    <span class="badge badge-primary">ENTJ</span>
+                    <span class="badge badge-gray">ENTP</span>
+                    <span class="badge badge-gray">ISTJ</span>
+                    <span class="badge badge-gray">ISTP</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Integrations -->
+            <div class="settings-section" id="integrations">
+              <div class="settings-section-header">
+                <h2 class="settings-section-title">Integrations</h2>
+                <p class="settings-section-desc">Connect external services to automate data collection and analysis.</p>
+              </div>
+              <div class="settings-section-body">
+                <div class="integration-card">
+                  <div class="integration-icon" style="background: #ff5722; color: white;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+                    </svg>
+                  </div>
+                  <div class="integration-info">
+                    <div class="integration-name">Fireflies.ai</div>
+                    <div class="integration-status connected">Connected - Last sync 2 hours ago</div>
+                  </div>
+                  <button class="btn btn-secondary btn-sm">Configure</button>
+                </div>
+
+                <div class="integration-card">
+                  <div class="integration-icon" style="background: #4285f4; color: white;">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12.545,10.239v3.821h5.445c-0.712,2.315-2.647,3.972-5.445,3.972c-3.332,0-6.033-2.701-6.033-6.032s2.701-6.032,6.033-6.032c1.498,0,2.866,0.549,3.921,1.453l2.814-2.814C17.503,2.988,15.139,2,12.545,2C7.021,2,2.543,6.477,2.543,12s4.478,10,10.002,10c8.396,0,10.249-7.85,9.426-11.748L12.545,10.239z"/>
+                    </svg>
+                  </div>
+                  <div class="integration-info">
+                    <div class="integration-name">Google Forms</div>
+                    <div class="integration-status connected">Connected - Webhook active</div>
+                  </div>
+                  <button class="btn btn-secondary btn-sm">Configure</button>
+                </div>
+
+                <div class="integration-card">
+                  <div class="integration-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="16 18 22 12 16 6"/>
+                      <polyline points="8 6 2 12 8 18"/>
+                    </svg>
+                  </div>
+                  <div class="integration-info">
+                    <div class="integration-name">Kand.io</div>
+                    <div class="integration-status">Not connected</div>
+                  </div>
+                  <button class="btn btn-primary btn-sm">Connect</button>
+                </div>
+
+                <div class="integration-card">
+                  <div class="integration-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </div>
+                  <div class="integration-info">
+                    <div class="integration-name">TestGorilla</div>
+                    <div class="integration-status">Not connected</div>
+                  </div>
+                  <button class="btn btn-primary btn-sm">Connect</button>
+                </div>
+
+                <div class="integration-card">
+                  <div class="integration-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <path d="M8 14s1.5 2 4 2 4-2 4-2"/>
+                      <line x1="9" y1="9" x2="9.01" y2="9"/>
+                      <line x1="15" y1="9" x2="15.01" y2="9"/>
+                    </svg>
+                  </div>
+                  <div class="integration-info">
+                    <div class="integration-name">Testify</div>
+                    <div class="integration-status">Not connected</div>
+                  </div>
+                  <button class="btn btn-primary btn-sm">Connect</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- API Keys -->
+            <div class="settings-section" id="api">
+              <div class="settings-section-header">
+                <h2 class="settings-section-title">API & Keys</h2>
+                <p class="settings-section-desc">Manage API keys for AI services and external integrations.</p>
+              </div>
+              <div class="settings-section-body">
+                <div class="form-group">
+                  <label class="form-label">Anthropic API Key (Claude)</label>
+                  <div class="api-key-display">
+                    <span class="api-key-value">sk-ant-api03-****************************</span>
+                    <button class="btn btn-ghost btn-sm">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                      Show
+                    </button>
+                    <button class="btn btn-ghost btn-sm">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                      </svg>
+                      Copy
+                    </button>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Fireflies API Key</label>
+                  <div class="api-key-display">
+                    <span class="api-key-value">ff-****************************</span>
+                    <button class="btn btn-ghost btn-sm">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                        <circle cx="12" cy="12" r="3"/>
+                      </svg>
+                      Show
+                    </button>
+                    <button class="btn btn-ghost btn-sm">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                      </svg>
+                      Copy
+                    </button>
+                  </div>
+                </div>
+
+                <button class="btn btn-secondary" style="margin-top: var(--space-2);">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                  Add New Key
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@layer base {
+  :root {
+    /* Foundation - Colors */
+    --background: 0 0% 100%; /* #ffffff */
+    --foreground: 210 27% 8%; /* #0f1419 */
+    
+    /* Cards & Popovers */
+    --card: 0 0% 100%; /* #ffffff */
+    --card-foreground: 240 9% 16%; /* #24242c */
+    --popover: 0 0% 100%; /* #ffffff */
+    --popover-foreground: 240 9% 16%; /* #24242c */
+    
+    /* Primary - Actions */
+    --primary: 240 100% 63%; /* #4040ff */
+    --primary-foreground: 0 0% 100%; /* #ffffff */
+    
+    /* Secondary */
+    --secondary: 220 43% 97%; /* #f5f7fb */
+    --secondary-foreground: 240 9% 16%; /* #24242c */
+    
+    /* Muted */
+    --muted: 240 2% 90%; /* #e5e5e6 */
+    --muted-foreground: 210 27% 8%; /* #0f1419 */
+    
+    /* Accent */
+    --accent: 238 71% 79%; /* #a2a5f2 */
+    --accent-foreground: 152 67% 11%; /* #0a2d14 */
+    
+    /* Destructive */
+    --destructive: 0 74% 42%; /* #b91c1c */
+    --destructive-foreground: 0 0% 100%; /* #ffffff */
+    
+    /* Success & Warning */
+    --success: 142 76% 36%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 240 9% 16%;
+    
+    /* Forms */
+    --border: 180 15% 88%; /* #dce4e4 */
+    --input: 0 0% 100%; /* #ffffff */
+    --ring: 240 100% 63%; /* #4040ff - Focus border */
+    
+    /* Shape & Spacing */
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 240 100% 63%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 238 71% 79%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --success: 142 76% 36%;
+    --success-foreground: 210 40% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 222.2 84% 4.9%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 240 100% 63%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  html {
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+  
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Custom focus styles */
+@layer components {
+  .focus-ring {
+    @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  }
+}
+
+/* Rich text editor placeholder */
+.rich-text-editor-content:empty:before {
+  content: attr(data-placeholder);
+  color: #9ca3af;
+  pointer-events: none;
+}

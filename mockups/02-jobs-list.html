@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jobs - Curacel Recruiter</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .job-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      display: flex;
+      gap: var(--space-5);
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .job-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-md);
+    }
+    .job-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--primary);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      flex-shrink: 0;
+    }
+    .job-icon.engineering { background: linear-gradient(135deg, #6366f1, #8b5cf6); }
+    .job-icon.design { background: linear-gradient(135deg, #ec4899, #f43f5e); }
+    .job-icon.growth { background: linear-gradient(135deg, #f59e0b, #ef4444); }
+
+    .job-meta {
+      display: flex;
+      gap: var(--space-4);
+      margin-top: var(--space-3);
+    }
+    .job-meta-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+
+    .job-stats {
+      display: flex;
+      gap: var(--space-6);
+      margin-top: var(--space-4);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--gray-100);
+    }
+    .job-stat {
+      text-align: center;
+    }
+    .job-stat-value {
+      font-size: 20px;
+      font-weight: 600;
+      color: var(--gray-900);
+    }
+    .job-stat-label {
+      font-size: 12px;
+      color: var(--gray-500);
+    }
+
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+    .filter-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .filter-chip:hover {
+      border-color: var(--gray-300);
+    }
+    .filter-chip.active {
+      background: var(--primary);
+      color: white;
+      border-color: var(--primary);
+    }
+
+    .empty-job-card {
+      border: 2px dashed var(--gray-300);
+      background: var(--gray-50);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 200px;
+      text-align: center;
+    }
+    .empty-job-card:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.02);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">C</div>
+        <span class="sidebar-title">Curacel Recruit</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <a class="nav-item" href="01-dashboard.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Dashboard</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Hiring</div>
+          <a class="nav-item active">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Jobs</span>
+            <span class="nav-item-badge">3</span>
+          </a>
+          <div class="nav-subitems">
+            <a class="nav-subitem" href="04-candidates-list.html">Senior Backend Engineer</a>
+            <a class="nav-subitem">Product Designer</a>
+            <a class="nav-subitem">Growth Lead</a>
+          </div>
+
+          <a class="nav-item" href="04-candidates-list.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">All Candidates</span>
+          </a>
+
+          <a class="nav-item" href="07-questions.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Question Bank</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">System</div>
+          <a class="nav-item" href="08-settings.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Settings</span>
+          </a>
+
+          <a class="nav-item">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Integrations</span>
+          </a>
+        </div>
+      </nav>
+
+      <div style="padding: var(--space-4); border-top: 1px solid var(--gray-700);">
+        <div class="nav-item">
+          <div class="avatar" style="width: 32px; height: 32px; font-size: 12px;">HM</div>
+          <span class="nav-item-text">Henry Mascot</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <div class="breadcrumb">
+            <a href="01-dashboard.html">Dashboard</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Jobs</span>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <div class="search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input type="text" placeholder="Search jobs...">
+          </div>
+          <button class="icon-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </button>
+          <div class="avatar">HM</div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <div class="page-header" style="display: flex; justify-content: space-between; align-items: flex-start;">
+          <div>
+            <h1 class="page-title">Jobs</h1>
+            <p class="page-subtitle">Manage your open positions and hiring pipelines</p>
+          </div>
+          <a href="03-job-create.html" class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Create Job
+          </a>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+          <span class="filter-chip active">All (3)</span>
+          <span class="filter-chip">Active (3)</span>
+          <span class="filter-chip">Draft (0)</span>
+          <span class="filter-chip">Closed (0)</span>
+          <div style="flex: 1;"></div>
+          <select class="form-input form-select" style="width: auto; padding: var(--space-2) var(--space-6) var(--space-2) var(--space-3);">
+            <option>All Departments</option>
+            <option>Engineering</option>
+            <option>Design</option>
+            <option>Growth</option>
+          </select>
+        </div>
+
+        <!-- Jobs Grid -->
+        <div style="display: flex; flex-direction: column; gap: var(--space-4);">
+          <!-- Job Card 1 -->
+          <a href="04-candidates-list.html" class="job-card" style="text-decoration: none; color: inherit;">
+            <div class="job-icon engineering">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="16 18 22 12 16 6"/>
+                <polyline points="8 6 2 12 8 18"/>
+              </svg>
+            </div>
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                <h3 style="font-size: 18px; font-weight: 600;">Senior Backend Engineer</h3>
+                <span class="badge badge-success">Active</span>
+              </div>
+              <div class="job-meta">
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/>
+                    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                  </svg>
+                  Engineering
+                </div>
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  Remote
+                </div>
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  Posted Dec 15, 2025
+                </div>
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                  Avg Score: 74
+                </div>
+              </div>
+              <div class="job-stats">
+                <div class="job-stat">
+                  <div class="job-stat-value">24</div>
+                  <div class="job-stat-label">Applicants</div>
+                </div>
+                <div class="job-stat">
+                  <div class="job-stat-value">8</div>
+                  <div class="job-stat-label">In Review</div>
+                </div>
+                <div class="job-stat">
+                  <div class="job-stat-value">5</div>
+                  <div class="job-stat-label">Interviewing</div>
+                </div>
+                <div class="job-stat">
+                  <div class="job-stat-value">1</div>
+                  <div class="job-stat-label">Offer Stage</div>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2);">
+              <div style="--score: 74;" class="score-circle" style="width: 80px; height: 80px;">
+                <div class="score-circle-inner" style="width: 64px; height: 64px;">
+                  <div class="score-circle-value" style="font-size: 20px;">74</div>
+                  <div class="score-circle-label" style="font-size: 10px;">avg score</div>
+                </div>
+              </div>
+            </div>
+          </a>
+
+          <!-- Job Card 2 -->
+          <div class="job-card">
+            <div class="job-icon design">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <circle cx="12" cy="12" r="6"/>
+                <circle cx="12" cy="12" r="2"/>
+              </svg>
+            </div>
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                <h3 style="font-size: 18px; font-weight: 600;">Product Designer</h3>
+                <span class="badge badge-success">Active</span>
+              </div>
+              <div class="job-meta">
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/>
+                    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                  </svg>
+                  Design
+                </div>
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  Lagos, Nigeria
+                </div>
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  Posted Dec 10, 2025
+                </div>
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                  Avg Score: 68
+                </div>
+              </div>
+              <div class="job-stats">
+                <div class="job-stat">
+                  <div class="job-stat-value">15</div>
+                  <div class="job-stat-label">Applicants</div>
+                </div>
+                <div class="job-stat">
+                  <div class="job-stat-value">5</div>
+                  <div class="job-stat-label">In Review</div>
+                </div>
+                <div class="job-stat">
+                  <div class="job-stat-value">3</div>
+                  <div class="job-stat-label">Interviewing</div>
+                </div>
+                <div class="job-stat">
+                  <div class="job-stat-value">0</div>
+                  <div class="job-stat-label">Offer Stage</div>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2);">
+              <div style="--score: 68;" class="score-circle" style="width: 80px; height: 80px;">
+                <div class="score-circle-inner" style="width: 64px; height: 64px;">
+                  <div class="score-circle-value" style="font-size: 20px;">68</div>
+                  <div class="score-circle-label" style="font-size: 10px;">avg score</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Job Card 3 -->
+          <div class="job-card">
+            <div class="job-icon growth">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                <polyline points="17 6 23 6 23 12"/>
+              </svg>
+            </div>
+            <div style="flex: 1;">
+              <div style="display: flex; align-items: center; gap: var(--space-3);">
+                <h3 style="font-size: 18px; font-weight: 600;">Growth Lead</h3>
+                <span class="badge badge-success">Active</span>
+              </div>
+              <div class="job-meta">
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="7" width="20" height="14" rx="2"/>
+                    <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+                  </svg>
+                  Growth
+                </div>
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  Hybrid
+                </div>
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                  Posted Dec 20, 2025
+                </div>
+                <div class="job-meta-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                  Avg Score: 71
+                </div>
+              </div>
+              <div class="job-stats">
+                <div class="job-stat">
+                  <div class="job-stat-value">8</div>
+                  <div class="job-stat-label">Applicants</div>
+                </div>
+                <div class="job-stat">
+                  <div class="job-stat-value">4</div>
+                  <div class="job-stat-label">In Review</div>
+                </div>
+                <div class="job-stat">
+                  <div class="job-stat-value">2</div>
+                  <div class="job-stat-label">Interviewing</div>
+                </div>
+                <div class="job-stat">
+                  <div class="job-stat-value">0</div>
+                  <div class="job-stat-label">Offer Stage</div>
+                </div>
+              </div>
+            </div>
+            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: var(--space-2);">
+              <div style="--score: 71;" class="score-circle" style="width: 80px; height: 80px;">
+                <div class="score-circle-inner" style="width: 64px; height: 64px;">
+                  <div class="score-circle-value" style="font-size: 20px;">71</div>
+                  <div class="score-circle-label" style="font-size: 10px;">avg score</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty State / Add New -->
+          <a href="03-job-create.html" class="job-card empty-job-card" style="text-decoration: none; color: inherit;">
+            <div style="text-align: center;">
+              <div style="width: 48px; height: 48px; background: var(--gray-200); border-radius: var(--radius-full); display: flex; align-items: center; justify-content: center; margin: 0 auto var(--space-3); color: var(--gray-400);">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </div>
+              <div style="font-weight: 600; color: var(--gray-700);">Create New Job</div>
+              <div style="font-size: 13px; color: var(--gray-500); margin-top: var(--space-1);">Set up a new hiring position</div>
+            </div>
+          </a>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>
