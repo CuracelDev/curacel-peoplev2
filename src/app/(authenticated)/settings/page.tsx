@@ -65,8 +65,8 @@ const settingsOptions = [
     iconBg: 'bg-indigo-100',
   },
   {
-    title: 'JD Templates',
-    description: 'Job description templates for different roles and departments. Create, edit, and bulk upload templates.',
+    title: 'Job Descriptions',
+    description: 'Manage job descriptions for different roles. Create, version, and organize JDs for your hiring pipeline.',
     icon: Briefcase,
     href: '/settings/jd-templates',
     iconBg: 'bg-indigo-100',
