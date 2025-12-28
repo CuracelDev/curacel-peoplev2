@@ -804,6 +804,20 @@ model LegalEntity {
   @@index([organizationId, isActive])
 }
 
+model Team {
+  id             String       @id @default(uuid())
+  name           String       @unique
+  description    String?
+  color          String?      // Hex color for UI display
+  leaderId       String?      // Employee ID of team lead
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([name])
+  @@index([isActive])
+}
+
 model OnboardingTaskTemplate {
   id             String       @id @default(uuid())
   organizationId String

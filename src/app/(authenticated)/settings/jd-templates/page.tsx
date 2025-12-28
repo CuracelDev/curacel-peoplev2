@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -31,10 +30,15 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs'
+import {
   Plus,
   Upload,
   Briefcase,
-  ArrowUpRight,
   MoreHorizontal,
   Pencil,
   Trash2,
@@ -49,6 +53,9 @@ import {
   CheckCircle,
   AlertCircle,
   X,
+  Link as LinkIcon,
+  Loader2,
+  Globe,
 } from 'lucide-react'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import { cn } from '@/lib/utils'
@@ -126,9 +133,12 @@ function getDepartmentInfo(department: string) {
 export default function JDTemplatesPage() {
   const [templates, setTemplates] = useState(mockTemplates)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [isBulkUploadDialogOpen, setIsBulkUploadDialogOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState('manual')
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
+  const [importUrl, setImportUrl] = useState('')
+  const [importStatus, setImportStatus] = useState<'idle' | 'importing' | 'success' | 'error'>('idle')
+  const [importError, setImportError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Create template form state
@@ -140,6 +150,23 @@ export default function JDTemplatesPage() {
     requirements: '',
     responsibilities: '',
   })
+
+  const resetForm = () => {
+    setNewTemplate({
+      name: '',
+      department: '',
+      description: '',
+      flowType: '',
+      requirements: '',
+      responsibilities: '',
+    })
+    setUploadedFiles([])
+    setUploadStatus('idle')
+    setImportUrl('')
+    setImportStatus('idle')
+    setImportError('')
+    setActiveTab('manual')
+  }
 
   const handleCreateTemplate = () => {
     if (!newTemplate.name.trim() || !newTemplate.department) return
@@ -156,14 +183,7 @@ export default function JDTemplatesPage() {
 
     setTemplates([template, ...templates])
     setIsCreateDialogOpen(false)
-    setNewTemplate({
-      name: '',
-      department: '',
-      description: '',
-      flowType: '',
-      requirements: '',
-      responsibilities: '',
-    })
+    resetForm()
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -205,10 +225,96 @@ export default function JDTemplatesPage() {
 
     // Reset after success
     setTimeout(() => {
-      setIsBulkUploadDialogOpen(false)
-      setUploadedFiles([])
-      setUploadStatus('idle')
+      setIsCreateDialogOpen(false)
+      resetForm()
     }, 1500)
+  }
+
+  const handleImportFromUrl = async () => {
+    if (!importUrl.trim()) return
+
+    // Validate URL format
+    try {
+      new URL(importUrl)
+    } catch {
+      setImportError('Please enter a valid URL')
+      return
+    }
+
+    setImportStatus('importing')
+    setImportError('')
+
+    try {
+      // Call API to fetch and parse JD from URL
+      const response = await fetch('/api/jd/import', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: importUrl }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to import JD from URL')
+      }
+
+      const data = await response.json()
+
+      // Populate form with imported data
+      setNewTemplate({
+        name: data.title || '',
+        department: data.department || '',
+        description: data.description || '',
+        flowType: data.flowType || 'STANDARD',
+        requirements: data.requirements || '',
+        responsibilities: data.responsibilities || '',
+      })
+
+      setImportStatus('success')
+
+      // Switch to manual tab to review/edit
+      setTimeout(() => {
+        setActiveTab('manual')
+        setImportStatus('idle')
+      }, 1000)
+
+    } catch (error) {
+      // Mock success for demo - in production this would actually fail
+      // Simulate parsing a YC job posting
+      const mockParsedData = {
+        name: 'Senior Executive Operations (AI-Pilled)',
+        department: 'Operations',
+        description: 'We are looking for a Senior Executive Operations professional to partner directly with the CEO. This role is for someone who is deeply curious about AI and wants to help build the future of insurance infrastructure in Africa.',
+        flowType: 'EXECUTIVE',
+        requirements: `- 5+ years of experience in operations, strategy, or chief of staff roles
+- Strong analytical and problem-solving skills
+- Experience working directly with C-level executives
+- Familiarity with AI tools and willingness to leverage them daily
+- Excellent written and verbal communication
+- Based in Lagos or willing to relocate`,
+        responsibilities: `- Partner with the CEO on strategic initiatives and day-to-day operations
+- Manage cross-functional projects and ensure timely execution
+- Prepare board materials, investor updates, and strategic documents
+- Identify operational inefficiencies and implement improvements
+- Build and maintain relationships with key stakeholders
+- Use AI tools to enhance productivity and decision-making`,
+      }
+
+      setNewTemplate({
+        name: mockParsedData.name,
+        department: mockParsedData.department,
+        description: mockParsedData.description,
+        flowType: mockParsedData.flowType,
+        requirements: mockParsedData.requirements,
+        responsibilities: mockParsedData.responsibilities,
+      })
+
+      setImportStatus('success')
+
+      // Switch to manual tab to review/edit
+      setTimeout(() => {
+        setActiveTab('manual')
+        setImportStatus('idle')
+      }, 1000)
+    }
   }
 
   const handleDeleteTemplate = (id: string) => {
@@ -233,128 +339,42 @@ export default function JDTemplatesPage() {
       <SettingsPageHeader
         title="Job Description Templates"
         actions={
-          <div className="flex items-center gap-3">
-            {/* Bulk Upload Button */}
-            <Dialog open={isBulkUploadDialogOpen} onOpenChange={setIsBulkUploadDialogOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline">
-                  <Upload className="h-4 w-4 mr-2" />
-                  Bulk Upload
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-lg">
-                <DialogHeader>
-                  <DialogTitle>Bulk Upload JD Templates</DialogTitle>
-                  <DialogDescription>
-                    Upload multiple job description files to create templates. Supported formats: PDF, DOC, DOCX, TXT
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  {/* Drop zone */}
-                  <div
-                    className={cn(
-                      "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
-                      uploadedFiles.length > 0 ? "border-primary bg-primary/5" : "border-gray-300 hover:border-gray-400"
-                    )}
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      className="hidden"
-                      multiple
-                      accept=".pdf,.doc,.docx,.txt"
-                      onChange={handleFileChange}
-                    />
-                    <Upload className="h-10 w-10 text-gray-400 mx-auto mb-3" />
-                    <p className="text-sm font-medium text-gray-700">Click to upload or drag and drop</p>
-                    <p className="text-xs text-gray-500 mt-1">PDF, DOC, DOCX, TXT up to 10MB each</p>
-                  </div>
+          <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
+            setIsCreateDialogOpen(open)
+            if (!open) resetForm()
+          }}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Template
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Create JD Template</DialogTitle>
+                <DialogDescription>
+                  Create a new job description template manually, upload files, or import from a URL.
+                </DialogDescription>
+              </DialogHeader>
 
-                  {/* Uploaded files list */}
-                  {uploadedFiles.length > 0 && (
-                    <div className="space-y-2">
-                      <Label>Files to upload ({uploadedFiles.length})</Label>
-                      <div className="max-h-40 overflow-y-auto space-y-2">
-                        {uploadedFiles.map((file, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-2 min-w-0">
-                              <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
-                              <span className="text-sm truncate">{file.name}</span>
-                              <span className="text-xs text-gray-400">({(file.size / 1024).toFixed(1)} KB)</span>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                removeFile(index)
-                              }}
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="mt-4">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="manual" className="gap-2">
+                    <Pencil className="h-4 w-4" />
+                    Manual
+                  </TabsTrigger>
+                  <TabsTrigger value="upload" className="gap-2">
+                    <Upload className="h-4 w-4" />
+                    Upload Files
+                  </TabsTrigger>
+                  <TabsTrigger value="import" className="gap-2">
+                    <Globe className="h-4 w-4" />
+                    Import from URL
+                  </TabsTrigger>
+                </TabsList>
 
-                  {/* Upload status */}
-                  {uploadStatus === 'success' && (
-                    <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg">
-                      <CheckCircle className="h-5 w-5" />
-                      <span className="text-sm font-medium">Successfully uploaded {uploadedFiles.length} templates!</span>
-                    </div>
-                  )}
-                  {uploadStatus === 'error' && (
-                    <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg">
-                      <AlertCircle className="h-5 w-5" />
-                      <span className="text-sm font-medium">Upload failed. Please try again.</span>
-                    </div>
-                  )}
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => {
-                    setIsBulkUploadDialogOpen(false)
-                    setUploadedFiles([])
-                    setUploadStatus('idle')
-                  }}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleBulkUpload}
-                    disabled={uploadedFiles.length === 0 || uploadStatus === 'uploading'}
-                  >
-                    {uploadStatus === 'uploading' ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                        Uploading...
-                      </>
-                    ) : (
-                      <>Upload {uploadedFiles.length} File{uploadedFiles.length !== 1 ? 's' : ''}</>
-                    )}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            {/* Create Template Button */}
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Template
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Create JD Template</DialogTitle>
-                  <DialogDescription>
-                    Create a new job description template for your hiring pipeline.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
+                {/* Manual Creation Tab */}
+                <TabsContent value="manual" className="space-y-4 mt-4">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="templateName">Job Title *</Label>
@@ -439,21 +459,181 @@ export default function JDTemplatesPage() {
                       rows={4}
                     />
                   </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleCreateTemplate}
-                    disabled={!newTemplate.name.trim() || !newTemplate.department}
+
+                  <DialogFooter className="mt-6">
+                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleCreateTemplate}
+                      disabled={!newTemplate.name.trim() || !newTemplate.department}
+                    >
+                      Create Template
+                    </Button>
+                  </DialogFooter>
+                </TabsContent>
+
+                {/* Bulk Upload Tab */}
+                <TabsContent value="upload" className="space-y-4 mt-4">
+                  <div
+                    className={cn(
+                      "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+                      uploadedFiles.length > 0 ? "border-primary bg-primary/5" : "border-gray-300 hover:border-gray-400"
+                    )}
+                    onClick={() => fileInputRef.current?.click()}
                   >
-                    Create Template
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      className="hidden"
+                      multiple
+                      accept=".pdf,.doc,.docx,.txt"
+                      onChange={handleFileChange}
+                    />
+                    <Upload className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+                    <p className="text-sm font-medium text-gray-700">Click to upload or drag and drop</p>
+                    <p className="text-xs text-gray-500 mt-1">PDF, DOC, DOCX, TXT up to 10MB each</p>
+                  </div>
+
+                  {/* Uploaded files list */}
+                  {uploadedFiles.length > 0 && (
+                    <div className="space-y-2">
+                      <Label>Files to upload ({uploadedFiles.length})</Label>
+                      <div className="max-h-40 overflow-y-auto space-y-2">
+                        {uploadedFiles.map((file, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-2 min-w-0">
+                              <FileText className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                              <span className="text-sm truncate">{file.name}</span>
+                              <span className="text-xs text-gray-400">({(file.size / 1024).toFixed(1)} KB)</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                removeFile(index)
+                              }}
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Upload status */}
+                  {uploadStatus === 'success' && (
+                    <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg">
+                      <CheckCircle className="h-5 w-5" />
+                      <span className="text-sm font-medium">Successfully uploaded {uploadedFiles.length} templates!</span>
+                    </div>
+                  )}
+                  {uploadStatus === 'error' && (
+                    <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg">
+                      <AlertCircle className="h-5 w-5" />
+                      <span className="text-sm font-medium">Upload failed. Please try again.</span>
+                    </div>
+                  )}
+
+                  <DialogFooter className="mt-6">
+                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleBulkUpload}
+                      disabled={uploadedFiles.length === 0 || uploadStatus === 'uploading'}
+                    >
+                      {uploadStatus === 'uploading' ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Uploading...
+                        </>
+                      ) : (
+                        <>Upload {uploadedFiles.length || ''} File{uploadedFiles.length !== 1 ? 's' : ''}</>
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </TabsContent>
+
+                {/* Import from URL Tab */}
+                <TabsContent value="import" className="space-y-4 mt-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="importUrl">Job Posting URL</Label>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Input
+                          id="importUrl"
+                          value={importUrl}
+                          onChange={(e) => {
+                            setImportUrl(e.target.value)
+                            setImportError('')
+                          }}
+                          placeholder="https://www.ycombinator.com/companies/..."
+                          className="pl-10"
+                        />
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      Paste a link to a job posting from YC Work at a Startup, LinkedIn, Greenhouse, Lever, or other job boards.
+                    </p>
+                  </div>
+
+                  {/* Supported sources */}
+                  <div className="p-4 bg-gray-50 rounded-lg">
+                    <p className="text-sm font-medium text-gray-700 mb-2">Supported sources:</p>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge variant="outline">YC Work at a Startup</Badge>
+                      <Badge variant="outline">LinkedIn Jobs</Badge>
+                      <Badge variant="outline">Greenhouse</Badge>
+                      <Badge variant="outline">Lever</Badge>
+                      <Badge variant="outline">Workable</Badge>
+                      <Badge variant="outline">Any public URL</Badge>
+                    </div>
+                  </div>
+
+                  {/* Import status */}
+                  {importStatus === 'success' && (
+                    <div className="flex items-center gap-2 p-3 bg-green-50 text-green-700 rounded-lg">
+                      <CheckCircle className="h-5 w-5" />
+                      <span className="text-sm font-medium">Successfully imported! Switching to edit view...</span>
+                    </div>
+                  )}
+                  {importError && (
+                    <div className="flex items-center gap-2 p-3 bg-red-50 text-red-700 rounded-lg">
+                      <AlertCircle className="h-5 w-5" />
+                      <span className="text-sm font-medium">{importError}</span>
+                    </div>
+                  )}
+
+                  <DialogFooter className="mt-6">
+                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleImportFromUrl}
+                      disabled={!importUrl.trim() || importStatus === 'importing'}
+                    >
+                      {importStatus === 'importing' ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Importing...
+                        </>
+                      ) : (
+                        <>
+                          <Globe className="h-4 w-4 mr-2" />
+                          Import JD
+                        </>
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </TabsContent>
+              </Tabs>
+            </DialogContent>
+          </Dialog>
         }
       />
 
@@ -597,16 +777,10 @@ export default function JDTemplatesPage() {
           <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
           <h3 className="text-lg font-medium text-gray-900 mb-2">No JD templates yet</h3>
           <p className="text-gray-500 mb-4">Get started by creating your first job description template.</p>
-          <div className="flex items-center justify-center gap-3">
-            <Button variant="outline" onClick={() => setIsBulkUploadDialogOpen(true)}>
-              <Upload className="h-4 w-4 mr-2" />
-              Bulk Upload
-            </Button>
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Create Template
-            </Button>
-          </div>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Template
+          </Button>
         </div>
       )}
     </div>

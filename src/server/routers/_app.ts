@@ -15,6 +15,7 @@ import { notificationSettingsRouter } from './notification-settings'
 import { notificationRouter } from './notification'
 import { legalEntityRouter } from './legal-entity'
 import { assistantRouter } from './assistant'
+import { teamRouter } from './team'
 
 export const appRouter = router({
   employee: employeeRouter,
@@ -33,6 +34,7 @@ export const appRouter = router({
   notifications: notificationRouter,
   legalEntity: legalEntityRouter,
   assistant: assistantRouter,
+  team: teamRouter,
 })
 
 export type AppRouter = typeof appRouter
