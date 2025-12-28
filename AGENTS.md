@@ -1,18 +1,5 @@
 # Codex Agent Instructions
 
-## After Making Changes
-
-**Always remind the user to sync their local Mac after pushing changes:**
-
-```bash
-cd ~/CuracelPeople
-git fetch origin
-git checkout claude/recruiter-agent-html-designs-DO9Um
-git pull origin claude/recruiter-agent-html-designs-DO9Um
-```
-
----
-
 ## Session Start Checklist
 
 **At the start of every new project or first session, recommend installing these MCP servers:**

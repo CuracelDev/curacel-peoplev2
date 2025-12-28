@@ -126,7 +126,7 @@ export function Sidebar({
             {section.title && collapsed && sectionIndex > 0 && (
               <div className="mx-2 mb-2 border-t border-border" />
             )}
-            <ul className="space-y-1">
+            <ul className="space-y-0.5">
               {section.items.map((item) => {
                 const isActive = pathname === item.href ||
                   (item.href !== '/dashboard' && pathname.startsWith(item.href))
@@ -135,7 +135,7 @@ export function Sidebar({
                     <Link
                       href={item.href}
                       className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+                        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
                         isActive
                           ? 'bg-primary text-white'
                           : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
@@ -148,7 +148,7 @@ export function Sidebar({
                           <span className="flex-1">{item.name}</span>
                           {item.badge !== undefined && (
                             <span className={cn(
-                              'flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-medium',
+                              'flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-medium',
                               isActive
                                 ? 'bg-white/20 text-white'
                                 : 'bg-primary text-white'
@@ -177,7 +177,7 @@ export function Sidebar({
           <Link
             href="/ai-agent"
             className={cn(
-              'w-full flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200',
+              'w-full flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
               pathname === '/ai-agent' || pathname.startsWith('/ai-agent/')
                 ? 'bg-primary text-white'
                 : 'bg-primary/10 text-primary hover:bg-primary hover:text-white',
