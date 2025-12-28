@@ -15,6 +15,9 @@ import {
   Plug,
   LogOut,
   Sparkles,
+  Briefcase,
+  UserSearch,
+  HelpCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
@@ -32,6 +35,8 @@ import { AssistantPanel } from '@/components/assistant/assistant-panel'
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN', 'MANAGER'] },
+  { name: 'Recruiting', href: '/recruiting', icon: UserSearch, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
+  { name: 'Positions', href: '/recruiting/positions', icon: Briefcase, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
   { name: 'Employees', href: '/employees', icon: Users, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN'] },
   { name: 'Contracts', href: '/contracts', icon: FileText, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
   { name: 'Onboarding', href: '/onboarding', icon: UserPlus, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN'] },
