@@ -1,0 +1,930 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Curacel Fit - James Okafor - Curacel Recruiter</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .tab-content {
+      padding: var(--space-6);
+      max-width: 1200px;
+    }
+
+    /* PRESS Values Section */
+    .values-hero {
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.05) 0%, rgba(14, 165, 233, 0.05) 100%);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      margin-bottom: var(--space-6);
+    }
+
+    .values-hero-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-5);
+    }
+
+    .values-hero-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .values-hero-title h2 {
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .values-overall-score {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .values-score-circle {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-full);
+      background: conic-gradient(
+        #22c55e calc(82 * 3.6deg),
+        var(--gray-200) calc(82 * 3.6deg)
+      );
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .values-score-inner {
+      width: 64px;
+      height: 64px;
+      border-radius: var(--radius-full);
+      background: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .values-score-value {
+      font-size: 24px;
+      font-weight: 700;
+      color: #16a34a;
+    }
+
+    .values-score-label {
+      font-size: 10px;
+      color: var(--gray-500);
+      text-transform: uppercase;
+    }
+
+    /* PRESS Grid */
+    .press-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-4);
+    }
+
+    .press-card {
+      background: white;
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      text-align: center;
+      border: 1px solid var(--gray-200);
+      transition: all 0.2s ease;
+    }
+
+    .press-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+    }
+
+    .press-letter {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      margin: 0 auto var(--space-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 20px;
+      color: white;
+    }
+
+    .press-letter.p { background: #6366f1; }
+    .press-letter.r { background: #0ea5e9; }
+    .press-letter.e { background: #22c55e; }
+    .press-letter.s1 { background: #f59e0b; }
+    .press-letter.s2 { background: #ef4444; }
+
+    .press-name {
+      font-weight: 600;
+      font-size: 14px;
+      margin-bottom: 2px;
+    }
+
+    .press-full {
+      font-size: 11px;
+      color: var(--gray-500);
+      margin-bottom: var(--space-3);
+    }
+
+    .press-score {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+    }
+
+    .press-score-value {
+      font-weight: 700;
+      font-size: 20px;
+    }
+
+    .press-score-value.high { color: #16a34a; }
+    .press-score-value.medium { color: #d97706; }
+    .press-score-value.low { color: #dc2626; }
+
+    .press-bar {
+      width: 100%;
+      height: 6px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      margin-top: var(--space-2);
+      overflow: hidden;
+    }
+
+    .press-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+    }
+
+    /* Value Detail Cards */
+    .value-detail-section {
+      margin-bottom: var(--space-6);
+    }
+
+    .value-detail-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-4);
+    }
+
+    .value-detail-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      color: white;
+    }
+
+    .value-detail-title {
+      flex: 1;
+    }
+
+    .value-detail-title h3 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .value-detail-title p {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+
+    .value-detail-score {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .value-evidence-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    .evidence-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+    }
+
+    .evidence-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+      font-weight: 500;
+      font-size: 13px;
+    }
+
+    .evidence-card-header.positive {
+      color: #16a34a;
+    }
+
+    .evidence-card-header.negative {
+      color: #dc2626;
+    }
+
+    .evidence-card-header.neutral {
+      color: #d97706;
+    }
+
+    .evidence-quote {
+      background: var(--gray-50);
+      border-left: 3px solid var(--primary);
+      padding: var(--space-3);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      font-size: 13px;
+      color: var(--gray-600);
+      font-style: italic;
+      line-height: 1.6;
+      margin-bottom: var(--space-3);
+    }
+
+    .evidence-quote mark {
+      background: rgba(245, 158, 11, 0.3);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+
+    .evidence-source {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 11px;
+      color: var(--gray-400);
+    }
+
+    /* Competencies Section */
+    .competencies-section {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-6);
+    }
+
+    .competencies-header {
+      padding: var(--space-5);
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .competencies-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .competencies-body {
+      padding: var(--space-5);
+    }
+
+    .competency-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .competency-row:last-child {
+      border-bottom: none;
+    }
+
+    .competency-name {
+      width: 200px;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .competency-bar-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .competency-bar {
+      flex: 1;
+      height: 12px;
+      background: var(--gray-100);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .competency-bar-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.5s ease;
+    }
+
+    .competency-bar-benchmark {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--gray-900);
+    }
+
+    .competency-score {
+      width: 40px;
+      text-align: right;
+      font-weight: 600;
+    }
+
+    .competency-score.high { color: #16a34a; }
+    .competency-score.medium { color: #d97706; }
+    .competency-score.low { color: #dc2626; }
+
+    .competency-trend {
+      width: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .competency-trend.up { color: #16a34a; }
+    .competency-trend.down { color: #dc2626; }
+    .competency-trend.stable { color: var(--gray-400); }
+
+    /* Team Fit Section */
+    .team-fit-section {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+    }
+
+    .team-fit-header {
+      padding: var(--space-5);
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .team-fit-body {
+      padding: var(--space-5);
+    }
+
+    .team-fit-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-6);
+    }
+
+    .personality-chart {
+      text-align: center;
+    }
+
+    .personality-label {
+      font-size: 14px;
+      font-weight: 500;
+      margin-bottom: var(--space-3);
+    }
+
+    .mbti-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: rgba(99, 102, 241, 0.1);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-md);
+      margin-bottom: var(--space-4);
+    }
+
+    .mbti-type {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--primary);
+    }
+
+    .mbti-name {
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+
+    .ocean-traits {
+      text-align: left;
+    }
+
+    .ocean-trait {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+    }
+
+    .ocean-trait-label {
+      width: 100px;
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+
+    .ocean-trait-bar {
+      flex: 1;
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .ocean-trait-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: var(--radius-full);
+    }
+
+    .ocean-trait-value {
+      width: 40px;
+      text-align: right;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .team-complement {
+      background: var(--gray-50);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+    }
+
+    .team-complement-title {
+      font-weight: 600;
+      margin-bottom: var(--space-3);
+    }
+
+    .team-complement-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+      font-size: 13px;
+    }
+
+    .team-complement-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .team-complement-icon {
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .team-complement-icon.positive { color: #16a34a; }
+    .team-complement-icon.neutral { color: #d97706; }
+
+    /* Flags Section */
+    .flags-section {
+      background: rgba(239, 68, 68, 0.05);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      margin-top: var(--space-6);
+    }
+
+    .flags-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-weight: 600;
+      color: #dc2626;
+      margin-bottom: var(--space-3);
+    }
+
+    .flag-item {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: white;
+      border-radius: var(--radius);
+      margin-bottom: var(--space-2);
+    }
+
+    .flag-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .flag-icon {
+      color: #dc2626;
+      flex-shrink: 0;
+    }
+
+    .flag-content {
+      flex: 1;
+    }
+
+    .flag-title {
+      font-weight: 500;
+      margin-bottom: 2px;
+    }
+
+    .flag-description {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar (abbreviated) -->
+    <aside class="sidebar" style="width: 72px;">
+      <div class="sidebar-header" style="padding: var(--space-4); justify-content: center;">
+        <div class="sidebar-logo">C</div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" style="margin-left: 72px;">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <nav class="breadcrumb">
+            <a href="02-jobs-list.html">Jobs</a>
+            <span class="breadcrumb-separator">/</span>
+            <a href="04-candidates-list.html">Senior Backend Engineer</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">James Okafor</span>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Profile Header (abbreviated) -->
+      <div style="background: white; border-bottom: 1px solid var(--gray-200); padding: var(--space-4) var(--space-6); display: flex; align-items: center; gap: var(--space-4);">
+        <div style="width: 48px; height: 48px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">JO</div>
+        <div style="flex: 1;">
+          <h1 style="font-size: 18px; font-weight: 600;">James Okafor</h1>
+          <div style="font-size: 13px; color: var(--gray-500);">Senior Backend Engineer Candidate</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 24px; font-weight: 700; color: #16a34a;">87</div>
+          <div style="font-size: 11px; color: var(--gray-500); text-transform: uppercase;">Overall</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display: flex; gap: var(--space-1); background: white; padding: 0 var(--space-6); border-bottom: 1px solid var(--gray-200);">
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--gray-500); cursor: pointer;">Interest</div>
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--gray-500); cursor: pointer;">Interview Stages</div>
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--primary); border-bottom: 2px solid var(--primary); margin-bottom: -1px; cursor: pointer;">Curacel Fit</div>
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--gray-500); cursor: pointer;">Decision</div>
+      </div>
+
+      <!-- Tab Content: Curacel Fit -->
+      <div class="tab-content" style="background: var(--gray-50); min-height: calc(100vh - 180px);">
+
+        <!-- PRESS Values Hero -->
+        <div class="values-hero">
+          <div class="values-hero-header">
+            <div class="values-hero-title">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+              </svg>
+              <h2>PRESS Values Alignment</h2>
+            </div>
+            <div class="values-overall-score">
+              <div class="values-score-circle">
+                <div class="values-score-inner">
+                  <div class="values-score-value">82</div>
+                  <div class="values-score-label">Avg</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="press-grid">
+            <div class="press-card">
+              <div class="press-letter p">P</div>
+              <div class="press-name">Passionate</div>
+              <div class="press-full">Passionate Work</div>
+              <div class="press-score">
+                <span class="press-score-value high">88</span>
+                <span style="font-size: 12px; color: var(--gray-400);">/100</span>
+              </div>
+              <div class="press-bar">
+                <div class="press-bar-fill" style="width: 88%; background: #22c55e;"></div>
+              </div>
+            </div>
+
+            <div class="press-card">
+              <div class="press-letter r">R</div>
+              <div class="press-name">Relentless</div>
+              <div class="press-full">Relentless Growth</div>
+              <div class="press-score">
+                <span class="press-score-value high">85</span>
+                <span style="font-size: 12px; color: var(--gray-400);">/100</span>
+              </div>
+              <div class="press-bar">
+                <div class="press-bar-fill" style="width: 85%; background: #22c55e;"></div>
+              </div>
+            </div>
+
+            <div class="press-card">
+              <div class="press-letter e">E</div>
+              <div class="press-name">Empowered</div>
+              <div class="press-full">Empowered Action</div>
+              <div class="press-score">
+                <span class="press-score-value high">82</span>
+                <span style="font-size: 12px; color: var(--gray-400);">/100</span>
+              </div>
+              <div class="press-bar">
+                <div class="press-bar-fill" style="width: 82%; background: #22c55e;"></div>
+              </div>
+            </div>
+
+            <div class="press-card">
+              <div class="press-letter s1">S</div>
+              <div class="press-name">Sense</div>
+              <div class="press-full">Sense of Urgency</div>
+              <div class="press-score">
+                <span class="press-score-value medium">76</span>
+                <span style="font-size: 12px; color: var(--gray-400);">/100</span>
+              </div>
+              <div class="press-bar">
+                <div class="press-bar-fill" style="width: 76%; background: #f59e0b;"></div>
+              </div>
+            </div>
+
+            <div class="press-card">
+              <div class="press-letter s2">S</div>
+              <div class="press-name">Seeing</div>
+              <div class="press-full">Seeing Possibilities</div>
+              <div class="press-score">
+                <span class="press-score-value high">80</span>
+                <span style="font-size: 12px; color: var(--gray-400);">/100</span>
+              </div>
+              <div class="press-bar">
+                <div class="press-bar-fill" style="width: 80%; background: #22c55e;"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Value Details: Passionate Work -->
+        <div class="value-detail-section">
+          <div class="value-detail-header">
+            <div class="value-detail-icon" style="background: #6366f1;">P</div>
+            <div class="value-detail-title">
+              <h3>Passionate Work</h3>
+              <p>Deep commitment to craft and continuous improvement</p>
+            </div>
+            <div class="value-detail-score high">88</div>
+          </div>
+          <div class="value-evidence-grid">
+            <div class="evidence-card">
+              <div class="evidence-card-header positive">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Strong Evidence
+              </div>
+              <div class="evidence-quote">
+                "I spent my weekends building an <mark>open-source testing framework</mark> that's now used by 200+ developers. It started as a personal project to solve a problem I kept encountering."
+              </div>
+              <div class="evidence-source">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Panel Interview Transcript - 12:34
+              </div>
+            </div>
+            <div class="evidence-card">
+              <div class="evidence-card-header positive">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Supporting Evidence
+              </div>
+              <div class="evidence-quote">
+                "His GitHub profile shows <mark>consistent contributions over 3 years</mark>, with meaningful open-source work beyond just green squares."
+              </div>
+              <div class="evidence-source">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"></path>
+                </svg>
+                LinkedIn Profile Analysis
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Competencies Section -->
+        <div class="competencies-section">
+          <div class="competencies-header">
+            <div class="competencies-title">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+              Role Competency Alignment
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--space-3); font-size: 12px; color: var(--gray-500);">
+              <span style="display: flex; align-items: center; gap: var(--space-1);">
+                <span style="width: 12px; height: 2px; background: var(--gray-900);"></span>
+                Role Benchmark
+              </span>
+            </div>
+          </div>
+          <div class="competencies-body">
+            <div class="competency-row">
+              <div class="competency-name">System Design</div>
+              <div class="competency-bar-container">
+                <div class="competency-bar">
+                  <div class="competency-bar-fill" style="width: 90%; background: #22c55e;"></div>
+                  <div class="competency-bar-benchmark" style="left: 75%;"></div>
+                </div>
+                <div class="competency-score high">90</div>
+                <div class="competency-trend up">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="competency-row">
+              <div class="competency-name">Technical Leadership</div>
+              <div class="competency-bar-container">
+                <div class="competency-bar">
+                  <div class="competency-bar-fill" style="width: 85%; background: #22c55e;"></div>
+                  <div class="competency-bar-benchmark" style="left: 80%;"></div>
+                </div>
+                <div class="competency-score high">85</div>
+                <div class="competency-trend stable">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="competency-row">
+              <div class="competency-name">Problem Solving</div>
+              <div class="competency-bar-container">
+                <div class="competency-bar">
+                  <div class="competency-bar-fill" style="width: 88%; background: #22c55e;"></div>
+                  <div class="competency-bar-benchmark" style="left: 75%;"></div>
+                </div>
+                <div class="competency-score high">88</div>
+                <div class="competency-trend up">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="competency-row">
+              <div class="competency-name">Communication</div>
+              <div class="competency-bar-container">
+                <div class="competency-bar">
+                  <div class="competency-bar-fill" style="width: 82%; background: #22c55e;"></div>
+                  <div class="competency-bar-benchmark" style="left: 80%;"></div>
+                </div>
+                <div class="competency-score high">82</div>
+                <div class="competency-trend stable">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            <div class="competency-row">
+              <div class="competency-name">Domain Knowledge</div>
+              <div class="competency-bar-container">
+                <div class="competency-bar">
+                  <div class="competency-bar-fill" style="width: 65%; background: #f59e0b;"></div>
+                  <div class="competency-bar-benchmark" style="left: 70%;"></div>
+                </div>
+                <div class="competency-score medium">65</div>
+                <div class="competency-trend up">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Team Fit Section -->
+        <div class="team-fit-section">
+          <div class="team-fit-header">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+            </svg>
+            Team Fit Analysis
+          </div>
+          <div class="team-fit-body">
+            <div class="team-fit-grid">
+              <div class="personality-chart">
+                <div class="personality-label">Personality Profile</div>
+                <div class="mbti-badge">
+                  <span class="mbti-type">INTJ</span>
+                  <span class="mbti-name">The Architect</span>
+                </div>
+                <div class="ocean-traits">
+                  <div class="ocean-trait">
+                    <span class="ocean-trait-label">Openness</span>
+                    <div class="ocean-trait-bar">
+                      <div class="ocean-trait-fill" style="width: 85%;"></div>
+                    </div>
+                    <span class="ocean-trait-value">85%</span>
+                  </div>
+                  <div class="ocean-trait">
+                    <span class="ocean-trait-label">Conscientiousness</span>
+                    <div class="ocean-trait-bar">
+                      <div class="ocean-trait-fill" style="width: 90%;"></div>
+                    </div>
+                    <span class="ocean-trait-value">90%</span>
+                  </div>
+                  <div class="ocean-trait">
+                    <span class="ocean-trait-label">Extraversion</span>
+                    <div class="ocean-trait-bar">
+                      <div class="ocean-trait-fill" style="width: 45%;"></div>
+                    </div>
+                    <span class="ocean-trait-value">45%</span>
+                  </div>
+                  <div class="ocean-trait">
+                    <span class="ocean-trait-label">Agreeableness</span>
+                    <div class="ocean-trait-bar">
+                      <div class="ocean-trait-fill" style="width: 70%;"></div>
+                    </div>
+                    <span class="ocean-trait-value">70%</span>
+                  </div>
+                  <div class="ocean-trait">
+                    <span class="ocean-trait-label">Neuroticism</span>
+                    <div class="ocean-trait-bar">
+                      <div class="ocean-trait-fill" style="width: 25%;"></div>
+                    </div>
+                    <span class="ocean-trait-value">25%</span>
+                  </div>
+                </div>
+              </div>
+              <div class="team-complement">
+                <div class="team-complement-title">Team Complement Analysis</div>
+                <div class="team-complement-item">
+                  <svg class="team-complement-icon positive" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span><strong>Strategic thinking</strong> complements team's execution focus</span>
+                </div>
+                <div class="team-complement-item">
+                  <svg class="team-complement-icon positive" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span><strong>High conscientiousness</strong> matches team's quality standards</span>
+                </div>
+                <div class="team-complement-item">
+                  <svg class="team-complement-icon positive" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span><strong>Calm under pressure</strong> (low neuroticism) good for incident response</span>
+                </div>
+                <div class="team-complement-item">
+                  <svg class="team-complement-icon neutral" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                  </svg>
+                  <span><strong>Lower extraversion</strong> - may need encouragement to share ideas in groups</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Flags Section (if any) -->
+        <div class="flags-section" style="display: none;">
+          <div class="flags-header">
+            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2zm9-13.5V9"></path>
+            </svg>
+            Potential Concerns
+          </div>
+          <div class="flag-item">
+            <div class="flag-icon">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+              </svg>
+            </div>
+            <div class="flag-content">
+              <div class="flag-title">Example Flag Title</div>
+              <div class="flag-description">Example description of the concern and potential mitigation.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

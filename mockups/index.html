@@ -12,210 +12,484 @@
     }
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
       min-height: 100vh;
       padding: 60px 20px;
     }
     .container {
-      max-width: 1000px;
+      max-width: 1200px;
       margin: 0 auto;
     }
     .header {
       text-align: center;
-      color: white;
-      margin-bottom: 48px;
+      margin-bottom: 60px;
     }
     .logo {
-      width: 64px;
-      height: 64px;
-      background: white;
+      width: 72px;
+      height: 72px;
+      background: linear-gradient(135deg, #6366f1, #0ea5e9);
       border-radius: 16px;
       display: flex;
       align-items: center;
       justify-content: center;
       margin: 0 auto 24px;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 700;
-      color: #6366f1;
+      color: white;
+      box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
     }
     .title {
       font-size: 36px;
       font-weight: 700;
+      color: white;
       margin-bottom: 12px;
     }
     .subtitle {
       font-size: 18px;
-      opacity: 0.9;
+      color: #9ca3af;
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
     }
-    .grid {
+    .version-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-top: 16px;
+    }
+    .section {
+      margin-bottom: 48px;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: #9ca3af;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 20px;
+      padding-left: 4px;
+    }
+    .cards-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 20px;
     }
     .card {
       background: white;
       border-radius: 16px;
-      padding: 24px;
+      overflow: hidden;
+      transition: all 0.2s ease;
       text-decoration: none;
       color: inherit;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      display: flex;
+      flex-direction: column;
     }
     .card:hover {
       transform: translateY(-4px);
-      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
     }
-    .card-number {
-      width: 32px;
-      height: 32px;
-      background: linear-gradient(135deg, #6366f1, #8b5cf6);
-      color: white;
-      border-radius: 8px;
+    .card-preview {
+      height: 160px;
+      background: linear-gradient(135deg, #f3f4f6, #e5e7eb);
       display: flex;
       align-items: center;
       justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .card-preview-icon {
+      width: 56px;
+      height: 56px;
+      background: white;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+    .card-preview-icon svg {
+      width: 28px;
+      height: 28px;
+      color: #6366f1;
+    }
+    .card-badge {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: #22c55e;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
       font-weight: 600;
-      font-size: 14px;
-      margin-bottom: 16px;
+    }
+    .card-badge.updated {
+      background: #0ea5e9;
+    }
+    .card-body {
+      padding: 20px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .card-number {
+      font-size: 12px;
+      color: #9ca3af;
+      margin-bottom: 4px;
     }
     .card-title {
-      font-size: 18px;
+      font-size: 16px;
       font-weight: 600;
+      color: #111827;
       margin-bottom: 8px;
-      color: #1f2937;
     }
-    .card-desc {
+    .card-description {
       font-size: 14px;
       color: #6b7280;
       line-height: 1.5;
+      flex: 1;
     }
-    .card-features {
+    .card-tags {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
-      margin-top: 16px;
+      gap: 6px;
+      margin-top: 12px;
     }
-    .feature-tag {
-      font-size: 12px;
-      padding: 4px 10px;
+    .tag {
       background: #f3f4f6;
-      border-radius: 100px;
       color: #4b5563;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
     }
     .footer {
       text-align: center;
-      margin-top: 48px;
-      color: white;
-      opacity: 0.8;
+      margin-top: 60px;
+      padding-top: 40px;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .footer-text {
+      color: #6b7280;
       font-size: 14px;
     }
-    .footer a {
-      color: white;
+    .footer-link {
+      color: #818cf8;
+      text-decoration: none;
+    }
+    .footer-link:hover {
+      text-decoration: underline;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <div class="header">
+    <header class="header">
       <div class="logo">C</div>
       <h1 class="title">Curacel Recruiter Agent</h1>
-      <p class="subtitle">AI-Powered Recruitment Decision Support System</p>
-    </div>
+      <p class="subtitle">AI-powered recruitment decision support system for data-driven hiring. Click any mockup below to view the full design.</p>
+      <div class="version-badge">
+        <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+        Version 2.0 - December 2025
+      </div>
+    </header>
 
-    <div class="grid">
-      <a href="01-dashboard.html" class="card">
-        <div class="card-number">01</div>
-        <h2 class="card-title">Dashboard</h2>
-        <p class="card-desc">Overview of hiring pipeline, recent activity, top candidates, and quick actions.</p>
-        <div class="card-features">
-          <span class="feature-tag">Stats Grid</span>
-          <span class="feature-tag">Activity Feed</span>
-          <span class="feature-tag">Pipeline View</span>
-        </div>
-      </a>
+    <!-- Core Views -->
+    <section class="section">
+      <h2 class="section-title">Core Application Views</h2>
+      <div class="cards-grid">
+        <a href="01-dashboard.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-number">01</div>
+            <h3 class="card-title">Dashboard</h3>
+            <p class="card-description">Overview with hiring pipeline, recent activity, top candidates, and key metrics.</p>
+            <div class="card-tags">
+              <span class="tag">Stats</span>
+              <span class="tag">Pipeline</span>
+              <span class="tag">Activity</span>
+            </div>
+          </div>
+        </a>
 
-      <a href="02-jobs-list.html" class="card">
-        <div class="card-number">02</div>
-        <h2 class="card-title">Jobs List</h2>
-        <p class="card-desc">View all open positions with candidate counts, stages, and average scores.</p>
-        <div class="card-features">
-          <span class="feature-tag">Job Cards</span>
-          <span class="feature-tag">Filters</span>
-          <span class="feature-tag">Stats</span>
-        </div>
-      </a>
+        <a href="02-jobs-list.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-number">02</div>
+            <h3 class="card-title">Jobs List</h3>
+            <p class="card-description">All open positions with candidate counts, pipeline stages, and quick actions.</p>
+            <div class="card-tags">
+              <span class="tag">Cards</span>
+              <span class="tag">Filters</span>
+            </div>
+          </div>
+        </a>
 
-      <a href="03-job-create.html" class="card">
-        <div class="card-number">03</div>
-        <h2 class="card-title">Create Job</h2>
-        <p class="card-desc">Full-page form to set up a new hiring position with JD, rubric, and flow type.</p>
-        <div class="card-features">
-          <span class="feature-tag">Form Sections</span>
-          <span class="feature-tag">Flow Types</span>
-          <span class="feature-tag">Live Preview</span>
-        </div>
-      </a>
+        <a href="03-job-create.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-number">03</div>
+            <h3 class="card-title">Create Job</h3>
+            <p class="card-description">Full-page job setup form with JD upload, rubric, objectives, and flow type selection.</p>
+            <div class="card-tags">
+              <span class="tag">Form</span>
+              <span class="tag">Upload</span>
+              <span class="tag">Preview</span>
+            </div>
+          </div>
+        </a>
 
-      <a href="04-candidates-list.html" class="card">
-        <div class="card-number">04</div>
-        <h2 class="card-title">Candidates List</h2>
-        <p class="card-desc">YC-inspired scoring table with prominent scores, stages, and bulk actions.</p>
-        <div class="card-features">
-          <span class="feature-tag">Score Column</span>
-          <span class="feature-tag">Stage Badges</span>
-          <span class="feature-tag">Filters</span>
-        </div>
-      </a>
+        <a href="04-candidates-list.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-number">04</div>
+            <h3 class="card-title">Candidates List</h3>
+            <p class="card-description">YC-inspired candidate table with prominent scores, stages, and bulk actions.</p>
+            <div class="card-tags">
+              <span class="tag">Table</span>
+              <span class="tag">Scoring</span>
+              <span class="tag">Filters</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
 
-      <a href="05-candidate-profile.html" class="card">
-        <div class="card-number">05</div>
-        <h2 class="card-title">Candidate Profile</h2>
-        <p class="card-desc">Comprehensive single-candidate view with AI analysis, scores, and stage timeline.</p>
-        <div class="card-features">
-          <span class="feature-tag">AI Summary</span>
-          <span class="feature-tag">Score Breakdown</span>
-          <span class="feature-tag">PRESS Values</span>
-        </div>
-      </a>
+    <!-- Candidate Profile Views -->
+    <section class="section">
+      <h2 class="section-title">Candidate Profile Views</h2>
+      <div class="cards-grid">
+        <a href="05-candidate-profile.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-number">05</div>
+            <h3 class="card-title">Candidate Profile (v1)</h3>
+            <p class="card-description">Original candidate profile with overview, scoring, and AI insights.</p>
+            <div class="card-tags">
+              <span class="tag">Profile</span>
+              <span class="tag">AI Analysis</span>
+            </div>
+          </div>
+        </a>
 
-      <a href="06-interview-stage.html" class="card">
-        <div class="card-number">06</div>
-        <h2 class="card-title">Interview Stage</h2>
-        <p class="card-desc">Per-stage view with transcript, rubric scoring, notes, and AI analysis.</p>
-        <div class="card-features">
-          <span class="feature-tag">Transcript</span>
-          <span class="feature-tag">Rubric Scoring</span>
-          <span class="feature-tag">AI Insights</span>
-        </div>
-      </a>
+        <a href="09-candidate-profile-v2.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+            </div>
+            <span class="card-badge">NEW</span>
+          </div>
+          <div class="card-body">
+            <div class="card-number">09</div>
+            <h3 class="card-title">Candidate Profile (v2)</h3>
+            <p class="card-description">Enhanced profile with collapsible candidate list, evidence citations, and stage snapshots.</p>
+            <div class="card-tags">
+              <span class="tag">Collapsible Panel</span>
+              <span class="tag">Citations</span>
+              <span class="tag">Snapshots</span>
+            </div>
+          </div>
+        </a>
 
-      <a href="07-questions.html" class="card">
-        <div class="card-number">07</div>
-        <h2 class="card-title">Question Generator</h2>
-        <p class="card-desc">AI-powered interview question generation customized per candidate and role.</p>
-        <div class="card-features">
-          <span class="feature-tag">Categories</span>
-          <span class="feature-tag">Personalized</span>
-          <span class="feature-tag">Follow-ups</span>
-        </div>
-      </a>
+        <a href="10-interest-tab.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <span class="card-badge">NEW</span>
+          </div>
+          <div class="card-body">
+            <div class="card-number">10</div>
+            <h3 class="card-title">Interest Tab</h3>
+            <p class="card-description">Structured resume extraction, work experience timeline, skills, and AI-generated interview questions.</p>
+            <div class="card-tags">
+              <span class="tag">Resume Parsing</span>
+              <span class="tag">AI Extraction</span>
+              <span class="tag">Questions</span>
+            </div>
+          </div>
+        </a>
 
-      <a href="08-settings.html" class="card">
-        <div class="card-number">08</div>
-        <h2 class="card-title">Settings</h2>
-        <p class="card-desc">Company values, competencies, personality templates, and integrations.</p>
-        <div class="card-features">
-          <span class="feature-tag">PRESS Values</span>
-          <span class="feature-tag">Integrations</span>
-          <span class="feature-tag">API Keys</span>
-        </div>
-      </a>
-    </div>
+        <a href="11-curacel-fit-tab.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path>
+              </svg>
+            </div>
+            <span class="card-badge">NEW</span>
+          </div>
+          <div class="card-body">
+            <div class="card-number">11</div>
+            <h3 class="card-title">Curacel Fit Tab</h3>
+            <p class="card-description">PRESS values alignment, competency scoring, OCEAN/MBTI personality analysis, and team fit.</p>
+            <div class="card-tags">
+              <span class="tag">PRESS Values</span>
+              <span class="tag">Competencies</span>
+              <span class="tag">Personality</span>
+            </div>
+          </div>
+        </a>
 
-    <div class="footer">
-      <p>Design Mockups for Curacel Recruiter Agent</p>
-      <p style="margin-top: 8px;">Open any HTML file directly in your browser to view</p>
-    </div>
+        <a href="12-decision-tab.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+            <span class="card-badge">NEW</span>
+          </div>
+          <div class="card-body">
+            <div class="card-number">12</div>
+            <h3 class="card-title">Decision Tab</h3>
+            <p class="card-description">Score timeline chart, final breakdown, AI recommendation, and human decision capture.</p>
+            <div class="card-tags">
+              <span class="tag">Timeline Chart</span>
+              <span class="tag">Recommendation</span>
+              <span class="tag">Decision</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <!-- Interview & Tools -->
+    <section class="section">
+      <h2 class="section-title">Interview & Tools</h2>
+      <div class="cards-grid">
+        <a href="06-interview-stage.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-number">06</div>
+            <h3 class="card-title">Interview Stage</h3>
+            <p class="card-description">Stage detail with transcript, rubric scores, AI analysis, and next-stage questions.</p>
+            <div class="card-tags">
+              <span class="tag">Transcript</span>
+              <span class="tag">Rubric</span>
+              <span class="tag">AI Insights</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="07-questions.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-number">07</div>
+            <h3 class="card-title">Question Generator</h3>
+            <p class="card-description">AI-powered interview question generator with categories and candidate personalization.</p>
+            <div class="card-tags">
+              <span class="tag">AI Generation</span>
+              <span class="tag">Categories</span>
+              <span class="tag">Personalized</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="13-fireflies-modal.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon" style="background: linear-gradient(135deg, #ff6b35, #f7c327);">
+              <svg fill="currentColor" viewBox="0 0 24 24" style="color: white;">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+              </svg>
+            </div>
+            <span class="card-badge">NEW</span>
+          </div>
+          <div class="card-body">
+            <div class="card-number">13</div>
+            <h3 class="card-title">Fireflies Integration</h3>
+            <p class="card-description">Modal to search and attach Fireflies meetings to candidate interview stages.</p>
+            <div class="card-tags">
+              <span class="tag">Modal</span>
+              <span class="tag">Search</span>
+              <span class="tag">Integration</span>
+            </div>
+          </div>
+        </a>
+
+        <a href="08-settings.html" class="card">
+          <div class="card-preview">
+            <div class="card-preview-icon">
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="card-number">08</div>
+            <h3 class="card-title">Settings</h3>
+            <p class="card-description">Company configuration with PRESS values, competencies, personality templates, and integrations.</p>
+            <div class="card-tags">
+              <span class="tag">Values</span>
+              <span class="tag">Competencies</span>
+              <span class="tag">Integrations</span>
+            </div>
+          </div>
+        </a>
+      </div>
+    </section>
+
+    <footer class="footer">
+      <p class="footer-text">
+        Curacel Recruiter Agent Design System |
+        <a href="styles.css" class="footer-link">View CSS</a> |
+        Built for iteration
+      </p>
+    </footer>
   </div>
 </body>
 </html>
