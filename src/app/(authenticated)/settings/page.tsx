@@ -16,7 +16,8 @@ import {
   Key,
   Bell,
   BookOpen,
-  Bot
+  Bot,
+  Briefcase,
 } from 'lucide-react'
 
 const settingsOptions = [
@@ -53,6 +54,13 @@ const settingsOptions = [
     description: 'Contract templates ranging from full time employment contracts to non-disclosure agreements.',
     icon: FileText,
     href: '/settings/contract-templates',
+    iconBg: 'bg-indigo-100',
+  },
+  {
+    title: 'JD Templates',
+    description: 'Job description templates for different roles and departments. Create, edit, and bulk upload templates.',
+    icon: Briefcase,
+    href: '/settings/jd-templates',
     iconBg: 'bg-indigo-100',
   },
   {

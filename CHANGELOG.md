@@ -27,11 +27,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **V2 Recruiter Agent UI Foundation**
   - Recruiting Dashboard (`/recruiting`) with pipeline overview
   - Positions list and create position pages (`/recruiting/positions`)
+  - Candidates list page (`/recruiting/candidates`) with YC-style scoring table
+    - Filter by stage (All, Applied, HR Screen, Technical, Panel)
+    - Sort by score, search candidates
+    - Bulk actions (Advance, Reject)
+    - Score color coding (green 80+, amber 65-79, red <65)
   - Candidate profile with tabbed interface (`/recruiting/candidates/[id]`)
   - Stage details view (`/recruiting/candidates/[id]/stages/[stageId]`)
   - Question bank page (`/recruiting/questions`)
   - Recruiting settings page (`/recruiting/settings`)
   - Sidebar navigation for Recruiting module
+- **JD Templates in Settings**
+  - New JD Templates page (`/settings/jd-templates`)
+  - Create template with job title, department, hiring flow, responsibilities, requirements
+  - Bulk upload feature for PDF, DOC, DOCX, TXT files
+  - Department-based icons and color coding
+  - Active and Draft template states
+  - Duplicate and delete template actions
 - Enhanced ROADMAP.md with detailed PRD, AI output schemas, and current hiring process analysis
 - HTML mockups for Recruiter Agent UI (13 screens in `/mockups`)
 - Personality & Values feature for employee onboarding
