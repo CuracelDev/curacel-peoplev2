@@ -18,6 +18,7 @@ import {
   BookOpen,
   Bot,
   Briefcase,
+  Users,
 } from 'lucide-react'
 
 const settingsOptions = [
@@ -47,6 +48,13 @@ const settingsOptions = [
     description: 'Manage your legal entities - your registered company that can enter into a contract legally.',
     icon: Building2,
     href: '/settings/legal-entities',
+    iconBg: 'bg-indigo-100',
+  },
+  {
+    title: 'Teams',
+    description: 'Manage teams and departments. Sync from employee departments or create new teams.',
+    icon: Users,
+    href: '/settings/teams',
     iconBg: 'bg-indigo-100',
   },
   {

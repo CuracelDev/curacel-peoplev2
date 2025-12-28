@@ -39,11 +39,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Sidebar navigation for Recruiting module
 - **JD Templates in Settings**
   - New JD Templates page (`/settings/jd-templates`)
-  - Create template with job title, department, hiring flow, responsibilities, requirements
-  - Bulk upload feature for PDF, DOC, DOCX, TXT files
+  - Unified "Create Template" dialog with three methods:
+    - Manual: Create template with job title, department, hiring flow, responsibilities, requirements
+    - Upload Files: Bulk upload for PDF, DOC, DOCX, TXT files
+    - Import from URL: Import JD from job posting URLs (YC Work at a Startup, LinkedIn, Greenhouse, Lever, Workable)
+  - Auto-populates form fields when importing from URL for review/editing
   - Department-based icons and color coding
   - Active and Draft template states
   - Duplicate and delete template actions
+- **Teams Management in Settings**
+  - New Teams page (`/settings/teams`) for managing organizational teams/departments
+  - Create, edit, and delete teams with color coding
+  - "Sync from Employees" feature to auto-create teams from existing employee departments
+  - Employee count display per team
+  - Teams serve as the source of truth for departments across the app
 - Enhanced ROADMAP.md with detailed PRD, AI output schemas, and current hiring process analysis
 - HTML mockups for Recruiter Agent UI (13 screens in `/mockups`)
 - Personality & Values feature for employee onboarding
