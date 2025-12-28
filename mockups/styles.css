@@ -1,14 +1,29 @@
 /* Curacel Recruiter Agent - Design System */
+/* Aligned with Curacel People theme */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  /* Colors */
-  --primary: #6366f1;
-  --primary-dark: #4f46e5;
-  --primary-light: #818cf8;
-  --secondary: #0ea5e9;
+  /* Primary - Curacel Blue */
+  --primary: #4040ff;
+  --primary-dark: #3333cc;
+  --primary-light: #6666ff;
+  --primary-10: rgba(64, 64, 255, 0.1);
+
+  /* Secondary */
+  --secondary: #f5f7fb;
+  --secondary-foreground: #24242c;
+
+  /* Accent */
+  --accent: #a2a5f2;
+
+  /* Status Colors */
   --success: #22c55e;
+  --success-light: rgba(34, 197, 94, 0.1);
   --warning: #f59e0b;
+  --warning-light: rgba(245, 158, 11, 0.1);
   --danger: #ef4444;
+  --danger-light: rgba(239, 68, 68, 0.1);
   --info: #06b6d4;
 
   /* Neutrals */
@@ -22,6 +37,14 @@
   --gray-700: #374151;
   --gray-800: #1f2937;
   --gray-900: #111827;
+
+  /* Foreground/Background */
+  --foreground: #0f1419;
+  --background: #ffffff;
+  --card: #ffffff;
+  --border: #dce4e4;
+  --muted: #e5e5e6;
+  --muted-foreground: #6b7280;
 
   /* Spacing */
   --space-1: 0.25rem;
@@ -73,17 +96,18 @@ body {
   min-height: 100vh;
 }
 
-/* Sidebar */
+/* Sidebar - Light Theme (Curacel People) */
 .sidebar {
   width: var(--sidebar-width);
-  background: var(--gray-900);
-  color: white;
+  background: white;
+  color: var(--foreground);
   display: flex;
   flex-direction: column;
   position: fixed;
   height: 100vh;
   transition: width 0.2s ease;
   z-index: 100;
+  border-right: 1px solid var(--border);
 }
 
 .sidebar.collapsed {
@@ -92,7 +116,7 @@ body {
 
 .sidebar-header {
   padding: var(--space-6);
-  border-bottom: 1px solid var(--gray-700);
+  border-bottom: 1px solid var(--border);
   display: flex;
   align-items: center;
   gap: var(--space-3);
@@ -133,9 +157,10 @@ body {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--gray-400);
+  color: var(--muted-foreground);
   padding: var(--space-2) var(--space-3);
   margin-bottom: var(--space-2);
+  font-weight: 500;
 }
 
 .sidebar.collapsed .nav-section-title {
@@ -148,7 +173,7 @@ body {
   gap: var(--space-3);
   padding: var(--space-3);
   border-radius: var(--radius-md);
-  color: var(--gray-300);
+  color: var(--gray-600);
   text-decoration: none;
   transition: all 0.15s ease;
   cursor: pointer;
@@ -156,13 +181,13 @@ body {
 }
 
 .nav-item:hover {
-  background: var(--gray-800);
-  color: white;
+  background: var(--secondary);
+  color: var(--foreground);
 }
 
 .nav-item.active {
-  background: var(--primary);
-  color: white;
+  background: var(--primary-10);
+  color: var(--primary);
 }
 
 .nav-item-icon {
@@ -183,7 +208,7 @@ body {
 }
 
 .nav-item-badge {
-  background: var(--primary-dark);
+  background: var(--primary);
   color: white;
   font-size: 11px;
   padding: 2px 6px;
@@ -193,7 +218,7 @@ body {
 /* Enhanced Sidebar Sections */
 .sidebar-section-divider {
   height: 1px;
-  background: var(--gray-700);
+  background: var(--border);
   margin: var(--space-4) var(--space-3);
 }
 
@@ -217,14 +242,14 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: var(--radius);
-  color: var(--gray-400);
+  color: var(--muted-foreground);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .nav-section-action:hover {
-  background: var(--gray-700);
-  color: white;
+  background: var(--secondary);
+  color: var(--foreground);
 }
 
 /* Status indicators */
@@ -250,7 +275,7 @@ body {
 /* Sidebar footer */
 .sidebar-footer {
   padding: var(--space-4);
-  border-top: 1px solid var(--gray-700);
+  border-top: 1px solid var(--border);
 }
 
 .sidebar-user {
@@ -264,7 +289,7 @@ body {
 }
 
 .sidebar-user:hover {
-  background: var(--gray-800);
+  background: var(--secondary);
 }
 
 .sidebar-user-avatar {
@@ -294,7 +319,7 @@ body {
 
 .sidebar-user-role {
   font-size: 11px;
-  color: var(--gray-400);
+  color: var(--muted-foreground);
 }
 
 .sidebar.collapsed .sidebar-user-info {
@@ -312,18 +337,18 @@ body {
   gap: var(--space-3);
   padding: var(--space-3);
   border-radius: var(--radius-md);
-  color: var(--gray-300);
+  color: var(--gray-600);
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
 .nav-group-header:hover {
-  background: var(--gray-800);
-  color: white;
+  background: var(--secondary);
+  color: var(--foreground);
 }
 
 .nav-group-header.active {
-  color: white;
+  color: var(--primary);
 }
 
 .nav-group-toggle {
@@ -349,7 +374,7 @@ body {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  color: var(--gray-400);
+  color: var(--muted-foreground);
   font-size: 13px;
   border-radius: var(--radius);
   cursor: pointer;
@@ -358,24 +383,24 @@ body {
 }
 
 .nav-group-item:hover {
-  color: white;
-  background: var(--gray-800);
+  color: var(--foreground);
+  background: var(--secondary);
 }
 
 .nav-group-item.active {
-  color: var(--primary-light);
-  background: rgba(99, 102, 241, 0.1);
+  color: var(--primary);
+  background: var(--primary-10);
 }
 
 .nav-group-item-dot {
   width: 6px;
   height: 6px;
   border-radius: var(--radius-full);
-  background: var(--gray-600);
+  background: var(--gray-400);
 }
 
 .nav-group-item.active .nav-group-item-dot {
-  background: var(--primary-light);
+  background: var(--primary);
 }
 
 .nav-subitems {
@@ -388,7 +413,7 @@ body {
   align-items: center;
   gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
-  color: var(--gray-400);
+  color: var(--muted-foreground);
   text-decoration: none;
   font-size: 13px;
   border-radius: var(--radius);
@@ -396,12 +421,12 @@ body {
 }
 
 .nav-subitem:hover {
-  color: white;
-  background: var(--gray-800);
+  color: var(--foreground);
+  background: var(--secondary);
 }
 
 .nav-subitem.active {
-  color: var(--primary-light);
+  color: var(--primary);
 }
 
 /* Main Content */
@@ -639,9 +664,35 @@ body {
 }
 
 .badge-primary {
-  background: var(--primary-light);
-  color: var(--primary-dark);
-  background: rgba(99, 102, 241, 0.1);
+  background: var(--primary-10);
+  color: var(--primary);
+}
+
+/* Blue AI Assistant Button */
+.ai-assistant-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3);
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: var(--space-2);
+}
+
+.ai-assistant-btn:hover {
+  background: var(--primary-dark);
+}
+
+.ai-assistant-btn svg {
+  width: 18px;
+  height: 18px;
 }
 
 .badge-success {
