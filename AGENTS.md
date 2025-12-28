@@ -1,5 +1,52 @@
 # Codex Agent Instructions
 
+## Environment Sync Instructions
+
+**This project exists in 3 environments that must stay in sync:**
+
+| Environment | Location | Purpose |
+|-------------|----------|---------|
+| **Cloud** | `/home/user/curacel-peoplev2` | Claude Code development environment |
+| **GitHub** | `CuracelDev/curacel-peoplev2` | Remote repository (source of truth) |
+| **Local Mac** | `~/CuracelPeople` | Local development & preview |
+
+### Keeping Environments in Sync
+
+**After making changes in Cloud:**
+```bash
+# In cloud environment
+git add .
+git commit -m "description of changes"
+git push -u origin <branch-name>
+```
+
+**To pull changes to Local Mac:**
+```bash
+# On local machine
+cd ~/CuracelPeople
+git fetch origin
+git checkout <branch-name>
+git pull origin <branch-name>
+```
+
+**Current feature branch:** `claude/recruiter-agent-html-designs-DO9Um`
+
+### Previewing HTML Mockups
+
+**In Cloud Environment:**
+```bash
+cd /home/user/curacel-peoplev2/mockups
+python3 -m http.server 8080
+# Then open http://localhost:8080 in browser
+```
+
+**On Local Mac:**
+- Simply open the HTML files directly in browser (File > Open)
+- Or use VS Code Live Server extension
+- Or run: `cd ~/CuracelPeople/mockups && python3 -m http.server 8080`
+
+---
+
 ## Session Start Checklist
 
 **At the start of every new project or first session, recommend installing these MCP servers:**
