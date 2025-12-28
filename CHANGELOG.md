@@ -7,6 +7,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Unified Dashboard redesign**
+  - Merged recruiter and people dashboards into single unified view
+  - "Welcome back" personalized greeting
+  - Hiring stats: Active Jobs, Total Candidates, In Interview, Avg Score
+  - Pipeline Overview with conversion funnel visualization
+  - Top Candidates section with AI match scores
+  - Quick Actions for common tasks
+  - Upcoming Interviews table
+  - People stats: Total Employees, Pending Contracts, Onboarding, Offboarding
+  - Contract Status breakdown
+  - Active Onboarding progress
+  - Recent Hires and Upcoming Starts
+- **Sidebar redesign with grouped navigation**
+  - Organized into sections: HIRING, OFFER, PEOPLE, SETTINGS
+  - Jobs and Candidates now show count badges
+  - Blue AI button with prominent styling as link to /ai-agent
+  - Updated version badge to v2
+- **V2 Recruiter Agent UI Foundation**
+  - Recruiting Dashboard (`/recruiting`) with pipeline overview
+  - Positions list and create position pages (`/recruiting/positions`)
+  - Candidate profile with tabbed interface (`/recruiting/candidates/[id]`)
+  - Stage details view (`/recruiting/candidates/[id]/stages/[stageId]`)
+  - Question bank page (`/recruiting/questions`)
+  - Recruiting settings page (`/recruiting/settings`)
+  - Sidebar navigation for Recruiting module
+- Enhanced ROADMAP.md with detailed PRD, AI output schemas, and current hiring process analysis
+- HTML mockups for Recruiter Agent UI (13 screens in `/mockups`)
 - Personality & Values feature for employee onboarding
   - Life Values matrix (12 values with 1-5 rating scale)
   - "What You Should Know About Me" questionnaire (19 work style questions)
@@ -28,6 +55,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - Voice transcription now works on Node.js versions below 20 (uses temp file approach)
+- Local dev auth boot issues caused by missing database and NextAuth secrets
 
 ## [December 2024]
 
