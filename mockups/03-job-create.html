@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Job - Curacel Recruiter</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .form-section {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-6);
+    }
+    .form-section-header {
+      padding: var(--space-5);
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+    .form-section-number {
+      width: 28px;
+      height: 28px;
+      background: var(--primary);
+      color: white;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .form-section-title {
+      font-weight: 600;
+      font-size: 16px;
+    }
+    .form-section-body {
+      padding: var(--space-5);
+    }
+
+    .flow-type-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-4);
+    }
+    .flow-type-card {
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .flow-type-card:hover {
+      border-color: var(--gray-300);
+    }
+    .flow-type-card.selected {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.02);
+    }
+    .flow-type-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-bottom: var(--space-2);
+    }
+    .flow-type-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .flow-type-name {
+      font-weight: 600;
+    }
+    .flow-type-desc {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+    .flow-type-stages {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-top: var(--space-3);
+      flex-wrap: wrap;
+    }
+    .flow-stage {
+      font-size: 11px;
+      background: var(--gray-100);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      color: var(--gray-600);
+    }
+    .flow-stage-arrow {
+      color: var(--gray-300);
+      font-size: 12px;
+    }
+
+    .competency-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-3);
+    }
+    .competency-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .competency-item:hover {
+      border-color: var(--gray-300);
+    }
+    .competency-item.selected {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+    .competency-checkbox {
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .competency-item.selected .competency-checkbox {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .sidebar-preview {
+      position: sticky;
+      top: 80px;
+    }
+    .preview-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .preview-header {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      padding: var(--space-5);
+    }
+    .preview-content {
+      padding: var(--space-5);
+    }
+    .preview-section {
+      margin-bottom: var(--space-4);
+    }
+    .preview-section:last-child {
+      margin-bottom: 0;
+    }
+    .preview-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-500);
+      margin-bottom: var(--space-1);
+    }
+    .preview-value {
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">C</div>
+        <span class="sidebar-title">Curacel Recruit</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <a class="nav-item" href="01-dashboard.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Dashboard</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Hiring</div>
+          <a class="nav-item active" href="02-jobs-list.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Jobs</span>
+            <span class="nav-item-badge">3</span>
+          </a>
+
+          <a class="nav-item" href="04-candidates-list.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">All Candidates</span>
+          </a>
+
+          <a class="nav-item" href="07-questions.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Question Bank</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">System</div>
+          <a class="nav-item" href="08-settings.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Settings</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <div class="breadcrumb">
+            <a href="01-dashboard.html">Dashboard</a>
+            <span class="breadcrumb-separator">/</span>
+            <a href="02-jobs-list.html">Jobs</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Create New Job</span>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <button class="btn btn-secondary">Save as Draft</button>
+          <button class="btn btn-primary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Create Job
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <div class="page-header">
+          <h1 class="page-title">Create New Job</h1>
+          <p class="page-subtitle">Set up a new hiring position with role details and requirements</p>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 340px; gap: var(--space-6);">
+          <!-- Form Column -->
+          <div>
+            <!-- Basic Information -->
+            <div class="form-section">
+              <div class="form-section-header">
+                <div class="form-section-number">1</div>
+                <div class="form-section-title">Basic Information</div>
+              </div>
+              <div class="form-section-body">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Job Title</label>
+                    <input type="text" class="form-input" placeholder="e.g., Senior Backend Engineer" value="Senior Backend Engineer">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Department</label>
+                    <select class="form-input form-select">
+                      <option>Select department</option>
+                      <option selected>Engineering</option>
+                      <option>Design</option>
+                      <option>Growth</option>
+                      <option>Operations</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <select class="form-input form-select">
+                      <option>Remote</option>
+                      <option>Lagos, Nigeria</option>
+                      <option>Hybrid</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Employment Type</label>
+                    <select class="form-input form-select">
+                      <option>Full-time</option>
+                      <option>Part-time</option>
+                      <option>Contract</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Job Description -->
+            <div class="form-section">
+              <div class="form-section-header">
+                <div class="form-section-number">2</div>
+                <div class="form-section-title">Job Description</div>
+              </div>
+              <div class="form-section-body">
+                <div class="form-group">
+                  <label class="form-label">
+                    Job Description
+                    <span class="form-label-optional">(paste or upload)</span>
+                  </label>
+                  <div class="file-upload" style="margin-bottom: var(--space-3);">
+                    <div class="file-upload-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                        <polyline points="17 8 12 3 7 8"/>
+                        <line x1="12" y1="3" x2="12" y2="15"/>
+                      </svg>
+                    </div>
+                    <div class="file-upload-text">Drop your JD file here or click to upload</div>
+                    <div class="file-upload-hint">PDF, DOC, or TXT (max 10MB)</div>
+                  </div>
+                  <div style="text-align: center; color: var(--gray-400); margin-bottom: var(--space-3);">or paste below</div>
+                  <textarea class="form-input" rows="8" placeholder="Paste job description here...">We are looking for a Senior Backend Engineer to join our growing team. You will be responsible for designing, building, and maintaining scalable backend systems that power our insurance technology platform.
+
+Key Responsibilities:
+- Design and implement scalable microservices architecture
+- Lead technical decisions and mentor junior engineers
+- Collaborate with product and design teams
+- Ensure code quality through testing and code reviews
+
+Requirements:
+- 5+ years of backend development experience
+- Strong proficiency in Node.js, Python, or Go
+- Experience with cloud platforms (AWS, GCP)
+- Database design expertise (PostgreSQL, MongoDB)
+- Understanding of CI/CD and DevOps practices</textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Hiring Rubric -->
+            <div class="form-section">
+              <div class="form-section-header">
+                <div class="form-section-number">3</div>
+                <div class="form-section-title">Hiring Rubric & Scorecard</div>
+              </div>
+              <div class="form-section-body">
+                <div class="form-group">
+                  <label class="form-label">
+                    Upload Hiring Rubric
+                    <span class="form-label-optional">(optional)</span>
+                  </label>
+                  <div class="file-upload">
+                    <div class="file-upload-icon">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                      </svg>
+                    </div>
+                    <div class="file-upload-text">Upload rubric document</div>
+                    <div class="file-upload-hint">PDF, DOC, or Excel</div>
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">Role Objectives (6-12 months)</label>
+                  <textarea class="form-input" rows="4" placeholder="What should this person achieve in their first 6-12 months?">- Successfully onboard and contribute to core product features within first 30 days
+- Lead at least 2 major feature implementations
+- Establish testing best practices for the backend team
+- Mentor at least 1 junior engineer</textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Flow Type -->
+            <div class="form-section">
+              <div class="form-section-header">
+                <div class="form-section-number">4</div>
+                <div class="form-section-title">Interview Flow</div>
+              </div>
+              <div class="form-section-body">
+                <label class="form-label" style="margin-bottom: var(--space-4);">Select the interview flow for this role</label>
+                <div class="flow-type-grid">
+                  <div class="flow-type-card">
+                    <div class="flow-type-card-header">
+                      <div class="flow-type-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                          <circle cx="9" cy="7" r="4"/>
+                        </svg>
+                      </div>
+                      <div class="flow-type-name">Standard</div>
+                    </div>
+                    <div class="flow-type-desc">General hiring flow for most roles</div>
+                    <div class="flow-type-stages">
+                      <span class="flow-stage">Apply</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">HR Screen</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">Panel</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">Trial</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">Offer</span>
+                    </div>
+                  </div>
+
+                  <div class="flow-type-card selected">
+                    <div class="flow-type-card-header">
+                      <div class="flow-type-icon" style="background: rgba(34, 197, 94, 0.1); color: var(--success);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="16 18 22 12 16 6"/>
+                          <polyline points="8 6 2 12 8 18"/>
+                        </svg>
+                      </div>
+                      <div class="flow-type-name">Engineering</div>
+                    </div>
+                    <div class="flow-type-desc">Includes technical assessment</div>
+                    <div class="flow-type-stages">
+                      <span class="flow-stage">Apply</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">HR</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">Kand.io</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">Technical</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">Panel</span>
+                    </div>
+                  </div>
+
+                  <div class="flow-type-card">
+                    <div class="flow-type-card-header">
+                      <div class="flow-type-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+                          <polyline points="17 6 23 6 23 12"/>
+                        </svg>
+                      </div>
+                      <div class="flow-type-name">Sales</div>
+                    </div>
+                    <div class="flow-type-desc">Includes trial with POC goals</div>
+                    <div class="flow-type-stages">
+                      <span class="flow-stage">Apply</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">HR Screen</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">Panel</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">POC Trial</span>
+                    </div>
+                  </div>
+
+                  <div class="flow-type-card">
+                    <div class="flow-type-card-header">
+                      <div class="flow-type-icon" style="background: rgba(236, 72, 153, 0.1); color: #ec4899;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                      </div>
+                      <div class="flow-type-name">Executive</div>
+                    </div>
+                    <div class="flow-type-desc">Multiple panels + references</div>
+                    <div class="flow-type-stages">
+                      <span class="flow-stage">Apply</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">HR</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">Panels</span>
+                      <span class="flow-stage-arrow">&rarr;</span>
+                      <span class="flow-stage">References</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Competencies -->
+            <div class="form-section">
+              <div class="form-section-header">
+                <div class="form-section-number">5</div>
+                <div class="form-section-title">Role Competencies</div>
+              </div>
+              <div class="form-section-body">
+                <label class="form-label" style="margin-bottom: var(--space-4);">Select the key competencies for this role</label>
+                <div class="competency-grid">
+                  <div class="competency-item selected">
+                    <div class="competency-checkbox">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </div>
+                    <span>Technical Excellence</span>
+                  </div>
+                  <div class="competency-item selected">
+                    <div class="competency-checkbox">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </div>
+                    <span>Problem Solving</span>
+                  </div>
+                  <div class="competency-item selected">
+                    <div class="competency-checkbox">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </div>
+                    <span>Communication</span>
+                  </div>
+                  <div class="competency-item selected">
+                    <div class="competency-checkbox">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </div>
+                    <span>Leadership</span>
+                  </div>
+                  <div class="competency-item">
+                    <div class="competency-checkbox"></div>
+                    <span>Collaboration</span>
+                  </div>
+                  <div class="competency-item">
+                    <div class="competency-checkbox"></div>
+                    <span>Adaptability</span>
+                  </div>
+                  <div class="competency-item">
+                    <div class="competency-checkbox"></div>
+                    <span>Ownership</span>
+                  </div>
+                  <div class="competency-item selected">
+                    <div class="competency-checkbox">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                    </div>
+                    <span>System Design</span>
+                  </div>
+                  <div class="competency-item">
+                    <div class="competency-checkbox"></div>
+                    <span>Customer Focus</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Preview Sidebar -->
+          <div class="sidebar-preview">
+            <div class="preview-card">
+              <div class="preview-header">
+                <div style="font-size: 12px; opacity: 0.8; margin-bottom: var(--space-2);">Job Preview</div>
+                <div style="font-size: 20px; font-weight: 600;">Senior Backend Engineer</div>
+                <div style="font-size: 14px; opacity: 0.9; margin-top: var(--space-1);">Engineering &middot; Remote</div>
+              </div>
+              <div class="preview-content">
+                <div class="preview-section">
+                  <div class="preview-label">Employment</div>
+                  <div class="preview-value">Full-time</div>
+                </div>
+                <div class="preview-section">
+                  <div class="preview-label">Interview Flow</div>
+                  <div class="preview-value">Engineering</div>
+                  <div style="display: flex; align-items: center; gap: var(--space-2); margin-top: var(--space-2); flex-wrap: wrap;">
+                    <span class="badge badge-gray">Apply</span>
+                    <span style="color: var(--gray-300);">&rarr;</span>
+                    <span class="badge badge-gray">HR</span>
+                    <span style="color: var(--gray-300);">&rarr;</span>
+                    <span class="badge badge-gray">Kand.io</span>
+                    <span style="color: var(--gray-300);">&rarr;</span>
+                    <span class="badge badge-gray">Technical</span>
+                    <span style="color: var(--gray-300);">&rarr;</span>
+                    <span class="badge badge-gray">Panel</span>
+                  </div>
+                </div>
+                <div class="preview-section">
+                  <div class="preview-label">Key Competencies</div>
+                  <div style="display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: var(--space-2);">
+                    <span class="badge badge-primary">Technical Excellence</span>
+                    <span class="badge badge-primary">Problem Solving</span>
+                    <span class="badge badge-primary">Communication</span>
+                    <span class="badge badge-primary">Leadership</span>
+                    <span class="badge badge-primary">System Design</span>
+                  </div>
+                </div>
+                <div class="preview-section">
+                  <div class="preview-label">6-12 Month Objectives</div>
+                  <ul style="font-size: 13px; color: var(--gray-600); padding-left: var(--space-4); margin-top: var(--space-2);">
+                    <li>Contribute to core features in 30 days</li>
+                    <li>Lead 2+ major implementations</li>
+                    <li>Establish testing best practices</li>
+                    <li>Mentor junior engineers</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div style="margin-top: var(--space-4); padding: var(--space-4); background: rgba(99, 102, 241, 0.05); border-radius: var(--radius-lg); border: 1px solid rgba(99, 102, 241, 0.1);">
+              <div style="display: flex; align-items: center; gap: var(--space-2); color: var(--primary); margin-bottom: var(--space-2);">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                <span style="font-weight: 500; font-size: 14px;">AI-Ready</span>
+              </div>
+              <p style="font-size: 13px; color: var(--gray-600);">
+                Once created, the AI will use this job profile to score candidates and generate personalized interview questions.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

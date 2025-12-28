@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Question Generator - Curacel Recruiter</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .generator-layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: var(--space-6);
+      min-height: calc(100vh - 200px);
+    }
+
+    .generator-sidebar {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      height: fit-content;
+      position: sticky;
+      top: 80px;
+    }
+
+    .generator-main {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-5);
+    }
+
+    .category-selector {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      margin-bottom: var(--space-5);
+    }
+    .category-option {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .category-option:hover {
+      border-color: var(--gray-300);
+      background: var(--gray-50);
+    }
+    .category-option.selected {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+    .category-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s ease;
+    }
+    .category-option.selected .category-checkbox {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+    .category-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .category-info {
+      flex: 1;
+    }
+    .category-name {
+      font-weight: 500;
+      font-size: 14px;
+    }
+    .category-desc {
+      font-size: 12px;
+      color: var(--gray-500);
+    }
+
+    .questions-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .questions-header {
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .questions-header-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+    .questions-category-badge {
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 500;
+    }
+    .questions-body {
+      padding: var(--space-5);
+    }
+
+    .question-row {
+      display: flex;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-3);
+      transition: all 0.15s ease;
+    }
+    .question-row:hover {
+      border-color: var(--gray-300);
+      box-shadow: var(--shadow-sm);
+    }
+    .question-row:last-child {
+      margin-bottom: 0;
+    }
+    .question-number {
+      width: 28px;
+      height: 28px;
+      background: var(--gray-100);
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--gray-600);
+      flex-shrink: 0;
+    }
+    .question-content {
+      flex: 1;
+    }
+    .question-text {
+      font-size: 15px;
+      color: var(--gray-900);
+      margin-bottom: var(--space-2);
+      line-height: 1.5;
+    }
+    .question-followup {
+      font-size: 13px;
+      color: var(--gray-500);
+      font-style: italic;
+    }
+    .question-tags {
+      display: flex;
+      gap: var(--space-2);
+      margin-top: var(--space-2);
+    }
+    .question-tag {
+      font-size: 11px;
+      padding: 2px 8px;
+      background: var(--gray-100);
+      border-radius: var(--radius-full);
+      color: var(--gray-600);
+    }
+    .question-actions {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+    }
+    .question-action-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius);
+      border: 1px solid var(--gray-200);
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--gray-500);
+      transition: all 0.15s ease;
+    }
+    .question-action-btn:hover {
+      background: var(--gray-50);
+      color: var(--gray-700);
+    }
+    .question-action-btn.favorite.active {
+      background: rgba(245, 158, 11, 0.1);
+      border-color: var(--warning);
+      color: var(--warning);
+    }
+
+    .generate-btn {
+      width: 100%;
+      padding: var(--space-4);
+      background: linear-gradient(135deg, var(--primary), #8b5cf6);
+      color: white;
+      border: none;
+      border-radius: var(--radius-lg);
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      transition: all 0.15s ease;
+    }
+    .generate-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+    }
+
+    .context-preview {
+      background: var(--gray-50);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      margin-top: var(--space-4);
+    }
+    .context-preview-title {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-500);
+      margin-bottom: var(--space-2);
+    }
+    .context-preview-item {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      padding: var(--space-1) 0;
+    }
+    .context-preview-label {
+      color: var(--gray-500);
+    }
+    .context-preview-value {
+      font-weight: 500;
+      color: var(--gray-900);
+    }
+
+    .empty-state-questions {
+      text-align: center;
+      padding: var(--space-12);
+      color: var(--gray-500);
+    }
+    .empty-state-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--gray-100);
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto var(--space-4);
+      color: var(--gray-400);
+    }
+
+    .saved-questions-preview {
+      margin-top: var(--space-5);
+      padding-top: var(--space-5);
+      border-top: 1px solid var(--gray-200);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">C</div>
+        <span class="sidebar-title">Curacel Recruit</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <a class="nav-item" href="01-dashboard.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Dashboard</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Hiring</div>
+          <a class="nav-item" href="02-jobs-list.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Jobs</span>
+            <span class="nav-item-badge">3</span>
+          </a>
+
+          <a class="nav-item" href="04-candidates-list.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">All Candidates</span>
+          </a>
+
+          <a class="nav-item active">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Question Bank</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">System</div>
+          <a class="nav-item" href="08-settings.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Settings</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <div class="breadcrumb">
+            <a href="01-dashboard.html">Dashboard</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">Question Generator</span>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <button class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+              <polyline points="17 21 17 13 7 13 7 21"/>
+              <polyline points="7 3 7 8 15 8"/>
+            </svg>
+            Save to Bank
+          </button>
+          <button class="btn btn-secondary">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+              <polyline points="7 10 12 15 17 10"/>
+              <line x1="12" y1="15" x2="12" y2="3"/>
+            </svg>
+            Export PDF
+          </button>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <div class="page-header">
+          <h1 class="page-title">Question Generator</h1>
+          <p class="page-subtitle">Generate AI-powered interview questions customized for each candidate</p>
+        </div>
+
+        <div class="generator-layout">
+          <!-- Sidebar - Configuration -->
+          <div class="generator-sidebar">
+            <h3 style="font-weight: 600; margin-bottom: var(--space-4);">Generation Settings</h3>
+
+            <!-- Job Selection -->
+            <div class="form-group">
+              <label class="form-label">Job Position</label>
+              <select class="form-input form-select">
+                <option>Senior Backend Engineer</option>
+                <option>Product Designer</option>
+                <option>Growth Lead</option>
+              </select>
+            </div>
+
+            <!-- Candidate Selection -->
+            <div class="form-group">
+              <label class="form-label">Candidate (Optional)</label>
+              <select class="form-input form-select">
+                <option>James Okafor</option>
+                <option>Sarah Chen</option>
+                <option>Adaeze Nwosu</option>
+                <option value="">-- Generic (no candidate) --</option>
+              </select>
+            </div>
+
+            <!-- Interview Stage -->
+            <div class="form-group">
+              <label class="form-label">Interview Stage</label>
+              <select class="form-input form-select">
+                <option>HR Screen</option>
+                <option>Technical Interview</option>
+                <option selected>Panel Interview</option>
+                <option>Final Round</option>
+              </select>
+            </div>
+
+            <!-- Categories -->
+            <div class="form-group">
+              <label class="form-label">Question Categories</label>
+              <div class="category-selector">
+                <div class="category-option selected">
+                  <div class="category-checkbox">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                  <div class="category-icon" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+                    </svg>
+                  </div>
+                  <div class="category-info">
+                    <div class="category-name">Situational</div>
+                    <div class="category-desc">"What would you do if..."</div>
+                  </div>
+                </div>
+
+                <div class="category-option selected">
+                  <div class="category-checkbox">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                  <div class="category-icon" style="background: rgba(34, 197, 94, 0.1); color: var(--success);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  </div>
+                  <div class="category-info">
+                    <div class="category-name">Behavioral</div>
+                    <div class="category-desc">"Tell me about a time..."</div>
+                  </div>
+                </div>
+
+                <div class="category-option">
+                  <div class="category-checkbox"></div>
+                  <div class="category-icon" style="background: rgba(245, 158, 11, 0.1); color: var(--warning);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+                    </svg>
+                  </div>
+                  <div class="category-info">
+                    <div class="category-name">Motivational</div>
+                    <div class="category-desc">"Why do you want..."</div>
+                  </div>
+                </div>
+
+                <div class="category-option selected">
+                  <div class="category-checkbox">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  </div>
+                  <div class="category-icon" style="background: rgba(236, 72, 153, 0.1); color: #ec4899;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polyline points="16 18 22 12 16 6"/>
+                      <polyline points="8 6 2 12 8 18"/>
+                    </svg>
+                  </div>
+                  <div class="category-info">
+                    <div class="category-name">Technical</div>
+                    <div class="category-desc">Role-specific questions</div>
+                  </div>
+                </div>
+
+                <div class="category-option">
+                  <div class="category-checkbox"></div>
+                  <div class="category-icon" style="background: rgba(6, 182, 212, 0.1); color: var(--info);">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                      <circle cx="9" cy="7" r="4"/>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                    </svg>
+                  </div>
+                  <div class="category-info">
+                    <div class="category-name">Culture/Values</div>
+                    <div class="category-desc">PRESS alignment</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="generate-btn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+              </svg>
+              Generate Questions
+            </button>
+
+            <!-- Context Preview -->
+            <div class="context-preview">
+              <div class="context-preview-title">Context Used</div>
+              <div class="context-preview-item">
+                <span class="context-preview-label">Job Description</span>
+                <span class="context-preview-value">Loaded</span>
+              </div>
+              <div class="context-preview-item">
+                <span class="context-preview-label">Candidate CV</span>
+                <span class="context-preview-value">Loaded</span>
+              </div>
+              <div class="context-preview-item">
+                <span class="context-preview-label">Previous Stages</span>
+                <span class="context-preview-value">4 analyzed</span>
+              </div>
+              <div class="context-preview-item">
+                <span class="context-preview-label">Must Validate</span>
+                <span class="context-preview-value">3 points</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Content - Generated Questions -->
+          <div class="generator-main">
+            <!-- Situational Questions -->
+            <div class="questions-card">
+              <div class="questions-header">
+                <div class="questions-header-title">
+                  <span class="questions-category-badge" style="background: rgba(99, 102, 241, 0.1); color: var(--primary);">Situational</span>
+                  <span style="font-weight: 600;">5 questions</span>
+                </div>
+                <button class="btn btn-ghost btn-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"/>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                  </svg>
+                  Regenerate
+                </button>
+              </div>
+              <div class="questions-body">
+                <div class="question-row">
+                  <div class="question-number">1</div>
+                  <div class="question-content">
+                    <div class="question-text">Imagine you're leading a critical migration of our claims processing system from a monolith to microservices, and halfway through, the team discovers a fundamental data consistency issue that wasn't caught in planning. How would you handle this situation?</div>
+                    <div class="question-followup">Follow-up: How would you communicate this to stakeholders?</div>
+                    <div class="question-tags">
+                      <span class="question-tag">Problem Solving</span>
+                      <span class="question-tag">Leadership</span>
+                      <span class="question-tag">Communication</span>
+                    </div>
+                  </div>
+                  <div class="question-actions">
+                    <button class="question-action-btn favorite active">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </button>
+                    <button class="question-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="question-row">
+                  <div class="question-number">2</div>
+                  <div class="question-content">
+                    <div class="question-text">You're tasked with reducing our API response time by 50% for a major insurance partner integration. The current architecture uses synchronous database calls. What approach would you take, and how would you validate your solution?</div>
+                    <div class="question-followup">Follow-up: What metrics would you monitor post-deployment?</div>
+                    <div class="question-tags">
+                      <span class="question-tag">System Design</span>
+                      <span class="question-tag">Performance</span>
+                    </div>
+                  </div>
+                  <div class="question-actions">
+                    <button class="question-action-btn favorite">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </button>
+                    <button class="question-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="question-row">
+                  <div class="question-number">3</div>
+                  <div class="question-content">
+                    <div class="question-text">Based on your experience at Paystack, how would you approach building a real-time fraud detection system for insurance claims? What architecture patterns would you consider?</div>
+                    <div class="question-followup">Follow-up: How did your payment reconciliation work translate to this problem?</div>
+                    <div class="question-tags">
+                      <span class="question-tag">Domain Experience</span>
+                      <span class="question-tag">Personalized</span>
+                    </div>
+                  </div>
+                  <div class="question-actions">
+                    <button class="question-action-btn favorite">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </button>
+                    <button class="question-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Behavioral Questions -->
+            <div class="questions-card">
+              <div class="questions-header">
+                <div class="questions-header-title">
+                  <span class="questions-category-badge" style="background: rgba(34, 197, 94, 0.1); color: var(--success);">Behavioral</span>
+                  <span style="font-weight: 600;">5 questions</span>
+                </div>
+                <button class="btn btn-ghost btn-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"/>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                  </svg>
+                  Regenerate
+                </button>
+              </div>
+              <div class="questions-body">
+                <div class="question-row">
+                  <div class="question-number">1</div>
+                  <div class="question-content">
+                    <div class="question-text">Tell me about a time when you had to make a significant technical decision with incomplete information. What was your approach, and what was the outcome?</div>
+                    <div class="question-followup">Follow-up: What would you do differently now?</div>
+                    <div class="question-tags">
+                      <span class="question-tag">Must Validate</span>
+                      <span class="question-tag">Decision Making</span>
+                    </div>
+                  </div>
+                  <div class="question-actions">
+                    <button class="question-action-btn favorite active">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </button>
+                    <button class="question-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="question-row">
+                  <div class="question-number">2</div>
+                  <div class="question-content">
+                    <div class="question-text">Describe a situation where you had to work in a smaller, fast-paced team compared to your previous roles. How did you adapt?</div>
+                    <div class="question-followup">Follow-up: What challenges did you face with fewer resources?</div>
+                    <div class="question-tags">
+                      <span class="question-tag">Must Validate</span>
+                      <span class="question-tag">Startup Fit</span>
+                    </div>
+                  </div>
+                  <div class="question-actions">
+                    <button class="question-action-btn favorite">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </button>
+                    <button class="question-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="question-row">
+                  <div class="question-number">3</div>
+                  <div class="question-content">
+                    <div class="question-text">You mentioned leading a team of 4 engineers on the Kafka project at Paystack. Tell me about a time when a team member was underperforming. How did you handle it?</div>
+                    <div class="question-followup">Follow-up: What was the outcome for the individual and the project?</div>
+                    <div class="question-tags">
+                      <span class="question-tag">Leadership</span>
+                      <span class="question-tag">Personalized</span>
+                    </div>
+                  </div>
+                  <div class="question-actions">
+                    <button class="question-action-btn favorite">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </button>
+                    <button class="question-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Technical Questions -->
+            <div class="questions-card">
+              <div class="questions-header">
+                <div class="questions-header-title">
+                  <span class="questions-category-badge" style="background: rgba(236, 72, 153, 0.1); color: #ec4899;">Technical</span>
+                  <span style="font-weight: 600;">5 questions</span>
+                </div>
+                <button class="btn btn-ghost btn-sm">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polyline points="1 4 1 10 7 10"/>
+                    <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/>
+                  </svg>
+                  Regenerate
+                </button>
+              </div>
+              <div class="questions-body">
+                <div class="question-row">
+                  <div class="question-number">1</div>
+                  <div class="question-content">
+                    <div class="question-text">You mentioned using the saga pattern with compensating transactions. Can you walk me through how you would implement this for a multi-step insurance claim approval workflow?</div>
+                    <div class="question-followup">Follow-up: How would you handle partial failures?</div>
+                    <div class="question-tags">
+                      <span class="question-tag">Distributed Systems</span>
+                      <span class="question-tag">Deep Dive</span>
+                    </div>
+                  </div>
+                  <div class="question-actions">
+                    <button class="question-action-btn favorite">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </button>
+                    <button class="question-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="question-row">
+                  <div class="question-number">2</div>
+                  <div class="question-content">
+                    <div class="question-text">How would you design an idempotency mechanism for a claims processing API that needs to handle duplicate submissions gracefully?</div>
+                    <div class="question-followup">Follow-up: What storage strategy would you use for idempotency keys?</div>
+                    <div class="question-tags">
+                      <span class="question-tag">API Design</span>
+                      <span class="question-tag">Reliability</span>
+                    </div>
+                  </div>
+                  <div class="question-actions">
+                    <button class="question-action-btn favorite">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                      </svg>
+                    </button>
+                    <button class="question-action-btn">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

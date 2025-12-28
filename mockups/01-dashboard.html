@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Curacel Recruiter</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Dashboard specific styles */
+    .activity-item {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+    .activity-icon {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+    .activity-icon.new { background: rgba(34, 197, 94, 0.1); color: #16a34a; }
+    .activity-icon.interview { background: rgba(99, 102, 241, 0.1); color: var(--primary); }
+    .activity-icon.score { background: rgba(245, 158, 11, 0.1); color: #d97706; }
+    .activity-icon.reject { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
+
+    .quick-action {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      background: var(--gray-50);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .quick-action:hover {
+      background: var(--gray-100);
+    }
+    .quick-action-icon {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      color: white;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pipeline-stage {
+      text-align: center;
+      padding: var(--space-4);
+    }
+    .pipeline-count {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--gray-900);
+    }
+    .pipeline-label {
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-top: var(--space-1);
+    }
+    .pipeline-arrow {
+      color: var(--gray-300);
+      font-size: 20px;
+    }
+
+    .top-candidate {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-radius: var(--radius);
+    }
+    .top-candidate:hover {
+      background: var(--gray-50);
+    }
+    .candidate-rank {
+      width: 24px;
+      height: 24px;
+      background: var(--gray-100);
+      border-radius: var(--radius-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--gray-600);
+    }
+    .candidate-rank.gold { background: #fef3c7; color: #d97706; }
+    .candidate-rank.silver { background: var(--gray-200); color: var(--gray-600); }
+    .candidate-rank.bronze { background: #fed7aa; color: #c2410c; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">C</div>
+        <span class="sidebar-title">Curacel Recruit</span>
+      </div>
+
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <a class="nav-item active">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="7" height="7" rx="1"/>
+                <rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/>
+                <rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Dashboard</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">Hiring</div>
+          <a class="nav-item" href="02-jobs-list.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="7" width="20" height="14" rx="2"/>
+                <path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Jobs</span>
+            <span class="nav-item-badge">3</span>
+          </a>
+          <div class="nav-subitems">
+            <a class="nav-subitem" href="04-candidates-list.html">Senior Backend Engineer</a>
+            <a class="nav-subitem">Product Designer</a>
+            <a class="nav-subitem">Growth Lead</a>
+          </div>
+
+          <a class="nav-item" href="04-candidates-list.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                <circle cx="9" cy="7" r="4"/>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">All Candidates</span>
+          </a>
+
+          <a class="nav-item" href="07-questions.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Question Bank</span>
+          </a>
+        </div>
+
+        <div class="nav-section">
+          <div class="nav-section-title">System</div>
+          <a class="nav-item" href="08-settings.html">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="3"/>
+                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Settings</span>
+          </a>
+
+          <a class="nav-item">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+              </svg>
+            </span>
+            <span class="nav-item-text">Integrations</span>
+          </a>
+        </div>
+      </nav>
+
+      <div style="padding: var(--space-4); border-top: 1px solid var(--gray-700);">
+        <div class="nav-item">
+          <div class="avatar" style="width: 32px; height: 32px; font-size: 12px;">HM</div>
+          <span class="nav-item-text">Henry Mascot</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <div class="breadcrumb">
+            <span class="breadcrumb-current">Dashboard</span>
+          </div>
+        </div>
+        <div class="top-bar-right">
+          <div class="search-box">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            <input type="text" placeholder="Search candidates, jobs...">
+          </div>
+          <button class="icon-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </button>
+          <div class="avatar">HM</div>
+        </div>
+      </header>
+
+      <!-- Page Content -->
+      <div class="page-content">
+        <div class="page-header">
+          <h1 class="page-title">Welcome back, Henry</h1>
+          <p class="page-subtitle">Here's what's happening with your hiring pipeline</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">Active Jobs</div>
+            <div class="stat-value">3</div>
+            <div class="stat-change positive">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+              </svg>
+              +1 this week
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Total Candidates</div>
+            <div class="stat-value">47</div>
+            <div class="stat-change positive">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+              </svg>
+              +12 this week
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">In Interview</div>
+            <div class="stat-value">18</div>
+            <div class="stat-change positive">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/>
+              </svg>
+              +5 this week
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg. Score</div>
+            <div class="stat-value">72</div>
+            <div class="stat-change negative">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/>
+              </svg>
+              -3 from last week
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <!-- Pipeline Overview -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Pipeline Overview</h3>
+              <select class="form-input form-select" style="width: auto; padding: var(--space-2) var(--space-6) var(--space-2) var(--space-3);">
+                <option>All Jobs</option>
+                <option>Senior Backend Engineer</option>
+                <option>Product Designer</option>
+                <option>Growth Lead</option>
+              </select>
+            </div>
+            <div class="card-body">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <div class="pipeline-stage">
+                  <div class="pipeline-count">23</div>
+                  <div class="pipeline-label">Applied</div>
+                </div>
+                <span class="pipeline-arrow">&rarr;</span>
+                <div class="pipeline-stage">
+                  <div class="pipeline-count">15</div>
+                  <div class="pipeline-label">HR Screen</div>
+                </div>
+                <span class="pipeline-arrow">&rarr;</span>
+                <div class="pipeline-stage">
+                  <div class="pipeline-count">8</div>
+                  <div class="pipeline-label">Technical</div>
+                </div>
+                <span class="pipeline-arrow">&rarr;</span>
+                <div class="pipeline-stage">
+                  <div class="pipeline-count">5</div>
+                  <div class="pipeline-label">Panel</div>
+                </div>
+                <span class="pipeline-arrow">&rarr;</span>
+                <div class="pipeline-stage">
+                  <div class="pipeline-count">2</div>
+                  <div class="pipeline-label">Offer</div>
+                </div>
+              </div>
+
+              <div style="margin-top: var(--space-6);">
+                <div style="display: flex; justify-content: space-between; font-size: 13px; color: var(--gray-500); margin-bottom: var(--space-2);">
+                  <span>Conversion Rate</span>
+                  <span>8.7%</span>
+                </div>
+                <div class="progress-bar">
+                  <div class="progress-bar-fill medium" style="width: 8.7%;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recent Activity -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Recent Activity</h3>
+              <a href="#" style="color: var(--primary); text-decoration: none; font-size: 14px;">View all</a>
+            </div>
+            <div class="card-body">
+              <div class="activity-item">
+                <div class="activity-icon new">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                  </svg>
+                </div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 500;">New application received</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">Sarah Chen applied for Senior Backend Engineer</div>
+                </div>
+                <div style="font-size: 12px; color: var(--gray-400);">2m ago</div>
+              </div>
+
+              <div class="activity-item">
+                <div class="activity-icon score">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                  </svg>
+                </div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 500;">Score updated</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">James Okafor scored 87/100 after HR screen</div>
+                </div>
+                <div style="font-size: 12px; color: var(--gray-400);">15m ago</div>
+              </div>
+
+              <div class="activity-item">
+                <div class="activity-icon interview">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8" y1="2" x2="8" y2="6"/>
+                    <line x1="3" y1="10" x2="21" y2="10"/>
+                  </svg>
+                </div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 500;">Interview completed</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">Technical interview with Michael Adeyemi</div>
+                </div>
+                <div style="font-size: 12px; color: var(--gray-400);">1h ago</div>
+              </div>
+
+              <div class="activity-item">
+                <div class="activity-icon reject">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="15" y1="9" x2="9" y2="15"/>
+                    <line x1="9" y1="9" x2="15" y2="15"/>
+                  </svg>
+                </div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 500;">Candidate rejected</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">David Kim did not proceed - culture fit</div>
+                </div>
+                <div style="font-size: 12px; color: var(--gray-400);">2h ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top: var(--space-6);">
+          <!-- Top Candidates -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Top Candidates</h3>
+              <a href="04-candidates-list.html" style="color: var(--primary); text-decoration: none; font-size: 14px;">View all</a>
+            </div>
+            <div class="card-body">
+              <div class="top-candidate">
+                <div class="candidate-rank gold">1</div>
+                <div class="avatar" style="background: #22c55e;">JO</div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 500;">James Okafor</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">Senior Backend Engineer</div>
+                </div>
+                <div class="score-badge score-badge-sm score-high">87</div>
+              </div>
+
+              <div class="top-candidate">
+                <div class="candidate-rank silver">2</div>
+                <div class="avatar" style="background: #6366f1;">EO</div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 500;">Emily Okonkwo</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">Product Designer</div>
+                </div>
+                <div class="score-badge score-badge-sm score-high">85</div>
+              </div>
+
+              <div class="top-candidate">
+                <div class="candidate-rank bronze">3</div>
+                <div class="avatar" style="background: #0ea5e9;">SC</div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 500;">Sarah Chen</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">Senior Backend Engineer</div>
+                </div>
+                <div class="score-badge score-badge-sm score-high">82</div>
+              </div>
+
+              <div class="top-candidate">
+                <div class="candidate-rank">4</div>
+                <div class="avatar" style="background: #f59e0b;">MA</div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 500;">Michael Adeyemi</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">Growth Lead</div>
+                </div>
+                <div class="score-badge score-badge-sm score-medium">78</div>
+              </div>
+
+              <div class="top-candidate">
+                <div class="candidate-rank">5</div>
+                <div class="avatar" style="background: #ec4899;">AA</div>
+                <div style="flex: 1;">
+                  <div style="font-weight: 500;">Amaka Abubakar</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">Senior Backend Engineer</div>
+                </div>
+                <div class="score-badge score-badge-sm score-medium">76</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="card">
+            <div class="card-header">
+              <h3 class="card-title">Quick Actions</h3>
+            </div>
+            <div class="card-body" style="display: flex; flex-direction: column; gap: var(--space-3);">
+              <a href="03-job-create.html" class="quick-action">
+                <div class="quick-action-icon">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style="font-weight: 500;">Create New Job</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">Set up a new hiring position</div>
+                </div>
+              </a>
+
+              <div class="quick-action">
+                <div class="quick-action-icon" style="background: var(--secondary);">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style="font-weight: 500;">Add Candidate</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">Manually add a new candidate</div>
+                </div>
+              </div>
+
+              <a href="07-questions.html" class="quick-action">
+                <div class="quick-action-icon" style="background: var(--success);">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <line x1="12" y1="17" x2="12.01" y2="17"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style="font-weight: 500;">Generate Questions</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">AI-powered interview questions</div>
+                </div>
+              </a>
+
+              <div class="quick-action">
+                <div class="quick-action-icon" style="background: var(--warning);">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                    <polyline points="17 8 12 3 7 8"/>
+                    <line x1="12" y1="3" x2="12" y2="15"/>
+                  </svg>
+                </div>
+                <div>
+                  <div style="font-weight: 500;">Upload Transcript</div>
+                  <div style="font-size: 13px; color: var(--gray-500);">Import from Fireflies</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming Interviews -->
+        <div class="card" style="margin-top: var(--space-6);">
+          <div class="card-header">
+            <h3 class="card-title">Upcoming Interviews</h3>
+            <button class="btn btn-secondary btn-sm">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              View Calendar
+            </button>
+          </div>
+          <div class="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Candidate</th>
+                  <th>Position</th>
+                  <th>Stage</th>
+                  <th>Date & Time</th>
+                  <th>Interviewers</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: var(--space-3);">
+                      <div class="avatar" style="width: 32px; height: 32px; font-size: 12px; background: #22c55e;">JO</div>
+                      <div>
+                        <div style="font-weight: 500;">James Okafor</div>
+                        <div style="font-size: 12px; color: var(--gray-500);">james.okafor@email.com</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Senior Backend Engineer</td>
+                  <td><span class="badge badge-primary">Panel Interview</span></td>
+                  <td>
+                    <div style="font-weight: 500;">Today, 2:00 PM</div>
+                    <div style="font-size: 12px; color: var(--gray-500);">In 2 hours</div>
+                  </td>
+                  <td>
+                    <div class="avatar-group">
+                      <div class="avatar" style="width: 28px; height: 28px; font-size: 10px;">HM</div>
+                      <div class="avatar" style="width: 28px; height: 28px; font-size: 10px; background: var(--secondary);">FA</div>
+                      <div class="avatar" style="width: 28px; height: 28px; font-size: 10px; background: var(--success);">+2</div>
+                    </div>
+                  </td>
+                  <td>
+                    <button class="btn btn-secondary btn-sm">Prepare</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: var(--space-3);">
+                      <div class="avatar" style="width: 32px; height: 32px; font-size: 12px; background: #0ea5e9;">SC</div>
+                      <div>
+                        <div style="font-weight: 500;">Sarah Chen</div>
+                        <div style="font-size: 12px; color: var(--gray-500);">sarah.chen@email.com</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Senior Backend Engineer</td>
+                  <td><span class="badge badge-gray">HR Screen</span></td>
+                  <td>
+                    <div style="font-weight: 500;">Tomorrow, 10:00 AM</div>
+                    <div style="font-size: 12px; color: var(--gray-500);">Dec 29</div>
+                  </td>
+                  <td>
+                    <div class="avatar-group">
+                      <div class="avatar" style="width: 28px; height: 28px; font-size: 10px; background: var(--warning);">TO</div>
+                    </div>
+                  </td>
+                  <td>
+                    <button class="btn btn-secondary btn-sm">Prepare</button>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <div style="display: flex; align-items: center; gap: var(--space-3);">
+                      <div class="avatar" style="width: 32px; height: 32px; font-size: 12px; background: #f59e0b;">MA</div>
+                      <div>
+                        <div style="font-weight: 500;">Michael Adeyemi</div>
+                        <div style="font-size: 12px; color: var(--gray-500);">m.adeyemi@email.com</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>Growth Lead</td>
+                  <td><span class="badge badge-warning">Technical</span></td>
+                  <td>
+                    <div style="font-weight: 500;">Dec 30, 3:00 PM</div>
+                    <div style="font-size: 12px; color: var(--gray-500);">In 2 days</div>
+                  </td>
+                  <td>
+                    <div class="avatar-group">
+                      <div class="avatar" style="width: 28px; height: 28px; font-size: 10px;">HM</div>
+                      <div class="avatar" style="width: 28px; height: 28px; font-size: 10px; background: #ec4899;">CK</div>
+                    </div>
+                  </td>
+                  <td>
+                    <button class="btn btn-secondary btn-sm">Prepare</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

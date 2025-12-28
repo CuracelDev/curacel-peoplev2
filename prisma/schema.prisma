@@ -1,0 +1,999 @@
+// Prisma schema for Curacel People
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// AUTH & USER MANAGEMENT
+// ============================================
+
+enum Role {
+  SUPER_ADMIN
+  HR_ADMIN
+  IT_ADMIN
+  MANAGER
+  EMPLOYEE
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  image         String?
+  role          Role      @default(EMPLOYEE)
+  employeeId    String?   @unique
+  employee      Employee? @relation(fields: [employeeId], references: [id])
+
+  passwordHash  String?
+  passwordSetAt DateTime?
+
+  resetToken        String?   @unique
+  resetTokenExpires DateTime?
+
+  emailVerified DateTime?
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Audit tracking
+  auditLogs     AuditLog[]
+  notifications Notification[]
+  aiChats       AIChat[]
+
+  invitesSent   UserInvite[] @relation("InvitedBy")
+  apiTokens     ApiToken[]
+  
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model UserInvite {
+  id          String   @id @default(cuid())
+  email       String
+  role        Role
+  token       String   @unique
+  expiresAt   DateTime
+  acceptedAt  DateTime?
+  revokedAt   DateTime?
+
+  invitedById String
+  invitedBy   User     @relation("InvitedBy", fields: [invitedById], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([email])
+  @@index([invitedById])
+}
+
+model ApiToken {
+  id          String   @id @default(uuid())
+  name        String
+  tokenHash   String   @unique
+  tokenPrefix String
+  lastUsedAt  DateTime?
+  revokedAt   DateTime?
+
+  createdById String
+  createdBy   User     @relation(fields: [createdById], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([createdById])
+  @@index([revokedAt])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? 
+  access_token      String? 
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? 
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================
+// EMPLOYEE MANAGEMENT
+// ============================================
+
+enum EmployeeStatus {
+  CANDIDATE
+  OFFER_SENT
+  OFFER_SIGNED
+  HIRED_PENDING_START
+  ACTIVE
+  OFFBOARDING
+  EXITED
+}
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACTOR
+  INTERN
+}
+
+enum ContractType {
+  PERMANENT
+  FIXED_TERM
+  CONTRACTOR
+  INTERN
+}
+
+model Employee {
+  id              String          @id @default(uuid())
+  fullName        String
+  personalEmail   String          @unique
+  workEmail       String?         @unique
+  status          EmployeeStatus  @default(CANDIDATE)
+  
+  // Job details
+  jobTitle        String?
+  department      String?
+  managerId       String?
+  manager         Employee?       @relation("ManagerReports", fields: [managerId], references: [id])
+  directReports   Employee[]      @relation("ManagerReports")
+  location        String?
+  employmentType  EmploymentType  @default(FULL_TIME)
+  
+  // Dates
+  startDate       DateTime?
+  endDate         DateTime?
+  
+  // HR/PII fields (encrypted at rest)
+  salaryAmount    Decimal?        @db.Decimal(12, 2)
+  salaryCurrency  String?         @default("USD")
+  contractType    ContractType?
+  
+  // Address
+  addressStreet   String?
+  addressCity     String?
+  addressState    String?
+  addressPostal   String?
+  addressCountry  String?
+  
+  // Contact
+  phone           String?
+  profileImageUrl String?
+  
+  // Personal details
+  gender          String?
+  maritalStatus   String?
+  dateOfBirth     DateTime?
+  nationality     String?
+  taxId           String?
+  
+  // Bank details
+  bankName        String?
+  accountName     String?
+  accountNumber   String?
+  accountSortCode String?
+  
+  // Emergency contact
+  emergencyContactName     String?
+  emergencyContactRelation String?
+  emergencyContactPhone    String?
+  emergencyContactEmail    String?
+
+  // Personality & Values (collected during onboarding)
+  lifeValues               Json?    // { mostImportant: [], important: [], somewhatImportant: [], notImportant: [] }
+  knowAboutMe              Json?    // Array of { question, answer } for work style questions
+  mbtiType                 String?  // Myers-Briggs Type Indicator (e.g., INTJ, ENFP)
+  mbtiImageUrl             String?  // Optional uploaded MBTI result image
+  bigFiveUrl               String?  // URL to Big Five test results
+  bigFiveImageUrl          String?  // Optional uploaded Big Five result image
+  personalityCompleted     Boolean  @default(false)
+  personalityCompletedAt   DateTime?
+
+  // Former Employment (full-time employees only)
+  formerOfferLetterUrl           String?
+  formerLastPayslipUrl           String?
+  formerResignationLetterUrl     String?
+  formerResignationConfirmUrl    String?
+  formerHrContactName            String?
+  formerHrContactPhone           String?
+  formerHrContactEmail           String?
+  formerCompanyAddress           String?
+  formerEmploymentSubmittedAt    DateTime?
+
+  // Flexible metadata
+  meta            Json?
+  
+  // Relations
+  user            User?
+  offers          Offer[]
+  appAccounts     AppAccount[]
+  onboardingWorkflows OnboardingWorkflow[]
+  offboardingWorkflows OffboardingWorkflow[]
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([status])
+  @@index([department])
+  @@index([managerId])
+}
+
+// ============================================
+// OFFERS & CONTRACTS
+// ============================================
+
+enum OfferStatus {
+  DRAFT
+  SENT
+  VIEWED
+  SIGNED
+  DECLINED
+  EXPIRED
+  CANCELLED
+}
+
+model OfferTemplate {
+  id              String    @id @default(uuid())
+  name            String
+  description     String?
+  bodyHtml        String    
+  bodyMarkdown    String?   
+  
+  // Employment type this template is for
+  employmentType  EmploymentType?
+  
+  // Standard attachments
+  includeNda      Boolean   @default(true)
+  includePii      Boolean   @default(true)
+  
+  // Custom attachments
+  attachments     OfferTemplateAttachment[]
+  
+  // Variable schema (JSON describing expected variables)
+  variableSchema  Json?
+  
+  isActive        Boolean   @default(true)
+  offers          Offer[]
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model OfferTemplateAttachment {
+  id              String        @id @default(uuid())
+  templateId      String
+  template        OfferTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  name            String
+  type            String        // "nda", "pii", "custom"
+  contentHtml     String?       
+  fileUrl         String?
+  
+  createdAt       DateTime      @default(now())
+}
+
+model Offer {
+  id              String        @id @default(uuid())
+  
+  // Candidate info
+  employeeId      String
+  employee        Employee      @relation(fields: [employeeId], references: [id])
+  candidateEmail  String
+  candidateName   String
+  
+  // Template
+  templateId      String
+  template        OfferTemplate @relation(fields: [templateId], references: [id])
+  
+  // Filled variables
+  variables       Json          // { role: "Engineer", salary: "100000", etc. }
+  
+  // Rendered content (snapshot at send time)
+  renderedHtml    String?       
+  
+  // Status
+  status          OfferStatus   @default(DRAFT)
+  
+  // E-signature tracking
+  esignEnvelopeId String?       @unique
+  esignProvider   String?       // "docusign"
+  esignStatus     String?
+  esignSentAt     DateTime?
+  esignViewedAt   DateTime?
+  esignSignedAt   DateTime?
+  esignDeclinedAt DateTime?
+  esignExpiresAt  DateTime?
+  
+  // Signed document
+  signedDocUrl    String?
+  
+  // Timeline events
+  events          OfferEvent[]
+  
+  // Metadata
+  sentBy          String?       // User ID who sent
+  notes           String?
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@index([status])
+  @@index([candidateEmail])
+}
+
+model OfferEvent {
+  id          String   @id @default(uuid())
+  offerId     String
+  offer       Offer    @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  type        String   // "created", "sent", "viewed", "signed", "declined", "expired"
+  description String?
+  metadata    Json?
+  occurredAt  DateTime @default(now())
+}
+
+// ============================================
+// APP INTEGRATIONS
+// ============================================
+
+enum AppType {
+  GOOGLE_WORKSPACE
+  SLACK
+  BITBUCKET
+  JIRA
+  PASSBOLT
+  HUBSPOT
+  STANDUPNINJA
+  CUSTOM
+}
+
+enum ConnectionTestStatus {
+  SUCCESS
+  FAILED
+}
+
+model App {
+  id              String          @id @default(uuid())
+  type            AppType
+  name            String
+  description     String?
+  iconUrl         String?
+  isEnabled       Boolean         @default(true)
+  archivedAt      DateTime?
+  
+  connections     AppConnection[]
+  provisioningRules AppProvisioningRule[]
+  accounts        AppAccount[]
+  onboardingTaskTemplates OnboardingTaskTemplate[]
+  offboardingTaskTemplates OffboardingTaskTemplate[]
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([type, name])
+  @@index([type])
+  @@index([archivedAt])
+}
+
+model AppConnection {
+  id              String    @id @default(uuid())
+  appId           String
+  app             App       @relation(fields: [appId], references: [id])
+  
+  // Connection config (encrypted)
+  configEncrypted String    
+  
+  // Domain/workspace identifier
+  domain          String?
+  
+  isActive        Boolean   @default(true)
+  lastSyncAt      DateTime?
+  lastTestStatus  ConnectionTestStatus?
+  lastTestedAt    DateTime?
+  lastTestError   String?
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@unique([appId, domain])
+}
+
+model AppProvisioningRule {
+  id              String    @id @default(uuid())
+  appId           String
+  app             App       @relation(fields: [appId], references: [id])
+  
+  name            String
+  description     String?
+  
+  // Condition (JSON) - e.g. { "department": "Engineering", "location": "Remote" }
+  condition       Json
+  
+  // Provision data (JSON) - e.g. { "groups": ["eng-team"], "channels": ["#engineering"] }
+  provisionData   Json
+  
+  priority        Int       @default(0)
+  isActive        Boolean   @default(true)
+  
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([appId, isActive])
+}
+
+enum AppAccountStatus {
+  PENDING
+  PROVISIONING
+  ACTIVE
+  FAILED
+  DISABLED
+  DEPROVISIONED
+}
+
+model AppAccount {
+  id              String          @id @default(uuid())
+  employeeId      String
+  employee        Employee        @relation(fields: [employeeId], references: [id])
+  appId           String
+  app             App             @relation(fields: [appId], references: [id])
+  
+  // External account info
+  externalUserId  String?
+  externalEmail   String?
+  externalUsername String?
+  
+  status          AppAccountStatus @default(PENDING)
+  statusMessage   String?
+  
+  // Provisioned resources (JSON) - e.g. { "groups": [...], "channels": [...] }
+  provisionedResources Json?
+  
+  lastSyncAt      DateTime?
+  provisionedAt   DateTime?
+  deprovisionedAt DateTime?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@unique([employeeId, appId])
+  @@index([status])
+}
+
+// ============================================
+// ONBOARDING
+// ============================================
+
+enum WorkflowStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model OnboardingWorkflow {
+  id              String          @id @default(uuid())
+  employeeId      String
+  employee        Employee        @relation(fields: [employeeId], references: [id])
+  
+  status          WorkflowStatus  @default(PENDING)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  
+  // Token for employee self-service
+  accessToken     String          @unique @default(uuid())
+  accessTokenExpiresAt DateTime?
+  
+  tasks           OnboardingTask[]
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+}
+
+enum TaskStatus {
+  PENDING
+  IN_PROGRESS
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+enum TaskType {
+  AUTOMATED
+  MANUAL
+}
+
+model OnboardingTask {
+  id              String              @id @default(uuid())
+  workflowId      String
+  workflow        OnboardingWorkflow  @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  name            String
+  description     String?
+  type            TaskType
+  status          TaskStatus          @default(PENDING)
+  
+  // For automated tasks
+  automationType  String?             // "provision_google", "provision_slack", etc.
+  automationConfig Json?
+  
+  // Execution details
+  statusMessage   String?
+  attempts        Int                 @default(0)
+  lastAttemptAt   DateTime?
+  completedAt     DateTime?
+  completedBy     String?             // User ID for manual tasks
+  
+  // Order
+  sortOrder       Int                 @default(0)
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([workflowId, status])
+}
+
+// ============================================
+// OFFBOARDING
+// ============================================
+
+model OffboardingWorkflow {
+  id              String          @id @default(uuid())
+  employeeId      String
+  employee        Employee        @relation(fields: [employeeId], references: [id])
+  
+  status          WorkflowStatus  @default(PENDING)
+  scheduledFor    DateTime?       // For scheduled offboarding
+  isImmediate     Boolean         @default(false)
+  startedAt       DateTime?
+  completedAt     DateTime?
+  
+  reason          String?
+  notes           String?
+  googleDeleteAccount Boolean      @default(false)
+  googleTransferToEmail String?
+  googleTransferApps Json?
+  googleAliasToEmail String?
+  initiatedBy     String?         // User ID
+  
+  tasks           OffboardingTask[]
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  @@index([employeeId])
+  @@index([status])
+  @@index([scheduledFor])
+}
+
+model OffboardingTask {
+  id              String              @id @default(uuid())
+  workflowId      String
+  workflow        OffboardingWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  
+  name            String
+  description     String?
+  type            TaskType
+  status          TaskStatus          @default(PENDING)
+  
+  // For automated tasks
+  automationType  String?             // "deprovision_google", "deprovision_slack", etc.
+  appId           String?             // Reference to which app to deprovision
+  
+  // Execution details
+  statusMessage   String?
+  attempts        Int                 @default(0)
+  lastAttemptAt   DateTime?
+  completedAt     DateTime?
+  completedBy     String?
+  
+  sortOrder       Int                 @default(0)
+  
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  @@index([workflowId, status])
+}
+
+// ============================================
+// AUDIT LOG
+// ============================================
+
+enum AuditAction {
+  // Offers
+  OFFER_CREATED
+  OFFER_UPDATED
+  OFFER_SENT
+  OFFER_VIEWED
+  OFFER_SIGNED
+  OFFER_DECLINED
+  OFFER_CANCELLED
+  OFFER_WEBHOOK_RECEIVED
+  
+  // Employees
+  EMPLOYEE_CREATED
+  EMPLOYEE_UPDATED
+  EMPLOYEE_STATUS_CHANGED
+  
+  // Onboarding
+  ONBOARDING_STARTED
+  ONBOARDING_TASK_COMPLETED
+  ONBOARDING_COMPLETED
+  
+  // Offboarding
+  OFFBOARDING_STARTED
+  OFFBOARDING_TASK_COMPLETED
+  OFFBOARDING_COMPLETED
+  
+  // Integrations
+  APP_CREATED
+  APP_ARCHIVED
+  APP_RESTORED
+  APP_CONNECTED
+  APP_DISCONNECTED
+  APP_ACCOUNT_PROVISIONED
+  APP_ACCOUNT_DEPROVISIONED
+  GOOGLE_USER_CREATED
+  GOOGLE_USER_DISABLED
+  GOOGLE_USER_DELETED
+  GOOGLE_GROUPS_UPDATED
+  SLACK_USER_CREATED
+  SLACK_USER_DISABLED
+  SLACK_CHANNELS_UPDATED
+  
+  // Settings
+  PROVISIONING_RULE_CREATED
+  PROVISIONING_RULE_UPDATED
+  PROVISIONING_RULE_DELETED
+
+  // Auth
+  USER_LOGIN
+  USER_LOGOUT
+
+  // AI Assistant
+  ASSISTANT_ACTION
+}
+
+enum NotificationRecipientMode {
+  ALL_ADMINS
+  INITIATOR
+  SELECTED
+}
+
+model AuditLog {
+  id            String      @id @default(uuid())
+  
+  // Actor
+  actorId       String?
+  actor         User?       @relation(fields: [actorId], references: [id])
+  actorEmail    String?
+  actorType     String?     // "user", "system", "webhook"
+  
+  // Action
+  action        AuditAction
+  
+  // Resource
+  resourceType  String      // "employee", "offer", "app_account", etc.
+  resourceId    String?
+  
+  // Details
+  metadata      Json?
+  ipAddress     String?
+  userAgent     String?
+  
+  createdAt     DateTime    @default(now())
+
+  @@index([action])
+  @@index([resourceType, resourceId])
+  @@index([actorId])
+  @@index([createdAt])
+
+  notifications Notification[]
+}
+
+model Notification {
+  id            String      @id @default(uuid())
+  userId        String
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  auditLogId    String?
+  auditLog      AuditLog?   @relation(fields: [auditLogId], references: [id], onDelete: SetNull)
+  action        AuditAction
+  resourceType  String
+  resourceId    String?
+  actorName     String?
+  actorEmail    String?
+  readAt        DateTime?
+  archivedAt    DateTime?
+  createdAt     DateTime    @default(now())
+
+  @@index([userId, readAt])
+  @@index([userId, archivedAt])
+  @@index([createdAt])
+}
+
+// ============================================
+// BACKGROUND JOBS (for pg-boss tracking)
+// ============================================
+
+model JobExecution {
+  id          String    @id @default(uuid())
+  jobName     String
+  jobId       String?
+  status      String    // "pending", "running", "completed", "failed"
+  input       Json?
+  output      Json?
+  error       String?
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([jobName, status])
+  @@index([createdAt])
+}
+
+// ============================================
+// ORGANIZATION SETTINGS
+// ============================================
+
+model Organization {
+  id                    String    @id @default(uuid())
+  name                  String
+  logoUrl               String?
+  oneSentenceDescription String?
+  careerPageUrl         String?
+  detailedDescription   String?   // Rich text HTML
+  letterheadEmail       String?
+  letterheadWebsite     String?
+  letterheadAddress     String?
+  letterheadPhone       String?
+  googleWorkspaceTransferToEmail String?
+  notificationEmailEnabled Boolean  @default(true)
+  notificationEmailActions Json?
+  notificationEmailRecipients Json?
+  notificationEmailRecipientMode NotificationRecipientMode @default(ALL_ADMINS)
+  legalEntities         LegalEntity[]
+  onboardingTaskTemplates OnboardingTaskTemplate[]
+  offboardingTaskTemplates OffboardingTaskTemplate[]
+  offboardingEmployeeTasks OffboardingEmployeeTask[]
+  
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@unique([id])
+}
+
+model LegalEntity {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  name           String
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([organizationId, name])
+  @@index([organizationId, isActive])
+}
+
+model OnboardingTaskTemplate {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name           String
+  description    String?
+  type           TaskType
+  automationType String?
+  appId          String?
+  app            App?         @relation(fields: [appId], references: [id])
+  appType        AppType?
+  sortOrder      Int          @default(0)
+  isActive       Boolean      @default(true)
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, sortOrder])
+  @@index([organizationId, isActive])
+  @@index([organizationId, appId])
+}
+
+model OffboardingTaskTemplate {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name           String
+  description    String?
+  type           TaskType
+  automationType String?
+  appId          String?
+  app            App?         @relation(fields: [appId], references: [id])
+  appType        AppType?
+  sortOrder      Int          @default(0)
+  isActive       Boolean      @default(true)
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, sortOrder])
+  @@index([organizationId, isActive])
+  @@index([organizationId, appId])
+}
+
+model OffboardingEmployeeTask {
+  id             String       @id @default(uuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  name           String
+  description    String?
+  sortOrder      Int          @default(0)
+  isActive       Boolean      @default(true)
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId, sortOrder])
+  @@index([organizationId, isActive])
+}
+
+// ============================================
+// SIGNATURE BLOCKS
+// ============================================
+
+model SignatureBlock {
+  id              String    @id @default(uuid())
+  signatoryName   String
+  signatoryTitle  String
+  signatureText   String?   // Electronic signature text (full name as signature)
+  signatureImageUrl String? // URL to uploaded signature image
+  isDefault       Boolean   @default(false)
+
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([signatoryName])
+}
+
+// ============================================
+// AI ASSISTANT SETTINGS
+// ============================================
+
+enum AIProvider {
+  OPENAI
+  ANTHROPIC
+  GEMINI
+}
+
+enum AIChatRole {
+  USER
+  ASSISTANT
+}
+
+model AISettings {
+  id                    String      @id @default(uuid())
+
+  // Provider selection
+  provider              AIProvider  @default(OPENAI)
+
+  // API keys (encrypted)
+  openaiKeyEncrypted    String?
+  anthropicKeyEncrypted String?
+  geminiKeyEncrypted    String?
+
+  // Model selection
+  openaiModel           String      @default("gpt-4o")
+  anthropicModel        String      @default("claude-sonnet-4-20250514")
+  geminiModel           String      @default("gemini-2.0-flash")
+
+  // Feature flags
+  isEnabled             Boolean     @default(true)
+  requireConfirmation   Boolean     @default(true)
+
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+
+model AIChat {
+  id        String        @id @default(uuid())
+  userId    String
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String        @default("New chat")
+  messages  AIChatMessage[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([userId, updatedAt])
+}
+
+model AIChatMessage {
+  id        String     @id @default(uuid())
+  chatId    String
+  chat      AIChat     @relation(fields: [chatId], references: [id], onDelete: Cascade)
+  role      AIChatRole
+  content   String
+  isError   Boolean    @default(false)
+  createdAt DateTime   @default(now())
+
+  @@index([chatId, createdAt])
+}
+
+// V3: Approval workflow for bulk/destructive actions
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+model AssistantApproval {
+  id          String         @id @default(uuid())
+  orgId       String
+  userId      String
+  planId      String         @unique
+  toolName    String
+  dryRunData  Json           // What will change
+  status      ApprovalStatus @default(PENDING)
+  approvedAt  DateTime?
+  approvedBy  String?
+  expiresAt   DateTime
+  createdAt   DateTime       @default(now())
+
+  @@index([userId, status])
+  @@index([expiresAt])
+}
+
+// V3: Daily brief summaries for proactive assistant
+model DailyBrief {
+  id        String   @id @default(uuid())
+  orgId     String
+  date      DateTime @db.Date
+  summary   Json     // { pendingContracts, upcomingStarts, stuckWorkflows }
+  createdAt DateTime @default(now())
+
+  @@unique([orgId, date])
+  @@index([orgId, date])
+}
+
+// ============================================
+// ONBOARDING SETTINGS
+// ============================================
+
+model OnboardingSettings {
+  id                String   @id @default(uuid())
+  sheetId           String?  // Google Sheet ID for tracking employee tasks
+  sheetRosterRange  String   @default("Status!A2:J")
+  sheetRefreshMs    Int      @default(30000)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
