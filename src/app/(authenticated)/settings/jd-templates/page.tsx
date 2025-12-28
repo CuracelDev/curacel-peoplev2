@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import {
   Dialog,
   DialogContent,
@@ -27,8 +28,19 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   Tabs,
   TabsContent,
@@ -56,12 +68,26 @@ import {
   Link as LinkIcon,
   Loader2,
   Globe,
+  Eye,
+  EyeOff,
 } from 'lucide-react'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import { cn } from '@/lib/utils'
 
+interface JDTemplate {
+  id: string
+  name: string
+  department: string
+  description: string
+  flowType: string
+  isActive: boolean
+  createdAt: string
+  requirements?: string
+  responsibilities?: string
+}
+
 // Mock JD templates data
-const mockTemplates = [
+const mockTemplates: JDTemplate[] = [
   {
     id: '1',
     name: 'Senior Backend Engineer',
@@ -70,6 +96,8 @@ const mockTemplates = [
     flowType: 'ENGINEERING',
     isActive: true,
     createdAt: '2025-01-15',
+    requirements: '- 5+ years backend experience\n- Proficient in Node.js or Python\n- Experience with databases',
+    responsibilities: '- Design and implement APIs\n- Optimize application performance\n- Collaborate with frontend team',
   },
   {
     id: '2',
@@ -131,8 +159,11 @@ function getDepartmentInfo(department: string) {
 }
 
 export default function JDTemplatesPage() {
-  const [templates, setTemplates] = useState(mockTemplates)
+  const [templates, setTemplates] = useState<JDTemplate[]>(mockTemplates)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [templateToDelete, setTemplateToDelete] = useState<JDTemplate | null>(null)
   const [activeTab, setActiveTab] = useState('manual')
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
@@ -141,24 +172,28 @@ export default function JDTemplatesPage() {
   const [importError, setImportError] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Create template form state
-  const [newTemplate, setNewTemplate] = useState({
+  // Form state for create/edit
+  const [formData, setFormData] = useState({
+    id: '',
     name: '',
     department: '',
     description: '',
     flowType: '',
     requirements: '',
     responsibilities: '',
+    isActive: true,
   })
 
   const resetForm = () => {
-    setNewTemplate({
+    setFormData({
+      id: '',
       name: '',
       department: '',
       description: '',
       flowType: '',
       requirements: '',
       responsibilities: '',
+      isActive: true,
     })
     setUploadedFiles([])
     setUploadStatus('idle')
@@ -169,20 +204,57 @@ export default function JDTemplatesPage() {
   }
 
   const handleCreateTemplate = () => {
-    if (!newTemplate.name.trim() || !newTemplate.department) return
+    if (!formData.name.trim() || !formData.department) return
 
-    const template = {
+    const template: JDTemplate = {
       id: Date.now().toString(),
-      name: newTemplate.name,
-      department: newTemplate.department,
-      description: newTemplate.description,
-      flowType: newTemplate.flowType || 'STANDARD',
-      isActive: true,
+      name: formData.name,
+      department: formData.department,
+      description: formData.description,
+      flowType: formData.flowType || 'STANDARD',
+      isActive: formData.isActive,
       createdAt: new Date().toISOString().split('T')[0],
+      requirements: formData.requirements,
+      responsibilities: formData.responsibilities,
     }
 
     setTemplates([template, ...templates])
     setIsCreateDialogOpen(false)
+    resetForm()
+  }
+
+  const handleEditTemplate = (template: JDTemplate) => {
+    setFormData({
+      id: template.id,
+      name: template.name,
+      department: template.department,
+      description: template.description,
+      flowType: template.flowType,
+      requirements: template.requirements || '',
+      responsibilities: template.responsibilities || '',
+      isActive: template.isActive,
+    })
+    setIsEditDialogOpen(true)
+  }
+
+  const handleUpdateTemplate = () => {
+    if (!formData.name.trim() || !formData.department) return
+
+    setTemplates(templates.map(t =>
+      t.id === formData.id
+        ? {
+            ...t,
+            name: formData.name,
+            department: formData.department,
+            description: formData.description,
+            flowType: formData.flowType || 'STANDARD',
+            isActive: formData.isActive,
+            requirements: formData.requirements,
+            responsibilities: formData.responsibilities,
+          }
+        : t
+    ))
+    setIsEditDialogOpen(false)
     resetForm()
   }
 
@@ -210,7 +282,7 @@ export default function JDTemplatesPage() {
     await new Promise(resolve => setTimeout(resolve, 2000))
 
     // Mock: Add uploaded files as templates
-    const newTemplates = uploadedFiles.map((file, index) => ({
+    const newTemplates: JDTemplate[] = uploadedFiles.map((file, index) => ({
       id: `uploaded-${Date.now()}-${index}`,
       name: file.name.replace(/\.(pdf|doc|docx|txt)$/i, ''),
       department: 'Engineering', // Default department
@@ -259,7 +331,8 @@ export default function JDTemplatesPage() {
       const data = await response.json()
 
       // Populate form with imported data
-      setNewTemplate({
+      setFormData({
+        ...formData,
         name: data.title || '',
         department: data.department || '',
         description: data.description || '',
@@ -276,7 +349,7 @@ export default function JDTemplatesPage() {
         setImportStatus('idle')
       }, 1000)
 
-    } catch (error) {
+    } catch {
       // Mock success for demo - in production this would actually fail
       // Simulate parsing a YC job posting
       const mockParsedData = {
@@ -298,7 +371,8 @@ export default function JDTemplatesPage() {
 - Use AI tools to enhance productivity and decision-making`,
       }
 
-      setNewTemplate({
+      setFormData({
+        ...formData,
         name: mockParsedData.name,
         department: mockParsedData.department,
         description: mockParsedData.description,
@@ -317,22 +391,164 @@ export default function JDTemplatesPage() {
     }
   }
 
-  const handleDeleteTemplate = (id: string) => {
-    setTemplates(templates.filter(t => t.id !== id))
+  const handleDeleteClick = (template: JDTemplate) => {
+    setTemplateToDelete(template)
+    setDeleteDialogOpen(true)
   }
 
-  const handleDuplicateTemplate = (template: typeof mockTemplates[0]) => {
-    const duplicate = {
+  const confirmDelete = () => {
+    if (templateToDelete) {
+      setTemplates(templates.filter(t => t.id !== templateToDelete.id))
+      setDeleteDialogOpen(false)
+      setTemplateToDelete(null)
+    }
+  }
+
+  const handleDuplicateTemplate = (template: JDTemplate) => {
+    const duplicate: JDTemplate = {
       ...template,
       id: Date.now().toString(),
       name: `${template.name} (Copy)`,
       createdAt: new Date().toISOString().split('T')[0],
+      isActive: false, // Duplicates start as draft
     }
     setTemplates([duplicate, ...templates])
   }
 
+  const handleToggleStatus = (template: JDTemplate) => {
+    setTemplates(templates.map(t =>
+      t.id === template.id ? { ...t, isActive: !t.isActive } : t
+    ))
+  }
+
   const activeTemplates = templates.filter(t => t.isActive)
   const draftTemplates = templates.filter(t => !t.isActive)
+
+  // Form component used in both create and edit dialogs
+  const TemplateForm = ({ isEdit = false }: { isEdit?: boolean }) => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="templateName">Job Title *</Label>
+          <Input
+            id="templateName"
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder="e.g., Senior Backend Engineer"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="department">Department *</Label>
+          <Select
+            value={formData.department}
+            onValueChange={(value) => setFormData({ ...formData, department: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select department" />
+            </SelectTrigger>
+            <SelectContent>
+              {DEPARTMENTS.map((dept) => (
+                <SelectItem key={dept.value} value={dept.value}>
+                  {dept.value}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="space-y-2">
+          <Label htmlFor="flowType">Hiring Flow</Label>
+          <Select
+            value={formData.flowType}
+            onValueChange={(value) => setFormData({ ...formData, flowType: value })}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select hiring flow type" />
+            </SelectTrigger>
+            <SelectContent>
+              {FLOW_TYPES.map((flow) => (
+                <SelectItem key={flow.value} value={flow.value}>
+                  <div>
+                    <div className="font-medium">{flow.label}</div>
+                    <div className="text-xs text-gray-500">{flow.description}</div>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="space-y-2">
+          <Label>Status</Label>
+          <div className="flex items-center justify-between rounded-md border border-input px-3 py-2 h-10">
+            <span className="text-sm">
+              {formData.isActive ? (
+                <span className="flex items-center gap-2 text-green-600">
+                  <Eye className="h-4 w-4" />
+                  Published
+                </span>
+              ) : (
+                <span className="flex items-center gap-2 text-amber-600">
+                  <EyeOff className="h-4 w-4" />
+                  Draft
+                </span>
+              )}
+            </span>
+            <Switch
+              checked={formData.isActive}
+              onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
+            />
+          </div>
+        </div>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="description">Job Summary</Label>
+        <Textarea
+          id="description"
+          value={formData.description}
+          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+          placeholder="Brief overview of the role and its impact..."
+          rows={3}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="responsibilities">Key Responsibilities</Label>
+        <Textarea
+          id="responsibilities"
+          value={formData.responsibilities}
+          onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })}
+          placeholder="List the main responsibilities (one per line)..."
+          rows={4}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="requirements">Requirements</Label>
+        <Textarea
+          id="requirements"
+          value={formData.requirements}
+          onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+          placeholder="List required qualifications and skills (one per line)..."
+          rows={4}
+        />
+      </div>
+
+      <DialogFooter className="mt-6">
+        <Button variant="outline" onClick={() => isEdit ? setIsEditDialogOpen(false) : setIsCreateDialogOpen(false)}>
+          Cancel
+        </Button>
+        <Button
+          onClick={isEdit ? handleUpdateTemplate : handleCreateTemplate}
+          disabled={!formData.name.trim() || !formData.department}
+        >
+          {isEdit ? 'Save Changes' : 'Create Template'}
+        </Button>
+      </DialogFooter>
+    </div>
+  )
 
   return (
     <div className="space-y-6">
@@ -374,103 +590,8 @@ export default function JDTemplatesPage() {
                 </TabsList>
 
                 {/* Manual Creation Tab */}
-                <TabsContent value="manual" className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="templateName">Job Title *</Label>
-                      <Input
-                        id="templateName"
-                        value={newTemplate.name}
-                        onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
-                        placeholder="e.g., Senior Backend Engineer"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="department">Department *</Label>
-                      <Select
-                        value={newTemplate.department}
-                        onValueChange={(value) => setNewTemplate({ ...newTemplate, department: value })}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select department" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {DEPARTMENTS.map((dept) => (
-                            <SelectItem key={dept.value} value={dept.value}>
-                              {dept.value}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="flowType">Hiring Flow</Label>
-                    <Select
-                      value={newTemplate.flowType}
-                      onValueChange={(value) => setNewTemplate({ ...newTemplate, flowType: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select hiring flow type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {FLOW_TYPES.map((flow) => (
-                          <SelectItem key={flow.value} value={flow.value}>
-                            <div>
-                              <div className="font-medium">{flow.label}</div>
-                              <div className="text-xs text-gray-500">{flow.description}</div>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Job Summary</Label>
-                    <Textarea
-                      id="description"
-                      value={newTemplate.description}
-                      onChange={(e) => setNewTemplate({ ...newTemplate, description: e.target.value })}
-                      placeholder="Brief overview of the role and its impact..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="responsibilities">Key Responsibilities</Label>
-                    <Textarea
-                      id="responsibilities"
-                      value={newTemplate.responsibilities}
-                      onChange={(e) => setNewTemplate({ ...newTemplate, responsibilities: e.target.value })}
-                      placeholder="List the main responsibilities (one per line)..."
-                      rows={4}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="requirements">Requirements</Label>
-                    <Textarea
-                      id="requirements"
-                      value={newTemplate.requirements}
-                      onChange={(e) => setNewTemplate({ ...newTemplate, requirements: e.target.value })}
-                      placeholder="List required qualifications and skills (one per line)..."
-                      rows={4}
-                    />
-                  </div>
-
-                  <DialogFooter className="mt-6">
-                    <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button
-                      onClick={handleCreateTemplate}
-                      disabled={!newTemplate.name.trim() || !newTemplate.department}
-                    >
-                      Create Template
-                    </Button>
-                  </DialogFooter>
+                <TabsContent value="manual" className="mt-4">
+                  <TemplateForm />
                 </TabsContent>
 
                 {/* Bulk Upload Tab */}
@@ -641,7 +762,7 @@ export default function JDTemplatesPage() {
       {activeTemplates.length > 0 && (
         <>
           <div>
-            <h2 className="text-lg font-semibold text-gray-900 mb-1">Active Templates</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">Published Templates</h2>
             <p className="text-sm text-gray-500">Templates available for creating new job positions</p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -667,17 +788,22 @@ export default function JDTemplatesPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleEditTemplate(template)}>
                               <Pencil className="h-4 w-4 mr-2" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDuplicateTemplate(template)}>
+                            <DropdownMenuItem onSelect={() => handleDuplicateTemplate(template)}>
                               <Copy className="h-4 w-4 mr-2" />
                               Duplicate
                             </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleToggleStatus(template)}>
+                              <EyeOff className="h-4 w-4 mr-2" />
+                              Move to Draft
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-red-600"
-                              onClick={() => handleDeleteTemplate(template.id)}
+                              onSelect={() => handleDeleteClick(template)}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete
@@ -709,7 +835,7 @@ export default function JDTemplatesPage() {
         <>
           <div className="mt-8">
             <h2 className="text-lg font-semibold text-gray-900 mb-1">Drafts</h2>
-            <p className="text-sm text-gray-500">Templates that need review before activation</p>
+            <p className="text-sm text-gray-500">Templates that need review before publishing</p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {draftTemplates.map((template) => {
@@ -734,17 +860,22 @@ export default function JDTemplatesPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleEditTemplate(template)}>
                               <Pencil className="h-4 w-4 mr-2" />
-                              Edit & Activate
+                              Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDuplicateTemplate(template)}>
+                            <DropdownMenuItem onSelect={() => handleToggleStatus(template)}>
+                              <Eye className="h-4 w-4 mr-2" />
+                              Publish
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onSelect={() => handleDuplicateTemplate(template)}>
                               <Copy className="h-4 w-4 mr-2" />
                               Duplicate
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-red-600"
-                              onClick={() => handleDeleteTemplate(template.id)}
+                              onSelect={() => handleDeleteClick(template)}
                             >
                               <Trash2 className="h-4 w-4 mr-2" />
                               Delete
@@ -762,7 +893,7 @@ export default function JDTemplatesPage() {
                     <CardDescription className="text-sm line-clamp-2">
                       {template.description}
                     </CardDescription>
-                    <p className="text-xs text-gray-400 mt-3">Uploaded {template.createdAt}</p>
+                    <p className="text-xs text-gray-400 mt-3">Created {template.createdAt}</p>
                   </CardContent>
                 </Card>
               )
@@ -783,6 +914,45 @@ export default function JDTemplatesPage() {
           </Button>
         </div>
       )}
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={(open) => {
+        setIsEditDialogOpen(open)
+        if (!open) resetForm()
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Edit JD Template</DialogTitle>
+            <DialogDescription>
+              Update the job description template details.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <TemplateForm isEdit />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Template</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{templateToDelete?.name}&quot;? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
