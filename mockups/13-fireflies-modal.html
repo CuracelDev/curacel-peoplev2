@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Attach Meeting - Fireflies Integration - Curacel Recruiter</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Modal Overlay */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal {
+      background: white;
+      border-radius: var(--radius-xl);
+      width: 100%;
+      max-width: 640px;
+      max-height: 85vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    }
+
+    .modal-header {
+      padding: var(--space-5);
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .modal-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .fireflies-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #ff6b35, #f7c327);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .modal-close {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: var(--radius);
+      border: none;
+      background: none;
+      color: var(--gray-500);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .modal-close:hover {
+      background: var(--gray-100);
+      color: var(--gray-700);
+    }
+
+    .modal-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: var(--space-5);
+    }
+
+    .modal-footer {
+      padding: var(--space-4) var(--space-5);
+      border-top: 1px solid var(--gray-200);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--gray-50);
+    }
+
+    /* Search Section */
+    .search-section {
+      margin-bottom: var(--space-5);
+    }
+
+    .search-input-wrapper {
+      display: flex;
+      gap: var(--space-3);
+    }
+
+    .search-input {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      transition: all 0.15s ease;
+    }
+
+    .search-input:focus-within {
+      background: white;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .search-input input {
+      flex: 1;
+      border: none;
+      background: none;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .search-input input::placeholder {
+      color: var(--gray-400);
+    }
+
+    .search-filters {
+      display: flex;
+      gap: var(--space-2);
+      margin-top: var(--space-3);
+    }
+
+    .filter-chip {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      padding: var(--space-1) var(--space-3);
+      background: var(--gray-100);
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      color: var(--gray-600);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .filter-chip:hover {
+      background: var(--gray-200);
+    }
+
+    .filter-chip.active {
+      background: rgba(99, 102, 241, 0.1);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* Results Section */
+    .results-section {
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .results-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3) var(--space-4);
+      background: var(--gray-50);
+      border-bottom: 1px solid var(--gray-200);
+      font-size: 13px;
+      color: var(--gray-600);
+    }
+
+    .results-list {
+      max-height: 320px;
+      overflow-y: auto;
+    }
+
+    .meeting-item {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-4);
+      padding: var(--space-4);
+      border-bottom: 1px solid var(--gray-100);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .meeting-item:last-child {
+      border-bottom: none;
+    }
+
+    .meeting-item:hover {
+      background: var(--gray-50);
+    }
+
+    .meeting-item.selected {
+      background: rgba(99, 102, 241, 0.05);
+      border-left: 3px solid var(--primary);
+    }
+
+    .meeting-checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--gray-300);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 2px;
+      transition: all 0.15s ease;
+    }
+
+    .meeting-item.selected .meeting-checkbox {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: white;
+    }
+
+    .meeting-content {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .meeting-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .meeting-title-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .meeting-match {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 6px;
+      background: rgba(34, 197, 94, 0.1);
+      color: #16a34a;
+      border-radius: var(--radius-full);
+      font-size: 10px;
+      font-weight: 500;
+      flex-shrink: 0;
+    }
+
+    .meeting-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-3);
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-bottom: var(--space-2);
+    }
+
+    .meeting-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .meeting-participants {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .participant-avatars {
+      display: flex;
+    }
+
+    .participant-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: var(--radius-full);
+      background: var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--gray-600);
+      border: 2px solid white;
+      margin-left: -8px;
+    }
+
+    .participant-avatar:first-child {
+      margin-left: 0;
+    }
+
+    .participant-avatar.highlight {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+    }
+
+    .participant-names {
+      font-size: 12px;
+      color: var(--gray-500);
+    }
+
+    .meeting-duration {
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .duration-value {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--gray-900);
+    }
+
+    .duration-label {
+      font-size: 11px;
+      color: var(--gray-400);
+    }
+
+    /* Empty State */
+    .empty-state {
+      padding: var(--space-12);
+      text-align: center;
+    }
+
+    .empty-state-icon {
+      width: 64px;
+      height: 64px;
+      background: var(--gray-100);
+      border-radius: var(--radius-full);
+      margin: 0 auto var(--space-4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray-400);
+    }
+
+    .empty-state-title {
+      font-weight: 600;
+      margin-bottom: var(--space-2);
+    }
+
+    .empty-state-text {
+      font-size: 14px;
+      color: var(--gray-500);
+    }
+
+    /* Loading State */
+    .loading-state {
+      padding: var(--space-8);
+      text-align: center;
+    }
+
+    .loading-spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: var(--radius-full);
+      animation: spin 1s linear infinite;
+      margin: 0 auto var(--space-3);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Selected Meeting Preview */
+    .selected-preview {
+      background: rgba(99, 102, 241, 0.05);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      margin-top: var(--space-5);
+    }
+
+    .preview-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-3);
+    }
+
+    .preview-title {
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--primary);
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .preview-content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    .preview-item {
+      font-size: 13px;
+    }
+
+    .preview-item-label {
+      color: var(--gray-500);
+      margin-bottom: 2px;
+    }
+
+    .preview-item-value {
+      font-weight: 500;
+      color: var(--gray-900);
+    }
+
+    /* Manual Upload Option */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      margin: var(--space-5) 0;
+      color: var(--gray-400);
+      font-size: 12px;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--gray-200);
+    }
+
+    .manual-upload {
+      text-align: center;
+    }
+
+    .manual-upload-text {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-bottom: var(--space-3);
+    }
+
+    /* Upload Area */
+    .upload-area {
+      border: 2px dashed var(--gray-300);
+      border-radius: var(--radius-lg);
+      padding: var(--space-6);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .upload-area:hover {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.02);
+    }
+
+    .upload-icon {
+      width: 48px;
+      height: 48px;
+      background: var(--gray-100);
+      border-radius: var(--radius-full);
+      margin: 0 auto var(--space-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray-400);
+    }
+
+    .upload-title {
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .upload-subtitle {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+
+    /* Footer Actions */
+    .footer-info {
+      font-size: 12px;
+      color: var(--gray-500);
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .footer-actions {
+      display: flex;
+      gap: var(--space-3);
+    }
+
+    /* Connection Status */
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 12px;
+      padding: var(--space-2) var(--space-3);
+      background: rgba(34, 197, 94, 0.1);
+      color: #16a34a;
+      border-radius: var(--radius-full);
+    }
+
+    .connection-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-full);
+      background: #22c55e;
+    }
+  </style>
+</head>
+<body>
+  <!-- Background page content (dimmed) -->
+  <div style="opacity: 0.3; pointer-events: none;">
+    <div class="app-container">
+      <aside class="sidebar" style="width: 72px;">
+        <div class="sidebar-header" style="padding: var(--space-4); justify-content: center;">
+          <div class="sidebar-logo">C</div>
+        </div>
+      </aside>
+      <main class="main-content" style="margin-left: 72px;">
+        <header class="top-bar">
+          <div class="top-bar-left">
+            <nav class="breadcrumb">
+              <span>Jobs / Senior Backend Engineer / James Okafor</span>
+            </nav>
+          </div>
+        </header>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal Overlay -->
+  <div class="modal-overlay">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="modal-title">
+          <div class="fireflies-logo">
+            <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
+            </svg>
+          </div>
+          Attach Meeting from Fireflies
+        </div>
+        <button class="modal-close">
+          <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Search Section -->
+        <div class="search-section">
+          <div class="search-input-wrapper">
+            <div class="search-input">
+              <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+              </svg>
+              <input type="text" placeholder="Search meetings by title or participant..." value="James Okafor">
+            </div>
+            <button class="btn btn-primary">Search</button>
+          </div>
+          <div class="search-filters">
+            <div class="filter-chip active">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              Last 30 days
+            </div>
+            <div class="filter-chip">
+              <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
+              </svg>
+              My meetings only
+            </div>
+            <div class="filter-chip">
+              Interviews
+            </div>
+          </div>
+        </div>
+
+        <!-- Results Section -->
+        <div class="results-section">
+          <div class="results-header">
+            <span>3 meetings found</span>
+            <div class="connection-status">
+              <span class="connection-dot"></span>
+              Connected to Fireflies
+            </div>
+          </div>
+          <div class="results-list">
+            <!-- Meeting Item 1 - Selected -->
+            <div class="meeting-item selected">
+              <div class="meeting-checkbox">
+                <svg width="12" height="12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <div class="meeting-content">
+                <div class="meeting-title">
+                  <span class="meeting-title-text">Panel Interview - James Okafor - Senior Backend</span>
+                  <span class="meeting-match">
+                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Name Match
+                  </span>
+                </div>
+                <div class="meeting-meta">
+                  <span class="meeting-meta-item">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Dec 22, 2025
+                  </span>
+                  <span class="meeting-meta-item">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    10:00 AM
+                  </span>
+                </div>
+                <div class="meeting-participants">
+                  <div class="participant-avatars">
+                    <div class="participant-avatar highlight">JO</div>
+                    <div class="participant-avatar">HM</div>
+                    <div class="participant-avatar">FA</div>
+                  </div>
+                  <span class="participant-names">James Okafor, Henry Mascot, Fikayo Adeleke</span>
+                </div>
+              </div>
+              <div class="meeting-duration">
+                <div class="duration-value">52 min</div>
+                <div class="duration-label">Duration</div>
+              </div>
+            </div>
+
+            <!-- Meeting Item 2 -->
+            <div class="meeting-item">
+              <div class="meeting-checkbox"></div>
+              <div class="meeting-content">
+                <div class="meeting-title">
+                  <span class="meeting-title-text">HR Screen - James Okafor</span>
+                  <span class="meeting-match">
+                    <svg width="10" height="10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Name Match
+                  </span>
+                </div>
+                <div class="meeting-meta">
+                  <span class="meeting-meta-item">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Dec 18, 2025
+                  </span>
+                  <span class="meeting-meta-item">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    2:30 PM
+                  </span>
+                </div>
+                <div class="meeting-participants">
+                  <div class="participant-avatars">
+                    <div class="participant-avatar highlight">JO</div>
+                    <div class="participant-avatar">SJ</div>
+                  </div>
+                  <span class="participant-names">James Okafor, Sarah Johnson</span>
+                </div>
+              </div>
+              <div class="meeting-duration">
+                <div class="duration-value">38 min</div>
+                <div class="duration-label">Duration</div>
+              </div>
+            </div>
+
+            <!-- Meeting Item 3 -->
+            <div class="meeting-item">
+              <div class="meeting-checkbox"></div>
+              <div class="meeting-content">
+                <div class="meeting-title">
+                  <span class="meeting-title-text">Initial Call - James O. Intro</span>
+                </div>
+                <div class="meeting-meta">
+                  <span class="meeting-meta-item">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Dec 10, 2025
+                  </span>
+                  <span class="meeting-meta-item">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    11:00 AM
+                  </span>
+                </div>
+                <div class="meeting-participants">
+                  <div class="participant-avatars">
+                    <div class="participant-avatar">JO</div>
+                    <div class="participant-avatar">HM</div>
+                  </div>
+                  <span class="participant-names">James O., Henry Mascot</span>
+                </div>
+              </div>
+              <div class="meeting-duration">
+                <div class="duration-value">15 min</div>
+                <div class="duration-label">Duration</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selected Preview -->
+        <div class="selected-preview">
+          <div class="preview-header">
+            <div class="preview-title">Selected Meeting</div>
+            <div class="preview-actions">
+              <button class="btn btn-ghost btn-sm">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                </svg>
+                Preview
+              </button>
+            </div>
+          </div>
+          <div class="preview-content">
+            <div class="preview-item">
+              <div class="preview-item-label">Title</div>
+              <div class="preview-item-value">Panel Interview - James Okafor - Senior Backend</div>
+            </div>
+            <div class="preview-item">
+              <div class="preview-item-label">Date & Time</div>
+              <div class="preview-item-value">Dec 22, 2025 at 10:00 AM</div>
+            </div>
+            <div class="preview-item">
+              <div class="preview-item-label">Duration</div>
+              <div class="preview-item-value">52 minutes</div>
+            </div>
+            <div class="preview-item">
+              <div class="preview-item-label">Transcript Words</div>
+              <div class="preview-item-value">~8,400 words</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="divider">OR</div>
+
+        <!-- Manual Upload -->
+        <div class="manual-upload">
+          <div class="upload-area">
+            <div class="upload-icon">
+              <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+              </svg>
+            </div>
+            <div class="upload-title">Upload transcript manually</div>
+            <div class="upload-subtitle">Drop a .txt, .doc, or .pdf file here, or click to browse</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <div class="footer-info">
+          <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Transcript will be analyzed by AI after attachment
+        </div>
+        <div class="footer-actions">
+          <button class="btn btn-secondary">Cancel</button>
+          <button class="btn btn-primary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"></path>
+            </svg>
+            Attach Meeting
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Meeting selection
+    document.querySelectorAll('.meeting-item').forEach(item => {
+      item.addEventListener('click', function() {
+        document.querySelectorAll('.meeting-item').forEach(i => i.classList.remove('selected'));
+        this.classList.add('selected');
+      });
+    });
+  </script>
+</body>
+</html>

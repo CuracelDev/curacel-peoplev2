@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>James Okafor - Candidate Profile - Curacel Recruiter</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Split layout with collapsible candidate list */
+    .split-layout {
+      display: flex;
+      height: calc(100vh - 65px);
+    }
+
+    .candidate-list-panel {
+      width: 320px;
+      background: white;
+      border-right: 1px solid var(--gray-200);
+      display: flex;
+      flex-direction: column;
+      transition: width 0.2s ease;
+      overflow: hidden;
+    }
+
+    .candidate-list-panel.collapsed {
+      width: 48px;
+    }
+
+    .panel-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--gray-200);
+      background: var(--gray-50);
+    }
+
+    .panel-toggle-btn {
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .panel-toggle-btn:hover {
+      background: var(--gray-100);
+    }
+
+    .collapsed .panel-content {
+      display: none;
+    }
+
+    .mini-candidate-list {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .mini-candidate-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border-bottom: 1px solid var(--gray-100);
+      cursor: pointer;
+      transition: all 0.1s ease;
+    }
+
+    .mini-candidate-item:hover {
+      background: var(--gray-50);
+    }
+
+    .mini-candidate-item.active {
+      background: rgba(99, 102, 241, 0.05);
+      border-left: 3px solid var(--primary);
+    }
+
+    .mini-candidate-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-full);
+      background: var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 13px;
+      color: var(--gray-600);
+      flex-shrink: 0;
+    }
+
+    .mini-candidate-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .mini-candidate-name {
+      font-weight: 500;
+      font-size: 13px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mini-candidate-stage {
+      font-size: 11px;
+      color: var(--gray-500);
+    }
+
+    .mini-candidate-score {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 12px;
+      flex-shrink: 0;
+    }
+
+    /* Profile content area */
+    .profile-content {
+      flex: 1;
+      overflow-y: auto;
+      background: var(--gray-50);
+    }
+
+    .profile-header {
+      background: white;
+      border-bottom: 1px solid var(--gray-200);
+      padding: var(--space-6);
+    }
+
+    .profile-header-top {
+      display: flex;
+      gap: var(--space-5);
+      margin-bottom: var(--space-5);
+    }
+
+    .profile-avatar-large {
+      width: 80px;
+      height: 80px;
+      border-radius: var(--radius-full);
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 700;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+
+    .profile-info {
+      flex: 1;
+    }
+
+    .profile-name {
+      font-size: 24px;
+      font-weight: 600;
+      margin-bottom: var(--space-1);
+    }
+
+    .profile-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-4);
+      color: var(--gray-500);
+      font-size: 14px;
+      margin-bottom: var(--space-3);
+    }
+
+    .profile-meta-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .profile-meta-item a {
+      color: var(--primary);
+      text-decoration: none;
+    }
+
+    .profile-meta-item a:hover {
+      text-decoration: underline;
+    }
+
+    .profile-tags {
+      display: flex;
+      gap: var(--space-2);
+    }
+
+    .profile-score-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 0 var(--space-6);
+      border-left: 1px solid var(--gray-200);
+    }
+
+    .overall-score {
+      width: 72px;
+      height: 72px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 28px;
+    }
+
+    .overall-score.high {
+      background: rgba(34, 197, 94, 0.1);
+      color: #16a34a;
+    }
+
+    .overall-score.medium {
+      background: rgba(245, 158, 11, 0.1);
+      color: #d97706;
+    }
+
+    .overall-score.low {
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+    }
+
+    .score-label {
+      font-size: 11px;
+      color: var(--gray-500);
+      margin-top: var(--space-1);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    /* Why score explanation */
+    .why-score {
+      background: var(--gray-50);
+      border-radius: var(--radius);
+      padding: var(--space-3);
+      font-size: 13px;
+      color: var(--gray-600);
+      line-height: 1.6;
+    }
+
+    .why-score strong {
+      color: var(--gray-900);
+    }
+
+    /* Navigation tabs */
+    .profile-tabs {
+      display: flex;
+      gap: var(--space-1);
+      background: white;
+      padding: 0 var(--space-6);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .profile-tab {
+      padding: var(--space-4) var(--space-4);
+      font-weight: 500;
+      color: var(--gray-500);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .profile-tab:hover {
+      color: var(--gray-700);
+    }
+
+    .profile-tab.active {
+      color: var(--primary);
+      border-bottom-color: var(--primary);
+    }
+
+    .tab-badge {
+      background: var(--gray-100);
+      color: var(--gray-600);
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: var(--radius-full);
+    }
+
+    .profile-tab.active .tab-badge {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+    }
+
+    /* Tab content */
+    .tab-content {
+      padding: var(--space-6);
+    }
+
+    /* Evidence citation styles */
+    .evidence-citation {
+      background: rgba(99, 102, 241, 0.05);
+      border-left: 3px solid var(--primary);
+      padding: var(--space-3);
+      border-radius: 0 var(--radius) var(--radius) 0;
+      margin: var(--space-2) 0;
+      font-size: 13px;
+    }
+
+    .evidence-citation-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-2);
+    }
+
+    .evidence-source {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 11px;
+      color: var(--primary);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .evidence-source-icon {
+      width: 16px;
+      height: 16px;
+    }
+
+    .evidence-quote {
+      color: var(--gray-700);
+      font-style: italic;
+      line-height: 1.6;
+    }
+
+    .evidence-quote mark {
+      background: rgba(245, 158, 11, 0.3);
+      padding: 0 2px;
+      border-radius: 2px;
+    }
+
+    .view-in-context {
+      font-size: 12px;
+      color: var(--primary);
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+    }
+
+    .view-in-context:hover {
+      text-decoration: underline;
+    }
+
+    /* Processing state */
+    .processing-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-12);
+      text-align: center;
+    }
+
+    .processing-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: var(--radius-full);
+      animation: spin 1s linear infinite;
+      margin-bottom: var(--space-4);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .processing-title {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: var(--space-2);
+    }
+
+    .processing-text {
+      color: var(--gray-500);
+      font-size: 14px;
+    }
+
+    .processing-timestamp {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+
+    /* Resume structured extraction */
+    .resume-section {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-4);
+    }
+
+    .resume-section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .resume-section-title {
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .resume-section-body {
+      padding: var(--space-4);
+    }
+
+    .experience-item {
+      display: flex;
+      gap: var(--space-4);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .experience-item:last-child {
+      border-bottom: none;
+    }
+
+    .experience-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius);
+      background: var(--gray-100);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: var(--gray-500);
+      font-size: 14px;
+      flex-shrink: 0;
+    }
+
+    .experience-content {
+      flex: 1;
+    }
+
+    .experience-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .experience-company {
+      color: var(--gray-600);
+      font-size: 14px;
+    }
+
+    .experience-dates {
+      font-size: 13px;
+      color: var(--gray-400);
+    }
+
+    .experience-highlights {
+      margin-top: var(--space-2);
+      padding-left: var(--space-4);
+    }
+
+    .experience-highlights li {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-bottom: var(--space-1);
+    }
+
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .skill-tag {
+      background: var(--gray-100);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      color: var(--gray-700);
+    }
+
+    .skill-tag.primary {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+    }
+
+    /* Score timeline chart */
+    .score-timeline-chart {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+      margin-bottom: var(--space-6);
+    }
+
+    .chart-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-4);
+    }
+
+    .chart-title {
+      font-weight: 600;
+    }
+
+    .chart-legend {
+      display: flex;
+      gap: var(--space-4);
+      font-size: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .legend-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: var(--radius-full);
+    }
+
+    .chart-container {
+      position: relative;
+      height: 200px;
+      border-left: 1px solid var(--gray-200);
+      border-bottom: 1px solid var(--gray-200);
+      margin-left: var(--space-8);
+      margin-bottom: var(--space-6);
+    }
+
+    .chart-y-axis {
+      position: absolute;
+      left: calc(-1 * var(--space-8));
+      top: 0;
+      bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--gray-400);
+    }
+
+    .chart-grid-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      border-top: 1px dashed var(--gray-100);
+    }
+
+    .chart-points {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: space-around;
+      align-items: flex-end;
+      padding: 0 var(--space-4);
+    }
+
+    .chart-point-wrapper {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .chart-point {
+      width: 12px;
+      height: 12px;
+      border-radius: var(--radius-full);
+      background: var(--primary);
+      border: 2px solid white;
+      box-shadow: 0 0 0 2px var(--primary);
+      position: relative;
+    }
+
+    .chart-point-label {
+      position: absolute;
+      top: -24px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--gray-900);
+      white-space: nowrap;
+    }
+
+    .chart-x-labels {
+      display: flex;
+      justify-content: space-around;
+      padding: var(--space-2) var(--space-4);
+      font-size: 11px;
+      color: var(--gray-500);
+      margin-left: var(--space-8);
+    }
+
+    /* Stage snapshots */
+    .stage-snapshot {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-4);
+    }
+
+    .snapshot-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4);
+      border-bottom: 1px solid var(--gray-200);
+      cursor: pointer;
+    }
+
+    .snapshot-header:hover {
+      background: var(--gray-50);
+    }
+
+    .snapshot-title-section {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+    }
+
+    .snapshot-number {
+      width: 28px;
+      height: 28px;
+      border-radius: var(--radius-full);
+      background: var(--gray-100);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      font-size: 13px;
+    }
+
+    .snapshot-number.completed {
+      background: var(--success);
+      color: white;
+    }
+
+    .snapshot-number.current {
+      background: var(--primary);
+      color: white;
+    }
+
+    .snapshot-meta {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .snapshot-score {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .snapshot-score-value {
+      font-weight: 600;
+      font-size: 18px;
+    }
+
+    .snapshot-score-value.high { color: #16a34a; }
+    .snapshot-score-value.medium { color: #d97706; }
+    .snapshot-score-value.low { color: #dc2626; }
+
+    .snapshot-version {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+
+    .snapshot-body {
+      padding: var(--space-5);
+    }
+
+    /* Strengths/Weaknesses with evidence */
+    .insight-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+
+    .insight-card {
+      background: var(--gray-50);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+    }
+
+    .insight-card-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      margin-bottom: var(--space-3);
+      font-weight: 600;
+    }
+
+    .insight-card-header.strengths {
+      color: #16a34a;
+    }
+
+    .insight-card-header.weaknesses {
+      color: #dc2626;
+    }
+
+    .insight-item {
+      display: flex;
+      gap: var(--space-3);
+      margin-bottom: var(--space-3);
+      font-size: 14px;
+    }
+
+    .insight-bullet {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-full);
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .insight-bullet.strength {
+      background: #16a34a;
+    }
+
+    .insight-bullet.weakness {
+      background: #dc2626;
+    }
+
+    .insight-text {
+      flex: 1;
+    }
+
+    /* Must validate section */
+    .must-validate-section {
+      background: rgba(245, 158, 11, 0.05);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+
+    .must-validate-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-weight: 600;
+      color: #d97706;
+      margin-bottom: var(--space-3);
+    }
+
+    .validate-item {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: white;
+      border-radius: var(--radius);
+      margin-bottom: var(--space-2);
+    }
+
+    .validate-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .validate-icon {
+      color: #d97706;
+      flex-shrink: 0;
+    }
+
+    .validate-content {
+      flex: 1;
+    }
+
+    .validate-what {
+      font-weight: 500;
+      margin-bottom: var(--space-1);
+    }
+
+    .validate-why {
+      font-size: 13px;
+      color: var(--gray-500);
+      margin-bottom: var(--space-2);
+    }
+
+    .validate-question {
+      font-size: 13px;
+      color: var(--primary);
+      font-style: italic;
+    }
+
+    /* Decision section */
+    .decision-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .decision-header {
+      padding: var(--space-5);
+      display: flex;
+      align-items: center;
+      gap: var(--space-5);
+    }
+
+    .decision-header.recommend-hire {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+      border-bottom: 2px solid #22c55e;
+    }
+
+    .decision-header.recommend-hold {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05));
+      border-bottom: 2px solid #f59e0b;
+    }
+
+    .decision-header.recommend-reject {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(239, 68, 68, 0.05));
+      border-bottom: 2px solid #ef4444;
+    }
+
+    .decision-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .decision-icon.hire {
+      background: #22c55e;
+      color: white;
+    }
+
+    .decision-icon.hold {
+      background: #f59e0b;
+      color: white;
+    }
+
+    .decision-icon.reject {
+      background: #ef4444;
+      color: white;
+    }
+
+    .decision-info h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: var(--space-1);
+    }
+
+    .decision-confidence {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 14px;
+      color: var(--gray-600);
+    }
+
+    .confidence-bar {
+      width: 100px;
+      height: 6px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: var(--radius-full);
+    }
+
+    .decision-body {
+      padding: var(--space-5);
+    }
+
+    /* Human decision capture */
+    .human-decision-section {
+      background: var(--gray-50);
+      border-top: 1px solid var(--gray-200);
+      padding: var(--space-5);
+    }
+
+    .human-decision-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-4);
+    }
+
+    .decision-buttons {
+      display: flex;
+      gap: var(--space-3);
+    }
+
+    .decision-btn {
+      padding: var(--space-3) var(--space-5);
+      border-radius: var(--radius-md);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .decision-btn.hire {
+      background: #22c55e;
+      color: white;
+      border: none;
+    }
+
+    .decision-btn.hire:hover {
+      background: #16a34a;
+    }
+
+    .decision-btn.hold {
+      background: white;
+      color: #d97706;
+      border: 2px solid #f59e0b;
+    }
+
+    .decision-btn.hold:hover {
+      background: rgba(245, 158, 11, 0.1);
+    }
+
+    .decision-btn.reject {
+      background: white;
+      color: #dc2626;
+      border: 2px solid #ef4444;
+    }
+
+    .decision-btn.reject:hover {
+      background: rgba(239, 68, 68, 0.1);
+    }
+
+    /* PRESS Values */
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--space-3);
+      margin-bottom: var(--space-5);
+    }
+
+    .value-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      text-align: center;
+    }
+
+    .value-score {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      margin: 0 auto var(--space-2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+    }
+
+    .value-score.high {
+      background: rgba(34, 197, 94, 0.1);
+      color: #16a34a;
+    }
+
+    .value-score.medium {
+      background: rgba(245, 158, 11, 0.1);
+      color: #d97706;
+    }
+
+    .value-score.low {
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+    }
+
+    .value-name {
+      font-weight: 600;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    .value-full {
+      font-size: 11px;
+      color: var(--gray-500);
+    }
+
+    /* Competency bars */
+    .competency-list {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-5);
+    }
+
+    .competency-item {
+      margin-bottom: var(--space-4);
+    }
+
+    .competency-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .competency-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--space-2);
+    }
+
+    .competency-name {
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    .competency-score {
+      font-weight: 600;
+      font-size: 14px;
+    }
+
+    .competency-bar {
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .competency-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+      transition: width 0.3s ease;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">C</div>
+        <span class="sidebar-title">Curacel Recruiter</span>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section">
+          <a href="01-dashboard.html" class="nav-item">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path>
+              </svg>
+            </span>
+            <span class="nav-item-text">Dashboard</span>
+          </a>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Hiring</div>
+          <a href="02-jobs-list.html" class="nav-item active">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+              </svg>
+            </span>
+            <span class="nav-item-text">Jobs</span>
+            <span class="nav-item-badge">4</span>
+          </a>
+          <div class="nav-subitems">
+            <a href="#" class="nav-subitem active">Senior Backend Engineer</a>
+            <a href="#" class="nav-subitem">Product Designer</a>
+            <a href="#" class="nav-subitem">DevOps Engineer</a>
+          </div>
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-title">Tools</div>
+          <a href="07-questions.html" class="nav-item">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+            </span>
+            <span class="nav-item-text">Question Bank</span>
+          </a>
+          <a href="08-settings.html" class="nav-item">
+            <span class="nav-item-icon">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+            </span>
+            <span class="nav-item-text">Settings</span>
+          </a>
+        </div>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <nav class="breadcrumb">
+            <a href="02-jobs-list.html">Jobs</a>
+            <span class="breadcrumb-separator">/</span>
+            <a href="04-candidates-list.html">Senior Backend Engineer</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">James Okafor</span>
+          </nav>
+        </div>
+        <div class="top-bar-right">
+          <button class="btn btn-secondary btn-sm">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"></path>
+            </svg>
+            Share
+          </button>
+          <button class="btn btn-primary btn-sm">
+            <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+            Move to Next Stage
+          </button>
+        </div>
+      </header>
+
+      <!-- Split Layout -->
+      <div class="split-layout">
+        <!-- Collapsible Candidate List Panel -->
+        <div class="candidate-list-panel" id="candidatePanel">
+          <div class="panel-toggle">
+            <span class="panel-content" style="font-weight: 500; font-size: 13px;">12 Candidates</span>
+            <button class="panel-toggle-btn" onclick="togglePanel()">
+              <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="mini-candidate-list panel-content">
+            <div class="mini-candidate-item active">
+              <div class="mini-candidate-avatar">JO</div>
+              <div class="mini-candidate-info">
+                <div class="mini-candidate-name">James Okafor</div>
+                <div class="mini-candidate-stage">Panel Interview</div>
+              </div>
+              <div class="mini-candidate-score score-badge-sm score-high">87</div>
+            </div>
+            <div class="mini-candidate-item">
+              <div class="mini-candidate-avatar">AA</div>
+              <div class="mini-candidate-info">
+                <div class="mini-candidate-name">Ada Abubakar</div>
+                <div class="mini-candidate-stage">Technical Test</div>
+              </div>
+              <div class="mini-candidate-score score-badge-sm score-high">84</div>
+            </div>
+            <div class="mini-candidate-item">
+              <div class="mini-candidate-avatar">CE</div>
+              <div class="mini-candidate-info">
+                <div class="mini-candidate-name">Chidi Eze</div>
+                <div class="mini-candidate-stage">HR Screen</div>
+              </div>
+              <div class="mini-candidate-score score-badge-sm score-medium">72</div>
+            </div>
+            <div class="mini-candidate-item">
+              <div class="mini-candidate-avatar">NO</div>
+              <div class="mini-candidate-info">
+                <div class="mini-candidate-name">Ngozi Okonkwo</div>
+                <div class="mini-candidate-stage">Application</div>
+              </div>
+              <div class="mini-candidate-score score-badge-sm score-medium">68</div>
+            </div>
+            <div class="mini-candidate-item">
+              <div class="mini-candidate-avatar">EO</div>
+              <div class="mini-candidate-info">
+                <div class="mini-candidate-name">Emmanuel Obi</div>
+                <div class="mini-candidate-stage">HR Screen</div>
+              </div>
+              <div class="mini-candidate-score score-badge-sm score-medium">65</div>
+            </div>
+            <div class="mini-candidate-item">
+              <div class="mini-candidate-avatar">FA</div>
+              <div class="mini-candidate-info">
+                <div class="mini-candidate-name">Funke Adeyemi</div>
+                <div class="mini-candidate-stage">Application</div>
+              </div>
+              <div class="mini-candidate-score score-badge-sm score-low">58</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Profile Content -->
+        <div class="profile-content">
+          <!-- Profile Header -->
+          <div class="profile-header">
+            <div class="profile-header-top">
+              <div class="profile-avatar-large">JO</div>
+              <div class="profile-info">
+                <h1 class="profile-name">James Okafor</h1>
+                <div class="profile-meta">
+                  <span class="profile-meta-item">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                    </svg>
+                    james.okafor@email.com
+                  </span>
+                  <span class="profile-meta-item">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 24 24">
+                      <path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z"/>
+                    </svg>
+                    <a href="#">linkedin.com/in/jamesokafor</a>
+                  </span>
+                  <span class="profile-meta-item">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    Applied Dec 15, 2025
+                  </span>
+                </div>
+                <div class="profile-tags">
+                  <span class="badge badge-primary">Panel Interview</span>
+                  <span class="badge badge-success">Strong Candidate</span>
+                  <span class="badge badge-gray">6 years exp.</span>
+                </div>
+              </div>
+              <div class="profile-score-section">
+                <div class="overall-score high">87</div>
+                <div class="score-label">Overall Score</div>
+              </div>
+            </div>
+            <div class="why-score">
+              <strong>Why this score:</strong> Strong technical background with 6 years of backend experience at high-growth companies. Demonstrates excellent system design skills and has led teams. Minor gap in insurance domain knowledge but shows strong learning aptitude.
+            </div>
+          </div>
+
+          <!-- Tabs -->
+          <div class="profile-tabs">
+            <div class="profile-tab" data-tab="interest">
+              Interest
+            </div>
+            <div class="profile-tab active" data-tab="stages">
+              Interview Stages
+              <span class="tab-badge">3</span>
+            </div>
+            <div class="profile-tab" data-tab="fit">
+              Curacel Fit
+            </div>
+            <div class="profile-tab" data-tab="decision">
+              Decision
+            </div>
+          </div>
+
+          <!-- Tab Content: Interview Stages -->
+          <div class="tab-content" id="stagesTab">
+            <!-- Score Timeline Chart -->
+            <div class="score-timeline-chart">
+              <div class="chart-header">
+                <div class="chart-title">Score Progression</div>
+                <div class="chart-legend">
+                  <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--primary);"></div>
+                    <span>Score</span>
+                  </div>
+                  <div class="legend-item">
+                    <div class="legend-dot" style="background: var(--gray-300);"></div>
+                    <span>Role Benchmark</span>
+                  </div>
+                </div>
+              </div>
+              <div class="chart-container">
+                <div class="chart-y-axis">
+                  <span>100</span>
+                  <span>75</span>
+                  <span>50</span>
+                  <span>25</span>
+                  <span>0</span>
+                </div>
+                <div class="chart-grid-line" style="top: 0%;"></div>
+                <div class="chart-grid-line" style="top: 25%;"></div>
+                <div class="chart-grid-line" style="top: 50%;"></div>
+                <div class="chart-grid-line" style="top: 75%;"></div>
+                <div class="chart-points">
+                  <div class="chart-point-wrapper">
+                    <div class="chart-point" style="margin-bottom: calc(78 * 2px);">
+                      <span class="chart-point-label">78</span>
+                    </div>
+                  </div>
+                  <div class="chart-point-wrapper">
+                    <div class="chart-point" style="margin-bottom: calc(82 * 2px);">
+                      <span class="chart-point-label">82</span>
+                    </div>
+                  </div>
+                  <div class="chart-point-wrapper">
+                    <div class="chart-point" style="margin-bottom: calc(87 * 2px);">
+                      <span class="chart-point-label">87</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="chart-x-labels">
+                <span>Application</span>
+                <span>HR Screen</span>
+                <span>Panel Interview</span>
+              </div>
+            </div>
+
+            <!-- Stage Snapshots -->
+            <div class="stage-snapshot">
+              <div class="snapshot-header">
+                <div class="snapshot-title-section">
+                  <div class="snapshot-number current">3</div>
+                  <div>
+                    <div style="font-weight: 600;">Panel Interview</div>
+                    <div style="font-size: 13px; color: var(--gray-500);">Dec 22, 2025 - Henry Mascot, Fikayo Adeleke</div>
+                  </div>
+                </div>
+                <div class="snapshot-meta">
+                  <div class="snapshot-score">
+                    <span class="snapshot-score-value high">87</span>
+                    <span style="font-size: 13px; color: var(--gray-500);">/100</span>
+                  </div>
+                  <div class="snapshot-version">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    v3 (Latest)
+                  </div>
+                  <span class="badge badge-success">ADVANCE</span>
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--gray-400);">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                  </svg>
+                </div>
+              </div>
+              <div class="snapshot-body">
+                <!-- Insights Grid -->
+                <div class="insight-grid">
+                  <div class="insight-card">
+                    <div class="insight-card-header strengths">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                      Strengths
+                    </div>
+                    <div class="insight-item">
+                      <div class="insight-bullet strength"></div>
+                      <div class="insight-text">
+                        Exceptional system design skills - articulated a clear microservices architecture approach
+                        <div class="evidence-citation">
+                          <div class="evidence-citation-header">
+                            <div class="evidence-source">
+                              <svg class="evidence-source-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                              </svg>
+                              Panel Interview Transcript
+                            </div>
+                            <a href="#" class="view-in-context">View in context</a>
+                          </div>
+                          <div class="evidence-quote">
+                            "For a claims processing system, I'd recommend <mark>event-driven architecture with CQRS pattern</mark>. This separates read and write concerns, which is critical for insurance workflows..."
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="insight-item">
+                      <div class="insight-bullet strength"></div>
+                      <div class="insight-text">
+                        Strong leadership experience with demonstrated ability to mentor junior developers
+                      </div>
+                    </div>
+                    <div class="insight-item">
+                      <div class="insight-bullet strength"></div>
+                      <div class="insight-text">
+                        Proactive communication style aligns well with Curacel's PRESS values
+                      </div>
+                    </div>
+                  </div>
+                  <div class="insight-card">
+                    <div class="insight-card-header weaknesses">
+                      <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                      </svg>
+                      Weaknesses
+                    </div>
+                    <div class="insight-item">
+                      <div class="insight-bullet weakness"></div>
+                      <div class="insight-text">
+                        Limited insurance domain knowledge - may need onboarding support
+                        <div class="evidence-citation">
+                          <div class="evidence-citation-header">
+                            <div class="evidence-source">
+                              <svg class="evidence-source-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                              </svg>
+                              Panel Interview Transcript
+                            </div>
+                            <a href="#" class="view-in-context">View in context</a>
+                          </div>
+                          <div class="evidence-quote">
+                            "I haven't worked directly in insurance before, but I've built similar <mark>regulatory compliance systems in fintech</mark>..."
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="insight-item">
+                      <div class="insight-bullet weakness"></div>
+                      <div class="insight-text">
+                        Salary expectations at upper range of budget (confirmed $95k expectation)
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Must Validate -->
+                <div class="must-validate-section">
+                  <div class="must-validate-header">
+                    <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    Must Validate in Next Stage
+                  </div>
+                  <div class="validate-item">
+                    <div class="validate-icon">
+                      <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <div class="validate-content">
+                      <div class="validate-what">Team leadership style under pressure</div>
+                      <div class="validate-why">Candidate mentioned leading a team through a difficult migration but didn't elaborate on conflict resolution.</div>
+                      <div class="validate-question">"Tell me about a time when team members disagreed on technical approach. How did you resolve it?"</div>
+                    </div>
+                  </div>
+                  <div class="validate-item">
+                    <div class="validate-icon">
+                      <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                      </svg>
+                    </div>
+                    <div class="validate-content">
+                      <div class="validate-what">Salary flexibility</div>
+                      <div class="validate-why">Current expectation is $95k, which is at the top of our range.</div>
+                      <div class="validate-question">"Given the growth opportunity and equity, would you consider a base of $85k with performance bonus potential?"</div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Attachments -->
+                <div style="display: flex; gap: var(--space-3); flex-wrap: wrap;">
+                  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); background: var(--gray-100); border-radius: var(--radius); font-size: 13px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    panel_transcript.txt
+                  </div>
+                  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); background: var(--gray-100); border-radius: var(--radius); font-size: 13px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    Fireflies Recording
+                  </div>
+                  <div style="display: flex; align-items: center; gap: var(--space-2); padding: var(--space-2) var(--space-3); background: var(--gray-100); border-radius: var(--radius); font-size: 13px;">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                    </svg>
+                    Rubric Notes
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- HR Screen Stage (Collapsed) -->
+            <div class="stage-snapshot">
+              <div class="snapshot-header">
+                <div class="snapshot-title-section">
+                  <div class="snapshot-number completed">2</div>
+                  <div>
+                    <div style="font-weight: 600;">HR Screen</div>
+                    <div style="font-size: 13px; color: var(--gray-500);">Dec 18, 2025 - Sarah Johnson</div>
+                  </div>
+                </div>
+                <div class="snapshot-meta">
+                  <div class="snapshot-score">
+                    <span class="snapshot-score-value high">82</span>
+                    <span style="font-size: 13px; color: var(--gray-500);">/100</span>
+                  </div>
+                  <div class="snapshot-version">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    v2
+                  </div>
+                  <span class="badge badge-success">ADVANCED</span>
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--gray-400);">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <!-- Application Stage (Collapsed) -->
+            <div class="stage-snapshot">
+              <div class="snapshot-header">
+                <div class="snapshot-title-section">
+                  <div class="snapshot-number completed">1</div>
+                  <div>
+                    <div style="font-weight: 600;">Application</div>
+                    <div style="font-size: 13px; color: var(--gray-500);">Dec 15, 2025 - AI Evaluation</div>
+                  </div>
+                </div>
+                <div class="snapshot-meta">
+                  <div class="snapshot-score">
+                    <span class="snapshot-score-value medium">78</span>
+                    <span style="font-size: 13px; color: var(--gray-500);">/100</span>
+                  </div>
+                  <div class="snapshot-version">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    v1
+                  </div>
+                  <span class="badge badge-success">ADVANCED</span>
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="color: var(--gray-400);">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    function togglePanel() {
+      const panel = document.getElementById('candidatePanel');
+      panel.classList.toggle('collapsed');
+    }
+
+    // Tab switching
+    document.querySelectorAll('.profile-tab').forEach(tab => {
+      tab.addEventListener('click', function() {
+        document.querySelectorAll('.profile-tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

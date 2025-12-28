@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Interest Tab - James Okafor - Curacel Recruiter</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .tab-content {
+      padding: var(--space-6);
+      max-width: 1200px;
+    }
+
+    /* Two column layout */
+    .interest-layout {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: var(--space-6);
+    }
+
+    /* Resume sections */
+    .resume-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-5);
+    }
+
+    .resume-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-4) var(--space-5);
+      border-bottom: 1px solid var(--gray-200);
+    }
+
+    .resume-card-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-weight: 600;
+    }
+
+    .resume-card-title svg {
+      color: var(--gray-400);
+    }
+
+    .resume-card-body {
+      padding: var(--space-5);
+    }
+
+    /* Experience timeline */
+    .experience-timeline {
+      position: relative;
+    }
+
+    .experience-item {
+      display: flex;
+      gap: var(--space-4);
+      padding-bottom: var(--space-5);
+      position: relative;
+    }
+
+    .experience-item:last-child {
+      padding-bottom: 0;
+    }
+
+    .experience-item::before {
+      content: '';
+      position: absolute;
+      left: 19px;
+      top: 40px;
+      bottom: 0;
+      width: 2px;
+      background: var(--gray-200);
+    }
+
+    .experience-item:last-child::before {
+      display: none;
+    }
+
+    .experience-logo {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius);
+      background: var(--gray-100);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 600;
+      color: var(--gray-500);
+      font-size: 14px;
+      flex-shrink: 0;
+      position: relative;
+      z-index: 1;
+    }
+
+    .experience-logo.current {
+      background: var(--primary);
+      color: white;
+    }
+
+    .experience-content {
+      flex: 1;
+    }
+
+    .experience-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-bottom: var(--space-2);
+    }
+
+    .experience-title {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .experience-company {
+      color: var(--gray-600);
+      font-size: 14px;
+    }
+
+    .experience-dates {
+      font-size: 13px;
+      color: var(--gray-400);
+      white-space: nowrap;
+    }
+
+    .experience-duration {
+      font-size: 12px;
+      color: var(--gray-400);
+      margin-top: 2px;
+    }
+
+    .experience-description {
+      font-size: 14px;
+      color: var(--gray-600);
+      line-height: 1.6;
+      margin-top: var(--space-2);
+    }
+
+    .experience-highlights {
+      margin-top: var(--space-3);
+      padding-left: var(--space-4);
+    }
+
+    .experience-highlights li {
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-bottom: var(--space-2);
+      line-height: 1.5;
+    }
+
+    .experience-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-3);
+    }
+
+    .experience-tag {
+      background: var(--gray-100);
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      color: var(--gray-600);
+    }
+
+    /* Education */
+    .education-item {
+      display: flex;
+      gap: var(--space-4);
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .education-item:last-child {
+      border-bottom: none;
+    }
+
+    .education-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius);
+      background: var(--gray-100);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--gray-400);
+      flex-shrink: 0;
+    }
+
+    /* Skills section */
+    .skills-category {
+      margin-bottom: var(--space-4);
+    }
+
+    .skills-category:last-child {
+      margin-bottom: 0;
+    }
+
+    .skills-category-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-500);
+      margin-bottom: var(--space-2);
+    }
+
+    .skill-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+    }
+
+    .skill-tag {
+      background: var(--gray-100);
+      padding: var(--space-1) var(--space-3);
+      border-radius: var(--radius-full);
+      font-size: 13px;
+      color: var(--gray-700);
+    }
+
+    .skill-tag.primary {
+      background: rgba(99, 102, 241, 0.1);
+      color: var(--primary);
+    }
+
+    .skill-tag.matched {
+      background: rgba(34, 197, 94, 0.1);
+      color: #16a34a;
+      position: relative;
+    }
+
+    .skill-tag.matched::after {
+      content: '✓';
+      margin-left: 4px;
+      font-size: 11px;
+    }
+
+    /* Sidebar */
+    .sidebar-section {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-5);
+    }
+
+    .sidebar-section-header {
+      padding: var(--space-4);
+      border-bottom: 1px solid var(--gray-200);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .sidebar-section-body {
+      padding: var(--space-4);
+    }
+
+    /* Application score breakdown */
+    .score-breakdown-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--gray-100);
+    }
+
+    .score-breakdown-item:last-child {
+      border-bottom: none;
+    }
+
+    .score-breakdown-label {
+      font-size: 14px;
+      color: var(--gray-600);
+    }
+
+    .score-breakdown-value {
+      font-weight: 600;
+    }
+
+    .score-breakdown-value.high { color: #16a34a; }
+    .score-breakdown-value.medium { color: #d97706; }
+    .score-breakdown-value.low { color: #dc2626; }
+
+    .score-breakdown-bar {
+      width: 60px;
+      height: 6px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      margin-left: var(--space-2);
+      overflow: hidden;
+    }
+
+    .score-breakdown-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+    }
+
+    /* Interest form responses */
+    .interest-form-item {
+      margin-bottom: var(--space-4);
+    }
+
+    .interest-form-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .interest-form-label {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--gray-500);
+      margin-bottom: var(--space-1);
+    }
+
+    .interest-form-value {
+      font-size: 14px;
+      color: var(--gray-700);
+      line-height: 1.6;
+    }
+
+    /* AI Generated badge */
+    .ai-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-1);
+      background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(14, 165, 233, 0.1));
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      font-size: 11px;
+      color: var(--primary);
+      font-weight: 500;
+    }
+
+    .ai-badge svg {
+      width: 12px;
+      height: 12px;
+    }
+
+    /* Must validate in sidebar */
+    .validate-mini-item {
+      display: flex;
+      gap: var(--space-2);
+      padding: var(--space-2) 0;
+      border-bottom: 1px solid var(--gray-100);
+      font-size: 13px;
+    }
+
+    .validate-mini-item:last-child {
+      border-bottom: none;
+    }
+
+    .validate-mini-icon {
+      color: #d97706;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    /* Suggested questions */
+    .question-item {
+      display: flex;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      background: var(--gray-50);
+      border-radius: var(--radius);
+      margin-bottom: var(--space-2);
+      font-size: 13px;
+    }
+
+    .question-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .question-number {
+      width: 20px;
+      height: 20px;
+      border-radius: var(--radius-full);
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    /* View PDF button */
+    .view-pdf-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-3);
+      background: var(--gray-100);
+      border-radius: var(--radius);
+      font-size: 13px;
+      color: var(--gray-700);
+      text-decoration: none;
+      transition: all 0.15s ease;
+    }
+
+    .view-pdf-btn:hover {
+      background: var(--gray-200);
+    }
+
+    /* Processing state */
+    .processing-overlay {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      padding: var(--space-12);
+      text-align: center;
+    }
+
+    .processing-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid var(--gray-200);
+      border-top-color: var(--primary);
+      border-radius: var(--radius-full);
+      animation: spin 1s linear infinite;
+      margin: 0 auto var(--space-4);
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .processing-title {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: var(--space-2);
+    }
+
+    .processing-text {
+      color: var(--gray-500);
+      font-size: 14px;
+      margin-bottom: var(--space-4);
+    }
+
+    .processing-steps {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      max-width: 280px;
+      margin: 0 auto;
+    }
+
+    .processing-step {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+
+    .processing-step.done {
+      color: #16a34a;
+    }
+
+    .processing-step.active {
+      color: var(--primary);
+    }
+
+    .processing-step-icon {
+      width: 18px;
+      height: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar (abbreviated) -->
+    <aside class="sidebar" style="width: 72px;">
+      <div class="sidebar-header" style="padding: var(--space-4); justify-content: center;">
+        <div class="sidebar-logo">C</div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" style="margin-left: 72px;">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <nav class="breadcrumb">
+            <a href="02-jobs-list.html">Jobs</a>
+            <span class="breadcrumb-separator">/</span>
+            <a href="04-candidates-list.html">Senior Backend Engineer</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">James Okafor</span>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Profile Header (abbreviated) -->
+      <div style="background: white; border-bottom: 1px solid var(--gray-200); padding: var(--space-4) var(--space-6); display: flex; align-items: center; gap: var(--space-4);">
+        <div style="width: 48px; height: 48px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">JO</div>
+        <div style="flex: 1;">
+          <h1 style="font-size: 18px; font-weight: 600;">James Okafor</h1>
+          <div style="font-size: 13px; color: var(--gray-500);">Senior Backend Engineer Candidate</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 24px; font-weight: 700; color: #16a34a;">78</div>
+          <div style="font-size: 11px; color: var(--gray-500); text-transform: uppercase;">App Score</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display: flex; gap: var(--space-1); background: white; padding: 0 var(--space-6); border-bottom: 1px solid var(--gray-200);">
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--primary); border-bottom: 2px solid var(--primary); margin-bottom: -1px; cursor: pointer;">Interest</div>
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--gray-500); cursor: pointer;">Interview Stages</div>
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--gray-500); cursor: pointer;">Curacel Fit</div>
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--gray-500); cursor: pointer;">Decision</div>
+      </div>
+
+      <!-- Tab Content: Interest -->
+      <div class="tab-content" style="background: var(--gray-50); min-height: calc(100vh - 180px);">
+        <div class="interest-layout">
+          <!-- Main Column -->
+          <div>
+            <!-- Resume Summary -->
+            <div class="resume-card">
+              <div class="resume-card-header">
+                <div class="resume-card-title">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  Resume Summary
+                  <span class="ai-badge">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                    AI Extracted
+                  </span>
+                </div>
+                <a href="#" class="view-pdf-btn">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                  </svg>
+                  View Original PDF
+                </a>
+              </div>
+              <div class="resume-card-body">
+                <p style="font-size: 14px; color: var(--gray-700); line-height: 1.7; margin-bottom: var(--space-4);">
+                  Experienced backend engineer with <strong>6 years</strong> building scalable distributed systems. Currently leading a team of 5 engineers at Paystack. Strong expertise in Node.js, Python, and cloud infrastructure. Track record of delivering high-impact projects including a payments processing system handling <strong>$50M+ monthly transactions</strong>.
+                </p>
+              </div>
+            </div>
+
+            <!-- Work Experience -->
+            <div class="resume-card">
+              <div class="resume-card-header">
+                <div class="resume-card-title">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                  </svg>
+                  Work Experience
+                </div>
+                <span style="font-size: 13px; color: var(--gray-500);">6 years total</span>
+              </div>
+              <div class="resume-card-body">
+                <div class="experience-timeline">
+                  <!-- Current Role -->
+                  <div class="experience-item">
+                    <div class="experience-logo current">P</div>
+                    <div class="experience-content">
+                      <div class="experience-header">
+                        <div>
+                          <div class="experience-title">Senior Backend Engineer (Tech Lead)</div>
+                          <div class="experience-company">Paystack</div>
+                        </div>
+                        <div style="text-align: right;">
+                          <div class="experience-dates">Mar 2022 - Present</div>
+                          <div class="experience-duration">2 yrs 10 mos</div>
+                        </div>
+                      </div>
+                      <ul class="experience-highlights">
+                        <li>Led team of 5 engineers in building a new payment processing microservice handling $50M+ monthly</li>
+                        <li>Architected event-driven system that reduced transaction failures by 40%</li>
+                        <li>Implemented CI/CD pipelines cutting deployment time from 2 hours to 15 minutes</li>
+                        <li>Mentored 3 junior developers who have since been promoted</li>
+                      </ul>
+                      <div class="experience-tags">
+                        <span class="experience-tag">Node.js</span>
+                        <span class="experience-tag">TypeScript</span>
+                        <span class="experience-tag">PostgreSQL</span>
+                        <span class="experience-tag">Redis</span>
+                        <span class="experience-tag">Kubernetes</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Previous Role -->
+                  <div class="experience-item">
+                    <div class="experience-logo">A</div>
+                    <div class="experience-content">
+                      <div class="experience-header">
+                        <div>
+                          <div class="experience-title">Backend Engineer</div>
+                          <div class="experience-company">Andela</div>
+                        </div>
+                        <div style="text-align: right;">
+                          <div class="experience-dates">Jun 2019 - Feb 2022</div>
+                          <div class="experience-duration">2 yrs 9 mos</div>
+                        </div>
+                      </div>
+                      <ul class="experience-highlights">
+                        <li>Built RESTful APIs serving 100K+ daily active users</li>
+                        <li>Designed and implemented authentication system using OAuth 2.0</li>
+                        <li>Reduced API response times by 60% through query optimization</li>
+                      </ul>
+                      <div class="experience-tags">
+                        <span class="experience-tag">Python</span>
+                        <span class="experience-tag">Django</span>
+                        <span class="experience-tag">AWS</span>
+                        <span class="experience-tag">Docker</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Earlier Role -->
+                  <div class="experience-item">
+                    <div class="experience-logo">F</div>
+                    <div class="experience-content">
+                      <div class="experience-header">
+                        <div>
+                          <div class="experience-title">Junior Software Developer</div>
+                          <div class="experience-company">Flutterwave</div>
+                        </div>
+                        <div style="text-align: right;">
+                          <div class="experience-dates">Jan 2018 - May 2019</div>
+                          <div class="experience-duration">1 yr 5 mos</div>
+                        </div>
+                      </div>
+                      <ul class="experience-highlights">
+                        <li>Contributed to merchant dashboard serving 5,000+ businesses</li>
+                        <li>Wrote unit tests increasing code coverage from 45% to 78%</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Education -->
+            <div class="resume-card">
+              <div class="resume-card-header">
+                <div class="resume-card-title">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                    <path d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 14l9-5-9-5-9 5 9 5zm0 0l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14zm-4 6v-7.5l4-2.222"></path>
+                  </svg>
+                  Education
+                </div>
+              </div>
+              <div class="resume-card-body">
+                <div class="education-item">
+                  <div class="education-icon">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path d="M12 14l9-5-9-5-9 5 9 5z"></path>
+                    </svg>
+                  </div>
+                  <div style="flex: 1;">
+                    <div style="font-weight: 600;">B.Sc. Computer Science</div>
+                    <div style="font-size: 14px; color: var(--gray-600);">University of Lagos</div>
+                    <div style="font-size: 13px; color: var(--gray-400);">2014 - 2018 | First Class Honours</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Skills -->
+            <div class="resume-card">
+              <div class="resume-card-header">
+                <div class="resume-card-title">
+                  <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+                  </svg>
+                  Skills & Technologies
+                </div>
+              </div>
+              <div class="resume-card-body">
+                <div class="skills-category">
+                  <div class="skills-category-title">Languages & Frameworks</div>
+                  <div class="skill-tags">
+                    <span class="skill-tag matched">Node.js</span>
+                    <span class="skill-tag matched">TypeScript</span>
+                    <span class="skill-tag matched">Python</span>
+                    <span class="skill-tag">Django</span>
+                    <span class="skill-tag">Express.js</span>
+                    <span class="skill-tag">NestJS</span>
+                  </div>
+                </div>
+                <div class="skills-category">
+                  <div class="skills-category-title">Databases</div>
+                  <div class="skill-tags">
+                    <span class="skill-tag matched">PostgreSQL</span>
+                    <span class="skill-tag">MongoDB</span>
+                    <span class="skill-tag matched">Redis</span>
+                    <span class="skill-tag">Elasticsearch</span>
+                  </div>
+                </div>
+                <div class="skills-category">
+                  <div class="skills-category-title">Infrastructure & DevOps</div>
+                  <div class="skill-tags">
+                    <span class="skill-tag matched">AWS</span>
+                    <span class="skill-tag matched">Docker</span>
+                    <span class="skill-tag matched">Kubernetes</span>
+                    <span class="skill-tag">Terraform</span>
+                    <span class="skill-tag">CI/CD</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sidebar -->
+          <div>
+            <!-- Application Score Breakdown -->
+            <div class="sidebar-section">
+              <div class="sidebar-section-header">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Application Score: 78
+              </div>
+              <div class="sidebar-section-body">
+                <div class="score-breakdown-item">
+                  <span class="score-breakdown-label">Experience Match</span>
+                  <div style="display: flex; align-items: center;">
+                    <span class="score-breakdown-value high">85</span>
+                    <div class="score-breakdown-bar">
+                      <div class="score-breakdown-fill" style="width: 85%; background: #22c55e;"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="score-breakdown-item">
+                  <span class="score-breakdown-label">Skills Match</span>
+                  <div style="display: flex; align-items: center;">
+                    <span class="score-breakdown-value high">82</span>
+                    <div class="score-breakdown-bar">
+                      <div class="score-breakdown-fill" style="width: 82%; background: #22c55e;"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="score-breakdown-item">
+                  <span class="score-breakdown-label">Domain Fit</span>
+                  <div style="display: flex; align-items: center;">
+                    <span class="score-breakdown-value medium">68</span>
+                    <div class="score-breakdown-bar">
+                      <div class="score-breakdown-fill" style="width: 68%; background: #f59e0b;"></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="score-breakdown-item">
+                  <span class="score-breakdown-label">Education</span>
+                  <div style="display: flex; align-items: center;">
+                    <span class="score-breakdown-value high">90</span>
+                    <div class="score-breakdown-bar">
+                      <div class="score-breakdown-fill" style="width: 90%; background: #22c55e;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Why This Score -->
+            <div class="sidebar-section">
+              <div class="sidebar-section-header">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Score Explanation
+              </div>
+              <div class="sidebar-section-body">
+                <p style="font-size: 13px; color: var(--gray-600); line-height: 1.6;">
+                  Strong technical background with relevant fintech experience at top companies (Paystack, Andela, Flutterwave). Skills align well with role requirements. <strong>Gap:</strong> No direct insurance industry experience, though regulatory compliance work at Paystack is transferable.
+                </p>
+              </div>
+            </div>
+
+            <!-- Must Validate -->
+            <div class="sidebar-section" style="border-color: rgba(245, 158, 11, 0.3);">
+              <div class="sidebar-section-header" style="background: rgba(245, 158, 11, 0.05); color: #d97706;">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                </svg>
+                Must Validate
+              </div>
+              <div class="sidebar-section-body">
+                <div class="validate-mini-item">
+                  <svg class="validate-mini-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Reason for leaving Paystack after strong tenure</span>
+                </div>
+                <div class="validate-mini-item">
+                  <svg class="validate-mini-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Interest in insurance domain specifically</span>
+                </div>
+                <div class="validate-mini-item">
+                  <svg class="validate-mini-icon" width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span>Team size and scope claims (5 engineers, $50M)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Suggested Interview Questions -->
+            <div class="sidebar-section">
+              <div class="sidebar-section-header">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Suggested for HR Screen
+              </div>
+              <div class="sidebar-section-body">
+                <div class="question-item">
+                  <span class="question-number">1</span>
+                  <span>What specifically draws you to Curacel and the insurance technology space?</span>
+                </div>
+                <div class="question-item">
+                  <span class="question-number">2</span>
+                  <span>Tell me about leading the team of 5 at Paystack. What was your biggest challenge?</span>
+                </div>
+                <div class="question-item">
+                  <span class="question-number">3</span>
+                  <span>What's motivating your move from Paystack after such strong performance?</span>
+                </div>
+                <button class="btn btn-secondary btn-sm" style="width: 100%; margin-top: var(--space-3);">
+                  <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                  Generate More Questions
+                </button>
+              </div>
+            </div>
+
+            <!-- Interest Form Responses -->
+            <div class="sidebar-section">
+              <div class="sidebar-section-header">
+                <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Interest Form Responses
+              </div>
+              <div class="sidebar-section-body">
+                <div class="interest-form-item">
+                  <div class="interest-form-label">Why Curacel?</div>
+                  <div class="interest-form-value">"I'm excited about democratizing insurance access in Africa. The technical challenges of building reliable claims processing at scale align perfectly with my experience."</div>
+                </div>
+                <div class="interest-form-item">
+                  <div class="interest-form-label">Salary Expectation</div>
+                  <div class="interest-form-value">$90,000 - $100,000 USD</div>
+                </div>
+                <div class="interest-form-item">
+                  <div class="interest-form-label">Notice Period</div>
+                  <div class="interest-form-value">4 weeks</div>
+                </div>
+                <div class="interest-form-item">
+                  <div class="interest-form-label">MBTI (if known)</div>
+                  <div class="interest-form-value">INTJ</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Processing State Example (shown when analysis is running) -->
+        <div style="display: none; margin-top: var(--space-8);">
+          <div class="processing-overlay">
+            <div class="processing-spinner"></div>
+            <div class="processing-title">Analyzing Application</div>
+            <div class="processing-text">Our AI is extracting and evaluating candidate information...</div>
+            <div class="processing-steps">
+              <div class="processing-step done">
+                <svg class="processing-step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Parsing resume PDF
+              </div>
+              <div class="processing-step done">
+                <svg class="processing-step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Extracting work experience
+              </div>
+              <div class="processing-step active">
+                <div class="processing-spinner" style="width: 16px; height: 16px; border-width: 2px; margin: 0;"></div>
+                Matching against job requirements
+              </div>
+              <div class="processing-step">
+                <svg class="processing-step-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Generating interview questions
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
+</html>

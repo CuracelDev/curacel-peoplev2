@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Decision - James Okafor - Curacel Recruiter</title>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .tab-content {
+      padding: var(--space-6);
+      max-width: 1200px;
+    }
+
+    /* Score Timeline */
+    .score-timeline-section {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-6);
+    }
+
+    .timeline-header {
+      padding: var(--space-5);
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .timeline-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .timeline-body {
+      padding: var(--space-5);
+    }
+
+    /* SVG Chart */
+    .chart-svg {
+      width: 100%;
+      height: 250px;
+    }
+
+    .chart-grid-line {
+      stroke: var(--gray-100);
+      stroke-dasharray: 4 4;
+    }
+
+    .chart-axis-label {
+      font-size: 11px;
+      fill: var(--gray-400);
+    }
+
+    .chart-line {
+      stroke: var(--primary);
+      stroke-width: 3;
+      fill: none;
+    }
+
+    .chart-area {
+      fill: url(#gradient);
+    }
+
+    .chart-point {
+      fill: var(--primary);
+      stroke: white;
+      stroke-width: 3;
+    }
+
+    .chart-point-label {
+      font-size: 12px;
+      font-weight: 600;
+      fill: var(--gray-900);
+    }
+
+    .chart-stage-label {
+      font-size: 12px;
+      fill: var(--gray-600);
+      text-anchor: middle;
+    }
+
+    /* Score Breakdown Card */
+    .score-breakdown-section {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-bottom: var(--space-6);
+    }
+
+    .breakdown-header {
+      padding: var(--space-5);
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .breakdown-body {
+      padding: var(--space-5);
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: var(--space-6);
+    }
+
+    .final-score-display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: var(--space-6);
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+      border-radius: var(--radius-lg);
+    }
+
+    .final-score-value {
+      font-size: 56px;
+      font-weight: 700;
+      color: #16a34a;
+      line-height: 1;
+    }
+
+    .final-score-label {
+      font-size: 14px;
+      color: var(--gray-600);
+      margin-top: var(--space-2);
+    }
+
+    .final-score-change {
+      display: flex;
+      align-items: center;
+      gap: var(--space-1);
+      font-size: 13px;
+      color: #16a34a;
+      margin-top: var(--space-2);
+    }
+
+    .breakdown-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-3);
+    }
+
+    .breakdown-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+      padding: var(--space-3);
+      background: var(--gray-50);
+      border-radius: var(--radius);
+    }
+
+    .breakdown-item-label {
+      width: 160px;
+      font-size: 14px;
+      color: var(--gray-600);
+    }
+
+    .breakdown-item-bar {
+      flex: 1;
+      height: 10px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .breakdown-item-fill {
+      height: 100%;
+      border-radius: var(--radius-full);
+    }
+
+    .breakdown-item-score {
+      width: 50px;
+      text-align: right;
+      font-weight: 600;
+    }
+
+    .breakdown-item-weight {
+      width: 50px;
+      text-align: right;
+      font-size: 12px;
+      color: var(--gray-400);
+    }
+
+    /* AI Recommendation */
+    .recommendation-section {
+      margin-bottom: var(--space-6);
+    }
+
+    .recommendation-card {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+
+    .recommendation-header {
+      padding: var(--space-5);
+      display: flex;
+      align-items: center;
+      gap: var(--space-4);
+    }
+
+    .recommendation-header.hire {
+      background: linear-gradient(135deg, rgba(34, 197, 94, 0.1) 0%, rgba(34, 197, 94, 0.05) 100%);
+      border-bottom: 3px solid #22c55e;
+    }
+
+    .recommendation-header.hold {
+      background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
+      border-bottom: 3px solid #f59e0b;
+    }
+
+    .recommendation-header.reject {
+      background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(239, 68, 68, 0.05) 100%);
+      border-bottom: 3px solid #ef4444;
+    }
+
+    .recommendation-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    .recommendation-icon.hire { background: #22c55e; }
+    .recommendation-icon.hold { background: #f59e0b; }
+    .recommendation-icon.reject { background: #ef4444; }
+
+    .recommendation-text h3 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: var(--space-1);
+    }
+
+    .recommendation-confidence {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-size: 14px;
+      color: var(--gray-600);
+    }
+
+    .confidence-bar {
+      width: 120px;
+      height: 8px;
+      background: var(--gray-200);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+
+    .confidence-fill {
+      height: 100%;
+      background: var(--primary);
+      border-radius: var(--radius-full);
+    }
+
+    .recommendation-body {
+      padding: var(--space-5);
+    }
+
+    .recommendation-summary {
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--gray-700);
+      margin-bottom: var(--space-5);
+    }
+
+    .recommendation-evidence {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-4);
+    }
+
+    .evidence-section {
+      background: var(--gray-50);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+    }
+
+    .evidence-section-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-weight: 600;
+      margin-bottom: var(--space-3);
+    }
+
+    .evidence-section-header.positive { color: #16a34a; }
+    .evidence-section-header.negative { color: #dc2626; }
+    .evidence-section-header.risk { color: #d97706; }
+
+    .evidence-list {
+      list-style: none;
+    }
+
+    .evidence-list li {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--space-2);
+      font-size: 13px;
+      color: var(--gray-600);
+      margin-bottom: var(--space-2);
+      line-height: 1.5;
+    }
+
+    .evidence-list li:last-child {
+      margin-bottom: 0;
+    }
+
+    .evidence-bullet {
+      width: 6px;
+      height: 6px;
+      border-radius: var(--radius-full);
+      margin-top: 6px;
+      flex-shrink: 0;
+    }
+
+    .evidence-bullet.positive { background: #16a34a; }
+    .evidence-bullet.negative { background: #dc2626; }
+    .evidence-bullet.risk { background: #d97706; }
+
+    /* Human Decision Section */
+    .human-decision-section {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+    }
+
+    .human-decision-header {
+      padding: var(--space-5);
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .human-decision-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .decision-status {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      padding: var(--space-2) var(--space-4);
+      background: rgba(245, 158, 11, 0.1);
+      border-radius: var(--radius-full);
+      color: #d97706;
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .human-decision-body {
+      padding: var(--space-5);
+    }
+
+    .decision-options {
+      display: flex;
+      gap: var(--space-4);
+      margin-bottom: var(--space-5);
+    }
+
+    .decision-option {
+      flex: 1;
+      padding: var(--space-5);
+      border: 2px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      text-align: center;
+    }
+
+    .decision-option:hover {
+      border-color: var(--gray-300);
+      background: var(--gray-50);
+    }
+
+    .decision-option.selected {
+      border-color: var(--primary);
+      background: rgba(99, 102, 241, 0.05);
+    }
+
+    .decision-option.hire:hover,
+    .decision-option.hire.selected {
+      border-color: #22c55e;
+      background: rgba(34, 197, 94, 0.05);
+    }
+
+    .decision-option.hold:hover,
+    .decision-option.hold.selected {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.05);
+    }
+
+    .decision-option.reject:hover,
+    .decision-option.reject.selected {
+      border-color: #ef4444;
+      background: rgba(239, 68, 68, 0.05);
+    }
+
+    .decision-option-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--radius-full);
+      margin: 0 auto var(--space-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .decision-option.hire .decision-option-icon {
+      background: rgba(34, 197, 94, 0.1);
+      color: #16a34a;
+    }
+
+    .decision-option.hold .decision-option-icon {
+      background: rgba(245, 158, 11, 0.1);
+      color: #d97706;
+    }
+
+    .decision-option.reject .decision-option-icon {
+      background: rgba(239, 68, 68, 0.1);
+      color: #dc2626;
+    }
+
+    .decision-option-title {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 2px;
+    }
+
+    .decision-option-subtitle {
+      font-size: 13px;
+      color: var(--gray-500);
+    }
+
+    .decision-notes {
+      margin-bottom: var(--space-5);
+    }
+
+    .decision-notes-label {
+      font-weight: 500;
+      margin-bottom: var(--space-2);
+      display: block;
+    }
+
+    .decision-notes-input {
+      width: 100%;
+      min-height: 100px;
+      padding: var(--space-3);
+      border: 1px solid var(--gray-300);
+      border-radius: var(--radius-md);
+      font-size: 14px;
+      resize: vertical;
+    }
+
+    .decision-notes-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    }
+
+    .decision-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-3);
+    }
+
+    /* Comparison section */
+    .comparison-section {
+      background: white;
+      border: 1px solid var(--gray-200);
+      border-radius: var(--radius-lg);
+      margin-top: var(--space-6);
+    }
+
+    .comparison-header {
+      padding: var(--space-5);
+      border-bottom: 1px solid var(--gray-200);
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    .comparison-body {
+      padding: var(--space-5);
+    }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-4);
+    }
+
+    .comparison-card {
+      background: var(--gray-50);
+      border-radius: var(--radius-lg);
+      padding: var(--space-4);
+      text-align: center;
+    }
+
+    .comparison-card.highlight {
+      background: rgba(99, 102, 241, 0.05);
+      border: 1px solid rgba(99, 102, 241, 0.2);
+    }
+
+    .comparison-label {
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-bottom: var(--space-2);
+    }
+
+    .comparison-value {
+      font-size: 24px;
+      font-weight: 700;
+    }
+
+    .comparison-value.high { color: #16a34a; }
+    .comparison-value.medium { color: #d97706; }
+    .comparison-value.low { color: #dc2626; }
+    .comparison-value.neutral { color: var(--gray-900); }
+
+    .comparison-detail {
+      font-size: 12px;
+      color: var(--gray-500);
+      margin-top: var(--space-1);
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Sidebar (abbreviated) -->
+    <aside class="sidebar" style="width: 72px;">
+      <div class="sidebar-header" style="padding: var(--space-4); justify-content: center;">
+        <div class="sidebar-logo">C</div>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" style="margin-left: 72px;">
+      <!-- Top Bar -->
+      <header class="top-bar">
+        <div class="top-bar-left">
+          <nav class="breadcrumb">
+            <a href="02-jobs-list.html">Jobs</a>
+            <span class="breadcrumb-separator">/</span>
+            <a href="04-candidates-list.html">Senior Backend Engineer</a>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">James Okafor</span>
+          </nav>
+        </div>
+      </header>
+
+      <!-- Profile Header (abbreviated) -->
+      <div style="background: white; border-bottom: 1px solid var(--gray-200); padding: var(--space-4) var(--space-6); display: flex; align-items: center; gap: var(--space-4);">
+        <div style="width: 48px; height: 48px; border-radius: var(--radius-full); background: linear-gradient(135deg, var(--primary), var(--secondary)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 18px;">JO</div>
+        <div style="flex: 1;">
+          <h1 style="font-size: 18px; font-weight: 600;">James Okafor</h1>
+          <div style="font-size: 13px; color: var(--gray-500);">Senior Backend Engineer Candidate</div>
+        </div>
+        <div style="text-align: center;">
+          <div style="font-size: 24px; font-weight: 700; color: #16a34a;">87</div>
+          <div style="font-size: 11px; color: var(--gray-500); text-transform: uppercase;">Overall</div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display: flex; gap: var(--space-1); background: white; padding: 0 var(--space-6); border-bottom: 1px solid var(--gray-200);">
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--gray-500); cursor: pointer;">Interest</div>
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--gray-500); cursor: pointer;">Interview Stages</div>
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--gray-500); cursor: pointer;">Curacel Fit</div>
+        <div style="padding: var(--space-4); font-weight: 500; color: var(--primary); border-bottom: 2px solid var(--primary); margin-bottom: -1px; cursor: pointer;">Decision</div>
+      </div>
+
+      <!-- Tab Content: Decision -->
+      <div class="tab-content" style="background: var(--gray-50); min-height: calc(100vh - 180px);">
+
+        <!-- Score Timeline -->
+        <div class="score-timeline-section">
+          <div class="timeline-header">
+            <div class="timeline-title">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+              </svg>
+              Score Evolution Across Stages
+            </div>
+            <div style="display: flex; align-items: center; gap: var(--space-4); font-size: 12px; color: var(--gray-500);">
+              <span style="display: flex; align-items: center; gap: var(--space-1);">
+                <span style="width: 12px; height: 3px; background: var(--primary); border-radius: 2px;"></span>
+                Candidate Score
+              </span>
+              <span style="display: flex; align-items: center; gap: var(--space-1);">
+                <span style="width: 12px; height: 2px; background: var(--gray-400); border-radius: 2px;"></span>
+                Role Benchmark (75)
+              </span>
+            </div>
+          </div>
+          <div class="timeline-body">
+            <svg class="chart-svg" viewBox="0 0 800 250">
+              <!-- Gradient -->
+              <defs>
+                <linearGradient id="gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color: #6366f1; stop-opacity: 0.2"/>
+                  <stop offset="100%" style="stop-color: #6366f1; stop-opacity: 0"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Grid lines -->
+              <line x1="80" y1="30" x2="750" y2="30" class="chart-grid-line"/>
+              <line x1="80" y1="80" x2="750" y2="80" class="chart-grid-line"/>
+              <line x1="80" y1="130" x2="750" y2="130" class="chart-grid-line"/>
+              <line x1="80" y1="180" x2="750" y2="180" class="chart-grid-line"/>
+
+              <!-- Y-axis labels -->
+              <text x="60" y="35" class="chart-axis-label" text-anchor="end">100</text>
+              <text x="60" y="85" class="chart-axis-label" text-anchor="end">75</text>
+              <text x="60" y="135" class="chart-axis-label" text-anchor="end">50</text>
+              <text x="60" y="185" class="chart-axis-label" text-anchor="end">25</text>
+
+              <!-- Benchmark line -->
+              <line x1="80" y1="80" x2="750" y2="80" stroke="#9ca3af" stroke-width="2" stroke-dasharray="6 4"/>
+
+              <!-- Area fill -->
+              <path d="M 180 86 L 400 66 L 620 46 L 620 180 L 400 180 L 180 180 Z" class="chart-area"/>
+
+              <!-- Line -->
+              <path d="M 180 86 L 400 66 L 620 46" class="chart-line"/>
+
+              <!-- Points -->
+              <circle cx="180" cy="86" r="8" class="chart-point"/>
+              <circle cx="400" cy="66" r="8" class="chart-point"/>
+              <circle cx="620" cy="46" r="8" class="chart-point"/>
+
+              <!-- Point labels -->
+              <text x="180" y="70" class="chart-point-label" text-anchor="middle">78</text>
+              <text x="400" y="50" class="chart-point-label" text-anchor="middle">82</text>
+              <text x="620" y="30" class="chart-point-label" text-anchor="middle">87</text>
+
+              <!-- Stage labels -->
+              <text x="180" y="210" class="chart-stage-label">Application</text>
+              <text x="180" y="225" style="font-size: 10px; fill: #9ca3af; text-anchor: middle;">Dec 15</text>
+
+              <text x="400" y="210" class="chart-stage-label">HR Screen</text>
+              <text x="400" y="225" style="font-size: 10px; fill: #9ca3af; text-anchor: middle;">Dec 18</text>
+
+              <text x="620" y="210" class="chart-stage-label">Panel Interview</text>
+              <text x="620" y="225" style="font-size: 10px; fill: #9ca3af; text-anchor: middle;">Dec 22</text>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Score Breakdown -->
+        <div class="score-breakdown-section">
+          <div class="breakdown-header">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            Final Score Breakdown
+          </div>
+          <div class="breakdown-body">
+            <div class="final-score-display">
+              <div class="final-score-value">87</div>
+              <div class="final-score-label">Final Score</div>
+              <div class="final-score-change">
+                <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+                </svg>
+                +9 from application
+              </div>
+            </div>
+            <div class="breakdown-list">
+              <div class="breakdown-item">
+                <span class="breakdown-item-label">Application Quality</span>
+                <div class="breakdown-item-bar">
+                  <div class="breakdown-item-fill" style="width: 78%; background: #22c55e;"></div>
+                </div>
+                <span class="breakdown-item-score" style="color: #16a34a;">78</span>
+                <span class="breakdown-item-weight">20%</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-item-label">HR Screen</span>
+                <div class="breakdown-item-bar">
+                  <div class="breakdown-item-fill" style="width: 82%; background: #22c55e;"></div>
+                </div>
+                <span class="breakdown-item-score" style="color: #16a34a;">82</span>
+                <span class="breakdown-item-weight">20%</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-item-label">Panel Interview</span>
+                <div class="breakdown-item-bar">
+                  <div class="breakdown-item-fill" style="width: 87%; background: #22c55e;"></div>
+                </div>
+                <span class="breakdown-item-score" style="color: #16a34a;">87</span>
+                <span class="breakdown-item-weight">30%</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-item-label">Technical Assessment</span>
+                <div class="breakdown-item-bar">
+                  <div class="breakdown-item-fill" style="width: 92%; background: #22c55e;"></div>
+                </div>
+                <span class="breakdown-item-score" style="color: #16a34a;">92</span>
+                <span class="breakdown-item-weight">15%</span>
+              </div>
+              <div class="breakdown-item">
+                <span class="breakdown-item-label">Culture Fit (PRESS)</span>
+                <div class="breakdown-item-bar">
+                  <div class="breakdown-item-fill" style="width: 82%; background: #22c55e;"></div>
+                </div>
+                <span class="breakdown-item-score" style="color: #16a34a;">82</span>
+                <span class="breakdown-item-weight">15%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Recommendation -->
+        <div class="recommendation-section">
+          <div class="recommendation-card">
+            <div class="recommendation-header hire">
+              <div class="recommendation-icon hire">
+                <svg width="28" height="28" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+              <div class="recommendation-text">
+                <h3>Recommend: HIRE</h3>
+                <div class="recommendation-confidence">
+                  <span>Confidence:</span>
+                  <div class="confidence-bar">
+                    <div class="confidence-fill" style="width: 85%;"></div>
+                  </div>
+                  <span style="font-weight: 600;">85%</span>
+                </div>
+              </div>
+            </div>
+            <div class="recommendation-body">
+              <p class="recommendation-summary">
+                James demonstrates exceptional technical depth with a strong track record at high-growth fintech companies. His experience leading teams and building payment systems at Paystack directly translates to Curacel's needs. While he lacks insurance domain experience, his demonstrated ability to quickly master complex regulatory environments (evidenced by his compliance work at Paystack) and strong PRESS values alignment make him an excellent fit for the Senior Backend Engineer role.
+              </p>
+              <div class="recommendation-evidence">
+                <div class="evidence-section">
+                  <div class="evidence-section-header positive">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                    </svg>
+                    Key Strengths
+                  </div>
+                  <ul class="evidence-list">
+                    <li>
+                      <span class="evidence-bullet positive"></span>
+                      <span>6 years of relevant backend experience at top companies</span>
+                    </li>
+                    <li>
+                      <span class="evidence-bullet positive"></span>
+                      <span>Proven leadership - led team of 5, mentored 3 promotions</span>
+                    </li>
+                    <li>
+                      <span class="evidence-bullet positive"></span>
+                      <span>Strong system design skills (event-driven, microservices)</span>
+                    </li>
+                    <li>
+                      <span class="evidence-bullet positive"></span>
+                      <span>High PRESS alignment especially Passionate Work (88%)</span>
+                    </li>
+                  </ul>
+                </div>
+                <div class="evidence-section">
+                  <div class="evidence-section-header risk">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                    Considerations & Mitigations
+                  </div>
+                  <ul class="evidence-list">
+                    <li>
+                      <span class="evidence-bullet risk"></span>
+                      <span><strong>No insurance experience</strong> - Pair with domain expert for first 90 days</span>
+                    </li>
+                    <li>
+                      <span class="evidence-bullet risk"></span>
+                      <span><strong>Salary at top of range ($95k)</strong> - Consider equity comp or performance bonus</span>
+                    </li>
+                    <li>
+                      <span class="evidence-bullet risk"></span>
+                      <span><strong>Lower extraversion</strong> - Ensure comfortable channels for cross-team comms</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Human Decision -->
+        <div class="human-decision-section">
+          <div class="human-decision-header">
+            <div class="human-decision-title">
+              <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Your Decision
+            </div>
+            <div class="decision-status">
+              <svg width="14" height="14" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Pending Decision
+            </div>
+          </div>
+          <div class="human-decision-body">
+            <div class="decision-options">
+              <div class="decision-option hire">
+                <div class="decision-option-icon">
+                  <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                </div>
+                <div class="decision-option-title">Hire</div>
+                <div class="decision-option-subtitle">Proceed to offer</div>
+              </div>
+              <div class="decision-option hold">
+                <div class="decision-option-icon">
+                  <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div class="decision-option-title">Hold</div>
+                <div class="decision-option-subtitle">Need more info</div>
+              </div>
+              <div class="decision-option reject">
+                <div class="decision-option-icon">
+                  <svg width="24" height="24" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </div>
+                <div class="decision-option-title">No Hire</div>
+                <div class="decision-option-subtitle">Reject candidate</div>
+              </div>
+            </div>
+
+            <div class="decision-notes">
+              <label class="decision-notes-label">Decision Notes (Optional)</label>
+              <textarea class="decision-notes-input" placeholder="Add any notes about your decision, reasoning, or next steps..."></textarea>
+            </div>
+
+            <div class="decision-actions">
+              <button class="btn btn-secondary">Save as Draft</button>
+              <button class="btn btn-primary">
+                <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                Confirm Decision
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Role Comparison -->
+        <div class="comparison-section">
+          <div class="comparison-header">
+            <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+            </svg>
+            Comparative Insights
+          </div>
+          <div class="comparison-body">
+            <div class="comparison-grid">
+              <div class="comparison-card">
+                <div class="comparison-label">Candidate Score</div>
+                <div class="comparison-value high">87</div>
+                <div class="comparison-detail">Top 15% of applicants</div>
+              </div>
+              <div class="comparison-card highlight">
+                <div class="comparison-label">Role Ideal Match</div>
+                <div class="comparison-value neutral">92%</div>
+                <div class="comparison-detail">vs. ideal candidate profile</div>
+              </div>
+              <div class="comparison-card">
+                <div class="comparison-label">Avg. Other Candidates</div>
+                <div class="comparison-value medium">71</div>
+                <div class="comparison-detail">12 candidates in pipeline</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Decision option selection
+    document.querySelectorAll('.decision-option').forEach(option => {
+      option.addEventListener('click', function() {
+        document.querySelectorAll('.decision-option').forEach(o => o.classList.remove('selected'));
+        this.classList.add('selected');
+      });
+    });
+  </script>
+</body>
+</html>
