@@ -213,69 +213,8 @@ export default function CandidatesPage() {
         </Card>
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-        {/* Filter tabs - horizontally scrollable on mobile */}
-        <div className="overflow-x-auto -mx-3 px-3 lg:mx-0 lg:px-0">
-          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg min-w-max">
-            <button
-              className={cn(
-                "px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
-                activeFilter === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              )}
-              onClick={() => setActiveFilter('all')}
-            >
-              All ({stageCounts.all})
-            </button>
-            <button
-              className={cn(
-                "px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
-                activeFilter === 'applied' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              )}
-              onClick={() => setActiveFilter('applied')}
-            >
-              Applied ({stageCounts.applied})
-            </button>
-            <button
-              className={cn(
-                "px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
-                activeFilter === 'hrScreen' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              )}
-              onClick={() => setActiveFilter('hrScreen')}
-            >
-              HR Screen ({stageCounts.hrScreen})
-            </button>
-            <button
-              className={cn(
-                "px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
-                activeFilter === 'technical' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              )}
-              onClick={() => setActiveFilter('technical')}
-            >
-              Technical ({stageCounts.technical})
-            </button>
-            <button
-              className={cn(
-                "px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
-                activeFilter === 'panel' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              )}
-              onClick={() => setActiveFilter('panel')}
-            >
-              Panel ({stageCounts.panel})
-            </button>
-            <button
-              className={cn(
-                "px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
-                activeFilter === 'offer' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
-              )}
-              onClick={() => setActiveFilter('offer')}
-            >
-              Offer ({stageCounts.offer})
-            </button>
-          </div>
-        </div>
-        {/* Search and Actions - stack on mobile */}
-        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 lg:ml-auto">
+      {/* Search and Actions */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1 sm:flex-none">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input
@@ -400,7 +339,6 @@ export default function CandidatesPage() {
             </DialogContent>
           </Dialog>
         </div>
-      </div>
       </div>
 
       {/* Candidates Table */}
