@@ -11,6 +11,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - New parent settings page (`/settings/job-settings`) grouping job-related configurations
   - Contains Job Descriptions and Interview Settings
   - Cleaner organization of hiring-related settings
+- **Teams with Sub-Teams Support**
+  - Added hierarchical team structure with parent-child relationships
+  - Sub-teams can be created under any root team
+  - Expandable/collapsible team hierarchy in Teams page
+  - Teams now used as source of truth for departments throughout app
+  - Updated Employee forms to use Team dropdown instead of free text
+  - Updated Recruiting positions to use Team dropdown
 - **Unified Dashboard redesign**
   - Merged recruiter and people dashboards into single unified view
   - "Welcome back" personalized greeting

@@ -27,6 +27,7 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { useHiringFlows } from '@/lib/recruiting/hiring-flows'
+import { trpc } from '@/lib/trpc-client'
 
 const flowAppearance = {
   standard: { icon: User, color: 'bg-indigo-50 text-indigo-600' },
@@ -49,9 +50,10 @@ const competencies = [
 
 export default function CreateJobPage() {
   const router = useRouter()
+  const { data: teams } = trpc.team.listForSelect.useQuery()
   const [formData, setFormData] = useState({
     title: 'Senior Backend Engineer',
-    department: 'engineering',
+    department: '',
     location: 'remote',
     employmentType: 'full-time',
     description: `We are looking for a Senior Backend Engineer to join our growing team. You will be responsible for designing, building, and maintaining scalable backend systems that power our insurance technology platform.
@@ -140,19 +142,21 @@ Requirements:
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Department</Label>
+                  <Label>Team / Department</Label>
                   <Select
-                    value={formData.department}
-                    onValueChange={(value) => setFormData({ ...formData, department: value })}
+                    value={formData.department || 'none'}
+                    onValueChange={(value) => setFormData({ ...formData, department: value === 'none' ? '' : value })}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select department" />
+                      <SelectValue placeholder="Select team" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="engineering">Engineering</SelectItem>
-                      <SelectItem value="design">Design</SelectItem>
-                      <SelectItem value="growth">Growth</SelectItem>
-                      <SelectItem value="operations">Operations</SelectItem>
+                      <SelectItem value="none">No team</SelectItem>
+                      {(teams || []).map((team) => (
+                        <SelectItem key={team.id} value={team.name}>
+                          {team.displayName}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -360,7 +364,7 @@ Requirements:
               <div className="text-xs opacity-80 mb-2">Job Preview</div>
               <div className="text-xl font-semibold">{formData.title || 'Job Title'}</div>
               <div className="text-sm opacity-90 mt-1">
-                {formData.department.charAt(0).toUpperCase() + formData.department.slice(1)} &middot;{' '}
+                {formData.department || 'No team'} &middot;{' '}
                 {formData.location === 'remote' ? 'Remote' : formData.location === 'lagos' ? 'Lagos, Nigeria' : 'Hybrid'}
               </div>
             </div>

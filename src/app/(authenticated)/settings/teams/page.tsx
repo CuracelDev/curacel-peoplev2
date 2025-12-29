@@ -23,6 +23,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu'
 import {
   AlertDialog,
@@ -34,7 +35,14 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Plus, MoreHorizontal, Pencil, Trash2, Users, RefreshCw } from 'lucide-react'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Plus, MoreHorizontal, Pencil, Trash2, Users, ChevronRight, FolderPlus } from 'lucide-react'
 
 const TEAM_COLORS = [
   { name: 'Blue', value: '#3B82F6' },
@@ -46,6 +54,24 @@ const TEAM_COLORS = [
   { name: 'Red', value: '#EF4444' },
   { name: 'Yellow', value: '#EAB308' },
 ]
+
+interface SubTeam {
+  id: string
+  name: string
+  description: string | null
+  color: string | null
+  employeeCount: number
+}
+
+interface Team {
+  id: string
+  name: string
+  description: string | null
+  color: string | null
+  parentId: string | null
+  employeeCount: number
+  subTeams: SubTeam[]
+}
 
 export default function TeamsPage() {
   const utils = trpc.useUtils()
@@ -75,31 +101,22 @@ export default function TeamsPage() {
     },
   })
 
-  const syncTeams = trpc.team.syncFromDepartments.useMutation({
-    onSuccess: (data) => {
-      utils.team.list.invalidate()
-      if (data.synced > 0) {
-        alert(`Synced ${data.synced} new team(s): ${data.teams.join(', ')}`)
-      } else {
-        alert('All departments are already synced as teams.')
-      }
-    },
-  })
-
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [teamToDelete, setTeamToDelete] = useState<{ id: string; name: string } | null>(null)
+  const [expandedTeams, setExpandedTeams] = useState<Set<string>>(new Set())
 
   const [formData, setFormData] = useState({
     id: '',
     name: '',
     description: '',
     color: '#3B82F6',
+    parentId: '',
   })
 
   const resetForm = () => {
-    setFormData({ id: '', name: '', description: '', color: '#3B82F6' })
+    setFormData({ id: '', name: '', description: '', color: '#3B82F6', parentId: '' })
   }
 
   const handleCreate = () => {
@@ -108,15 +125,17 @@ export default function TeamsPage() {
       name: formData.name.trim(),
       description: formData.description.trim() || undefined,
       color: formData.color,
+      parentId: formData.parentId || undefined,
     })
   }
 
-  const handleEdit = (team: { id: string; name: string; description?: string | null; color?: string | null }) => {
+  const handleEdit = (team: { id: string; name: string; description?: string | null; color?: string | null; parentId?: string | null }) => {
     setFormData({
       id: team.id,
       name: team.name,
       description: team.description || '',
       color: team.color || '#3B82F6',
+      parentId: team.parentId || '',
     })
     setEditDialogOpen(true)
   }
@@ -128,6 +147,7 @@ export default function TeamsPage() {
       name: formData.name.trim(),
       description: formData.description.trim() || null,
       color: formData.color,
+      parentId: formData.parentId || null,
     })
   }
 
@@ -136,11 +156,127 @@ export default function TeamsPage() {
     setDeleteDialogOpen(true)
   }
 
+  const handleAddSubTeam = (parentId: string) => {
+    const parent = teams?.find((t) => t.id === parentId)
+    setFormData({
+      id: '',
+      name: '',
+      description: '',
+      color: parent?.color || '#3B82F6',
+      parentId: parentId,
+    })
+    setCreateDialogOpen(true)
+  }
+
   const confirmDelete = () => {
     if (teamToDelete) {
       deleteTeam.mutate({ id: teamToDelete.id })
     }
   }
+
+  const toggleExpanded = (teamId: string) => {
+    setExpandedTeams((prev) => {
+      const next = new Set(prev)
+      if (next.has(teamId)) {
+        next.delete(teamId)
+      } else {
+        next.add(teamId)
+      }
+      return next
+    })
+  }
+
+  const renderTeamRow = (team: Team | SubTeam, isSubTeam = false, parentTeam?: Team) => {
+    const hasSubTeams = !isSubTeam && 'subTeams' in team && team.subTeams.length > 0
+    const isExpanded = expandedTeams.has(team.id)
+
+    return (
+      <div key={team.id}>
+        <div
+          className={`flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors ${
+            isSubTeam ? 'ml-8 bg-gray-50/50' : ''
+          }`}
+        >
+          <div className="flex items-center gap-4">
+            {hasSubTeams && (
+              <button
+                onClick={() => toggleExpanded(team.id)}
+                className="p-1 hover:bg-gray-200 rounded"
+              >
+                <ChevronRight
+                  className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                />
+              </button>
+            )}
+            {!hasSubTeams && !isSubTeam && <div className="w-6" />}
+            <div
+              className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold"
+              style={{ backgroundColor: team.color || '#3B82F6' }}
+            >
+              {team.name.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3 className="font-medium text-gray-900">
+                {team.name}
+                {isSubTeam && parentTeam && (
+                  <span className="text-gray-500 text-sm ml-2">
+                    (under {parentTeam.name})
+                  </span>
+                )}
+              </h3>
+              {team.description && (
+                <p className="text-sm text-gray-500 line-clamp-1">{team.description}</p>
+              )}
+            </div>
+          </div>
+          <div className="flex items-center gap-4">
+            <Badge variant="secondary" className="gap-1">
+              <Users className="h-3 w-3" />
+              {team.employeeCount} {team.employeeCount === 1 ? 'member' : 'members'}
+            </Badge>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={() => handleEdit(team)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                {!isSubTeam && (
+                  <DropdownMenuItem onSelect={() => handleAddSubTeam(team.id)}>
+                    <FolderPlus className="h-4 w-4 mr-2" />
+                    Add Sub-Team
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onSelect={() => handleDeleteClick(team)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
+        {/* Render sub-teams if expanded */}
+        {hasSubTeams && isExpanded && (
+          <div className="space-y-2 mt-2">
+            {(team as Team).subTeams.map((subTeam) =>
+              renderTeamRow(subTeam, true, team as Team)
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // Get parent team options (exclude current team if editing)
+  const parentTeamOptions = teams?.filter((t) => t.id !== formData.id) || []
 
   return (
     <div className="space-y-6">
@@ -150,16 +286,7 @@ export default function TeamsPage() {
       />
 
       {/* Actions Row */}
-      <div className="flex items-center justify-between">
-        <Button
-          variant="outline"
-          onClick={() => syncTeams.mutate()}
-          disabled={syncTeams.isPending}
-        >
-          <RefreshCw className={`h-4 w-4 mr-2 ${syncTeams.isPending ? 'animate-spin' : ''}`} />
-          {syncTeams.isPending ? 'Syncing...' : 'Sync from Employees'}
-        </Button>
-
+      <div className="flex items-center justify-end">
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={resetForm}>
@@ -169,9 +296,13 @@ export default function TeamsPage() {
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create New Team</DialogTitle>
+              <DialogTitle>
+                {formData.parentId ? 'Create Sub-Team' : 'Create New Team'}
+              </DialogTitle>
               <DialogDescription>
-                Add a new team to organize your employees.
+                {formData.parentId
+                  ? 'Add a sub-team under an existing team.'
+                  : 'Add a new team to organize your employees.'}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-4">
@@ -183,6 +314,27 @@ export default function TeamsPage() {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="parent">Parent Team (optional)</Label>
+                <Select
+                  value={formData.parentId || 'none'}
+                  onValueChange={(value) =>
+                    setFormData({ ...formData, parentId: value === 'none' ? '' : value })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select parent team (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No parent (root team)</SelectItem>
+                    {parentTeamOptions.map((team) => (
+                      <SelectItem key={team.id} value={team.id}>
+                        {team.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="description">Description</Label>
@@ -231,7 +383,7 @@ export default function TeamsPage() {
         <CardHeader>
           <CardTitle>Active Teams</CardTitle>
           <CardDescription>
-            Teams are synced with employee departments. Employees with matching department names will appear under each team.
+            Manage your organization&apos;s teams and sub-teams. Employees are assigned to teams based on their department.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -241,71 +393,19 @@ export default function TeamsPage() {
             </div>
           ) : teams && teams.length > 0 ? (
             <div className="space-y-3">
-              {teams.map((team) => (
-                <div
-                  key={team.id}
-                  className="flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors"
-                >
-                  <div className="flex items-center gap-4">
-                    <div
-                      className="w-10 h-10 rounded-lg flex items-center justify-center text-white font-semibold"
-                      style={{ backgroundColor: team.color || '#3B82F6' }}
-                    >
-                      {team.name.charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">{team.name}</h3>
-                      {team.description && (
-                        <p className="text-sm text-gray-500 line-clamp-1">{team.description}</p>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <Badge variant="secondary" className="gap-1">
-                      <Users className="h-3 w-3" />
-                      {team.employeeCount} {team.employeeCount === 1 ? 'member' : 'members'}
-                    </Badge>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon">
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => handleEdit(team)}>
-                          <Pencil className="h-4 w-4 mr-2" />
-                          Edit
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          className="text-red-600"
-                          onClick={() => handleDeleteClick(team)}
-                        >
-                          <Trash2 className="h-4 w-4 mr-2" />
-                          Delete
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </div>
-              ))}
+              {teams.map((team) => renderTeamRow(team as Team))}
             </div>
           ) : (
             <div className="text-center py-12">
               <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No teams yet</h3>
               <p className="text-gray-500 mb-4">
-                Create your first team or sync from existing employee departments.
+                Create your first team to organize your employees.
               </p>
-              <div className="flex items-center justify-center gap-3">
-                <Button variant="outline" onClick={() => syncTeams.mutate()}>
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Sync from Employees
-                </Button>
-                <Button onClick={() => { resetForm(); setCreateDialogOpen(true) }}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Team
-                </Button>
-              </div>
+              <Button onClick={() => { resetForm(); setCreateDialogOpen(true) }}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Team
+              </Button>
             </div>
           )}
         </CardContent>
@@ -329,6 +429,27 @@ export default function TeamsPage() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-parent">Parent Team (optional)</Label>
+              <Select
+                value={formData.parentId || 'none'}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, parentId: value === 'none' ? '' : value })
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select parent team (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">No parent (root team)</SelectItem>
+                  {parentTeamOptions.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-description">Description</Label>
@@ -377,7 +498,7 @@ export default function TeamsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Team</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete &quot;{teamToDelete?.name}&quot;? This action cannot be undone.
+              Are you sure you want to delete &quot;{teamToDelete?.name}&quot;? This will also delete all sub-teams.
               Employees in this team will not be affected.
             </AlertDialogDescription>
           </AlertDialogHeader>

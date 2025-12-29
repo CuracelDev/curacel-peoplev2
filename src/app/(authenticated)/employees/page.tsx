@@ -46,7 +46,7 @@ export default function EmployeesPage() {
     limit: 20,
   })
 
-  const { data: departments } = trpc.employee.getDepartments.useQuery()
+  const { data: teams } = trpc.team.listForSelect.useQuery()
   const createEmployee = trpc.employee.create.useMutation({
     onSuccess: () => {
       setCreateDialogOpen(false)
@@ -55,7 +55,7 @@ export default function EmployeesPage() {
     },
   })
 
-  const { register, handleSubmit, reset, formState: { errors } } = useForm({
+  const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
     defaultValues: {
       fullName: '',
       personalEmail: '',
@@ -64,6 +64,8 @@ export default function EmployeesPage() {
       location: '',
     },
   })
+
+  const departmentValue = watch('department')
 
   const onSubmit = (data: { fullName: string; personalEmail: string; jobTitle?: string; department?: string; location?: string }) => {
     createEmployee.mutate(data)
@@ -114,8 +116,20 @@ export default function EmployeesPage() {
                   <Input id="jobTitle" {...register('jobTitle')} />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="department">Department</Label>
-                  <Input id="department" {...register('department')} />
+                  <Label htmlFor="department">Team / Department</Label>
+                  <Select value={departmentValue || 'none'} onValueChange={(value) => setValue('department', value === 'none' ? '' : value)}>
+                    <SelectTrigger id="department">
+                      <SelectValue placeholder="Select team" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No team</SelectItem>
+                      {(teams || []).map((team) => (
+                        <SelectItem key={team.id} value={team.name}>
+                          {team.displayName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="location">Location</Label>
@@ -165,13 +179,13 @@ export default function EmployeesPage() {
             </Select>
             <Select value={departmentFilter || 'all'} onValueChange={(v) => setDepartmentFilter(v === 'all' ? '' : v)}>
               <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="All Departments" />
+                <SelectValue placeholder="All Teams" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Departments</SelectItem>
-                {departments?.map((dept) => (
-                  <SelectItem key={dept} value={dept}>
-                    {dept}
+                <SelectItem value="all">All Teams</SelectItem>
+                {(teams || []).map((team) => (
+                  <SelectItem key={team.id} value={team.name}>
+                    {team.displayName}
                   </SelectItem>
                 ))}
               </SelectContent>
