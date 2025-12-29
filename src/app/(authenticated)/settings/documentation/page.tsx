@@ -481,6 +481,33 @@ const docSections: DocSection[] = [
     ],
   },
   {
+    id: 'recruiting-jobs',
+    title: 'Recruiting jobs',
+    description: 'Create and manage job roles for the recruiting pipeline.',
+    blocks: [
+      {
+        title: 'Create a job',
+        ordered: true,
+        items: [
+          'Go to Recruiting > Positions and click Create Job.',
+          'Fill in the job details (title, team, employment type, priority).',
+          'Set a Deadline date to indicate when the role should be filled.',
+          'Set Number of Hires if you plan to fill multiple seats.',
+          'Add locations (multi-select); you can enter any city or region and Lagos is suggested.',
+          'Choose the interview flow and required competencies.',
+          'Click Create Job to publish or Save as Draft to finish later.',
+        ],
+      },
+      {
+        title: 'Dates in job headers',
+        items: [
+          'Start shows the job creation date.',
+          'Deadline shows the target fill date you set in job details.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'settings-reference',
     title: 'Settings reference',
     description: 'What each Settings page does and how to use it.',

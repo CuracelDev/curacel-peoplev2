@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import {
@@ -9,6 +9,8 @@ import {
   MoreHorizontal,
   ChevronLeft,
   ChevronRight,
+  Pencil,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -22,27 +24,54 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { trpc } from '@/lib/trpc-client'
 
-// Mock data
-const candidates = [
-  { id: '1', name: 'James Okafor', email: 'james.okafor@email.com', initials: 'JO', color: 'bg-green-500', score: 87, stage: 'panel', applied: 'Dec 16, 2025', updated: '2 hours ago' },
-  { id: '2', name: 'Sarah Chen', email: 'sarah.chen@email.com', initials: 'SC', color: 'bg-sky-500', score: 82, stage: 'hr-screen', applied: 'Dec 27, 2025', updated: 'Just now' },
-  { id: '3', name: 'Adaeze Nwosu', email: 'adaeze.nwosu@email.com', initials: 'AN', color: 'bg-indigo-500', score: 80, stage: 'technical', applied: 'Dec 18, 2025', updated: '1 day ago' },
-  { id: '4', name: 'Amaka Abubakar', email: 'amaka.abubakar@email.com', initials: 'AA', color: 'bg-pink-500', score: 76, stage: 'panel', applied: 'Dec 17, 2025', updated: '3 hours ago' },
-  { id: '5', name: 'Kelechi Okonkwo', email: 'kelechi.o@email.com', initials: 'KO', color: 'bg-amber-500', score: 74, stage: 'technical', applied: 'Dec 19, 2025', updated: 'Yesterday' },
-  { id: '6', name: 'Tunde Olawale', email: 'tunde.o@email.com', initials: 'TO', color: 'bg-purple-500', score: 71, stage: 'hr-screen', applied: 'Dec 20, 2025', updated: '2 days ago' },
-  { id: '7', name: 'Blessing Musa', email: 'blessing.m@email.com', initials: 'BM', color: 'bg-teal-500', score: 68, stage: 'applied', applied: 'Dec 25, 2025', updated: '3 days ago' },
-  { id: '8', name: 'David Peters', email: 'david.p@email.com', initials: 'DP', color: 'bg-red-500', score: 55, stage: 'applied', applied: 'Dec 26, 2025', updated: '2 days ago' },
-  { id: '9', name: 'John Adams', email: 'john.adams@email.com', initials: 'JA', color: 'bg-gray-500', score: 48, stage: 'applied', applied: 'Dec 27, 2025', updated: '1 day ago' },
+// Avatar color palette
+const avatarColors = [
+  'bg-green-500',
+  'bg-sky-500',
+  'bg-indigo-500',
+  'bg-pink-500',
+  'bg-amber-500',
+  'bg-purple-500',
+  'bg-teal-500',
+  'bg-red-500',
+  'bg-blue-500',
+  'bg-orange-500',
 ]
 
-const stages = [
-  { id: 'all', label: 'All', count: 24 },
-  { id: 'applied', label: 'Applied', count: 10 },
-  { id: 'hr-screen', label: 'HR Screen', count: 6 },
-  { id: 'technical', label: 'Technical', count: 5 },
-  { id: 'panel', label: 'Panel', count: 3 },
-]
+function getInitials(name: string) {
+  return name
+    .split(' ')
+    .map((n) => n[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2)
+}
+
+function getAvatarColor(name: string) {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  }
+  return avatarColors[Math.abs(hash) % avatarColors.length]
+}
+
+function getRelativeTime(date: Date | string) {
+  const now = new Date()
+  const d = new Date(date)
+  const diffMs = now.getTime() - d.getTime()
+  const diffMins = Math.floor(diffMs / (1000 * 60))
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60))
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+
+  if (diffMins < 5) return 'Just now'
+  if (diffMins < 60) return `${diffMins} minutes ago`
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
+  if (diffDays === 1) return 'Yesterday'
+  if (diffDays < 7) return `${diffDays} days ago`
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+}
 
 function getScoreClass(score: number) {
   if (score >= 80) return 'bg-green-50 text-green-600'
@@ -52,32 +81,120 @@ function getScoreClass(score: number) {
 
 function getStageBadge(stage: string) {
   switch (stage) {
-    case 'applied':
+    case 'APPLIED':
       return <Badge variant="secondary" className="bg-gray-100 text-gray-600">Applied</Badge>
-    case 'hr-screen':
+    case 'HR_SCREEN':
       return <Badge className="bg-indigo-100 text-indigo-600 hover:bg-indigo-100">HR Screen</Badge>
-    case 'technical':
+    case 'TECHNICAL':
       return <Badge className="bg-amber-100 text-amber-600 hover:bg-amber-100">Technical</Badge>
-    case 'panel':
+    case 'PANEL':
       return <Badge className="bg-green-100 text-green-600 hover:bg-green-100">Panel Interview</Badge>
-    case 'offer':
+    case 'OFFER':
       return <Badge className="bg-pink-100 text-pink-600 hover:bg-pink-100">Offer</Badge>
+    case 'HIRED':
+      return <Badge className="bg-emerald-100 text-emerald-600 hover:bg-emerald-100">Hired</Badge>
+    case 'REJECTED':
+      return <Badge className="bg-red-100 text-red-600 hover:bg-red-100">Rejected</Badge>
+    case 'WITHDRAWN':
+      return <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100">Withdrawn</Badge>
     default:
       return <Badge variant="secondary">{stage}</Badge>
   }
 }
 
+const STATUS_BADGES: Record<string, string> = {
+  ACTIVE: 'bg-green-100 text-green-700',
+  DRAFT: 'bg-yellow-100 text-yellow-700',
+  CLOSED: 'bg-gray-100 text-gray-700',
+}
+
+const STATUS_LABELS: Record<string, string> = {
+  ACTIVE: 'Active',
+  DRAFT: 'Draft',
+  CLOSED: 'Closed',
+}
+
 export default function CandidatesListPage() {
   const params = useParams()
   const jobId = params.id as string
+  const { data: job, isLoading: jobLoading } = trpc.job.get.useQuery({ id: jobId })
+  const { data: candidatesData, isLoading: candidatesLoading } = trpc.job.listCandidates.useQuery({ jobId })
+
   const [selectedStage, setSelectedStage] = useState('all')
   const [sortBy, setSortBy] = useState('score-desc')
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
 
-  const filteredCandidates = candidates.filter((c) => {
-    if (selectedStage === 'all') return true
-    return c.stage === selectedStage
-  })
+  const isLoading = jobLoading || candidatesLoading
+
+  // Use real candidates from API
+  const allCandidates = candidatesData?.candidates || []
+  const counts = candidatesData?.counts || {
+    all: 0,
+    applied: 0,
+    hrScreen: 0,
+    technical: 0,
+    panel: 0,
+    offer: 0,
+    hired: 0,
+    rejected: 0,
+  }
+
+  const stages = [
+    { id: 'all', label: 'All', count: counts.all },
+    { id: 'APPLIED', label: 'Applied', count: counts.applied },
+    { id: 'HR_SCREEN', label: 'HR Screen', count: counts.hrScreen },
+    { id: 'TECHNICAL', label: 'Technical', count: counts.technical },
+    { id: 'PANEL', label: 'Panel', count: counts.panel },
+    { id: 'OFFER', label: 'Offer', count: counts.offer },
+  ]
+
+  // Filter candidates by stage
+  const stageFilteredCandidates = useMemo(() => {
+    let filtered = allCandidates.filter((c) => {
+      if (selectedStage === 'all') return true
+      return c.stage === selectedStage
+    })
+
+    // Sort candidates
+    switch (sortBy) {
+      case 'score-desc':
+        filtered = [...filtered].sort((a, b) => (b.score || 0) - (a.score || 0))
+        break
+      case 'score-asc':
+        filtered = [...filtered].sort((a, b) => (a.score || 0) - (b.score || 0))
+        break
+      case 'date':
+        filtered = [...filtered].sort((a, b) =>
+          new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime()
+        )
+        break
+      case 'name':
+        filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name))
+        break
+    }
+
+    return filtered
+  }, [allCandidates, selectedStage, sortBy])
+
+  // Calculate pagination
+  const totalCandidates = stageFilteredCandidates.length
+  const totalPages = Math.ceil(totalCandidates / pageSize)
+  const startIndex = (currentPage - 1) * pageSize
+  const endIndex = Math.min(startIndex + pageSize, totalCandidates)
+  const filteredCandidates = stageFilteredCandidates.slice(startIndex, endIndex)
+
+  // Reset to page 1 when stage or page size changes
+  const handleStageChange = (stage: string) => {
+    setSelectedStage(stage)
+    setCurrentPage(1)
+  }
+
+  const handlePageSizeChange = (size: string) => {
+    setPageSize(Number(size))
+    setCurrentPage(1)
+  }
 
   const toggleCandidate = (id: string) => {
     setSelectedCandidates((prev) =>
@@ -93,16 +210,67 @@ export default function CandidatesListPage() {
     }
   }
 
+  const formatDate = (date: Date | string | null) => {
+    if (!date) return null
+    const d = new Date(date)
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+
+  const getLocationSummary = (locations: unknown) => {
+    const locs = Array.isArray(locations) ? locations : []
+    if (locs.length === 0) return 'Location TBD'
+    if (locs.length === 1) return locs[0]
+    return `${locs.length} locations`
+  }
+
+  // Calculate avg score from candidates
+  const avgScore = useMemo(() => {
+    const candidatesWithScores = allCandidates.filter((c) => c.score != null)
+    if (candidatesWithScores.length === 0) return 0
+    return Math.round(
+      candidatesWithScores.reduce((sum, c) => sum + (c.score || 0), 0) / candidatesWithScores.length
+    )
+  }, [allCandidates])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    )
+  }
+
+  if (!job) {
+    return (
+      <div className="p-6 text-center">
+        <h2 className="text-xl font-semibold text-gray-900">Job not found</h2>
+        <p className="text-gray-500 mt-2">The job you&apos;re looking for doesn&apos;t exist.</p>
+        <Link href="/recruiting/positions">
+          <Button className="mt-4">Back to Jobs</Button>
+        </Link>
+      </div>
+    )
+  }
+
   return (
     <div className="p-6">
       {/* Job Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-semibold text-gray-900">Senior Backend Engineer</h1>
-            <Badge className="bg-green-100 text-green-700 hover:bg-green-100">Active</Badge>
+            <h1 className="text-2xl font-semibold text-gray-900">
+              {job.title}
+              {job.hiresCount > 1 ? ` (${job.hiresCount})` : ''}
+            </h1>
+            <Badge className={cn(STATUS_BADGES[job.status], 'hover:bg-opacity-100')}>
+              {STATUS_LABELS[job.status]}
+            </Badge>
           </div>
-          <p className="text-sm text-gray-500">Engineering &middot; Remote &middot; Posted Dec 15, 2025</p>
+          <p className="text-sm text-gray-500">
+            {job.department || 'No Department'} &middot; {getLocationSummary(job.locations)}
+            {job.createdAt && <> &middot; Posted {formatDate(job.createdAt)}</>}
+            {job.deadline && <> &middot; Deadline {formatDate(job.deadline)}</>}
+          </p>
         </div>
         <div className="flex items-center gap-4">
           {/* Score Distribution */}
@@ -122,7 +290,7 @@ export default function CandidatesListPage() {
             <div className="text-[11px] text-gray-500 mt-1">Score Distribution</div>
           </div>
           <div className="text-center pl-4 border-l border-gray-200">
-            <div className="text-3xl font-bold text-gray-900">74</div>
+            <div className="text-3xl font-bold text-gray-900">{avgScore}</div>
             <div className="text-xs text-gray-500">Avg Score</div>
           </div>
         </div>
@@ -137,7 +305,7 @@ export default function CandidatesListPage() {
               'p-5 cursor-pointer transition-all',
               selectedStage === stage.id && 'ring-2 ring-indigo-500'
             )}
-            onClick={() => setSelectedStage(stage.id)}
+            onClick={() => handleStageChange(stage.id)}
           >
             <div className="text-sm text-gray-500 mb-1">{stage.label}</div>
             <div className="text-2xl font-semibold text-gray-900">{stage.count}</div>
@@ -145,45 +313,33 @@ export default function CandidatesListPage() {
         ))}
       </div>
 
-      {/* Filter Bar */}
-      <div className="flex items-center justify-between mb-4">
-        <div className="flex gap-1 bg-gray-100 p-1 rounded-lg">
-          {stages.map((stage) => (
-            <button
-              key={stage.id}
-              onClick={() => setSelectedStage(stage.id)}
-              className={cn(
-                'px-4 py-2 rounded text-sm font-medium transition-all',
-                selectedStage === stage.id
-                  ? 'bg-white text-gray-900 shadow-sm'
-                  : 'text-gray-600 hover:text-gray-900'
-              )}
-            >
-              {stage.label} ({stage.count})
-            </button>
-          ))}
-        </div>
-        <div className="flex items-center gap-3">
-          <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-auto">
-              <SelectValue placeholder="Sort by" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="score-desc">Score (High to Low)</SelectItem>
-              <SelectItem value="score-asc">Score (Low to High)</SelectItem>
-              <SelectItem value="date">Applied Date</SelectItem>
-              <SelectItem value="name">Name</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Action Bar */}
+      <div className="flex items-center justify-end gap-3 mb-4">
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-auto">
+            <SelectValue placeholder="Sort by" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="score-desc">Score (High to Low)</SelectItem>
+            <SelectItem value="score-asc">Score (Low to High)</SelectItem>
+            <SelectItem value="date">Applied Date</SelectItem>
+            <SelectItem value="name">Name</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button variant="outline" size="sm">
+          <Download className="h-4 w-4 mr-2" />
+          Export
+        </Button>
+        <Link href={`/recruiting/positions/${jobId}/edit`}>
           <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit Job
           </Button>
-          <Button size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Candidate
-          </Button>
-        </div>
+        </Link>
+        <Button size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          Add Candidate
+        </Button>
       </div>
 
       {/* Candidates Table */}
@@ -238,14 +394,14 @@ export default function CandidatesListPage() {
                       className="rounded border-gray-300"
                     />
                   </td>
-                  <td className={cn('py-4 px-4 text-center font-bold text-base', getScoreClass(candidate.score))}>
-                    {candidate.score}
+                  <td className={cn('py-4 px-4 text-center font-bold text-base', getScoreClass(candidate.score || 0))}>
+                    {candidate.score ?? '-'}
                   </td>
                   <td className="py-4 px-4">
                     <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-3">
                       <Avatar className="h-9 w-9">
-                        <AvatarFallback className={cn(candidate.color, 'text-white text-xs')}>
-                          {candidate.initials}
+                        <AvatarFallback className={cn(getAvatarColor(candidate.name), 'text-white text-xs')}>
+                          {getInitials(candidate.name)}
                         </AvatarFallback>
                       </Avatar>
                       <div>
@@ -255,8 +411,12 @@ export default function CandidatesListPage() {
                     </Link>
                   </td>
                   <td className="py-4 px-4">{getStageBadge(candidate.stage)}</td>
-                  <td className="py-4 px-4 text-sm text-gray-600">{candidate.applied}</td>
-                  <td className="py-4 px-4 text-sm text-gray-600">{candidate.updated}</td>
+                  <td className="py-4 px-4 text-sm text-gray-600">
+                    {formatDate(candidate.appliedAt)}
+                  </td>
+                  <td className="py-4 px-4 text-sm text-gray-600">
+                    {getRelativeTime(candidate.updatedAt)}
+                  </td>
                   <td className="py-4 px-4">
                     <Button variant="ghost" size="sm">
                       <MoreHorizontal className="h-4 w-4" />
@@ -270,13 +430,44 @@ export default function CandidatesListPage() {
 
         {/* Pagination */}
         <div className="p-4 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-500">Showing 1-9 of 24 candidates</div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" disabled>
+          <div className="flex items-center gap-4">
+            <div className="text-sm text-gray-500">
+              Showing {totalCandidates === 0 ? 0 : startIndex + 1}-{endIndex} of {totalCandidates} candidates
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-500">Show</span>
+              <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                <SelectTrigger className="w-[80px] h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="25">25</SelectItem>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                </SelectContent>
+              </Select>
+              <span className="text-sm text-gray-500">per page</span>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-500">
+              Page {currentPage} of {totalPages || 1}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage <= 1}
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+            >
               <ChevronLeft className="h-4 w-4 mr-1" />
               Previous
             </Button>
-            <Button variant="outline" size="sm">
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={currentPage >= totalPages}
+              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+            >
               Next
               <ChevronRight className="h-4 w-4 ml-1" />
             </Button>
