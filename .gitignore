@@ -58,3 +58,4 @@ chathistory/
 # SQLite dev database
 prisma/dev.db
 prisma/dev.db-journal
+.next-dev/
