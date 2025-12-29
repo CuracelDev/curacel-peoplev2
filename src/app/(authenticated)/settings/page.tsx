@@ -8,7 +8,6 @@ import {
   Menu,
   Building2,
   FileText,
-  ChevronRight,
   ClipboardList,
   ListChecks,
   AppWindow,
@@ -19,6 +18,7 @@ import {
   Briefcase,
   Users,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
 const settingsSections = [
   {
@@ -29,21 +29,18 @@ const settingsSections = [
         description: 'Update your organization profile.',
         icon: Home,
         href: '/settings/organization',
-        iconBg: 'bg-indigo-100',
       },
       {
         title: 'Legal entities',
         description: 'Manage the legal entities used on offers and contracts.',
         icon: Building2,
         href: '/settings/legal-entities',
-        iconBg: 'bg-indigo-100',
       },
       {
         title: 'Signature blocks',
         description: 'Set signatories and signatures for HR contracts.',
         icon: Menu,
         href: '/settings/signatures',
-        iconBg: 'bg-indigo-100',
       },
     ],
   },
@@ -55,28 +52,24 @@ const settingsSections = [
         description: 'Invite admins and manage access roles.',
         icon: Link2,
         href: '/settings/team',
-        iconBg: 'bg-indigo-100',
       },
       {
         title: 'Teams',
-        description: 'Manage teams and departments. Sync from employee departments or create new teams.',
+        description: 'Manage teams and departments.',
         icon: Users,
         href: '/settings/teams',
-        iconBg: 'bg-indigo-100',
       },
       {
         title: 'Contract templates',
-        description: 'Contract templates for offers and employment agreements.',
+        description: 'Contract templates for offers and employment.',
         icon: FileText,
         href: '/settings/contract-templates',
-        iconBg: 'bg-indigo-100',
       },
       {
-        title: 'On/Offboarding Settings',
-        description: 'Configure onboarding and offboarding workflows in one place.',
+        title: 'On/Offboarding',
+        description: 'Configure onboarding and offboarding workflows.',
         icon: ListChecks,
         href: '/settings/on-offboarding',
-        iconBg: 'bg-indigo-100',
       },
     ],
   },
@@ -85,10 +78,9 @@ const settingsSections = [
     items: [
       {
         title: 'Job Settings',
-        description: 'Manage job descriptions, interview flows, and hiring configurations.',
+        description: 'Manage job descriptions and hiring configurations.',
         icon: Briefcase,
         href: '/settings/job-settings',
-        iconBg: 'bg-indigo-100',
       },
     ],
   },
@@ -97,45 +89,39 @@ const settingsSections = [
     items: [
       {
         title: 'Integrations',
-        description: 'Add, disable, archive, and manage integrations.',
+        description: 'Add and manage integrations.',
         icon: AppWindow,
         href: '/settings/applications',
-        iconBg: 'bg-indigo-100',
       },
       {
         title: 'API Settings',
-        description: 'Create and manage API keys for external integrations.',
+        description: 'Create and manage API keys.',
         icon: Key,
         href: '/settings/api',
-        iconBg: 'bg-indigo-100',
       },
       {
         title: 'Blue AI',
-        description: 'Configure Blue AI with OpenAI, Anthropic, or Gemini API keys.',
+        description: 'Configure AI API keys.',
         icon: Bot,
         href: '/settings/ai-agent',
-        iconBg: 'bg-indigo-100',
       },
       {
         title: 'Audit Log',
-        description: 'View all system activity, changes, and user actions for compliance and tracking.',
+        description: 'View system activity and changes.',
         icon: ClipboardList,
         href: '/settings/audit',
-        iconBg: 'bg-indigo-100',
       },
       {
         title: 'Notifications',
-        description: 'Choose which admin emails are sent for key system events.',
+        description: 'Manage admin email notifications.',
         icon: Bell,
         href: '/settings/notifications',
-        iconBg: 'bg-indigo-100',
       },
       {
         title: 'Documentation',
-        description: 'Read a detailed guide on how each part of Curacel People works.',
+        description: 'Read the product guide.',
         icon: BookOpen,
         href: '/settings/documentation',
-        iconBg: 'bg-indigo-100',
       },
     ],
   },
@@ -143,43 +129,45 @@ const settingsSections = [
 
 export default function SettingsPage() {
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardContent className="p-0">
-          {settingsSections.map((section, sectionIndex) => (
-            <div key={section.title} className={sectionIndex ? 'border-t border-gray-200' : ''}>
-              <div className="px-6 py-4 text-xs font-semibold uppercase tracking-wide text-gray-500">
-                {section.title}
-              </div>
-              <div className="divide-y divide-gray-200">
-                {section.items.map((option, index) => {
+    <div className="space-y-6">
+      {settingsSections.map((section) => (
+        <div key={section.title}>
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3 px-1">
+            {section.title}
+          </h2>
+          <Card>
+            <CardContent className="p-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                {section.items.map((option) => {
                   const Icon = option.icon
                   return (
                     <Link
-                      key={`${section.title}-${index}`}
+                      key={option.title}
                       href={option.href}
-                      className="flex items-center gap-4 p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                      className={cn(
+                        'flex flex-col items-center gap-2 p-4 rounded-xl transition-all text-center',
+                        'hover:bg-indigo-50 hover:shadow-sm group'
+                      )}
                     >
-                      <div className={`${option.iconBg} p-3 rounded-lg flex-shrink-0`}>
-                        <Icon className="h-6 w-6 text-indigo-600" />
+                      <div className="w-12 h-12 rounded-xl bg-indigo-100 group-hover:bg-indigo-600 flex items-center justify-center transition-colors">
+                        <Icon className="h-6 w-6 text-indigo-600 group-hover:text-white transition-colors" />
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-base font-semibold text-gray-900 mb-1">
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-900 leading-tight">
                           {option.title}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
                           {option.description}
                         </p>
                       </div>
-                      <ChevronRight className="h-5 w-5 text-gray-400 flex-shrink-0" />
                     </Link>
                   )
                 })}
               </div>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </div>
+      ))}
     </div>
   )
 }

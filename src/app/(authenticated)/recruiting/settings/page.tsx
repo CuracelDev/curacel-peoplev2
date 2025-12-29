@@ -250,47 +250,43 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="p-4 md:p-6">
-      {/* Action Bar */}
-      <div className="flex justify-end mb-6">
+    <div className="p-6">
+      {/* Page Header */}
+      <div className="flex justify-between items-start mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-900">Hiring Settings</h1>
+          <p className="text-sm text-gray-500">Configure company-wide hiring criteria and integrations</p>
+        </div>
         <Button>
           <Save className="h-4 w-4 mr-2" />
           Save Changes
         </Button>
       </div>
 
-      {/* Settings Navigation - Thumbnail Grid */}
-      <Card className="mb-6">
-        <CardContent className="p-4">
-          <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
+      <div className="grid grid-cols-[240px_1fr] gap-6">
+        {/* Settings Navigation - Sidebar List */}
+        <Card className="h-fit sticky top-20">
+          <CardContent className="p-3">
             {settingsNav.map((item) => (
               <button
                 key={item.id}
                 onClick={() => setActiveSection(item.id)}
                 className={cn(
-                  'flex flex-col items-center gap-2 p-3 rounded-xl transition-all text-center',
+                  'w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left',
                   activeSection === item.id
-                    ? 'bg-indigo-100 text-indigo-700 shadow-sm'
-                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-700'
+                    ? 'bg-indigo-50 text-indigo-600'
+                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                 )}
               >
-                <div className={cn(
-                  'w-10 h-10 rounded-lg flex items-center justify-center',
-                  activeSection === item.id
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-gray-100'
-                )}>
-                  <item.icon className="h-5 w-5" />
-                </div>
-                <span className="text-xs font-medium leading-tight">{item.name}</span>
+                <item.icon className="h-[18px] w-[18px]" />
+                {item.name}
               </button>
             ))}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
-      {/* Settings Content */}
-      <div className="space-y-6">
+        {/* Settings Content */}
+        <div className="space-y-6">
           {/* Company Values (PRESS) */}
           <Card id="values">
             <CardHeader className="p-5 border-b">
@@ -813,6 +809,7 @@ export default function SettingsPage() {
             </CardContent>
           </Card>
         </div>
+      </div>
     </div>
   )
 }
