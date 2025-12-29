@@ -18,9 +18,11 @@ import {
 export function Header({
   collapsed,
   onToggle,
+  onMobileMenuClick,
 }: {
   collapsed: boolean
   onToggle: () => void
+  onMobileMenuClick?: () => void
 }) {
   const { data: session } = useSession()
   const isAdmin = isAdminRole(session?.user?.role)
@@ -50,17 +52,24 @@ export function Header({
     <header className="sticky top-0 z-40 border-b bg-white">
       <div className="flex h-16 items-center justify-between px-6">
         <div className="flex items-center gap-3">
+          {/* Mobile menu button */}
+          <button
+            type="button"
+            onClick={onMobileMenuClick}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-700 hover:bg-gray-100 lg:hidden"
+            aria-label="Open menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+          {/* Desktop collapse toggle */}
           <button
             type="button"
             onClick={onToggle}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-700 hover:bg-gray-100"
+            className="hidden lg:inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-700 hover:bg-gray-100"
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <Menu className="h-5 w-5" />
           </button>
-          <div>
-            {/* Breadcrumb or page title could go here */}
-          </div>
         </div>
         <div className="flex items-center gap-3">
           {isAdmin && (
