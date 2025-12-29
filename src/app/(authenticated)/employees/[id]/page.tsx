@@ -119,6 +119,7 @@ export default function EmployeeDetailPage() {
     status: 'ACTIVE',
     limit: 200,
   })
+  const { data: teams } = trpc.team.listForSelect.useQuery()
   const googleUsersQuery = trpc.integration.listGoogleWorkspaceUsers.useQuery()
 
   const {
@@ -178,6 +179,7 @@ export default function EmployeeDetailPage() {
   const statusValue = watch('status')
   const employmentTypeValue = watch('employmentType')
   const managerValue = watch('managerId')
+  const departmentValue = watch('department')
   const profileImagePreview = watch('profileImageUrl')
 
   const toDateInputValue = (value?: string | Date | null) => {
@@ -1108,8 +1110,20 @@ export default function EmployeeDetailPage() {
                     <Input id="jobTitle" {...register('jobTitle')} />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="department">Department</Label>
-                    <Input id="department" {...register('department')} />
+                    <Label htmlFor="department">Team / Department</Label>
+                    <Select value={departmentValue || 'none'} onValueChange={(value) => setValue('department', value === 'none' ? '' : value)}>
+                      <SelectTrigger id="department">
+                        <SelectValue placeholder="Select team" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">No team</SelectItem>
+                        {(teams || []).map((team) => (
+                          <SelectItem key={team.id} value={team.name}>
+                            {team.displayName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="location">Location</Label>

@@ -810,12 +810,19 @@ model Team {
   description    String?
   color          String?      // Hex color for UI display
   leaderId       String?      // Employee ID of team lead
+
+  // Sub-team support
+  parentId       String?
+  parent         Team?        @relation("TeamHierarchy", fields: [parentId], references: [id])
+  subTeams       Team[]       @relation("TeamHierarchy")
+
   isActive       Boolean      @default(true)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
   @@index([name])
   @@index([isActive])
+  @@index([parentId])
 }
 
 model OnboardingTaskTemplate {
