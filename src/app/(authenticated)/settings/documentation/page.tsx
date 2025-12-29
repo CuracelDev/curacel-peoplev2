@@ -448,6 +448,39 @@ const docSections: DocSection[] = [
     ],
   },
   {
+    id: 'recruiting-hiring-flow',
+    title: 'Recruiting hiring flow',
+    description: 'Manage interview stages for each role type.',
+    blocks: [
+      {
+        title: 'Where to edit',
+        items: [
+          'Go to Recruiting > Settings > Interview.',
+          'Or open Settings > Interview settings to jump into the same page.',
+          'Pick the role flow you want to manage.',
+        ],
+      },
+      {
+        title: 'Step-by-step',
+        ordered: true,
+        items: [
+          'Select a flow (Standard, Engineering, Sales, Executive).',
+          'Edit stage names to match your process.',
+          'Add or remove stages to reflect real-world steps.',
+          'Review the preview to confirm the order.',
+          'Click Save changes to apply updates.',
+        ],
+      },
+      {
+        title: 'Access',
+        items: [
+          'SUPER_ADMIN and HR_ADMIN can edit hiring flows.',
+          'MANAGER can view flows when creating positions.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'settings-reference',
     title: 'Settings reference',
     description: 'What each Settings page does and how to use it.',

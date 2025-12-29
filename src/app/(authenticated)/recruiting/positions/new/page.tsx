@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
@@ -26,41 +26,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { useHiringFlows } from '@/lib/recruiting/hiring-flows'
 
-const flowTypes = [
-  {
-    id: 'standard',
-    name: 'Standard',
-    description: 'General hiring flow for most roles',
-    icon: User,
-    color: 'bg-indigo-50 text-indigo-600',
-    stages: ['Apply', 'HR Screen', 'Panel', 'Trial', 'Offer'],
-  },
-  {
-    id: 'engineering',
-    name: 'Engineering',
-    description: 'Includes technical assessment',
-    icon: Code,
-    color: 'bg-green-50 text-green-600',
-    stages: ['Apply', 'HR', 'Kand.io', 'Technical', 'Panel'],
-  },
-  {
-    id: 'sales',
-    name: 'Sales',
-    description: 'Includes trial with POC goals',
-    icon: TrendingUp,
-    color: 'bg-amber-50 text-amber-600',
-    stages: ['Apply', 'HR Screen', 'Panel', 'POC Trial'],
-  },
-  {
-    id: 'executive',
-    name: 'Executive',
-    description: 'Multiple panels + references',
-    icon: Star,
-    color: 'bg-pink-50 text-pink-600',
-    stages: ['Apply', 'HR', 'Panels', 'References'],
-  },
-]
+const flowAppearance = {
+  standard: { icon: User, color: 'bg-indigo-50 text-indigo-600' },
+  engineering: { icon: Code, color: 'bg-green-50 text-green-600' },
+  sales: { icon: TrendingUp, color: 'bg-amber-50 text-amber-600' },
+  executive: { icon: Star, color: 'bg-pink-50 text-pink-600' },
+}
 
 const competencies = [
   'Technical Excellence',
@@ -117,7 +90,16 @@ Requirements:
     )
   }
 
-  const selectedFlowData = flowTypes.find((f) => f.id === selectedFlow)
+  const { flows } = useHiringFlows()
+
+  useEffect(() => {
+    if (!flows.length) return
+    if (!flows.some((flow) => flow.id === selectedFlow)) {
+      setSelectedFlow(flows[0].id)
+    }
+  }, [flows, selectedFlow])
+
+  const selectedFlowData = flows.find((flow) => flow.id === selectedFlow) ?? flows[0]
 
   return (
     <div className="p-6">
@@ -284,39 +266,46 @@ Requirements:
             <div className="p-5">
               <Label className="mb-4 block">Select the interview flow for this role</Label>
               <div className="grid grid-cols-2 gap-4">
-                {flowTypes.map((flow) => (
-                  <button
-                    key={flow.id}
-                    type="button"
-                    onClick={() => setSelectedFlow(flow.id)}
-                    className={cn(
-                      'border-2 rounded-xl p-4 text-left transition-all',
-                      selectedFlow === flow.id
-                        ? 'border-indigo-500 bg-indigo-50/50'
-                        : 'border-gray-200 hover:border-gray-300'
-                    )}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center', flow.color)}>
-                        <flow.icon className="h-5 w-5" />
+                {flows.map((flow) => {
+                  const appearance =
+                    flowAppearance[flow.id as keyof typeof flowAppearance] ??
+                    { icon: User, color: 'bg-gray-50 text-gray-600' }
+                  const Icon = appearance.icon
+
+                  return (
+                    <button
+                      key={flow.id}
+                      type="button"
+                      onClick={() => setSelectedFlow(flow.id)}
+                      className={cn(
+                        'border-2 rounded-xl p-4 text-left transition-all',
+                        selectedFlow === flow.id
+                          ? 'border-indigo-500 bg-indigo-50/50'
+                          : 'border-gray-200 hover:border-gray-300'
+                      )}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center', appearance.color)}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div className="font-semibold">{flow.name}</div>
                       </div>
-                      <div className="font-semibold">{flow.name}</div>
-                    </div>
-                    <div className="text-sm text-gray-500">{flow.description}</div>
-                    <div className="flex items-center gap-2 mt-3 flex-wrap">
-                      {flow.stages.map((stage, i) => (
-                        <span key={i} className="flex items-center gap-2">
-                          <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-600">
-                            {stage}
+                      <div className="text-sm text-gray-500">{flow.description}</div>
+                      <div className="flex items-center gap-2 mt-3 flex-wrap">
+                        {flow.stages.map((stage, i) => (
+                          <span key={`${flow.id}-${stage}-${i}`} className="flex items-center gap-2">
+                            <span className="text-xs bg-gray-100 px-2 py-0.5 rounded-full text-gray-600">
+                              {stage}
+                            </span>
+                            {i < flow.stages.length - 1 && (
+                              <span className="text-gray-300 text-xs">&rarr;</span>
+                            )}
                           </span>
-                          {i < flow.stages.length - 1 && (
-                            <span className="text-gray-300 text-xs">&rarr;</span>
-                          )}
-                        </span>
-                      ))}
-                    </div>
-                  </button>
-                ))}
+                        ))}
+                      </div>
+                    </button>
+                  )
+                })}
               </div>
             </div>
           </div>

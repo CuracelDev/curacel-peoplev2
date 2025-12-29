@@ -1,23 +1,27 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import {
   Save,
   Heart,
   Star,
   Smile,
   Users,
+  GitBranch,
   Lock,
   Settings,
   Plus,
   Eye,
   Copy,
   ExternalLink,
+  Trash2,
+  RotateCcw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
 import {
@@ -28,12 +32,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { useHiringFlows, type HiringFlow } from '@/lib/recruiting/hiring-flows'
 
 const settingsNav = [
   { id: 'values', name: 'Company Values', icon: Heart },
   { id: 'competencies', name: 'Competencies', icon: Star },
   { id: 'personality', name: 'Personality Templates', icon: Smile },
   { id: 'team', name: 'Team Profiles', icon: Users },
+  { id: 'interview', name: 'Interview', icon: GitBranch },
   { id: 'integrations', name: 'Integrations', icon: Lock },
   { id: 'api', name: 'API & Keys', icon: Settings },
 ]
@@ -73,6 +79,44 @@ export default function SettingsPage() {
     agreeableness: 70,
     neuroticism: 30,
   })
+  const { flows, setFlows, resetFlows } = useHiringFlows()
+  const [activeFlowId, setActiveFlowId] = useState('standard')
+
+  useEffect(() => {
+    if (!flows.length) return
+    if (!flows.some((flow) => flow.id === activeFlowId)) {
+      setActiveFlowId(flows[0].id)
+    }
+  }, [flows, activeFlowId])
+
+  const activeFlow = flows.find((flow) => flow.id === activeFlowId) ?? flows[0]
+
+  const updateActiveFlow = (updates: Partial<HiringFlow>) => {
+    if (!activeFlow) return
+    const nextFlows = flows.map((flow) =>
+      flow.id === activeFlow.id ? { ...flow, ...updates } : flow
+    )
+    setFlows(nextFlows)
+  }
+
+  const updateStage = (index: number, value: string) => {
+    if (!activeFlow) return
+    const nextStages = activeFlow.stages.map((stage, i) =>
+      i === index ? value : stage
+    )
+    updateActiveFlow({ stages: nextStages })
+  }
+
+  const addStage = () => {
+    if (!activeFlow) return
+    updateActiveFlow({ stages: [...activeFlow.stages, 'New Stage'] })
+  }
+
+  const removeStage = (index: number) => {
+    if (!activeFlow || activeFlow.stages.length <= 1) return
+    const nextStages = activeFlow.stages.filter((_, i) => i !== index)
+    updateActiveFlow({ stages: nextStages })
+  }
 
   return (
     <div className="p-6">
@@ -212,6 +256,108 @@ export default function SettingsPage() {
                   <Badge variant="secondary">ENTP</Badge>
                   <Badge variant="secondary">ISTJ</Badge>
                   <Badge variant="secondary">ISTP</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Interview Settings */}
+          <Card id="interview">
+            <CardHeader className="p-5 border-b">
+              <h2 className="text-lg font-semibold">Hiring Flow</h2>
+              <p className="text-sm text-gray-500">
+                Edit the interview flow for each role type. Changes apply across job setup, templates, and candidate stages.
+              </p>
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="grid grid-cols-[220px_1fr] gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label className="mb-2 block">Role Flow</Label>
+                    <Select value={activeFlowId} onValueChange={setActiveFlowId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select flow" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {flows.map((flow) => (
+                          <SelectItem key={flow.id} value={flow.id}>
+                            {flow.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="rounded-lg border border-gray-200 p-3 text-xs text-gray-500">
+                    These stages power the flow preview in job creation and the flow selector in JD templates.
+                  </div>
+                  <Button variant="outline" size="sm" onClick={resetFlows}>
+                    <RotateCcw className="h-4 w-4 mr-2" />
+                    Reset to defaults
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Flow Name</Label>
+                      <Input
+                        value={activeFlow?.name ?? ''}
+                        onChange={(e) => updateActiveFlow({ name: e.target.value })}
+                        placeholder="e.g., Engineering"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Description</Label>
+                      <Input
+                        value={activeFlow?.description ?? ''}
+                        onChange={(e) => updateActiveFlow({ description: e.target.value })}
+                        placeholder="Short description for this flow"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <Label>Stages</Label>
+                      <Button variant="outline" size="sm" onClick={addStage}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add Stage
+                      </Button>
+                    </div>
+                    <div className="space-y-2">
+                      {(activeFlow?.stages ?? []).map((stage, index) => (
+                        <div key={`${activeFlow?.id}-stage-${index}`} className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center text-sm font-semibold">
+                            {index + 1}
+                          </div>
+                          <Input
+                            value={stage}
+                            onChange={(e) => updateStage(index, e.target.value)}
+                            placeholder="Stage name"
+                          />
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => removeStage(index)}
+                            disabled={(activeFlow?.stages.length ?? 0) <= 1}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
+                    <div className="text-xs text-gray-500 uppercase tracking-wide">Preview</div>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {(activeFlow?.stages ?? []).map((stage) => (
+                        <Badge key={`${activeFlow?.id}-${stage}`} variant="secondary">
+                          {stage}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
             </CardContent>
