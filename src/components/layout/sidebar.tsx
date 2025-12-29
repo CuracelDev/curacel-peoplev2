@@ -17,6 +17,7 @@ import {
   UserSearch,
   HelpCircle,
   FileSignature,
+  X,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
@@ -29,6 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { getInitials } from '@/lib/utils'
 
 type NavItem = {
@@ -84,8 +86,12 @@ const navigationSections: NavSection[] = [
 
 export function Sidebar({
   collapsed,
+  mobileOpen = false,
+  onMobileClose,
 }: {
   collapsed: boolean
+  mobileOpen?: boolean
+  onMobileClose?: () => void
 }) {
   const pathname = usePathname()
   const { data: session } = useSession()
@@ -102,28 +108,39 @@ export function Sidebar({
     <aside
       className={cn(
         'fixed inset-y-0 left-0 z-50 bg-white border-r border-border transition-all duration-200 flex flex-col',
-        collapsed ? 'w-16' : 'w-64'
+        // Desktop: show based on collapsed state
+        'hidden lg:flex',
+        collapsed ? 'lg:w-16' : 'lg:w-56',
+        // Mobile: show as overlay when mobileOpen
+        mobileOpen && 'flex w-72'
       )}
     >
-      <div className={cn('flex h-16 items-center border-b border-border flex-shrink-0', collapsed ? 'px-3' : 'px-6')}>
-        <Logo className="h-8 w-8" />
-        {!collapsed && (
-          <span className="ml-3 flex items-center gap-2 text-lg font-semibold text-primary whitespace-nowrap">
-            Curacel People
-            <span className="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded">v2</span>
-          </span>
+      <div className={cn('flex h-14 items-center border-b border-border flex-shrink-0 justify-between', collapsed ? 'px-2' : 'px-4')}>
+        <div className="flex items-center">
+          <Logo className="h-8 w-8" />
+          {(!collapsed || mobileOpen) && (
+            <span className="ml-3 flex items-center gap-2 text-lg font-semibold text-primary whitespace-nowrap">
+              Curacel People
+              <span className="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded">v2</span>
+            </span>
+          )}
+        </div>
+        {mobileOpen && (
+          <Button variant="ghost" size="icon" onClick={onMobileClose} className="lg:hidden">
+            <X className="h-5 w-5" />
+          </Button>
         )}
       </div>
 
-      <nav className={cn('flex-1 overflow-y-auto py-4', collapsed ? 'px-2' : 'px-3')}>
+      <nav className={cn('flex-1 overflow-y-auto py-3', collapsed && !mobileOpen ? 'px-1' : 'px-2')}>
         {filteredSections.map((section, sectionIndex) => (
           <div key={section.title || `section-${sectionIndex}`} className={cn(sectionIndex > 0 && 'mt-6')}>
-            {section.title && !collapsed && (
+            {section.title && (!collapsed || mobileOpen) && (
               <h3 className="px-3 mb-2 text-[11px] font-semibold text-muted-foreground tracking-wider">
                 {section.title}
               </h3>
             )}
-            {section.title && collapsed && sectionIndex > 0 && (
+            {section.title && collapsed && !mobileOpen && sectionIndex > 0 && (
               <div className="mx-2 mb-2 border-t border-border" />
             )}
             <ul className="space-y-0.5">
@@ -139,11 +156,11 @@ export function Sidebar({
                         isActive
                           ? 'bg-primary text-white'
                           : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
-                        collapsed && 'justify-center px-2'
+                        collapsed && !mobileOpen && 'justify-center px-2'
                       )}
                     >
                       <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-white')} />
-                      {!collapsed && (
+                      {(!collapsed || mobileOpen) && (
                         <>
                           <span className="flex-1">{item.name}</span>
                           {item.badge !== undefined && (
@@ -168,12 +185,7 @@ export function Sidebar({
 
         {/* Blue AI - Special styling */}
         <div className="mt-6">
-          {!collapsed && (
-            <div className="mx-2 mb-2 border-t border-border" />
-          )}
-          {collapsed && (
-            <div className="mx-2 mb-2 border-t border-border" />
-          )}
+          <div className="mx-2 mb-2 border-t border-border" />
           <Link
             href="/ai-agent"
             className={cn(
@@ -181,18 +193,18 @@ export function Sidebar({
               pathname === '/ai-agent' || pathname.startsWith('/ai-agent/')
                 ? 'bg-primary text-white'
                 : 'bg-primary/10 text-primary hover:bg-primary hover:text-white',
-              collapsed && 'justify-center px-2'
+              collapsed && !mobileOpen && 'justify-center px-2'
             )}
             title="Open Blue AI"
           >
             <Bot className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span>Blue AI</span>}
+            {(!collapsed || mobileOpen) && <span>Blue AI</span>}
           </Link>
         </div>
       </nav>
 
       {/* My Profile dropdown */}
-      <div className={cn('flex-shrink-0 border-t border-border', collapsed ? 'p-3' : 'p-4')}>
+      <div className={cn('flex-shrink-0 border-t border-border', collapsed && !mobileOpen ? 'p-2' : 'p-3')}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <button
@@ -201,7 +213,7 @@ export function Sidebar({
                 pathname === '/profile'
                   ? 'bg-primary/10 text-primary'
                   : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
-                collapsed && 'justify-center px-2'
+                collapsed && !mobileOpen && 'justify-center px-2'
               )}
             >
               <Avatar className="h-8 w-8">
@@ -210,7 +222,7 @@ export function Sidebar({
                   {getInitials(session?.user?.name || 'U')}
                 </AvatarFallback>
               </Avatar>
-              {!collapsed && (
+              {(!collapsed || mobileOpen) && (
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium">{session?.user?.name || 'User'}</p>
                   <p className="text-xs text-muted-foreground">{session?.user?.email}</p>
