@@ -22,6 +22,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { trpc } from '@/lib/trpc-client'
 
 // Mock data
 const jobs = [
@@ -104,12 +105,13 @@ function getJobIconBg(type: string) {
 type FilterStatus = 'all' | 'active' | 'draft' | 'closed'
 
 export default function PositionsPage() {
+  const { data: teams } = trpc.team.listForSelect.useQuery()
   const [filter, setFilter] = useState<FilterStatus>('all')
   const [department, setDepartment] = useState('all')
 
   const filteredJobs = jobs.filter((job) => {
     if (filter !== 'all' && job.status !== filter) return false
-    if (department !== 'all' && job.department.toLowerCase() !== department) return false
+    if (department !== 'all' && job.department !== department) return false
     return true
   })
 
@@ -155,13 +157,15 @@ export default function PositionsPage() {
         <div className="flex-1" />
         <Select value={department} onValueChange={setDepartment}>
           <SelectTrigger className="w-auto">
-            <SelectValue placeholder="All Departments" />
+            <SelectValue placeholder="All Teams" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Departments</SelectItem>
-            <SelectItem value="engineering">Engineering</SelectItem>
-            <SelectItem value="design">Design</SelectItem>
-            <SelectItem value="growth">Growth</SelectItem>
+            <SelectItem value="all">All Teams</SelectItem>
+            {(teams || []).map((team) => (
+              <SelectItem key={team.id} value={team.name}>
+                {team.displayName}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
