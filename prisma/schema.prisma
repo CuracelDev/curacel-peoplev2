@@ -237,7 +237,11 @@ model Employee {
   appAccounts     AppAccount[]
   onboardingWorkflows OnboardingWorkflow[]
   offboardingWorkflows OffboardingWorkflow[]
-  
+
+  // Recruiting relations
+  managedJobs     Job[]           @relation("JobHiringManager")
+  followedJobs    JobFollower[]   @relation("JobFollowers")
+
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -1031,6 +1035,8 @@ model JobDescription {
   version     Int      @default(1)
   isActive    Boolean  @default(true)
 
+  jobs        Job[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -1077,10 +1083,475 @@ model Competency {
   category    String   // e.g., "Technical", "Leadership", "Communication"
   isActive    Boolean  @default(true)
 
+  jobs        JobCompetency[]
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@unique([name, category])
   @@index([category])
   @@index([isActive])
+}
+
+// ============================================
+// RECRUITING - JOBS/POSITIONS
+// ============================================
+
+model Job {
+  id                  String      @id @default(uuid())
+  title               String
+  department          String?     // Team name
+  employmentType      String      @default("full-time") // full-time, part-time, contract, internship
+  status              JobStatus   @default(DRAFT)
+  priority            Int         @default(3) // 1-5, where 5 is urgent
+  deadline            DateTime?
+  hiresCount          Int         @default(1)
+
+  // Salary info
+  salaryMin           Int?
+  salaryMax           Int?
+  salaryCurrency      String?     @default("USD")
+  salaryFrequency     String?     @default("annually") // annually, monthly, hourly
+
+  // Equity info
+  equityMin           Float?
+  equityMax           Float?
+
+  // Locations (stored as JSON array of strings)
+  locations           Json        @default("[]")
+
+  // Interview flow (stored as flow ID from config)
+  hiringFlowId        String?
+
+  // Job Description reference
+  jobDescriptionId    String?
+  jobDescription      JobDescription? @relation(fields: [jobDescriptionId], references: [id])
+
+  // Hiring Manager
+  hiringManagerId     String?
+  hiringManager       Employee?   @relation("JobHiringManager", fields: [hiringManagerId], references: [id])
+
+  // AI settings
+  autoArchiveLocation Boolean     @default(false)
+
+  // Interest Form assigned to this job
+  interestFormId      String?
+  interestForm        InterestFormTemplate? @relation("JobInterestForm", fields: [interestFormId], references: [id])
+
+  // Relations
+  followers           JobFollower[]
+  competencies        JobCompetency[]
+  candidates          JobCandidate[]
+  interviewStages     InterviewStageTemplate[] @relation("JobInterviewStages")
+
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+
+  @@index([status])
+  @@index([department])
+  @@index([deadline])
+  @@index([createdAt])
+  @@index([interestFormId])
+}
+
+model JobFollower {
+  id          String   @id @default(uuid())
+  jobId       String
+  job         Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  employeeId  String
+  employee    Employee @relation("JobFollowers", fields: [employeeId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+
+  @@unique([jobId, employeeId])
+  @@index([employeeId])
+}
+
+model JobCompetency {
+  id           String     @id @default(uuid())
+  jobId        String
+  job          Job        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  competencyId String
+  competency   Competency @relation(fields: [competencyId], references: [id], onDelete: Cascade)
+  createdAt    DateTime   @default(now())
+
+  @@unique([jobId, competencyId])
+  @@index([competencyId])
+}
+
+// Job Candidates - tracking applicants through the hiring pipeline
+model JobCandidate {
+  id          String            @id @default(uuid())
+  jobId       String
+  job         Job               @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  // Basic candidate info
+  name        String
+  email       String
+  phone       String?
+  resumeUrl   String?
+  linkedinUrl String?
+  avatarUrl   String?
+
+  // Professional info
+  currentRole    String?        // e.g., "Senior Backend Engineer (Tech Lead)"
+  currentCompany String?        // e.g., "Paystack"
+  yearsOfExperience Float?      // e.g., 6.5
+  location       String?        // e.g., "Lagos, Nigeria"
+
+  // Structured resume data (AI-extracted or manual)
+  workExperience Json?          // Array of { title, company, startDate, endDate, isCurrent, description, highlights, skills }
+  education      Json?          // Array of { degree, field, institution, startYear, endYear, honors }
+  skills         Json?          // { languages: [], databases: [], infrastructure: [], frameworks: [] }
+  resumeSummary  String?        @db.Text // AI-generated summary
+
+  // Pipeline tracking
+  stage       JobCandidateStage @default(APPLIED)
+  score       Int?              // Overall AI score 0-100
+
+  // Score breakdown (AI-generated)
+  experienceMatchScore Int?     // 0-100
+  skillsMatchScore     Int?     // 0-100
+  domainFitScore       Int?     // 0-100
+  educationScore       Int?     // 0-100
+  scoreExplanation     String?  @db.Text
+
+  // Interest form responses
+  whyCuracel       String?      @db.Text
+  salaryExpMin     Int?
+  salaryExpMax     Int?
+  salaryExpCurrency String?     @default("USD")
+  noticePeriod     String?      // e.g., "4 weeks"
+  mbtiType         String?      // e.g., "INTJ"
+
+  // PRESS Values alignment scores (AI-assessed from interviews)
+  pressValuesScores Json?       // { passionate: 88, relentless: 85, empowered: 82, senseOfUrgency: 76, seeingPossibilities: 80 }
+  pressValuesAvg    Int?        // Average of PRESS scores
+
+  // Competency scores from assessments
+  competencyScores  Json?       // { systemDesign: 90, technicalLeadership: 85, problemSolving: 88, communication: 82, domainKnowledge: 65 }
+
+  // Personality/Team fit analysis
+  personalityProfile Json?      // { openness: 85, conscientiousness: 90, extraversion: 45, agreeableness: 70, neuroticism: 25 }
+  teamFitAnalysis    Json?      // { strengths: [], considerations: [] }
+
+  // Must validate / concerns
+  mustValidate   Json?          // Array of strings to validate in interviews
+  redFlags       Json?          // Array of { title, description }
+
+  // Suggested interview questions
+  suggestedQuestions Json?      // Array of strings
+
+  // AI Recommendation
+  recommendation           String?    // "HIRE", "HOLD", "NO_HIRE"
+  recommendationConfidence Int?       // 0-100
+  recommendationSummary    String?    @db.Text
+  recommendationStrengths  Json?      // Array of strengths
+  recommendationRisks      Json?      // Array of { risk, mitigation }
+
+  // Human decision
+  decisionStatus String?       // "PENDING", "HIRE", "HOLD", "NO_HIRE"
+  decisionNotes  String?       @db.Text
+  decisionBy     String?       // Employee/User ID
+  decisionAt     DateTime?
+
+  // Source
+  source      String?           // "linkedin", "referral", "careers-page", etc.
+  referredBy  String?           // Employee ID if referral
+
+  // Notes (internal)
+  notes       String?           @db.Text
+
+  // Processing status for AI analysis
+  processingStatus String?      // "pending", "processing", "completed", "failed"
+  processedAt      DateTime?
+
+  // Timestamps
+  appliedAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Interest form responses
+  interestFormResponses InterestFormResponse[]
+
+  // Interview stages tracking
+  interviews  CandidateInterview[]
+
+  @@unique([jobId, email])
+  @@index([jobId, stage])
+  @@index([email])
+  @@index([score])
+}
+
+// Track individual interview stages/rounds
+model CandidateInterview {
+  id           String       @id @default(uuid())
+  candidateId  String
+  candidate    JobCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  stage        String       // "HR_SCREEN", "TECHNICAL", "PANEL"
+  stageName    String?      // Display name e.g., "General Questions", "Panel Interview"
+  interviewers Json?        // Array of { employeeId, name, email }
+  scheduledAt  DateTime?
+  completedAt  DateTime?
+  duration     Int?         // Duration in minutes
+
+  // Aggregated scores from evaluations
+  score        Int?         // 0-100 (calculated average)
+  feedback     String?      @db.Text
+  scorecard    Json?        // Legacy: { criteria: [{ name, score, notes }] }
+
+  // Link to interview stage template for rubric
+  stageTemplateId String?
+
+  // Individual evaluator scorecards
+  evaluations  InterviewEvaluation[]
+
+  // Public interview links for interviewers
+  interviewerTokens InterviewerToken[]
+
+  // Fireflies integration
+  firefliesMeetingId   String?   // Fireflies meeting ID
+  firefliesTranscript  String?   @db.Text // Full transcript
+  firefliesSummary     String?   @db.Text // AI-generated summary
+  firefliesActionItems Json?     // Array of action items
+  firefliesHighlights  Json?     // Array of { timestamp, text }
+  transcriptUrl        String?   // Link to Fireflies transcript
+  recordingUrl         String?   // Link to recording
+  meetingLink          String?   // Video meeting link (Zoom/Google Meet)
+
+  status       String       @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([candidateId, stage])
+  @@index([scheduledAt])
+  @@index([stageTemplateId])
+}
+
+// Public interview tokens for interviewers
+model InterviewerToken {
+  id           String             @id @default(uuid())
+  token        String             @unique @default(uuid())
+  interviewId  String
+  interview    CandidateInterview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  // Interviewer info
+  interviewerId    String?  // User ID if internal
+  interviewerName  String
+  interviewerEmail String
+  interviewerRole  String?
+
+  // Token status
+  expiresAt    DateTime
+  accessedAt   DateTime?  // First access
+  lastAccessAt DateTime?  // Most recent access
+  isRevoked    Boolean    @default(false)
+
+  // Evaluation status
+  evaluationStatus String   @default("PENDING") // PENDING, IN_PROGRESS, SUBMITTED
+  submittedAt      DateTime?
+
+  // Custom questions added by this interviewer
+  customQuestions Json?    // Array of { question, answer, score }
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([token])
+  @@index([interviewId])
+  @@index([interviewerEmail])
+}
+
+enum JobCandidateStage {
+  APPLIED
+  HR_SCREEN
+  TECHNICAL
+  PANEL
+  OFFER
+  HIRED
+  REJECTED
+  WITHDRAWN
+}
+
+enum JobStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+// ============================================
+// RECRUITING - INTEREST FORMS
+// ============================================
+
+// Interest Form Template - can be assigned to jobs
+model InterestFormTemplate {
+  id          String   @id @default(uuid())
+  name        String   // e.g., "Senior Enterprise Account Executive Interest Form"
+  description String?
+  isDefault   Boolean  @default(false) // Default form for new jobs
+  isActive    Boolean  @default(true)
+
+  questions   InterestFormQuestion[]
+  jobs        Job[]    @relation("JobInterestForm")
+  responses   InterestFormResponse[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([isDefault])
+}
+
+model InterestFormQuestion {
+  id           String               @id @default(uuid())
+  templateId   String
+  template     InterestFormTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  question     String               // The question text
+  description  String?              // Optional help text
+  type         String               // "text", "textarea", "select", "multiselect", "checkbox", "scale", "email", "number"
+  required     Boolean              @default(true)
+  sortOrder    Int                  @default(0)
+
+  // For select/multiselect/checkbox
+  options      Json?                // Array of { value, label }
+
+  // For scale type
+  scaleMin     Int?                 @default(1)
+  scaleMax     Int?                 @default(5)
+  scaleMinLabel String?             // e.g., "Novice"
+  scaleMaxLabel String?             // e.g., "Expert"
+
+  // Field mapping for auto-population
+  fieldMapping String?              // e.g., "email", "name", "mbtiType", "salaryExpMin" - maps to JobCandidate fields
+
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+
+  @@index([templateId, sortOrder])
+}
+
+// Store candidate responses to interest forms
+model InterestFormResponse {
+  id           String               @id @default(uuid())
+  templateId   String
+  template     InterestFormTemplate @relation(fields: [templateId], references: [id])
+  candidateId  String?
+  candidate    JobCandidate?        @relation(fields: [candidateId], references: [id], onDelete: SetNull)
+
+  // Denormalized candidate info in case candidate is deleted
+  candidateEmail String
+  candidateName  String
+
+  // All responses stored as JSON
+  responses    Json                 // { questionId: answer, ... }
+
+  // Public submission token
+  submissionToken String?           @unique
+
+  submittedAt  DateTime             @default(now())
+
+  @@index([templateId])
+  @@index([candidateId])
+  @@index([candidateEmail])
+}
+
+// ============================================
+// RECRUITING - INTERVIEW RUBRICS/SCORECARDS
+// ============================================
+
+// Interview Stage Template - defines the stages and their rubrics
+model InterviewStageTemplate {
+  id          String   @id @default(uuid())
+  name        String   // e.g., "General Questions", "Panel Interview", "Technical Assessment"
+  description String?
+  stage       String   // Maps to JobCandidateStage: "HR_SCREEN", "TECHNICAL", "PANEL"
+  sortOrder   Int      @default(0)
+  isActive    Boolean  @default(true)
+
+  // Can be job-specific or general
+  jobId       String?
+  job         Job?     @relation("JobInterviewStages", fields: [jobId], references: [id], onDelete: Cascade)
+
+  criteria    InterviewStageCriteria[]
+  evaluations InterviewEvaluation[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([stage])
+  @@index([jobId])
+  @@index([isActive])
+}
+
+// Criteria for each interview stage
+model InterviewStageCriteria {
+  id          String                 @id @default(uuid())
+  stageId     String
+  stage       InterviewStageTemplate @relation(fields: [stageId], references: [id], onDelete: Cascade)
+
+  name        String                 // e.g., "Problem Solving", "Communication"
+  description String?                // What to look for
+  weight      Int                    @default(1) // 1-5 for importance
+  sortOrder   Int                    @default(0)
+
+  // Scoring scale definitions (stored as JSON for flexibility)
+  // e.g., { 1: "Poor - No evidence", 2: "Below Average", 3: "Average", 4: "Above Average", 5: "Excellent - Strong evidence" }
+  scoreScale  Json?
+
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+
+  scores      InterviewCriteriaScore[]
+
+  @@index([stageId, sortOrder])
+}
+
+// Individual evaluator's scorecard for a candidate interview
+model InterviewEvaluation {
+  id           String                 @id @default(uuid())
+  interviewId  String
+  interview    CandidateInterview     @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  stageTemplateId String
+  stageTemplate InterviewStageTemplate @relation(fields: [stageTemplateId], references: [id])
+
+  // Evaluator info
+  evaluatorId   String                // Employee ID
+  evaluatorName String
+  evaluatorEmail String?
+
+  // Overall assessment
+  overallScore  Int?                  // 1-5 or calculated average
+  overallNotes  String?               @db.Text
+  recommendation String?              // "STRONG_HIRE", "HIRE", "HOLD", "NO_HIRE", "STRONG_NO_HIRE"
+
+  // Individual criteria scores
+  criteriaScores InterviewCriteriaScore[]
+
+  submittedAt  DateTime?
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@unique([interviewId, evaluatorId])
+  @@index([interviewId])
+  @@index([evaluatorId])
+  @@index([stageTemplateId])
+}
+
+// Individual score for each criteria
+model InterviewCriteriaScore {
+  id           String                 @id @default(uuid())
+  evaluationId String
+  evaluation   InterviewEvaluation    @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  criteriaId   String
+  criteria     InterviewStageCriteria @relation(fields: [criteriaId], references: [id], onDelete: Cascade)
+
+  score        Int                    // 1-5
+  notes        String?                @db.Text
+
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+
+  @@unique([evaluationId, criteriaId])
+  @@index([criteriaId])
 }
