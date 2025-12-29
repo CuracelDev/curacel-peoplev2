@@ -32,7 +32,7 @@ const docSections: DocSection[] = [
         ordered: true,
         items: [
           'Open Settings > Organization profile and add your company name, logo, and letterhead details.',
-          'Invite the right admins in Settings > Team members and assign roles for HR and IT.',
+          'Invite the right admins in Settings > App Admins and assign roles for HR and IT.',
           'Create signature blocks in Settings > Signature blocks for anyone who signs contracts.',
           'Add legal entities in Settings > Legal entities so contracts reference the correct company.',
           'Review and edit contract templates in Settings > Contract templates.',
@@ -212,7 +212,7 @@ const docSections: DocSection[] = [
         title: 'Automation tips',
         items: [
           'Connect apps in Settings > Applications before running automated tasks.',
-          'Use Settings > Onboarding flow to add or reorder default steps.',
+          'Use Settings > On/Offboarding Settings to add or reorder default steps.',
           'Use Notifications and Audit Log to track completed tasks.',
         ],
       },
@@ -495,12 +495,12 @@ const docSections: DocSection[] = [
         ],
       },
       {
-        title: 'Team members',
+        title: 'App Admins',
         items: [
-          'Invite new users by email and assign a role.',
+          'Invite new admins by email and assign a role.',
           'Copy the invite link when email delivery is not available.',
           'Resend or revoke pending invites as needed.',
-          'Update roles for existing team members.',
+          'Update roles for existing admins.',
         ],
       },
       {
@@ -529,19 +529,12 @@ const docSections: DocSection[] = [
         ],
       },
       {
-        title: 'Onboarding flow',
+        title: 'On/Offboarding settings',
         items: [
-          'Add manual or integration steps for new hires.',
+          'Open On/Offboarding Settings to manage both flows.',
+          'Add manual or integration steps for onboarding.',
+          'Edit offboarding tasks used in employee departures.',
           'Reorder steps to match your internal process.',
-          'Edit or delete steps when the process changes.',
-          'Reset to defaults if you want to start over.',
-        ],
-      },
-      {
-        title: 'Offboarding flow',
-        items: [
-          'Add or edit steps used in employee departures.',
-          'Reorder tasks to reflect the correct sequence.',
           'Reset to defaults if you need the base workflow.',
         ],
       },

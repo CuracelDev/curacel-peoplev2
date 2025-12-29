@@ -87,6 +87,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Updated navigation documentation to include Blue AI
 - Enhanced onboarding flow to include personality profile step
 - Improved role-based access documentation
+- Reorganized Settings page into sections with App Admins and On/Offboarding Settings grouping
 
 ### Fixed
 - Voice transcription now works on Node.js versions below 20 (uses temp file approach)
