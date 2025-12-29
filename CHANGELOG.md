@@ -88,11 +88,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Enhanced onboarding flow to include personality profile step
 - Improved role-based access documentation
 - Reorganized Settings page into sections with App Admins and On/Offboarding Settings grouping
+- Renamed Settings > Applications to Integrations for nav consistency
+- Updated Applications settings page copy to Integrations
 
 ### Fixed
 - Voice transcription now works on Node.js versions below 20 (uses temp file approach)
 - Local dev auth boot issues caused by missing database and NextAuth secrets
 - Missing slider component in Recruiting settings causing build failure
+- Create Job and Save as Draft actions now respond with validation feedback
 
 ## [December 2024]
 
