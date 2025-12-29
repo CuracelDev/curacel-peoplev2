@@ -29,6 +29,7 @@ export default function ApiDocsPage() {
             <a href="#contracts" className="text-blue-600 hover:underline">Contracts (Offers)</a>
             <a href="#onboarding" className="text-blue-600 hover:underline">Onboarding</a>
             <a href="#offboarding" className="text-blue-600 hover:underline">Offboarding</a>
+            <a href="#recruiting" className="text-blue-600 hover:underline">Recruiting (Beta)</a>
             <a href="#applications" className="text-blue-600 hover:underline">Applications</a>
             <a href="#webhooks" className="text-blue-600 hover:underline">Webhooks</a>
             <a href="#errors" className="text-blue-600 hover:underline">Error Handling</a>
@@ -349,6 +350,33 @@ export default function ApiDocsPage() {
     "googleTransferToEmail": "manager@company.com"
   }' \\
   ${BASE_URL}/api/v1/offboarding`}</pre>
+              </div>
+            </CardContent>
+          </Card>
+        </section>
+
+        <section id="recruiting">
+          <Card>
+            <CardHeader>
+              <CardTitle>Recruiting (Beta)</CardTitle>
+              <CardDescription>Hiring flows and recruiting configuration</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-gray-700">
+              <p>
+                Recruiting configuration is currently managed in the app under
+                <strong> Recruiting → Settings → Interview</strong>. Public API endpoints for
+                hiring flows will be documented here once available.
+              </p>
+              <div className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-800">
+                <strong>Status:</strong> API access is not yet available for hiring flows.
+              </div>
+              <div className="rounded bg-gray-900 p-3 text-xs text-gray-100">
+                <pre>{`{
+  "id": "engineering",
+  "name": "Engineering",
+  "description": "Includes technical assessment",
+  "stages": ["Apply", "HR", "Kand.io", "Technical", "Panel"]
+}`}</pre>
               </div>
             </CardContent>
           </Card>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Save,
   Download,
@@ -27,6 +27,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
+import { useHiringFlows } from '@/lib/recruiting/hiring-flows'
 
 const categories = [
   {
@@ -139,12 +140,28 @@ const sampleQuestions = {
 export default function QuestionsPage() {
   const [selectedJob, setSelectedJob] = useState('backend')
   const [selectedCandidate, setSelectedCandidate] = useState('james')
-  const [selectedStage, setSelectedStage] = useState('panel')
+  const [selectedStage, setSelectedStage] = useState('')
   const [selectedCategories, setSelectedCategories] = useState(['situational', 'behavioral', 'technical'])
   const [favorites, setFavorites] = useState<Record<string, boolean>>({
     'situational-1': true,
     'behavioral-1': true,
   })
+  const { flows } = useHiringFlows()
+
+  const stageOptions = useMemo(() => {
+    const stageSet = new Set<string>()
+    flows.forEach((flow) => {
+      flow.stages.forEach((stage) => stageSet.add(stage))
+    })
+    return Array.from(stageSet)
+  }, [flows])
+
+  useEffect(() => {
+    if (!stageOptions.length) return
+    if (!stageOptions.includes(selectedStage)) {
+      setSelectedStage(stageOptions[0])
+    }
+  }, [stageOptions, selectedStage])
 
   const toggleCategory = (categoryId: string) => {
     setSelectedCategories((prev) =>
@@ -225,10 +242,11 @@ export default function QuestionsPage() {
                     <SelectValue placeholder="Select stage" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="hr">HR Screen</SelectItem>
-                    <SelectItem value="technical">Technical Interview</SelectItem>
-                    <SelectItem value="panel">Panel Interview</SelectItem>
-                    <SelectItem value="final">Final Round</SelectItem>
+                    {stageOptions.map((stage) => (
+                      <SelectItem key={stage} value={stage}>
+                        {stage}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
