@@ -59,6 +59,7 @@ import {
 } from 'lucide-react'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import { cn } from '@/lib/utils'
+import { trpc } from '@/lib/trpc-client'
 
 interface JD {
   id: string
@@ -175,6 +176,7 @@ function getDepartmentInfo(department: string) {
 }
 
 export default function JDsPage() {
+  const { data: teams } = trpc.team.listForSelect.useQuery()
   const [jds, setJds] = useState<JD[]>(mockJDs)
   const [searchQuery, setSearchQuery] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState<string>('all')
@@ -275,13 +277,13 @@ export default function JDsPage() {
         </div>
         <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All Departments" />
+            <SelectValue placeholder="All Teams" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All Departments</SelectItem>
-            {DEPARTMENTS.map((dept) => (
-              <SelectItem key={dept.value} value={dept.value}>
-                {dept.value}
+            <SelectItem value="all">All Teams</SelectItem>
+            {(teams || []).map((team) => (
+              <SelectItem key={team.id} value={team.name}>
+                {team.displayName}
               </SelectItem>
             ))}
           </SelectContent>
