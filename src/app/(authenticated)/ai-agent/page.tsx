@@ -87,7 +87,7 @@ export default function AIAgentPage() {
     { enabled: !!activeChatId }
   )
   const activeChatSummary = useMemo(
-    () => chatList.find((chat) => chat.id === activeChatId) || null,
+    () => chatList.find((chat: { id: string }) => chat.id === activeChatId) || null,
     [activeChatId, chatList]
   )
   const isChatLoading = !!activeChatId && !activeChatData
@@ -144,7 +144,7 @@ export default function AIAgentPage() {
 
     const existingMessages = activeChatData?.messages ?? []
     messageHistory = [
-      ...existingMessages.map((message) => ({
+      ...existingMessages.map((message: { role: string; content: string }) => ({
         role: message.role === 'USER' ? 'user' : 'assistant',
         content: message.content,
       })),
@@ -320,7 +320,7 @@ export default function AIAgentPage() {
   const filteredChats = useMemo(() => {
     const term = search.trim().toLowerCase()
     if (!term) return chatList
-    return chatList.filter((chat) => {
+    return chatList.filter((chat: { id: string; title: string; lastMessage?: { content?: string } }) => {
       if (chat.title.toLowerCase().includes(term)) return true
       const lastContent = chat.lastMessage?.content?.toLowerCase() || ''
       return lastContent.includes(term)
@@ -358,7 +358,7 @@ export default function AIAgentPage() {
               <div className="px-3 py-6 text-sm text-muted-foreground">No chats yet.</div>
             ) : (
               <div className="space-y-1">
-                {filteredChats.map((chat) => {
+                {filteredChats.map((chat: { id: string; title: string; updatedAt?: Date; lastMessage?: { content?: string; createdAt?: Date } }) => {
                   const lastMessage = chat.lastMessage
                   const title = truncateWords(chat.title, 4)
                   return (
@@ -387,7 +387,7 @@ export default function AIAgentPage() {
                             chat.id === activeChatId ? 'text-primary/70' : 'text-muted-foreground'
                           )}
                         >
-                          {formatTime(chat.updatedAt)}
+                          {chat.updatedAt && formatTime(chat.updatedAt)}
                         </span>
                       </div>
                     </button>
@@ -425,7 +425,7 @@ export default function AIAgentPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {activeChatData.messages.map((message) => (
+                {activeChatData.messages.map((message: ChatMessage) => (
                   <div
                     key={message.id}
                     className={cn(
