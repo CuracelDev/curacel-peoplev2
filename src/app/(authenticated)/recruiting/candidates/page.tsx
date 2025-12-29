@@ -49,11 +49,12 @@ const mockCandidates = [
 ]
 
 const stageCounts = {
-  all: 24,
-  applied: 10,
-  hrScreen: 6,
-  technical: 5,
-  panel: 3,
+  all: 8,
+  applied: 2,
+  hrScreen: 2,
+  technical: 2,
+  panel: 1,
+  offer: 1,
 }
 
 type SortOption = 'score-desc' | 'score-asc' | 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc'
@@ -111,6 +112,7 @@ export default function CandidatesPage() {
       if (activeFilter === 'hrScreen') return matchesSearch && candidate.stageType === 'hr-screen'
       if (activeFilter === 'technical') return matchesSearch && candidate.stageType === 'technical'
       if (activeFilter === 'panel') return matchesSearch && candidate.stageType === 'panel'
+      if (activeFilter === 'offer') return matchesSearch && candidate.stageType === 'offer'
       return matchesSearch
     })
 
@@ -171,36 +173,42 @@ export default function CandidatesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Row - Grid on mobile, flex on larger screens */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 lg:gap-4">
-        <Card className={cn("border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'all' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('all')}>
-          <CardContent className="pt-3 pb-3 px-3 lg:pt-4 lg:pb-4 lg:px-4">
-            <div className="text-xs sm:text-sm text-gray-500 truncate">All Candidates</div>
-            <div className="text-xl sm:text-2xl font-bold">{stageCounts.all}</div>
+      {/* Stats Row - Always fits in 1 row */}
+      <div className="flex gap-3 min-w-0">
+        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'all' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('all')}>
+          <CardContent className="pt-3 pb-3 px-3">
+            <div className="text-xs text-gray-500 truncate">All</div>
+            <div className="text-xl font-bold">{stageCounts.all}</div>
           </CardContent>
         </Card>
-        <Card className={cn("border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'applied' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('applied')}>
-          <CardContent className="pt-3 pb-3 px-3 lg:pt-4 lg:pb-4 lg:px-4">
-            <div className="text-xs sm:text-sm text-gray-500 truncate">Applied</div>
-            <div className="text-xl sm:text-2xl font-bold">{stageCounts.applied}</div>
+        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'applied' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('applied')}>
+          <CardContent className="pt-3 pb-3 px-3">
+            <div className="text-xs text-gray-500 truncate">Applied</div>
+            <div className="text-xl font-bold">{stageCounts.applied}</div>
           </CardContent>
         </Card>
-        <Card className={cn("border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'hrScreen' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('hrScreen')}>
-          <CardContent className="pt-3 pb-3 px-3 lg:pt-4 lg:pb-4 lg:px-4">
-            <div className="text-xs sm:text-sm text-gray-500 truncate">HR Screen</div>
-            <div className="text-xl sm:text-2xl font-bold">{stageCounts.hrScreen}</div>
+        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'hrScreen' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('hrScreen')}>
+          <CardContent className="pt-3 pb-3 px-3">
+            <div className="text-xs text-gray-500 truncate">HR Screen</div>
+            <div className="text-xl font-bold">{stageCounts.hrScreen}</div>
           </CardContent>
         </Card>
-        <Card className={cn("border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'technical' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('technical')}>
-          <CardContent className="pt-3 pb-3 px-3 lg:pt-4 lg:pb-4 lg:px-4">
-            <div className="text-xs sm:text-sm text-gray-500 truncate">Technical</div>
-            <div className="text-xl sm:text-2xl font-bold">{stageCounts.technical}</div>
+        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'technical' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('technical')}>
+          <CardContent className="pt-3 pb-3 px-3">
+            <div className="text-xs text-gray-500 truncate">Technical</div>
+            <div className="text-xl font-bold">{stageCounts.technical}</div>
           </CardContent>
         </Card>
-        <Card className={cn("border-0 shadow-sm cursor-pointer transition-all col-span-2 sm:col-span-1", activeFilter === 'panel' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('panel')}>
-          <CardContent className="pt-3 pb-3 px-3 lg:pt-4 lg:pb-4 lg:px-4">
-            <div className="text-xs sm:text-sm text-gray-500 truncate">Panel</div>
-            <div className="text-xl sm:text-2xl font-bold">{stageCounts.panel}</div>
+        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'panel' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('panel')}>
+          <CardContent className="pt-3 pb-3 px-3">
+            <div className="text-xs text-gray-500 truncate">Panel</div>
+            <div className="text-xl font-bold">{stageCounts.panel}</div>
+          </CardContent>
+        </Card>
+        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'offer' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('offer')}>
+          <CardContent className="pt-3 pb-3 px-3">
+            <div className="text-xs text-gray-500 truncate">Offer</div>
+            <div className="text-xl font-bold">{stageCounts.offer || 0}</div>
           </CardContent>
         </Card>
       </div>
@@ -254,6 +262,15 @@ export default function CandidatesPage() {
               onClick={() => setActiveFilter('panel')}
             >
               Panel ({stageCounts.panel})
+            </button>
+            <button
+              className={cn(
+                "px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium transition-all whitespace-nowrap",
+                activeFilter === 'offer' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-600 hover:text-gray-900'
+              )}
+              onClick={() => setActiveFilter('offer')}
+            >
+              Offer ({stageCounts.offer})
             </button>
           </div>
         </div>
