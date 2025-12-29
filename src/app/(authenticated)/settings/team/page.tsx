@@ -93,12 +93,12 @@ export default function TeamMembersPage() {
     return (
       <div className="space-y-6">
         <SettingsPageHeader
-          title="Team members"
-          description="Invite users and manage access."
+          title="App Admins"
+          description="Invite admins and manage access."
         />
         <Card>
           <CardHeader>
-            <CardTitle>Team members</CardTitle>
+            <CardTitle>App Admins</CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-sm text-gray-600">You don’t have access to this page.</p>
@@ -111,8 +111,8 @@ export default function TeamMembersPage() {
   return (
     <div className="space-y-6">
       <SettingsPageHeader
-        title="Team members"
-        description="Invite users and manage access."
+        title="App Admins"
+        description="Invite admins and manage access."
       />
 
       <Card>
