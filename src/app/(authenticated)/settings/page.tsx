@@ -17,6 +17,12 @@ import {
   Bot,
   Briefcase,
   Users,
+  Heart,
+  Star,
+  Smile,
+  GitBranch,
+  FileQuestion,
+  ClipboardCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -77,10 +83,40 @@ const settingsSections = [
     title: 'Hiring',
     items: [
       {
-        title: 'Job Settings',
-        description: 'Manage job descriptions and hiring configurations.',
-        icon: Briefcase,
-        href: '/settings/job-settings',
+        title: 'Company Values',
+        description: 'Define core values for cultural fit evaluation.',
+        icon: Heart,
+        href: '/recruiting/settings#values',
+      },
+      {
+        title: 'Competencies',
+        description: 'Set competency framework for all hires.',
+        icon: Star,
+        href: '/recruiting/settings#competencies',
+      },
+      {
+        title: 'Personality',
+        description: 'Define ideal OCEAN profiles by department.',
+        icon: Smile,
+        href: '/recruiting/settings#personality',
+      },
+      {
+        title: 'Hiring Flow',
+        description: 'Configure interview stages and flows.',
+        icon: GitBranch,
+        href: '/recruiting/settings#interview',
+      },
+      {
+        title: 'Interest Forms',
+        description: 'Manage application forms for candidates.',
+        icon: FileQuestion,
+        href: '/recruiting/settings#interestForms',
+      },
+      {
+        title: 'Interview Rubrics',
+        description: 'Define scoring criteria for interviews.',
+        icon: ClipboardCheck,
+        href: '/recruiting/settings#rubrics',
       },
     ],
   },
