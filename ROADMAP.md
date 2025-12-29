@@ -11,6 +11,360 @@ This document outlines the implementation plan for Curacel People V2 (Recruiter 
 
 ---
 
+## 🔵 AI-Native Architecture: BlueAI as Core OS
+
+> **Vision**: BlueAI is not a feature—it's the primary operator. Users express intent, BlueAI executes, humans review and approve.
+
+### The Fundamental Shift
+
+| Aspect | Traditional SaaS | Agentic OS |
+|--------|-----------------|------------|
+| Primary Input | Clicks, forms | Natural language |
+| User Role | Operator | Reviewer/Approver |
+| AI Role | Feature you click | Core operator |
+| Workflow | User-driven | AI-proposed |
+| Context | Manual lookup | Auto-retrieved |
+| Speed | User speed | Instant + review |
+
+### Example: Creating a Job
+
+**Old Way (15-30 min):**
+Click New → Fill title → Select department → Write JD → Set salary → Configure stages → Save
+
+**Agentic Way (2-3 min):**
+```
+You: "I need to hire a senior backend engineer for claims team"
+
+BlueAI: Creating job posting...
+├── Pulled engineering JD template
+├── Checked recent claims team salaries: ₦15M-22M
+├── Selected Engineering interview flow (5 stages)
+└── Draft ready for review
+
+[Shows draft] Does this look right?
+
+You: "Bump salary to ₦18M-25M"
+
+BlueAI: Updated. Ready to publish?
+
+You: "Yes"
+
+BlueAI: ✓ Job posted. Notified #recruiting on Slack.
+```
+
+### What's Possible TODAY (Q1 2025)
+
+| Capability | Technology | Status |
+|------------|------------|--------|
+| Tool/Function Calling | Claude 3.5 Sonnet | ✅ Production-ready |
+| Multi-step Workflows | LangGraph, Claude Tools | ✅ Stable |
+| RAG Context Retrieval | Embeddings + pgvector | ✅ Production-ready |
+| Streaming UI | Vercel AI SDK | ✅ Production-ready |
+| Human-in-the-loop | Approval patterns | ✅ Established |
+| Structured Output | Zod + JSON mode | ✅ Production-ready |
+
+### What's Coming (6 Months - Mid 2025)
+
+| Capability | Expected State | Impact |
+|------------|---------------|--------|
+| **Persistent Memory** | Native model memory, MCP servers | BlueAI remembers decisions, learns patterns |
+| **Multi-Agent Orchestration** | LangGraph 2.0, Claude agents | Specialist agents coordinate |
+| **Computer Use** | Claude Computer Use GA | Operate external tools without APIs |
+| **MCP Standardization** | Model Context Protocol adoption | Plug-and-play tool integrations |
+| **Voice-First** | Real-time speech | "Hey Blue, advance Sarah to panel" |
+| **Proactive AI** | Pattern detection + alerts | BlueAI suggests actions before you ask |
+
+### Agentic Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        USER INTERFACE                           │
+│  Command Bar (Cmd+K)  │  Chat Sidebar  │  Traditional UI        │
+└──────────────┬────────┴───────┬────────┴──────────┬─────────────┘
+               │                │                   │
+               ▼                ▼                   ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       BLUEAI CORE                               │
+│  Intent Parser → Planner → Executor → Memory → Tool Registry    │
+└─────────────────────────────────────────────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                      CONTEXT LAYER                              │
+│  Company Values │ JD Templates │ Salary Data │ Team Info        │
+│  Past Decisions │ Hiring Rubrics │ Assessments │ Transcripts    │
+└─────────────────────────────────────────────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────────────────────────────┐
+│                       TOOL REGISTRY                             │
+│  jobs.create    │ candidates.screen  │ interviews.schedule      │
+│  jobs.update    │ candidates.advance │ interviews.analyze       │
+│  context.salary │ context.team       │ slack.notify │ email.send│
+└─────────────────────────────────────────────────────────────────┘
+```
+
+> **Full vision document**: See `docs/AGENTIC-VISION.md`
+
+---
+
+## Revised Implementation Phases (AI-Native First)
+
+> **New Approach**: Build the agent infrastructure first, then add recruiting features as agent capabilities.
+
+### Phase 0: BlueAI Agent Core (NEW - Sprint 1-2)
+
+**Goal:** Build the foundational agent infrastructure that all features plug into
+
+#### 0.1 Agent Service Architecture
+- [ ] Create `src/lib/ai/agent/core.ts` - Main agent orchestrator
+- [ ] Create `src/lib/ai/agent/tools.ts` - Tool registry system
+- [ ] Create `src/lib/ai/agent/context.ts` - Context retrieval service
+- [ ] Create `src/lib/ai/agent/memory.ts` - Conversation memory (DB-backed)
+- [ ] Create `src/lib/ai/agent/planner.ts` - Intent → Tool chain planner
+- [ ] Create `src/lib/ai/agent/executor.ts` - Tool execution with streaming
+
+#### 0.2 Tool Registry Pattern
+```typescript
+// Every action becomes a callable tool
+interface Tool {
+  name: string;
+  description: string;
+  parameters: ZodSchema;
+  execute: (params: z.infer<typeof parameters>) => Promise<ToolResult>;
+  requiresApproval: boolean;
+  category: 'read' | 'write' | 'external';
+}
+```
+- [ ] Define base tool interface and registry
+- [ ] Create tool execution wrapper with approval flow
+- [ ] Add tool result formatting for agent consumption
+- [ ] Implement tool parameter validation (Zod)
+
+#### 0.3 Command Bar UI (Cmd+K)
+- [ ] Create `src/components/agent/command-bar.tsx`
+- [ ] Implement global keyboard shortcut (Cmd+K / Ctrl+K)
+- [ ] Build natural language input with suggestions
+- [ ] Add "thinking" state display (steps being executed)
+- [ ] Create preview/draft component for actions
+- [ ] Implement approve/reject/modify flow
+
+#### 0.4 Chat Sidebar Enhancement
+- [ ] Upgrade existing Blue AI sidebar to agentic mode
+- [ ] Add context awareness (current page, selected items)
+- [ ] Enable action execution from chat
+- [ ] Add conversation history persistence
+- [ ] Show agent capabilities contextually
+
+#### 0.5 Approval Flow System
+- [ ] Create `src/components/agent/approval-card.tsx`
+- [ ] Implement pending action queue
+- [ ] Add approve/reject/modify handlers
+- [ ] Create audit log for agent actions
+- [ ] Build rollback capability for failed actions
+
+### Phase 1: Foundation + Agent Tools (Sprint 2-3)
+
+**Goal:** Database schema + register all CRUD as agent tools
+
+*[Previous Phase 1 tasks, but now tools are registered for each]*
+
+#### 1.1 Database Schema
+*[Same as before]*
+
+#### 1.2 Agent Tool Registration for Recruiting
+```typescript
+// Register each endpoint as a BlueAI tool
+tools.register({
+  name: "jobs.create",
+  description: "Create a new job posting with title, department, and requirements",
+  parameters: jobCreateSchema,
+  execute: async (params) => trpc.recruiting.positions.create(params),
+  requiresApproval: true,
+});
+
+tools.register({
+  name: "context.jd_templates",
+  description: "Get job description templates by role type",
+  parameters: z.object({ roleType: z.enum(["engineering", "sales", "ops"]) }),
+  execute: async ({ roleType }) => db.templates.findByType(roleType),
+  requiresApproval: false,
+});
+
+tools.register({
+  name: "context.salary_benchmarks",
+  description: "Get recent salary offers for a department",
+  parameters: z.object({ department: z.string(), months: z.number().optional() }),
+  execute: async ({ department, months = 6 }) =>
+    db.offers.recentByDepartment(department, months),
+  requiresApproval: false,
+});
+```
+- [ ] Register position CRUD as tools
+- [ ] Register applicant CRUD as tools
+- [ ] Register context/lookup tools (templates, salaries, team info)
+- [ ] Register settings tools
+
+### Phase 2: Agentic Recruiting Workflows (Sprint 4-5)
+
+**Goal:** Build complete agent workflows for key recruiting tasks
+
+#### 2.1 "Create Job" Workflow
+```
+User: "I need to hire a backend engineer for claims"
+
+BlueAI executes:
+1. context.jd_templates({ roleType: "engineering" })
+2. context.salary_benchmarks({ department: "Engineering" })
+3. context.team_structure({ team: "Claims" })
+4. jobs.create({ ...draft })
+```
+- [ ] Create job creation workflow orchestration
+- [ ] Implement template selection logic
+- [ ] Add salary suggestion based on benchmarks
+- [ ] Build draft preview component
+- [ ] Add modification handling ("bump salary to X")
+
+#### 2.2 "Screen Candidate" Workflow
+```
+User: "Screen this candidate" (on candidate page)
+
+BlueAI executes:
+1. context.get_candidate({ id })
+2. context.get_job_requirements({ positionId })
+3. context.get_company_values()
+4. ai.screen_candidate({ candidateData, requirements, values })
+5. candidates.update_screening({ id, screening })
+```
+- [ ] Create screening workflow with full context
+- [ ] Build AI screening prompt with evidence gathering
+- [ ] Display screening results with approve/modify
+- [ ] Auto-generate must-validate items
+
+#### 2.3 "Generate Questions" Workflow
+```
+User: "Prepare questions for Sarah's panel interview"
+
+BlueAI executes:
+1. context.get_candidate_history({ id }) // all stages so far
+2. context.get_stage_rubric({ stageId })
+3. context.get_must_validate_items({ candidateId })
+4. ai.generate_questions({ context, categories })
+```
+- [ ] Build question generation with full candidate context
+- [ ] Include previous stage insights
+- [ ] Focus on must-validate items
+- [ ] Generate follow-up suggestions
+
+#### 2.4 "Advance Candidate" Workflow
+```
+User: "Advance Sarah to panel, she scored 88, great on architecture"
+
+BlueAI executes:
+1. candidates.add_stage_notes({ id, notes, score })
+2. candidates.advance_stage({ id, notes })
+3. slack.notify({ channel: "recruiting", message })
+4. email.send({ to: candidate, template: "stage_advanced" })
+```
+- [ ] Create stage advancement workflow
+- [ ] Auto-update scores and notes
+- [ ] Trigger notifications
+- [ ] Generate next stage preparation
+
+#### 2.5 "Analyze Interview" Workflow
+```
+User: "Analyze the transcript for James's technical interview"
+
+BlueAI executes:
+1. context.get_interview({ id })
+2. context.get_rubric({ stageId })
+3. context.get_candidate_context({ id })
+4. ai.analyze_transcript({ transcript, rubric, context })
+5. interviews.save_analysis({ id, analysis })
+```
+- [ ] Build transcript analysis with rubric alignment
+- [ ] Extract evidence for each competency
+- [ ] Generate strengths/concerns with citations
+- [ ] Suggest next-stage focus areas
+
+### Phase 3: Context Layer (Sprint 6-7)
+
+**Goal:** Give BlueAI deep knowledge of the company
+
+#### 3.1 Company Knowledge Base
+- [ ] Index company values with examples
+- [ ] Store JD templates by role type
+- [ ] Track salary history and offers
+- [ ] Map org structure and teams
+- [ ] Store hiring rubrics and scorecards
+
+#### 3.2 Pattern Recognition
+- [ ] Analyze past hiring decisions
+- [ ] Identify successful candidate patterns
+- [ ] Track interviewer calibration
+- [ ] Store "what good looks like" examples
+
+#### 3.3 Memory Persistence
+- [ ] Store agent conversation history
+- [ ] Remember user preferences
+- [ ] Track frequently asked questions
+- [ ] Cache common context retrievals
+
+### Phase 4: Proactive AI (Sprint 8-9)
+
+**Goal:** BlueAI suggests actions before you ask
+
+#### 4.1 Pipeline Monitoring
+- [ ] Detect stale candidates (>X days in stage)
+- [ ] Identify bottlenecks (too many in one stage)
+- [ ] Surface top candidates needing action
+- [ ] Flag upcoming interview preps needed
+
+#### 4.2 Daily Briefing
+```
+BlueAI: Good morning! Here's your recruiting update:
+├── 3 new applications overnight
+├── 2 interviews scheduled today
+├── Sarah Chen ready for offer (score: 86)
+└── 2 candidates stale in HR Screen
+
+Want me to screen the new applications?
+```
+- [ ] Build daily summary generation
+- [ ] Add actionable suggestions
+- [ ] Enable one-click actions from briefing
+
+#### 4.3 Smart Reminders
+- [ ] Interview preparation reminders
+- [ ] Decision deadline nudges
+- [ ] Follow-up suggestions
+- [ ] Candidate re-engagement prompts
+
+### Phase 5: Advanced (Sprint 10+)
+
+#### 5.1 Voice Integration
+- [ ] Add voice input to command bar
+- [ ] Implement voice commands for common actions
+- [ ] Build voice response for briefings
+
+#### 5.2 Multi-Agent Coordination (6-month)
+- [ ] Create specialist agents (Recruiter, Scheduler, Interviewer)
+- [ ] Implement agent handoff patterns
+- [ ] Build agent conversation visualization
+
+#### 5.3 Computer Use (6-month)
+- [ ] Integrate Claude Computer Use for external tools
+- [ ] Automate Fireflies transcript retrieval
+- [ ] Automate assessment platform data pulls
+
+---
+
+## Legacy Phases (Reference)
+
+*The phases below are preserved for reference but superseded by the AI-Native phases above.*
+
+---
+
 ## V1 - Onboarding & Employee Management (Complete)
 
 ### Features Delivered
