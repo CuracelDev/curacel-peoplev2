@@ -96,8 +96,8 @@ const settingsSections = [
     title: 'System',
     items: [
       {
-        title: 'Applications',
-        description: 'Add, disable, archive, and manage applications.',
+        title: 'Integrations',
+        description: 'Add, disable, archive, and manage integrations.',
         icon: AppWindow,
         href: '/settings/applications',
         iconBg: 'bg-indigo-100',

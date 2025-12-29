@@ -8,6 +8,8 @@ import {
   GitBranch,
   ChevronRight,
   ArrowLeft,
+  ClipboardList,
+  Target,
 } from 'lucide-react'
 
 const jobSettingsOptions = [
@@ -23,6 +25,20 @@ const jobSettingsOptions = [
     description: 'Edit hiring flows and interview stages used across recruiting.',
     icon: GitBranch,
     href: '/recruiting/settings',
+    iconBg: 'bg-indigo-100',
+  },
+  {
+    title: 'Hiring Rubrics',
+    description: 'Create evaluation rubrics with weighted criteria for consistent candidate assessment.',
+    icon: ClipboardList,
+    href: '/settings/job-settings/rubrics',
+    iconBg: 'bg-indigo-100',
+  },
+  {
+    title: 'Role Competencies',
+    description: 'Define competencies that can be selected when creating job positions.',
+    icon: Target,
+    href: '/settings/job-settings/competencies',
     iconBg: 'bg-indigo-100',
   },
 ]

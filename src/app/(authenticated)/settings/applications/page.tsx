@@ -120,8 +120,8 @@ export default function ApplicationsSettingsPage() {
   return (
     <div className="space-y-6">
       <SettingsPageHeader
-        title="Applications"
-        description="Add, disable, archive, and manage applications."
+        title="Integrations"
+        description="Add, disable, archive, and manage integrations."
         actions={
           <>
             <Button
@@ -140,14 +140,14 @@ export default function ApplicationsSettingsPage() {
               <DialogTrigger asChild>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
-                  Add application
+                  Add integration
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-xl">
                 <DialogHeader>
-                  <DialogTitle>Add application</DialogTitle>
+                  <DialogTitle>Add integration</DialogTitle>
                   <DialogDesc>
-                    Create a custom application and connect it via webhook (no coding required).
+                    Create a custom integration and connect it via webhook (no coding required).
                   </DialogDesc>
                 </DialogHeader>
               <div className="space-y-4">
@@ -213,7 +213,7 @@ export default function ApplicationsSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Active applications</CardTitle>
-              <CardDescription>These are enabled and can appear in the Applications view.</CardDescription>
+              <CardDescription>These are enabled and can appear in the Integrations view.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {appsQuery.isLoading ? (
@@ -276,7 +276,7 @@ export default function ApplicationsSettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Disabled applications</CardTitle>
-              <CardDescription>Disabled apps are hidden from the Applications view.</CardDescription>
+              <CardDescription>Disabled apps are hidden from the Integrations view.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               {appsQuery.isLoading ? (

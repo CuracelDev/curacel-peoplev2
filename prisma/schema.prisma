@@ -1018,3 +1018,69 @@ model OnboardingSettings {
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }
+
+// ============================================
+// JOB SETTINGS - JDs, RUBRICS, COMPETENCIES
+// ============================================
+
+model JobDescription {
+  id          String   @id @default(uuid())
+  name        String   // e.g., "Senior Backend Engineer"
+  department  String?  // Team/department name
+  content     String   @db.Text // Full JD content in markdown/HTML
+  version     Int      @default(1)
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([name])
+  @@index([department])
+  @@index([isActive])
+}
+
+model HiringRubric {
+  id          String           @id @default(uuid())
+  name        String           // e.g., "Engineering Technical Assessment"
+  description String?
+  version     Int              @default(1)
+  isActive    Boolean          @default(true)
+  criteria    RubricCriteria[]
+
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([name])
+  @@index([isActive])
+}
+
+model RubricCriteria {
+  id          String       @id @default(uuid())
+  rubricId    String
+  rubric      HiringRubric @relation(fields: [rubricId], references: [id], onDelete: Cascade)
+
+  name        String       // e.g., "Technical Skills"
+  description String?
+  weight      Int          @default(1) // Weight for scoring (1-5)
+  sortOrder   Int          @default(0)
+
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  @@index([rubricId, sortOrder])
+}
+
+model Competency {
+  id          String   @id @default(uuid())
+  name        String   // e.g., "Technical Excellence"
+  description String?
+  category    String   // e.g., "Technical", "Leadership", "Communication"
+  isActive    Boolean  @default(true)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([name, category])
+  @@index([category])
+  @@index([isActive])
+}

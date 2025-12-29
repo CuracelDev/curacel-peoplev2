@@ -607,6 +607,273 @@ Company Representative: %{signature_block}`,
 
   console.log('✅ Created provisioning rules')
 
+  // ============================================
+  // JOB SETTINGS - JDs, RUBRICS, COMPETENCIES
+  // ============================================
+
+  // Create Job Descriptions
+  const jobDescriptions = [
+    {
+      id: 'jd-senior-backend',
+      name: 'Senior Backend Engineer',
+      department: 'Engineering',
+      content: `# Senior Backend Engineer
+
+## About the Role
+We're looking for a Senior Backend Engineer to join our growing engineering team. You'll be responsible for designing, building, and maintaining our core platform services.
+
+## Responsibilities
+- Design and implement scalable backend services and APIs
+- Lead technical discussions and code reviews
+- Mentor junior engineers and contribute to team growth
+- Collaborate with product and design teams to deliver features
+- Ensure high code quality through testing and best practices
+- Participate in on-call rotations
+
+## Requirements
+- 5+ years of backend development experience
+- Strong proficiency in Node.js, Python, or Go
+- Experience with PostgreSQL, Redis, and message queues
+- Understanding of distributed systems and microservices
+- Excellent problem-solving and communication skills
+
+## Nice to Have
+- Experience with Kubernetes and cloud platforms (AWS/GCP)
+- Contributions to open source projects
+- Experience in fintech or insurtech`,
+    },
+    {
+      id: 'jd-product-designer',
+      name: 'Product Designer',
+      department: 'Design',
+      content: `# Product Designer
+
+## About the Role
+We're seeking a talented Product Designer to help shape the future of our platform. You'll work closely with product and engineering teams to create intuitive, beautiful user experiences.
+
+## Responsibilities
+- Lead end-to-end design for new features and products
+- Conduct user research and usability testing
+- Create wireframes, prototypes, and high-fidelity designs
+- Maintain and evolve our design system
+- Collaborate with engineers to ensure design quality
+- Present designs to stakeholders and incorporate feedback
+
+## Requirements
+- 3+ years of product design experience
+- Strong portfolio demonstrating UX/UI expertise
+- Proficiency in Figma and prototyping tools
+- Experience with design systems
+- Excellent communication and collaboration skills
+
+## Nice to Have
+- Experience with B2B or enterprise products
+- Basic understanding of HTML/CSS
+- Motion design skills`,
+    },
+    {
+      id: 'jd-growth-lead',
+      name: 'Growth Lead',
+      department: 'Growth',
+      content: `# Growth Lead
+
+## About the Role
+We're looking for a data-driven Growth Lead to drive user acquisition and engagement. You'll own our growth strategy and execute experiments to scale our user base.
+
+## Responsibilities
+- Develop and execute growth strategies across channels
+- Design and run A/B tests to optimize conversion
+- Analyze user behavior and identify growth opportunities
+- Manage paid acquisition campaigns
+- Collaborate with product on growth features
+- Build and lead a growth team
+
+## Requirements
+- 4+ years of growth marketing experience
+- Strong analytical skills and data proficiency
+- Experience with growth tools (Amplitude, Mixpanel, etc.)
+- Track record of driving measurable growth
+- Excellent communication and leadership skills
+
+## Nice to Have
+- Experience at B2B SaaS companies
+- Technical background or SQL proficiency
+- Startup experience`,
+    },
+    {
+      id: 'jd-devops-engineer',
+      name: 'DevOps Engineer',
+      department: 'Engineering',
+      content: `# DevOps Engineer
+
+## About the Role
+We're seeking a DevOps Engineer to help build and maintain our cloud infrastructure. You'll work on CI/CD pipelines, monitoring, and ensuring system reliability.
+
+## Responsibilities
+- Design and maintain cloud infrastructure on AWS/GCP
+- Build and optimize CI/CD pipelines
+- Implement monitoring, alerting, and logging solutions
+- Ensure security best practices across infrastructure
+- Automate deployment and operational tasks
+- Participate in incident response and on-call rotations
+
+## Requirements
+- 3+ years of DevOps/SRE experience
+- Strong experience with Kubernetes and Docker
+- Proficiency with IaC tools (Terraform, Pulumi)
+- Experience with CI/CD platforms (GitHub Actions, GitLab CI)
+- Understanding of networking and security
+
+## Nice to Have
+- Certifications (AWS, GCP, CKA)
+- Experience with service mesh (Istio, Linkerd)
+- Background in software development`,
+    },
+    {
+      id: 'jd-frontend-engineer',
+      name: 'Frontend Engineer',
+      department: 'Engineering',
+      content: `# Frontend Engineer
+
+## About the Role
+We're looking for a Frontend Engineer to build beautiful, performant user interfaces. You'll work closely with designers and backend engineers to deliver exceptional user experiences.
+
+## Responsibilities
+- Build and maintain React/Next.js applications
+- Implement responsive, accessible UI components
+- Optimize frontend performance and bundle size
+- Write unit and integration tests
+- Contribute to our component library
+- Collaborate with designers on implementation
+
+## Requirements
+- 3+ years of frontend development experience
+- Strong proficiency in React and TypeScript
+- Experience with modern CSS (Tailwind, styled-components)
+- Understanding of web performance optimization
+- Familiarity with testing frameworks (Jest, Playwright)
+
+## Nice to Have
+- Experience with Next.js and server-side rendering
+- Animation and motion design skills
+- Contributions to design systems`,
+    },
+  ]
+
+  for (const jd of jobDescriptions) {
+    await prisma.jobDescription.upsert({
+      where: { id: jd.id },
+      create: jd,
+      update: { name: jd.name, department: jd.department, content: jd.content },
+    })
+  }
+  console.log('✅ Created job descriptions:', jobDescriptions.length)
+
+  // Create Hiring Rubrics
+  const rubrics = [
+    {
+      id: 'rubric-engineering',
+      name: 'Engineering Technical Assessment',
+      description: 'Comprehensive rubric for evaluating engineering candidates',
+      criteria: [
+        { name: 'Technical Skills', description: 'Core programming and technical knowledge', weight: 5 },
+        { name: 'Problem Solving', description: 'Ability to break down and solve complex problems', weight: 4 },
+        { name: 'System Design', description: 'Understanding of architecture and scalability', weight: 4 },
+        { name: 'Code Quality', description: 'Writing clean, maintainable, tested code', weight: 3 },
+        { name: 'Communication', description: 'Ability to explain technical concepts clearly', weight: 3 },
+      ],
+    },
+    {
+      id: 'rubric-product',
+      name: 'Product Manager Assessment',
+      description: 'Rubric for evaluating product management candidates',
+      criteria: [
+        { name: 'Product Sense', description: 'Understanding of user needs and product strategy', weight: 5 },
+        { name: 'Analytical Skills', description: 'Data-driven decision making', weight: 4 },
+        { name: 'Communication', description: 'Clear articulation of ideas and requirements', weight: 4 },
+        { name: 'Execution', description: 'Track record of shipping products', weight: 4 },
+        { name: 'Leadership', description: 'Ability to influence without authority', weight: 3 },
+      ],
+    },
+    {
+      id: 'rubric-general',
+      name: 'General Interview Rubric',
+      description: 'Standard rubric for general candidate evaluation',
+      criteria: [
+        { name: 'Role Fit', description: 'Skills and experience match for the role', weight: 5 },
+        { name: 'Culture Fit', description: 'Alignment with company values', weight: 4 },
+        { name: 'Communication', description: 'Clear and effective communication', weight: 3 },
+        { name: 'Problem Solving', description: 'Analytical thinking and adaptability', weight: 3 },
+        { name: 'Growth Potential', description: 'Ability and desire to learn and grow', weight: 3 },
+      ],
+    },
+  ]
+
+  for (const rubric of rubrics) {
+    const { criteria, ...rubricData } = rubric
+    await prisma.hiringRubric.upsert({
+      where: { id: rubric.id },
+      create: {
+        ...rubricData,
+        criteria: {
+          create: criteria.map((c, i) => ({ ...c, sortOrder: i })),
+        },
+      },
+      update: { name: rubric.name, description: rubric.description },
+    })
+  }
+  console.log('✅ Created hiring rubrics:', rubrics.length)
+
+  // Create Competencies
+  const competencies = [
+    // Technical
+    { name: 'Technical Excellence', category: 'Technical', description: 'Deep technical knowledge and ability to apply it effectively' },
+    { name: 'System Design', category: 'Technical', description: 'Ability to design scalable, maintainable systems' },
+    { name: 'Code Quality', category: 'Technical', description: 'Writing clean, tested, maintainable code' },
+    { name: 'Debugging', category: 'Technical', description: 'Systematic approach to identifying and fixing issues' },
+
+    // Problem Solving
+    { name: 'Problem Solving', category: 'Problem Solving', description: 'Breaking down complex problems into manageable parts' },
+    { name: 'Innovation', category: 'Problem Solving', description: 'Finding creative solutions to challenges' },
+    { name: 'Critical Thinking', category: 'Problem Solving', description: 'Analyzing situations objectively and making sound judgments' },
+
+    // Leadership
+    { name: 'Leadership', category: 'Leadership', description: 'Guiding and inspiring others to achieve goals' },
+    { name: 'Mentorship', category: 'Leadership', description: 'Developing and supporting team members' },
+    { name: 'Decision Making', category: 'Leadership', description: 'Making timely, well-informed decisions' },
+
+    // Communication
+    { name: 'Communication', category: 'Communication', description: 'Clear and effective verbal and written communication' },
+    { name: 'Presentation', category: 'Communication', description: 'Presenting ideas clearly to various audiences' },
+    { name: 'Stakeholder Management', category: 'Communication', description: 'Managing expectations and relationships effectively' },
+
+    // Collaboration
+    { name: 'Collaboration', category: 'Collaboration', description: 'Working effectively with others towards shared goals' },
+    { name: 'Cross-functional Partnership', category: 'Collaboration', description: 'Building bridges across teams and departments' },
+    { name: 'Feedback', category: 'Collaboration', description: 'Giving and receiving constructive feedback' },
+
+    // Personal
+    { name: 'Adaptability', category: 'Personal', description: 'Adjusting to changing circumstances and requirements' },
+    { name: 'Ownership', category: 'Personal', description: 'Taking responsibility for outcomes and seeing things through' },
+    { name: 'Growth Mindset', category: 'Personal', description: 'Continuous learning and improvement' },
+    { name: 'Resilience', category: 'Personal', description: 'Persevering through challenges and setbacks' },
+
+    // Business
+    { name: 'Customer Focus', category: 'Business', description: 'Understanding and prioritizing customer needs' },
+    { name: 'Data-Driven', category: 'Business', description: 'Making decisions based on data and metrics' },
+    { name: 'Business Acumen', category: 'Business', description: 'Understanding business context and impact' },
+    { name: 'Strategic Thinking', category: 'Business', description: 'Long-term planning and vision' },
+  ]
+
+  for (const comp of competencies) {
+    await prisma.competency.upsert({
+      where: { name_category: { name: comp.name, category: comp.category } },
+      create: comp,
+      update: { description: comp.description },
+    })
+  }
+  console.log('✅ Created competencies:', competencies.length)
+
   // Create a sample admin user (you'll need to update this with a real email)
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@company.com' },
