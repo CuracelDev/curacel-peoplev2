@@ -16,6 +16,9 @@ import { notificationRouter } from './notification'
 import { legalEntityRouter } from './legal-entity'
 import { assistantRouter } from './assistant'
 import { teamRouter } from './team'
+import { jobDescriptionRouter } from './job-description'
+import { hiringRubricRouter } from './hiring-rubric'
+import { competencyRouter } from './competency'
 
 export const appRouter = router({
   employee: employeeRouter,
@@ -35,6 +38,9 @@ export const appRouter = router({
   legalEntity: legalEntityRouter,
   assistant: assistantRouter,
   team: teamRouter,
+  jobDescription: jobDescriptionRouter,
+  hiringRubric: hiringRubricRouter,
+  competency: competencyRouter,
 })
 
 export type AppRouter = typeof appRouter

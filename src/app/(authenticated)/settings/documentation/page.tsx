@@ -539,12 +539,12 @@ const docSections: DocSection[] = [
         ],
       },
       {
-        title: 'Applications (Settings)',
+        title: 'Integrations (Settings)',
         items: [
-          'Initialize default apps if the list is empty.',
-          'Create custom apps for tools not listed by default.',
-          'Archive and restore apps as your stack changes.',
-          'Open an app to configure credentials and run tests.',
+          'Initialize default integrations if the list is empty.',
+          'Create custom integrations for tools not listed by default.',
+          'Archive and restore integrations as your stack changes.',
+          'Open an integration to configure credentials and run tests.',
         ],
       },
       {
