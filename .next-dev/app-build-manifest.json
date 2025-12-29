@@ -1,0 +1,80 @@
+{
+  "pages": {
+    "/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/css/app/layout.css",
+      "static/chunks/app/layout.js"
+    ],
+    "/(authenticated)/layout": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/layout.js"
+    ],
+    "/(authenticated)/recruiting/positions/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/recruiting/positions/page.js"
+    ],
+    "/(authenticated)/recruiting/positions/new/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/recruiting/positions/new/page.js"
+    ],
+    "/(authenticated)/settings/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/settings/page.js"
+    ],
+    "/(authenticated)/settings/jd-templates/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/settings/jd-templates/page.js"
+    ],
+    "/(authenticated)/integrations/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/integrations/page.js"
+    ],
+    "/(authenticated)/contracts/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/contracts/page.js"
+    ],
+    "/(authenticated)/settings/jd-templates/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/settings/jd-templates/[id]/page.js"
+    ],
+    "/(authenticated)/recruiting/positions/[id]/candidates/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/recruiting/positions/[id]/candidates/page.js"
+    ],
+    "/(authenticated)/recruiting/candidates/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/recruiting/candidates/page.js"
+    ],
+    "/(authenticated)/recruiting/candidates/[id]/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/recruiting/candidates/[id]/page.js"
+    ],
+    "/(authenticated)/settings/ai-agent/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/settings/ai-agent/page.js"
+    ],
+    "/(authenticated)/recruiting/settings/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/recruiting/settings/page.js"
+    ],
+    "/(authenticated)/settings/teams/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/(authenticated)/settings/teams/page.js"
+    ]
+  }
+}

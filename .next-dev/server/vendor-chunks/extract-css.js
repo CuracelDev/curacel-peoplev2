@@ -1,0 +1,24 @@
+/*
+ * ATTENTION: An "eval-source-map" devtool has been used.
+ * This devtool is neither made for production nor for readable output files.
+ * It uses "eval()" calls to create a separate source file with attached SourceMaps in the browser devtools.
+ * If you are trying to read the output file, select a different devtool (https://webpack.js.org/configuration/devtool/)
+ * or disable the default devtool with "devtool: false".
+ * If you are looking for production-ready output files, see mode: "production" (https://webpack.js.org/configuration/mode/).
+ */
+exports.id = "vendor-chunks/extract-css";
+exports.ids = ["vendor-chunks/extract-css"];
+exports.modules = {
+
+/***/ "(rsc)/./node_modules/extract-css/index.js":
+/*!*******************************************!*\
+  !*** ./node_modules/extract-css/index.js ***!
+  \*******************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+eval("const assert = __webpack_require__(/*! assert */ \"assert\");\nconst Batch = __webpack_require__(/*! batch */ \"(rsc)/./node_modules/batch/index.js\");\nconst getStylesData = __webpack_require__(/*! style-data */ \"(rsc)/./node_modules/style-data/index.js\");\nconst getStylesheetList = __webpack_require__(/*! list-stylesheets */ \"(rsc)/./node_modules/list-stylesheets/index.js\");\nconst getHrefContent = __webpack_require__(/*! href-content */ \"(rsc)/./node_modules/href-content/index.js\");\n\nmodule.exports = (html, options, callback) => {\n    const batch = new Batch();\n    const data = getStylesheetList(html, options);\n\n    batch.push(cb => {\n        getStylesData(data.html, options, cb);\n    });\n    if (data.hrefs.length) {\n        assert.ok(options.url, 'options.url is required');\n    }\n    data.hrefs.forEach(stylesheetHref => {\n        batch.push(cb => {\n            getHrefContent(stylesheetHref, options.url, cb);\n        });\n    });\n    batch.end((err, results) => {\n        let stylesData;\n        let css;\n\n        if (err) {\n            return callback(err);\n        }\n\n        stylesData = results.shift();\n\n        results.forEach(content => {\n            stylesData.css.push(content);\n        });\n        css = stylesData.css.join('\\n');\n\n        return callback(null, stylesData.html, css);\n    });\n};\n//# sourceURL=[module]\n//# sourceMappingURL=data:application/json;charset=utf-8;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiKHJzYykvLi9ub2RlX21vZHVsZXMvZXh0cmFjdC1jc3MvaW5kZXguanMiLCJtYXBwaW5ncyI6IkFBQUEsZUFBZSxtQkFBTyxDQUFDLHNCQUFRO0FBQy9CLGNBQWMsbUJBQU8sQ0FBQyxrREFBTztBQUM3QixzQkFBc0IsbUJBQU8sQ0FBQyw0REFBWTtBQUMxQywwQkFBMEIsbUJBQU8sQ0FBQyx3RUFBa0I7QUFDcEQsdUJBQXVCLG1CQUFPLENBQUMsZ0VBQWM7O0FBRTdDO0FBQ0E7QUFDQTs7QUFFQTtBQUNBO0FBQ0EsS0FBSztBQUNMO0FBQ0E7QUFDQTtBQUNBO0FBQ0E7QUFDQTtBQUNBLFNBQVM7QUFDVCxLQUFLO0FBQ0w7QUFDQTtBQUNBOztBQUVBO0FBQ0E7QUFDQTs7QUFFQTs7QUFFQTtBQUNBO0FBQ0EsU0FBUztBQUNUOztBQUVBO0FBQ0EsS0FBSztBQUNMIiwic291cmNlcyI6WyJ3ZWJwYWNrOi8vY3VyYWNlbC1wZW9wbGUvLi9ub2RlX21vZHVsZXMvZXh0cmFjdC1jc3MvaW5kZXguanM/Y2EwOCJdLCJzb3VyY2VzQ29udGVudCI6WyJjb25zdCBhc3NlcnQgPSByZXF1aXJlKCdhc3NlcnQnKTtcbmNvbnN0IEJhdGNoID0gcmVxdWlyZSgnYmF0Y2gnKTtcbmNvbnN0IGdldFN0eWxlc0RhdGEgPSByZXF1aXJlKCdzdHlsZS1kYXRhJyk7XG5jb25zdCBnZXRTdHlsZXNoZWV0TGlzdCA9IHJlcXVpcmUoJ2xpc3Qtc3R5bGVzaGVldHMnKTtcbmNvbnN0IGdldEhyZWZDb250ZW50ID0gcmVxdWlyZSgnaHJlZi1jb250ZW50Jyk7XG5cbm1vZHVsZS5leHBvcnRzID0gKGh0bWwsIG9wdGlvbnMsIGNhbGxiYWNrKSA9PiB7XG4gICAgY29uc3QgYmF0Y2ggPSBuZXcgQmF0Y2goKTtcbiAgICBjb25zdCBkYXRhID0gZ2V0U3R5bGVzaGVldExpc3QoaHRtbCwgb3B0aW9ucyk7XG5cbiAgICBiYXRjaC5wdXNoKGNiID0+IHtcbiAgICAgICAgZ2V0U3R5bGVzRGF0YShkYXRhLmh0bWwsIG9wdGlvbnMsIGNiKTtcbiAgICB9KTtcbiAgICBpZiAoZGF0YS5ocmVmcy5sZW5ndGgpIHtcbiAgICAgICAgYXNzZXJ0Lm9rKG9wdGlvbnMudXJsLCAnb3B0aW9ucy51cmwgaXMgcmVxdWlyZWQnKTtcbiAgICB9XG4gICAgZGF0YS5ocmVmcy5mb3JFYWNoKHN0eWxlc2hlZXRIcmVmID0+IHtcbiAgICAgICAgYmF0Y2gucHVzaChjYiA9PiB7XG4gICAgICAgICAgICBnZXRIcmVmQ29udGVudChzdHlsZXNoZWV0SHJlZiwgb3B0aW9ucy51cmwsIGNiKTtcbiAgICAgICAgfSk7XG4gICAgfSk7XG4gICAgYmF0Y2guZW5kKChlcnIsIHJlc3VsdHMpID0+IHtcbiAgICAgICAgbGV0IHN0eWxlc0RhdGE7XG4gICAgICAgIGxldCBjc3M7XG5cbiAgICAgICAgaWYgKGVycikge1xuICAgICAgICAgICAgcmV0dXJuIGNhbGxiYWNrKGVycik7XG4gICAgICAgIH1cblxuICAgICAgICBzdHlsZXNEYXRhID0gcmVzdWx0cy5zaGlmdCgpO1xuXG4gICAgICAgIHJlc3VsdHMuZm9yRWFjaChjb250ZW50ID0+IHtcbiAgICAgICAgICAgIHN0eWxlc0RhdGEuY3NzLnB1c2goY29udGVudCk7XG4gICAgICAgIH0pO1xuICAgICAgICBjc3MgPSBzdHlsZXNEYXRhLmNzcy5qb2luKCdcXG4nKTtcblxuICAgICAgICByZXR1cm4gY2FsbGJhY2sobnVsbCwgc3R5bGVzRGF0YS5odG1sLCBjc3MpO1xuICAgIH0pO1xufTtcbiJdLCJuYW1lcyI6W10sInNvdXJjZVJvb3QiOiIifQ==\n//# sourceURL=webpack-internal:///(rsc)/./node_modules/extract-css/index.js\n");
+
+/***/ })
+
+};
+;

@@ -1,0 +1,9 @@
+{
+  "/api/trpc/[trpc]/route": "app/api/trpc/[trpc]/route.js",
+  "/api/auth/[...nextauth]/route": "app/api/auth/[...nextauth]/route.js",
+  "/(authenticated)/recruiting/candidates/[id]/page": "app/(authenticated)/recruiting/candidates/[id]/page.js",
+  "/(authenticated)/settings/page": "app/(authenticated)/settings/page.js",
+  "/(authenticated)/settings/ai-agent/page": "app/(authenticated)/settings/ai-agent/page.js",
+  "/(authenticated)/recruiting/settings/page": "app/(authenticated)/recruiting/settings/page.js",
+  "/(authenticated)/settings/teams/page": "app/(authenticated)/settings/teams/page.js"
+}
