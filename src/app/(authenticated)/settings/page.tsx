@@ -19,7 +19,6 @@ import {
   Bot,
   Briefcase,
   Users,
-  GitBranch,
 } from 'lucide-react'
 
 const settingsOptions = [
@@ -66,17 +65,10 @@ const settingsOptions = [
     iconBg: 'bg-indigo-100',
   },
   {
-    title: 'Job Descriptions',
-    description: 'Manage job descriptions for different roles. Create, version, and organize JDs for your hiring pipeline.',
+    title: 'Job Settings',
+    description: 'Manage job descriptions, interview flows, and hiring configurations.',
     icon: Briefcase,
-    href: '/settings/jd-templates',
-    iconBg: 'bg-indigo-100',
-  },
-  {
-    title: 'Interview settings',
-    description: 'Edit hiring flows and interview stages used across recruiting.',
-    icon: GitBranch,
-    href: '/recruiting/settings',
+    href: '/settings/job-settings',
     iconBg: 'bg-indigo-100',
   },
   {

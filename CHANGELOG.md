@@ -7,6 +7,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Job Settings section in Administration**
+  - New parent settings page (`/settings/job-settings`) grouping job-related configurations
+  - Contains Job Descriptions and Interview Settings
+  - Cleaner organization of hiring-related settings
 - **Unified Dashboard redesign**
   - Merged recruiter and people dashboards into single unified view
   - "Welcome back" personalized greeting
