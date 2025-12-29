@@ -1,0 +1,455 @@
+import { z } from 'zod'
+import { TRPCError } from '@trpc/server'
+import { router, protectedProcedure } from '@/lib/trpc'
+
+const JobStatusEnum = z.enum(['DRAFT', 'ACTIVE', 'CLOSED'])
+type JobStatusType = z.infer<typeof JobStatusEnum>
+
+const JobCandidateStageEnum = z.enum([
+  'APPLIED',
+  'HR_SCREEN',
+  'TECHNICAL',
+  'PANEL',
+  'OFFER',
+  'HIRED',
+  'REJECTED',
+  'WITHDRAWN',
+])
+
+export const jobRouter = router({
+  // List all jobs with optional filters
+  list: protectedProcedure
+    .input(
+      z.object({
+        status: JobStatusEnum.optional(),
+        department: z.string().optional(),
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const where: { status?: JobStatusType; department?: string } = {}
+
+      if (input?.status) {
+        where.status = input.status
+      }
+      if (input?.department) {
+        where.department = input.department
+      }
+
+      const jobs = await ctx.prisma.job.findMany({
+        where,
+        include: {
+          jobDescription: { select: { id: true, name: true } },
+          hiringManager: { select: { id: true, fullName: true } },
+          followers: {
+            include: { employee: { select: { id: true, fullName: true } } },
+          },
+          competencies: {
+            include: { competency: { select: { id: true, name: true, category: true } } },
+          },
+          candidates: {
+            select: { id: true, stage: true, score: true },
+          },
+          _count: {
+            select: { followers: true, competencies: true, candidates: true },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+      })
+
+      // Calculate stats for each job
+      return jobs.map((job) => {
+        const activeCandidates = job.candidates.filter(
+          (c) => !['REJECTED', 'WITHDRAWN', 'HIRED'].includes(c.stage)
+        )
+        const scores = job.candidates.filter((c) => c.score != null).map((c) => c.score as number)
+        const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0
+
+        const stats = {
+          applicants: job._count.candidates,
+          inReview: job.candidates.filter((c) => c.stage === 'APPLIED').length,
+          interviewing: job.candidates.filter((c) =>
+            ['HR_SCREEN', 'TECHNICAL', 'PANEL'].includes(c.stage)
+          ).length,
+          offerStage: job.candidates.filter((c) => c.stage === 'OFFER').length,
+          hired: job.candidates.filter((c) => c.stage === 'HIRED').length,
+          avgScore,
+        }
+
+        const { candidates, ...jobWithoutCandidates } = job
+        return { ...jobWithoutCandidates, stats }
+      })
+    }),
+
+  // Get a single job by ID
+  get: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const job = await ctx.prisma.job.findUnique({
+        where: { id: input.id },
+        include: {
+          jobDescription: true,
+          hiringManager: { select: { id: true, fullName: true, workEmail: true } },
+          followers: {
+            include: { employee: { select: { id: true, fullName: true, workEmail: true } } },
+          },
+          competencies: {
+            include: { competency: true },
+          },
+        },
+      })
+
+      if (!job) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Job not found',
+        })
+      }
+
+      return job
+    }),
+
+  // Create a new job
+  create: protectedProcedure
+    .input(
+      z.object({
+        title: z.string().min(2).max(200),
+        department: z.string().optional(),
+        employmentType: z.string().default('full-time'),
+        status: JobStatusEnum.default('DRAFT'),
+        priority: z.number().min(1).max(5).default(3),
+        deadline: z.string().optional(), // ISO date string
+        hiresCount: z.number().min(1).default(1),
+        // Salary
+        salaryMin: z.number().optional(),
+        salaryMax: z.number().optional(),
+        salaryCurrency: z.string().optional(),
+        salaryFrequency: z.string().optional(),
+        // Equity
+        equityMin: z.number().optional(),
+        equityMax: z.number().optional(),
+        // Locations
+        locations: z.array(z.string()).default([]),
+        // References
+        hiringFlowId: z.string().optional(),
+        jobDescriptionId: z.string().optional(),
+        hiringManagerId: z.string().optional(),
+        // AI settings
+        autoArchiveLocation: z.boolean().default(false),
+        // Relations
+        followerIds: z.array(z.string()).default([]),
+        competencyIds: z.array(z.string()).default([]),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { followerIds, competencyIds, deadline, ...data } = input
+
+      const job = await ctx.prisma.job.create({
+        data: {
+          ...data,
+          deadline: deadline ? new Date(deadline) : null,
+          locations: data.locations,
+          followers: {
+            create: followerIds.map((employeeId) => ({ employeeId })),
+          },
+          competencies: {
+            create: competencyIds.map((competencyId) => ({ competencyId })),
+          },
+        },
+        include: {
+          jobDescription: { select: { id: true, name: true } },
+          hiringManager: { select: { id: true, fullName: true } },
+          followers: {
+            include: { employee: { select: { id: true, fullName: true } } },
+          },
+          competencies: {
+            include: { competency: { select: { id: true, name: true, category: true } } },
+          },
+        },
+      })
+
+      return job
+    }),
+
+  // Update a job
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        title: z.string().min(2).max(200).optional(),
+        department: z.string().optional().nullable(),
+        employmentType: z.string().optional(),
+        status: JobStatusEnum.optional(),
+        priority: z.number().min(1).max(5).optional(),
+        deadline: z.string().optional().nullable(),
+        hiresCount: z.number().min(1).optional(),
+        // Salary
+        salaryMin: z.number().optional().nullable(),
+        salaryMax: z.number().optional().nullable(),
+        salaryCurrency: z.string().optional().nullable(),
+        salaryFrequency: z.string().optional().nullable(),
+        // Equity
+        equityMin: z.number().optional().nullable(),
+        equityMax: z.number().optional().nullable(),
+        // Locations
+        locations: z.array(z.string()).optional(),
+        // References
+        hiringFlowId: z.string().optional().nullable(),
+        jobDescriptionId: z.string().optional().nullable(),
+        hiringManagerId: z.string().optional().nullable(),
+        // AI settings
+        autoArchiveLocation: z.boolean().optional(),
+        // Relations (replace all)
+        followerIds: z.array(z.string()).optional(),
+        competencyIds: z.array(z.string()).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, followerIds, competencyIds, deadline, locations, ...data } = input
+
+      const existing = await ctx.prisma.job.findUnique({ where: { id } })
+      if (!existing) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Job not found',
+        })
+      }
+
+      // Build update operations
+      const updateData: Record<string, unknown> = { ...data }
+
+      if (deadline !== undefined) {
+        updateData.deadline = deadline ? new Date(deadline) : null
+      }
+
+      if (locations !== undefined) {
+        updateData.locations = locations
+      }
+
+      // Update job with optional relation replacements
+      const job = await ctx.prisma.job.update({
+        where: { id },
+        data: updateData,
+      })
+
+      // Replace followers if provided
+      if (followerIds !== undefined) {
+        await ctx.prisma.jobFollower.deleteMany({ where: { jobId: id } })
+        if (followerIds.length > 0) {
+          await ctx.prisma.jobFollower.createMany({
+            data: followerIds.map((employeeId) => ({ jobId: id, employeeId })),
+          })
+        }
+      }
+
+      // Replace competencies if provided
+      if (competencyIds !== undefined) {
+        await ctx.prisma.jobCompetency.deleteMany({ where: { jobId: id } })
+        if (competencyIds.length > 0) {
+          await ctx.prisma.jobCompetency.createMany({
+            data: competencyIds.map((competencyId) => ({ jobId: id, competencyId })),
+          })
+        }
+      }
+
+      // Return updated job with relations
+      return ctx.prisma.job.findUnique({
+        where: { id },
+        include: {
+          jobDescription: { select: { id: true, name: true } },
+          hiringManager: { select: { id: true, fullName: true } },
+          followers: {
+            include: { employee: { select: { id: true, fullName: true } } },
+          },
+          competencies: {
+            include: { competency: { select: { id: true, name: true, category: true } } },
+          },
+        },
+      })
+    }),
+
+  // Delete a job (or close it)
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.job.delete({
+        where: { id: input.id },
+      })
+      return { success: true }
+    }),
+
+  // Close a job (soft status change)
+  close: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.job.update({
+        where: { id: input.id },
+        data: { status: 'CLOSED' },
+      })
+    }),
+
+  // Get job counts by status
+  getCounts: protectedProcedure.query(async ({ ctx }) => {
+    const [all, active, draft, closed] = await Promise.all([
+      ctx.prisma.job.count(),
+      ctx.prisma.job.count({ where: { status: 'ACTIVE' } }),
+      ctx.prisma.job.count({ where: { status: 'DRAFT' } }),
+      ctx.prisma.job.count({ where: { status: 'CLOSED' } }),
+    ])
+
+    return { all, active, draft, closed }
+  }),
+
+  // List candidates for a job
+  listCandidates: protectedProcedure
+    .input(
+      z.object({
+        jobId: z.string(),
+        stage: JobCandidateStageEnum.optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const where: { jobId: string; stage?: string } = { jobId: input.jobId }
+      if (input.stage) {
+        where.stage = input.stage
+      }
+
+      const candidates = await ctx.prisma.jobCandidate.findMany({
+        where,
+        orderBy: [{ score: 'desc' }, { appliedAt: 'desc' }],
+      })
+
+      // Get stage counts
+      const stageCounts = await ctx.prisma.jobCandidate.groupBy({
+        by: ['stage'],
+        where: { jobId: input.jobId },
+        _count: true,
+      })
+
+      const counts = {
+        all: candidates.length,
+        applied: 0,
+        hrScreen: 0,
+        technical: 0,
+        panel: 0,
+        offer: 0,
+        hired: 0,
+        rejected: 0,
+      }
+
+      stageCounts.forEach((s) => {
+        switch (s.stage) {
+          case 'APPLIED':
+            counts.applied = s._count
+            break
+          case 'HR_SCREEN':
+            counts.hrScreen = s._count
+            break
+          case 'TECHNICAL':
+            counts.technical = s._count
+            break
+          case 'PANEL':
+            counts.panel = s._count
+            break
+          case 'OFFER':
+            counts.offer = s._count
+            break
+          case 'HIRED':
+            counts.hired = s._count
+            break
+          case 'REJECTED':
+            counts.rejected = s._count
+            break
+        }
+      })
+
+      counts.all = stageCounts.reduce((sum, s) => sum + s._count, 0)
+
+      return { candidates, counts }
+    }),
+
+  // Add a candidate to a job
+  addCandidate: protectedProcedure
+    .input(
+      z.object({
+        jobId: z.string(),
+        name: z.string().min(2),
+        email: z.string().email(),
+        phone: z.string().optional(),
+        resumeUrl: z.string().optional(),
+        linkedinUrl: z.string().optional(),
+        source: z.string().optional(),
+        referredBy: z.string().optional(),
+        notes: z.string().optional(),
+        score: z.number().min(0).max(100).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { jobId, ...data } = input
+
+      // Check job exists
+      const job = await ctx.prisma.job.findUnique({ where: { id: jobId } })
+      if (!job) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Job not found',
+        })
+      }
+
+      return ctx.prisma.jobCandidate.create({
+        data: {
+          ...data,
+          jobId,
+        },
+      })
+    }),
+
+  // Update candidate stage or details
+  updateCandidate: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(2).optional(),
+        email: z.string().email().optional(),
+        phone: z.string().optional().nullable(),
+        resumeUrl: z.string().optional().nullable(),
+        linkedinUrl: z.string().optional().nullable(),
+        stage: JobCandidateStageEnum.optional(),
+        score: z.number().min(0).max(100).optional().nullable(),
+        source: z.string().optional().nullable(),
+        notes: z.string().optional().nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input
+
+      return ctx.prisma.jobCandidate.update({
+        where: { id },
+        data,
+      })
+    }),
+
+  // Bulk update candidate stages
+  bulkUpdateCandidateStage: protectedProcedure
+    .input(
+      z.object({
+        candidateIds: z.array(z.string()),
+        stage: JobCandidateStageEnum,
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.jobCandidate.updateMany({
+        where: { id: { in: input.candidateIds } },
+        data: { stage: input.stage },
+      })
+    }),
+
+  // Delete a candidate
+  deleteCandidate: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.jobCandidate.delete({
+        where: { id: input.id },
+      })
+      return { success: true }
+    }),
+})

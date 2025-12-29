@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
   Save,
@@ -48,34 +49,26 @@ const PRIORITIES = [
   { value: '1', label: 'Not Urgent', color: 'bg-gray-100 text-gray-700' },
 ]
 
-const EXPERIENCE_LEVELS = [
-  { value: 'entry', label: 'Entry level' },
-  { value: '1+', label: '1+ years' },
-  { value: '2+', label: '2+ years' },
-  { value: '3+', label: '3+ years' },
-  { value: '5+', label: '5+ years' },
-  { value: '7+', label: '7+ years' },
-  { value: '10+', label: '10+ years' },
-]
-
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'AUD']
 const PAY_FREQUENCIES = ['annually', 'monthly', 'hourly']
 
-const OFFICE_LOCATIONS = [
-  { id: 'lagos', name: 'Lagos, LA, NG' },
-  { id: 'abuja', name: 'Abuja, FCT, NG' },
-  { id: 'london', name: 'London, UK' },
-  { id: 'new-york', name: 'New York, NY, US' },
-  { id: 'san-francisco', name: 'San Francisco, CA, US' },
-  { id: 'berlin', name: 'Berlin, DE' },
+const SUGGESTED_LOCATIONS = [
+  'Lagos, LA, NG',
+  'Nairobi, KE',
+  'Abuja, FCT, NG',
+  'London, UK',
+  'New York, NY, US',
+  'San Francisco, CA, US',
+  'Berlin, DE',
 ]
 
 export default function CreateJobPage() {
+  const router = useRouter()
   const { data: teams } = trpc.team.listForSelect.useQuery()
   const { data: jobDescriptions } = trpc.jobDescription.listForSelect.useQuery()
-  const { data: rubrics } = trpc.hiringRubric.listForSelect.useQuery()
   const { data: competencies } = trpc.competency.listForSelect.useQuery()
   const { data: employees } = trpc.employee.getAllActive.useQuery()
+  const createJob = trpc.job.create.useMutation()
 
   const [formData, setFormData] = useState({
     title: '',
@@ -83,11 +76,9 @@ export default function CreateJobPage() {
     employmentType: 'full-time',
     priority: '3',
     jdId: '',
-    rubricId: '',
-    objectives: '',
+    deadline: '',
+    hiresCount: '1',
     // New fields
-    experienceLevel: '3+',
-    remotePolicy: 'hybrid', // 'office' | 'hybrid' | 'remote'
     salaryMin: '',
     salaryMax: '',
     salaryCurrency: 'USD',
@@ -98,8 +89,9 @@ export default function CreateJobPage() {
     hiringManagerId: '',
   })
 
-  const [officeLocations, setOfficeLocations] = useState<string[]>(['lagos'])
+  const [officeLocations, setOfficeLocations] = useState<string[]>([])
   const [locationSearch, setLocationSearch] = useState('')
+  const [locationDropdownOpen, setLocationDropdownOpen] = useState(false)
   const [followers, setFollowers] = useState<string[]>([])
   const [followerSearch, setFollowerSearch] = useState('')
 
@@ -124,7 +116,6 @@ export default function CreateJobPage() {
 
   const selectedFlowData = flows.find((flow) => flow.id === selectedFlow) ?? flows[0]
   const selectedJD = (jobDescriptions || []).find(jd => jd.id === formData.jdId)
-  const selectedRubric = (rubrics || []).find(r => r.id === formData.rubricId)
 
   // Filter competencies based on search
   const filteredCompetencies = useMemo(() => {
@@ -138,11 +129,24 @@ export default function CreateJobPage() {
 
   // Filter office locations based on search
   const filteredLocations = useMemo(() => {
-    if (!locationSearch.trim()) return OFFICE_LOCATIONS
-    return OFFICE_LOCATIONS.filter(loc =>
-      loc.name.toLowerCase().includes(locationSearch.toLowerCase())
-    )
-  }, [locationSearch])
+    const query = locationSearch.trim()
+    const normalizedQuery = query.toLowerCase()
+    const existingLocations = new Set(officeLocations.map((loc) => loc.toLowerCase()))
+    const matches = SUGGESTED_LOCATIONS
+      .filter((loc) => (query ? loc.toLowerCase().includes(normalizedQuery) : true))
+      .map((loc) => ({ label: loc, value: loc, isCustom: false }))
+
+    if (query && !existingLocations.has(normalizedQuery)) {
+      const alreadySuggested = SUGGESTED_LOCATIONS.some(
+        (loc) => loc.toLowerCase() === normalizedQuery
+      )
+      if (!alreadySuggested) {
+        matches.unshift({ label: `Add "${query}"`, value: query, isCustom: true })
+      }
+    }
+
+    return matches
+  }, [locationSearch, officeLocations])
 
   // Filter employees for followers based on search
   const filteredEmployees = useMemo(() => {
@@ -166,16 +170,22 @@ export default function CreateJobPage() {
     setSelectedCompetencies((prev) => prev.filter((c) => c !== id))
   }
 
-  const toggleLocation = (id: string) => {
-    setOfficeLocations((prev) =>
-      prev.includes(id)
-        ? prev.filter((l) => l !== id)
-        : [...prev, id]
-    )
+  const toggleLocation = (value: string) => {
+    const trimmed = value.trim()
+    if (!trimmed) return
+    setOfficeLocations((prev) => {
+      const normalized = trimmed.toLowerCase()
+      const exists = prev.some((loc) => loc.toLowerCase() === normalized)
+      if (exists) {
+        return prev.filter((loc) => loc.toLowerCase() !== normalized)
+      }
+      return [...prev, trimmed]
+    })
   }
 
-  const removeLocation = (id: string) => {
-    setOfficeLocations((prev) => prev.filter((l) => l !== id))
+  const removeLocation = (value: string) => {
+    const normalized = value.toLowerCase()
+    setOfficeLocations((prev) => prev.filter((loc) => loc.toLowerCase() !== normalized))
   }
 
   const toggleFollower = (id: string) => {
@@ -194,6 +204,23 @@ export default function CreateJobPage() {
     id => (competencies || []).find(c => c.id === id)?.name || ''
   ).filter(Boolean)
 
+  const formattedDeadline = formData.deadline
+    ? new Date(formData.deadline).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    })
+    : ''
+  const hiresCountValue = Number(formData.hiresCount)
+  const hiresCountDisplay = Number.isFinite(hiresCountValue) && hiresCountValue > 0
+    ? hiresCountValue
+    : 1
+  const locationSummary = officeLocations.length === 0
+    ? 'Location TBD'
+    : officeLocations.length === 1
+      ? officeLocations[0]
+      : `${officeLocations.length} locations`
+
   const validateDraft = () => {
     if (!formData.title.trim()) {
       return 'Add a job title to save a draft.'
@@ -208,11 +235,14 @@ export default function CreateJobPage() {
     if (!formData.department.trim()) {
       return 'Select a team or department to create a job.'
     }
+    if (!formData.hiresCount || Number(formData.hiresCount) < 1) {
+      return 'Number of hires must be at least 1.'
+    }
+    if (!formData.deadline) {
+      return 'Add a deadline to create a job.'
+    }
     if (!selectedFlow) {
       return 'Select an interview flow to create a job.'
-    }
-    if (followers.length === 0) {
-      return 'At least one follower is required.'
     }
     return null
   }
@@ -230,16 +260,50 @@ export default function CreateJobPage() {
       return
     }
 
-    await new Promise((resolve) => setTimeout(resolve, 300))
+    try {
+      const job = await createJob.mutateAsync({
+        title: formData.title.trim(),
+        department: formData.department || undefined,
+        employmentType: formData.employmentType,
+        status: target === 'draft' ? 'DRAFT' : 'ACTIVE',
+        priority: Number(formData.priority),
+        deadline: formData.deadline || undefined,
+        hiresCount: Number(formData.hiresCount) || 1,
+        salaryMin: formData.salaryMin ? Number(formData.salaryMin) : undefined,
+        salaryMax: formData.salaryMax ? Number(formData.salaryMax) : undefined,
+        salaryCurrency: formData.salaryCurrency || undefined,
+        salaryFrequency: formData.salaryFrequency || undefined,
+        equityMin: formData.equityMin ? Number(formData.equityMin) : undefined,
+        equityMax: formData.equityMax ? Number(formData.equityMax) : undefined,
+        locations: officeLocations,
+        hiringFlowId: selectedFlow || undefined,
+        jobDescriptionId: formData.jdId || undefined,
+        hiringManagerId: formData.hiringManagerId || undefined,
+        autoArchiveLocation: formData.autoArchiveLocation,
+        followerIds: followers,
+        competencyIds: selectedCompetencies,
+      })
 
-    setSaveState({
-      type: target,
-      message: target === 'draft'
-        ? 'Draft saved. You can finish this job later.'
-        : 'Job created. Ready to start adding candidates.',
-    })
-    setIsSaving(false)
-    setSaveTarget(null)
+      setSaveState({
+        type: target,
+        message: target === 'draft'
+          ? 'Draft saved. You can finish this job later.'
+          : 'Job created. Ready to start adding candidates.',
+      })
+
+      // Navigate to jobs list after a short delay
+      setTimeout(() => {
+        router.push('/recruiting/positions')
+      }, 1000)
+    } catch (error) {
+      setSaveState({
+        type: 'error',
+        message: error instanceof Error ? error.message : 'Failed to save job. Please try again.',
+      })
+    } finally {
+      setIsSaving(false)
+      setSaveTarget(null)
+    }
   }
 
   // Auto-populate title when JD is selected
@@ -254,33 +318,27 @@ export default function CreateJobPage() {
   }, [formData.jdId, selectedJD])
 
   return (
-    <div className="p-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Create New Job</h1>
-          <p className="text-sm text-gray-500">Set up a new hiring position with role details and requirements</p>
-        </div>
-        <div className="flex gap-3">
-          <Button
-            variant="outline"
-            onClick={() => handleSave('draft')}
-            disabled={isSaving}
-          >
-            {saveTarget === 'draft' && isSaving ? 'Saving...' : 'Save as Draft'}
-          </Button>
-          <Button
-            onClick={() => handleSave('active')}
-            disabled={isSaving}
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {saveTarget === 'active' && isSaving ? 'Creating...' : 'Create Job'}
-          </Button>
-        </div>
+    <div className="p-4">
+      {/* Action Bar */}
+      <div className="flex justify-end gap-3 mb-4">
+        <Button
+          variant="outline"
+          onClick={() => handleSave('draft')}
+          disabled={isSaving}
+        >
+          {saveTarget === 'draft' && isSaving ? 'Saving...' : 'Save as Draft'}
+        </Button>
+        <Button
+          onClick={() => handleSave('active')}
+          disabled={isSaving}
+        >
+          <Save className="h-4 w-4 mr-2" />
+          {saveTarget === 'active' && isSaving ? 'Creating...' : 'Create Job'}
+        </Button>
       </div>
       {saveState && (
         <div className={cn(
-          'mb-6 rounded-lg border px-4 py-3 text-sm',
+          'mb-4 rounded-lg border px-4 py-3 text-sm',
           saveState.type === 'error'
             ? 'border-red-200 bg-red-50 text-red-700'
             : 'border-green-200 bg-green-50 text-green-700'
@@ -289,9 +347,9 @@ export default function CreateJobPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-[1fr_340px] gap-6">
+      <div className="grid grid-cols-[1fr_300px] gap-4">
         {/* Form Column */}
-        <div className="space-y-6">
+        <div className="space-y-4">
           {/* Basic Information */}
           <div className="bg-white border border-gray-200 rounded-xl">
             <div className="p-5 border-b border-gray-200 flex items-center gap-3">
@@ -330,7 +388,7 @@ export default function CreateJobPage() {
                   </Select>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Employment Type</Label>
                   <Select
@@ -349,23 +407,13 @@ export default function CreateJobPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Experience Level <span className="text-red-500">*</span></Label>
-                  <Select
-                    value={formData.experienceLevel}
-                    onValueChange={(value) => setFormData({ ...formData, experienceLevel: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EXPERIENCE_LEVELS.map((level) => (
-                        <SelectItem key={level.value} value={level.value}>
-                          {level.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-gray-500">Years of professional experience required</p>
+                  <Label>Deadline</Label>
+                  <Input
+                    type="date"
+                    value={formData.deadline}
+                    onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
+                  />
+                  <p className="text-xs text-gray-500">Target date to fill this role.</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Priority</Label>
@@ -390,92 +438,99 @@ export default function CreateJobPage() {
                     </SelectContent>
                   </Select>
                 </div>
+                <div className="space-y-2">
+                  <Label>Number of Hires</Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    step={1}
+                    value={formData.hiresCount}
+                    onChange={(e) => setFormData({ ...formData, hiresCount: e.target.value })}
+                  />
+                  <p className="text-xs text-gray-500">How many people should we hire?</p>
+                </div>
               </div>
 
-              {/* Remote Policy */}
+              {/* Locations */}
               <div className="space-y-3">
-                <Label>Remote OK? <span className="text-red-500">*</span></Label>
-                <div className="flex items-center gap-6">
-                  {[
-                    { value: 'office', label: 'In office' },
-                    { value: 'hybrid', label: 'Onsite or remote' },
-                    { value: 'remote', label: 'Remote only' },
-                  ].map((option) => (
-                    <label key={option.value} className="flex items-center gap-2 cursor-pointer">
-                      <div
-                        className={cn(
-                          'w-5 h-5 rounded-full border-2 flex items-center justify-center',
-                          formData.remotePolicy === option.value
-                            ? 'border-indigo-600'
-                            : 'border-gray-300'
-                        )}
-                        onClick={() => setFormData({ ...formData, remotePolicy: option.value })}
-                      >
-                        {formData.remotePolicy === option.value && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-indigo-600" />
-                        )}
-                      </div>
-                      <span className="text-sm">{option.label}</span>
-                    </label>
+                <Label>Location</Label>
+                <div className="flex flex-wrap gap-2 mb-2">
+                  {officeLocations.map((loc) => (
+                    <Badge
+                      key={loc}
+                      variant="secondary"
+                      className="gap-1 cursor-pointer"
+                      onClick={() => removeLocation(loc)}
+                    >
+                      {loc}
+                      <X className="h-3 w-3" />
+                    </Badge>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500">Will you consider candidates who want to work remotely?</p>
-              </div>
-
-              {/* Office Locations */}
-              {formData.remotePolicy !== 'remote' && (
-                <div className="space-y-3">
-                  <Label>Office location(s)</Label>
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    {officeLocations.map((locId) => {
-                      const loc = OFFICE_LOCATIONS.find(l => l.id === locId)
-                      if (!loc) return null
-                      return (
-                        <Badge
-                          key={locId}
-                          variant="secondary"
-                          className="gap-1 cursor-pointer"
-                          onClick={() => removeLocation(locId)}
+                <div className="relative">
+                  <Input
+                    placeholder="Search or add a city or region"
+                    value={locationSearch}
+                    onChange={(e) => setLocationSearch(e.target.value)}
+                    onFocus={() => setLocationDropdownOpen(true)}
+                    onBlur={() => {
+                      window.setTimeout(() => setLocationDropdownOpen(false), 150)
+                    }}
+                    onKeyDown={(event) => {
+                      if (event.key !== 'Enter') return
+                      const value = locationSearch.trim()
+                      if (!value) return
+                      event.preventDefault()
+                      toggleLocation(value)
+                      setLocationSearch('')
+                    }}
+                  />
+                  {locationDropdownOpen && (
+                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      {filteredLocations.map((loc) => (
+                        <button
+                          key={loc.value}
+                          type="button"
+                          className={cn(
+                            'w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between',
+                            officeLocations.some((selected) => selected.toLowerCase() === loc.value.toLowerCase()) && 'bg-indigo-50'
+                          )}
+                          onMouseDown={(event) => event.preventDefault()}
+                          onClick={() => {
+                            toggleLocation(loc.value)
+                            setLocationSearch('')
+                            setLocationDropdownOpen(false)
+                          }}
                         >
-                          {loc.name}
-                          <X className="h-3 w-3" />
-                        </Badge>
-                      )
-                    })}
-                  </div>
-                  <div className="relative">
-                    <Input
-                      placeholder="Search ..."
-                      value={locationSearch}
-                      onChange={(e) => setLocationSearch(e.target.value)}
-                    />
-                    {locationSearch && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                        {filteredLocations.map((loc) => (
-                          <button
-                            key={loc.id}
-                            type="button"
-                            className={cn(
-                              'w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between',
-                              officeLocations.includes(loc.id) && 'bg-indigo-50'
-                            )}
-                            onClick={() => {
-                              toggleLocation(loc.id)
-                              setLocationSearch('')
-                            }}
-                          >
-                            <span className="text-sm">{loc.name}</span>
-                            {officeLocations.includes(loc.id) && (
-                              <Check className="h-4 w-4 text-indigo-600" />
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-gray-500">Provide cities that you're hiring for in-person employees</p>
+                          <span className="text-sm">{loc.label}</span>
+                          {officeLocations.some((selected) => selected.toLowerCase() === loc.value.toLowerCase()) && (
+                            <Check className="h-4 w-4 text-indigo-600" />
+                          )}
+                        </button>
+                      ))}
+                      {!filteredLocations.length && (
+                        <div className="px-3 py-2 text-sm text-gray-500">No matches found.</div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              )}
+                {!locationSearch && (
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                    <span>Suggested:</span>
+                    {SUGGESTED_LOCATIONS.slice(0, 3).map((loc) => (
+                      <button
+                        key={loc}
+                        type="button"
+                        className="text-indigo-600 hover:underline"
+                        onClick={() => toggleLocation(loc)}
+                      >
+                        {loc}
+                      </button>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-gray-500">Add any city or region. You can select multiple locations.</p>
+              </div>
             </div>
           </div>
 
@@ -626,68 +681,11 @@ export default function CreateJobPage() {
             </div>
           </div>
 
-          {/* Hiring Rubric */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
-              <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
-                4
-              </div>
-              <h2 className="font-semibold">Hiring Rubric & Scorecard</h2>
-            </div>
-            <div className="p-5 space-y-4">
-              <div className="space-y-2">
-                <Label>Select Hiring Rubric</Label>
-                <Select
-                  value={formData.rubricId || 'none'}
-                  onValueChange={(value) => setFormData({ ...formData, rubricId: value === 'none' ? '' : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a rubric" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select a rubric...</SelectItem>
-                    {(rubrics || []).map((rubric) => (
-                      <SelectItem key={rubric.id} value={rubric.id}>
-                        {rubric.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!formData.rubricId && (
-                  <p className="text-sm text-gray-500 flex items-center gap-1">
-                    <Info className="h-3.5 w-3.5" />
-                    Create rubrics in{' '}
-                    <Link href="/settings/job-settings/rubrics" className="text-indigo-600 hover:underline">
-                      Job Settings &rarr; Hiring Rubrics
-                    </Link>
-                  </p>
-                )}
-              </div>
-              {selectedRubric && (
-                <div className="p-4 bg-gray-50 rounded-lg border">
-                  <span className="font-medium">{selectedRubric.name}</span>
-                  <p className="text-sm text-gray-600 mt-1">
-                    Rubric criteria will be shown here...
-                  </p>
-                </div>
-              )}
-              <div className="space-y-2">
-                <Label>Role Objectives (6-12 months)</Label>
-                <Textarea
-                  rows={4}
-                  placeholder="What should this person achieve in their first 6-12 months?"
-                  value={formData.objectives}
-                  onChange={(e) => setFormData({ ...formData, objectives: e.target.value })}
-                />
-              </div>
-            </div>
-          </div>
-
           {/* Interview Flow */}
           <div className="bg-white border border-gray-200 rounded-xl">
             <div className="p-5 border-b border-gray-200 flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
-                5
+                4
               </div>
               <h2 className="font-semibold">Interview Flow</h2>
             </div>
@@ -756,7 +754,7 @@ export default function CreateJobPage() {
           <div className="bg-white border border-gray-200 rounded-xl">
             <div className="p-5 border-b border-gray-200 flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
-                6
+                5
               </div>
               <h2 className="font-semibold">Role Competencies</h2>
             </div>
@@ -839,13 +837,13 @@ export default function CreateJobPage() {
             </div>
           </div>
 
-          {/* Automation */}
+          {/* Blue AI Actions */}
           <div className="bg-white border border-gray-200 rounded-xl">
             <div className="p-5 border-b border-gray-200 flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
-                7
+                6
               </div>
-              <h2 className="font-semibold">Automation</h2>
+              <h2 className="font-semibold">Blue AI Actions</h2>
             </div>
             <div className="p-5">
               <p className="text-sm text-gray-500 mb-4">Auto-archive applicants that do not meet your requirements.</p>
@@ -863,7 +861,7 @@ export default function CreateJobPage() {
           <div className="bg-white border border-gray-200 rounded-xl">
             <div className="p-5 border-b border-gray-200 flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
-                8
+                7
               </div>
               <h2 className="font-semibold">Additional Details</h2>
             </div>
@@ -892,7 +890,7 @@ export default function CreateJobPage() {
 
               {/* Followers */}
               <div className="space-y-2">
-                <Label>Followers <span className="text-red-500">*</span></Label>
+                <Label>Followers</Label>
                 <div className="flex items-center gap-2">
                   <div className="flex-1 relative">
                     <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[42px]">
@@ -953,7 +951,7 @@ export default function CreateJobPage() {
                     Add me
                   </Button>
                 </div>
-                <p className="text-xs text-gray-500">Followers receive email notifications of new matching candidates. At least one follower is required.</p>
+                <p className="text-xs text-gray-500">Followers receive email notifications of new matching candidates.</p>
               </div>
             </div>
           </div>
@@ -966,59 +964,68 @@ export default function CreateJobPage() {
               <div className="text-xs opacity-80 mb-2">Job Preview</div>
               <div className="text-xl font-semibold">{formData.title || 'Job Title'}</div>
               <div className="text-sm opacity-90 mt-1">
-                {formData.department || 'No team'} &middot;{' '}
-                {formData.remotePolicy === 'remote' ? 'Remote' : formData.remotePolicy === 'office' ? 'In Office' : 'Hybrid'}
+                {formData.department || 'No team'} &middot; {locationSummary}
               </div>
             </div>
             <div className="p-5 space-y-4">
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Employment</div>
-                  <div className="font-medium capitalize">{formData.employmentType.replace('-', ' ')}</div>
+              <div>
+                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Employment</div>
+                <div className="font-medium capitalize">{formData.employmentType.replace('-', ' ')}</div>
+              </div>
+              <div>
+                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Priority</div>
+                <Badge className={cn(
+                  PRIORITIES.find(p => p.value === formData.priority)?.color || 'bg-gray-100'
+                )}>
+                  {PRIORITIES.find(p => p.value === formData.priority)?.label || 'Medium'}
+                </Badge>
+              </div>
+              {formattedDeadline && (
+                <div>
+                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Deadline</div>
+                  <div className="font-medium text-sm">{formattedDeadline}</div>
                 </div>
-                <div className="flex-1">
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Experience</div>
-                  <div className="font-medium">
-                    {EXPERIENCE_LEVELS.find(l => l.value === formData.experienceLevel)?.label}
+              )}
+              <div>
+                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Hires</div>
+                <div className="font-medium text-sm">{hiresCountDisplay}</div>
+              </div>
+              {(formData.salaryMin || formData.salaryMax) && (
+                <div>
+                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Salary</div>
+                  <div className="font-medium text-sm">
+                    {formData.salaryMin && formData.salaryMax
+                      ? `${formData.salaryCurrency} ${Number(formData.salaryMin).toLocaleString()}-${Number(formData.salaryMax).toLocaleString()} ${formData.salaryFrequency}`
+                      : formData.salaryMin
+                        ? `${formData.salaryCurrency} ${Number(formData.salaryMin).toLocaleString()}+ ${formData.salaryFrequency}`
+                        : `Up to ${formData.salaryCurrency} ${Number(formData.salaryMax).toLocaleString()} ${formData.salaryFrequency}`
+                    }
                   </div>
                 </div>
-              </div>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Priority</div>
-                  <Badge className={cn(
-                    PRIORITIES.find(p => p.value === formData.priority)?.color || 'bg-gray-100'
-                  )}>
-                    {PRIORITIES.find(p => p.value === formData.priority)?.label || 'Medium'}
-                  </Badge>
-                </div>
-                {(formData.salaryMin || formData.salaryMax) && (
-                  <div className="flex-1">
-                    <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Salary</div>
-                    <div className="font-medium text-sm">
-                      {formData.salaryMin && formData.salaryMax
-                        ? `${formData.salaryCurrency} ${formData.salaryMin}-${formData.salaryMax}`
-                        : formData.salaryMin
-                          ? `${formData.salaryCurrency} ${formData.salaryMin}+`
-                          : `Up to ${formData.salaryCurrency} ${formData.salaryMax}`
-                      }
-                    </div>
+              )}
+              {(formData.equityMin || formData.equityMax) && (
+                <div>
+                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Equity</div>
+                  <div className="font-medium text-sm">
+                    {formData.equityMin && formData.equityMax
+                      ? `${formData.equityMin}% - ${formData.equityMax}%`
+                      : formData.equityMin
+                        ? `${formData.equityMin}%+`
+                        : `Up to ${formData.equityMax}%`
+                    }
                   </div>
-                )}
-              </div>
-              {officeLocations.length > 0 && formData.remotePolicy !== 'remote' && (
+                </div>
+              )}
+              {officeLocations.length > 0 && (
                 <div>
                   <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Locations</div>
                   <div className="flex flex-wrap gap-1">
-                    {officeLocations.map((locId) => {
-                      const loc = OFFICE_LOCATIONS.find(l => l.id === locId)
-                      return loc ? (
-                        <Badge key={locId} variant="outline" className="text-xs">
-                          <MapPin className="h-3 w-3 mr-1" />
-                          {loc.name}
-                        </Badge>
-                      ) : null
-                    })}
+                    {officeLocations.map((loc) => (
+                      <Badge key={loc} variant="outline" className="text-xs">
+                        <MapPin className="h-3 w-3 mr-1" />
+                        {loc}
+                      </Badge>
+                    ))}
                   </div>
                 </div>
               )}
@@ -1026,12 +1033,6 @@ export default function CreateJobPage() {
                 <div>
                   <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Job Description</div>
                   <div className="font-medium">{selectedJD.name}</div>
-                </div>
-              )}
-              {selectedRubric && (
-                <div>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Hiring Rubric</div>
-                  <div className="font-medium">{selectedRubric.name}</div>
                 </div>
               )}
               <div>
@@ -1062,6 +1063,14 @@ export default function CreateJobPage() {
                   </div>
                 </div>
               )}
+              {formData.hiringManagerId && (
+                <div>
+                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Hiring Manager</div>
+                  <div className="font-medium text-sm">
+                    {(employees || []).find(e => e.id === formData.hiringManagerId)?.fullName || 'Selected'}
+                  </div>
+                </div>
+              )}
               {followers.length > 0 && (
                 <div>
                   <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Followers</div>
@@ -1069,6 +1078,12 @@ export default function CreateJobPage() {
                     <Users className="h-4 w-4 text-gray-400" />
                     <span className="text-sm">{followers.length} people</span>
                   </div>
+                </div>
+              )}
+              {formData.autoArchiveLocation && (
+                <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+                  <Check className="h-3.5 w-3.5 text-green-600" />
+                  <span>Auto-archive non-matching locations</span>
                 </div>
               )}
             </div>

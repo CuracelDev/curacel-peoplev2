@@ -178,22 +178,16 @@ export default function QuestionsPage() {
 
   return (
     <div className="p-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Question Generator</h1>
-          <p className="text-sm text-gray-500">Generate AI-powered interview questions customized for each candidate</p>
-        </div>
-        <div className="flex gap-3">
-          <Button variant="outline">
-            <Save className="h-4 w-4 mr-2" />
-            Save to Bank
-          </Button>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export PDF
-          </Button>
-        </div>
+      {/* Action Bar */}
+      <div className="flex justify-end gap-3 mb-6">
+        <Button variant="outline">
+          <Save className="h-4 w-4 mr-2" />
+          Save to Bank
+        </Button>
+        <Button variant="outline">
+          <Download className="h-4 w-4 mr-2" />
+          Export PDF
+        </Button>
       </div>
 
       <div className="grid grid-cols-[320px_1fr] gap-6">

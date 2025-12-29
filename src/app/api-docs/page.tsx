@@ -375,7 +375,8 @@ export default function ApiDocsPage() {
   "id": "engineering",
   "name": "Engineering",
   "description": "Includes technical assessment",
-  "stages": ["Apply", "HR", "Kand.io", "Technical", "Panel"]
+  "stages": ["Apply", "HR", "Kand.io", "Technical", "Panel"],
+  "hiresCount": 2
 }`}</pre>
               </div>
             </CardContent>

@@ -90,6 +90,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Reorganized Settings page into sections with App Admins and On/Offboarding Settings grouping
 - Renamed Settings > Applications to Integrations for nav consistency
 - Updated Applications settings page copy to Integrations
+- Removed experience level requirement field from Create Job
+- Added job deadline field and Start/Deadline labels in job views
+- Added number of hires field on job creation and multi-hire badge in job list
+- Added priority badge to job list cards
+- Updated remote policy label to Hybrid and added freeform multi-city office locations with Lagos suggestion
+- Replaced Remote OK with Location input, added region support and Nairobi suggestion
+- Removed Role Objectives from Create Job (handled in JD instead)
+- Renamed Automation section to Blue AI Actions in Create Job
 
 ### Fixed
 - Voice transcription now works on Node.js versions below 20 (uses temp file approach)
