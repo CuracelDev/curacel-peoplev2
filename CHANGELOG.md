@@ -80,6 +80,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - Voice transcription now works on Node.js versions below 20 (uses temp file approach)
 - Local dev auth boot issues caused by missing database and NextAuth secrets
+- Missing slider component in Recruiting settings causing build failure
 
 ## [December 2024]
 
