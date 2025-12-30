@@ -1,110 +1,107 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { trpc } from '@/lib/trpc-client'
 
 export type HiringFlow = {
   id: string
   name: string
-  description: string
+  description: string | null
   stages: string[]
+  isDefault: boolean
+  isActive: boolean
+  jobsCount?: number
+  outdatedJobs?: number
+  latestVersion?: number
 }
 
-const STORAGE_KEY = 'curacel-hiring-flows'
+/**
+ * Hook for managing hiring flows via tRPC
+ * This replaces the previous localStorage-based implementation
+ */
+export const useHiringFlows = () => {
+  const flowsQuery = trpc.hiringFlow.list.useQuery()
+  const updateMutation = trpc.hiringFlow.update.useMutation()
+  const createMutation = trpc.hiringFlow.create.useMutation()
+  const deleteMutation = trpc.hiringFlow.delete.useMutation()
+  const setDefaultMutation = trpc.hiringFlow.setDefault.useMutation()
+  const utils = trpc.useUtils()
 
-const DEFAULT_HIRING_FLOWS: HiringFlow[] = [
-  {
-    id: 'standard',
-    name: 'Standard',
-    description: 'General hiring flow for most roles',
-    stages: ['Apply', 'HR Screen', 'Panel', 'Trial', 'Offer'],
-  },
-  {
-    id: 'engineering',
-    name: 'Engineering',
-    description: 'Includes technical assessment',
-    stages: ['Apply', 'HR', 'Kand.io', 'Technical', 'Panel'],
-  },
-  {
-    id: 'sales',
-    name: 'Sales',
-    description: 'Includes trial with POC goals',
-    stages: ['Apply', 'HR Screen', 'Panel', 'POC Trial'],
-  },
-  {
-    id: 'executive',
-    name: 'Executive',
-    description: 'Multiple panels + references',
-    stages: ['Apply', 'HR', 'Panels', 'References'],
-  },
-]
+  const flows: HiringFlow[] = (flowsQuery.data ?? []).map((flow) => ({
+    id: flow.id,
+    name: flow.name,
+    description: flow.description,
+    stages: flow.stages as string[],
+    isDefault: flow.isDefault,
+    isActive: flow.isActive,
+    jobsCount: flow.totalJobs,
+    outdatedJobs: flow.outdatedJobs,
+    latestVersion: flow.latestVersion,
+  }))
 
-const cloneFlows = (flows: HiringFlow[]) =>
-  flows.map((flow) => ({ ...flow, stages: [...flow.stages] }))
+  const updateFlow = async (
+    id: string,
+    updates: { name?: string; description?: string; stages?: string[] },
+    stageMapping?: Record<string, string>
+  ) => {
+    await updateMutation.mutateAsync({ id, ...updates, stageMapping })
+    utils.hiringFlow.list.invalidate()
+  }
 
-const isValidFlow = (value: HiringFlow) =>
-  typeof value.id === 'string' &&
-  typeof value.name === 'string' &&
-  typeof value.description === 'string' &&
-  Array.isArray(value.stages) &&
-  value.stages.every((stage) => typeof stage === 'string')
+  const createFlow = async (data: {
+    name: string
+    description?: string
+    stages: string[]
+    isDefault?: boolean
+  }) => {
+    const result = await createMutation.mutateAsync(data)
+    utils.hiringFlow.list.invalidate()
+    return result
+  }
 
-const readStoredFlows = () => {
-  if (typeof window === 'undefined') return null
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-    if (!raw) return null
-    const parsed = JSON.parse(raw) as HiringFlow[]
-    if (!Array.isArray(parsed) || !parsed.every(isValidFlow)) return null
-    return parsed
-  } catch {
-    return null
+  const deleteFlow = async (id: string) => {
+    await deleteMutation.mutateAsync({ id })
+    utils.hiringFlow.list.invalidate()
+  }
+
+  const setDefaultFlow = async (id: string) => {
+    await setDefaultMutation.mutateAsync({ id })
+    utils.hiringFlow.list.invalidate()
+  }
+
+  const resetFlows = () => {
+    // No-op for database-backed flows - use seed script instead
+    console.warn('resetFlows is deprecated for database-backed flows. Use seed script instead.')
+  }
+
+  const saveFlows = () => {
+    // No-op - flows are auto-saved via mutations
+  }
+
+  return {
+    flows,
+    isLoading: flowsQuery.isLoading,
+    isError: flowsQuery.isError,
+    error: flowsQuery.error,
+    updateFlow,
+    createFlow,
+    deleteFlow,
+    setDefaultFlow,
+    resetFlows,
+    saveFlows,
+    // Legacy compatibility
+    setFlows: () => {
+      console.warn('setFlows is deprecated. Use updateFlow, createFlow, or deleteFlow instead.')
+    },
   }
 }
 
-const writeStoredFlows = (flows: HiringFlow[]) => {
-  if (typeof window === 'undefined') return
-  window.localStorage.setItem(STORAGE_KEY, JSON.stringify(flows))
-  window.dispatchEvent(new Event('hiring-flows-updated'))
-}
-
-export const getDefaultHiringFlows = () => cloneFlows(DEFAULT_HIRING_FLOWS)
-
-export const useHiringFlows = () => {
-  const [flows, setFlows] = useState<HiringFlow[]>(getDefaultHiringFlows())
-
-  useEffect(() => {
-    const stored = readStoredFlows()
-    if (stored) setFlows(cloneFlows(stored))
-  }, [])
-
-  useEffect(() => {
-    const handleSync = () => {
-      const stored = readStoredFlows()
-      if (stored) setFlows(cloneFlows(stored))
-    }
-
-    window.addEventListener('storage', handleSync)
-    window.addEventListener('hiring-flows-updated', handleSync)
-    return () => {
-      window.removeEventListener('storage', handleSync)
-      window.removeEventListener('hiring-flows-updated', handleSync)
-    }
-  }, [])
-
-  const updateFlows = useCallback((next: HiringFlow[]) => {
-    const cloned = cloneFlows(next)
-    setFlows(cloned)
-    writeStoredFlows(cloned)
-  }, [])
-
-  const resetFlows = useCallback(() => {
-    updateFlows(getDefaultHiringFlows())
-  }, [updateFlows])
-
-  const saveFlows = useCallback(() => {
-    // Already persisted on each update, but this provides an explicit save action
-    writeStoredFlows(flows)
-  }, [flows])
-
-  return { flows, setFlows: updateFlows, resetFlows, saveFlows }
+/**
+ * Get default hiring flows - now fetches from database
+ * For server-side usage, use the hiringFlow.list tRPC procedure instead
+ */
+export const getDefaultHiringFlows = () => {
+  console.warn(
+    'getDefaultHiringFlows is deprecated. Use the hiringFlow.list tRPC procedure instead.'
+  )
+  return []
 }

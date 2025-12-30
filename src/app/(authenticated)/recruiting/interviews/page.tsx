@@ -44,7 +44,7 @@ import { format, isPast, isToday, isTomorrow, addDays, addHours, subDays } from 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
-// Helper to generate mock interview data (called inside component to avoid hydration issues)
+// Helper to generate mock interview data - consistent with detail page
 const generateMockInterviews = () => [
   {
     id: 'mock-1',
@@ -88,27 +88,6 @@ const generateMockInterviews = () => [
   {
     id: 'mock-3',
     candidateId: 'cand-3',
-    stage: 'TEAM_CHAT',
-    stageName: 'Team Chat',
-    scheduledAt: addDays(new Date(), 3),
-    duration: 90,
-    status: 'SCHEDULED',
-    meetingLink: 'https://zoom.us/j/123456789',
-    interviewers: [
-      { name: 'Chinedu Eze', email: 'chinedu@curacel.co' },
-      { name: 'Funke Ajayi', email: 'funke@curacel.co' },
-      { name: 'Tunde Bakare', email: 'tunde@curacel.co' },
-    ],
-    candidate: {
-      id: 'cand-3',
-      name: 'Emeka Nnamdi',
-      email: 'emeka.n@gmail.com',
-      job: { id: 'job-1', title: 'Senior Backend Engineer', department: 'Engineering' },
-    },
-  },
-  {
-    id: 'mock-4',
-    candidateId: 'cand-4',
     stage: 'CEO_CHAT',
     stageName: 'CEO Chat',
     scheduledAt: addDays(new Date(), 5),
@@ -119,15 +98,15 @@ const generateMockInterviews = () => [
       { name: 'Henry Mascot', email: 'henry@curacel.co' },
     ],
     candidate: {
-      id: 'cand-4',
+      id: 'cand-3',
       name: 'Ngozi Uchenna',
       email: 'ngozi.uchenna@yahoo.com',
       job: { id: 'job-3', title: 'Head of Sales', department: 'Sales' },
     },
   },
   {
-    id: 'mock-5',
-    candidateId: 'cand-5',
+    id: 'mock-4',
+    candidateId: 'cand-4',
     stage: 'HR_SCREEN',
     stageName: 'People Chat',
     scheduledAt: subDays(new Date(), 2),
@@ -138,41 +117,22 @@ const generateMockInterviews = () => [
       { name: 'Sarah Chen', email: 'sarah@curacel.co' },
     ],
     candidate: {
-      id: 'cand-5',
+      id: 'cand-4',
       name: 'Adaeze Igwe',
       email: 'adaeze.igwe@gmail.com',
       job: { id: 'job-2', title: 'Product Manager', department: 'Product' },
-    },
-  },
-  {
-    id: 'mock-6',
-    candidateId: 'cand-6',
-    stage: 'ADVISOR_CHAT',
-    stageName: 'Advisor Chat',
-    scheduledAt: addDays(new Date(), 2),
-    duration: 45,
-    status: 'SCHEDULED',
-    meetingLink: 'https://meet.google.com/adv-chat-456',
-    interviewers: [
-      { name: 'External Advisor', email: 'advisor@partner.co' },
-    ],
-    candidate: {
-      id: 'cand-6',
-      name: 'Kelechi Amadi',
-      email: 'kelechi.amadi@proton.me',
-      job: { id: 'job-1', title: 'Senior Backend Engineer', department: 'Engineering' },
     },
   },
 ]
 
 // Mock counts for demonstration
 const mockCounts = {
-  all: 6,
+  all: 4,
   HR_SCREEN: 2,
-  TEAM_CHAT: 2,
-  ADVISOR_CHAT: 1,
+  TEAM_CHAT: 1,
+  ADVISOR_CHAT: 0,
   CEO_CHAT: 1,
-  upcoming: 5,
+  upcoming: 3,
 }
 
 // Stage display names and colors

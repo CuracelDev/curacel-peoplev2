@@ -53,124 +53,219 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn, getInitials } from '@/lib/utils'
 
-// Mock interview data
-const interviewData = {
-  id: 'int-hr-screen',
-  type: 'HR_SCREEN',
-  name: 'HR Screen',
+// Stage name mapping
+const stageNames: Record<string, string> = {
+  HR_SCREEN: 'People Chat',
+  TEAM_CHAT: 'Team Chat',
+  ADVISOR_CHAT: 'Advisor Chat',
+  CEO_CHAT: 'CEO Chat',
+}
+
+// Mock interview data lookup - matches the interviews list page
+const mockInterviewsData: Record<string, {
+  id: string
+  type: string
+  name: string
   candidate: {
-    id: '1',
-    name: 'James Okafor',
-    email: 'james.okafor@email.com',
-    position: 'Senior Backend Engineer',
-    avatar: 'bg-green-500',
-  },
-  scheduledAt: '2025-12-18T10:00:00Z',
-  duration: 45,
-  status: 'COMPLETED',
-  overallScore: 78,
-
-  // Fireflies integration
+    id: string
+    name: string
+    email: string
+    position: string
+    avatar: string
+  }
+  scheduledAt: string
+  duration: number
+  status: string
+  overallScore: number | null
   fireflies: {
-    hasRecording: true,
-    meetingId: 'fireflies-abc123',
-    duration: '42:15',
-    transcriptUrl: 'https://app.fireflies.ai/view/abc123',
-    summary: 'James demonstrated strong communication skills and genuine interest in the role. He provided detailed answers about his experience at Paystack and showed enthusiasm for Curacel\'s mission.',
-    actionItems: [
-      'Follow up on salary expectations alignment',
-      'Schedule technical interview',
-      'Send company culture deck',
+    hasRecording: boolean
+    meetingId?: string
+    duration?: string
+    transcriptUrl?: string
+    summary?: string
+    actionItems?: string[]
+    highlights?: { timestamp: string; text: string }[]
+  }
+  rubricQuestions: {
+    id: string
+    category: string
+    question: string
+    weight: number
+    guideNotes: string
+  }[]
+  interviewers: {
+    id: string
+    name: string
+    email: string
+    role: string
+    avatar: string
+    status: string
+    submittedAt?: string
+    overallRating: number
+    recommendation: string
+    notes: string
+    scores: { questionId: string; score: number; notes: string }[]
+    customQuestions: { id: string; question: string; answer: string; score: number }[]
+  }[]
+  publicLink: string
+  publicLinkExpiry: string
+}> = {
+  'mock-1': {
+    id: 'mock-1',
+    type: 'HR_SCREEN',
+    name: 'People Chat',
+    candidate: {
+      id: 'cand-1',
+      name: 'Oluwaseun Adeyemi',
+      email: 'seun.adeyemi@gmail.com',
+      position: 'Senior Backend Engineer',
+      avatar: 'bg-green-500',
+    },
+    scheduledAt: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+    duration: 45,
+    status: 'SCHEDULED',
+    overallScore: null,
+    fireflies: { hasRecording: false },
+    rubricQuestions: [
+      { id: 'q1', category: 'Communication', question: 'How well does the candidate communicate their thoughts and experiences?', weight: 1, guideNotes: 'Look for clarity, structure, and ability to articulate complex ideas simply.' },
+      { id: 'q2', category: 'Cultural Fit', question: 'Does the candidate align with our company values (PRESS)?', weight: 1, guideNotes: 'Assess passion, relentlessness, empowerment, sense of urgency, and seeing possibilities.' },
+      { id: 'q3', category: 'Interest & Motivation', question: 'Why is the candidate interested in this role and Curacel?', weight: 1, guideNotes: 'Look for genuine interest, research done about the company, and career alignment.' },
+      { id: 'q4', category: 'Experience Relevance', question: 'How relevant is the candidate\'s past experience to this role?', weight: 2, guideNotes: 'Consider industry, technologies, scale of systems worked on.' },
     ],
-    highlights: [
-      { timestamp: '05:23', text: 'Discussed experience building payment systems at Paystack' },
-      { timestamp: '12:45', text: 'Explained microservices architecture approach' },
-      { timestamp: '28:10', text: 'Talked about team leadership and mentoring' },
-      { timestamp: '35:00', text: 'Questions about company growth and engineering culture' },
+    interviewers: [
+      { id: 'int-1', name: 'Sarah Chen', email: 'sarah@curacel.co', role: 'People Operations', avatar: 'bg-purple-500', status: 'PENDING', overallRating: 0, recommendation: '', notes: '', scores: [], customQuestions: [] },
     ],
+    publicLink: 'https://people.curacel.co/interview/mock-1-token',
+    publicLinkExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
   },
-
-  // Rubric questions for HR Screen
-  rubricQuestions: [
-    {
-      id: 'q1',
-      category: 'Communication',
-      question: 'How well does the candidate communicate their thoughts and experiences?',
-      weight: 1,
-      guideNotes: 'Look for clarity, structure, and ability to articulate complex ideas simply.',
+  'mock-2': {
+    id: 'mock-2',
+    type: 'TEAM_CHAT',
+    name: 'Team Chat',
+    candidate: {
+      id: 'cand-2',
+      name: 'Chidinma Okafor',
+      email: 'chidinma.okafor@outlook.com',
+      position: 'Product Manager',
+      avatar: 'bg-blue-500',
     },
-    {
-      id: 'q2',
-      category: 'Cultural Fit',
-      question: 'Does the candidate align with our company values (PRESS)?',
-      weight: 1,
-      guideNotes: 'Assess passion, relentlessness, empowerment, sense of urgency, and seeing possibilities.',
+    scheduledAt: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
+    duration: 60,
+    status: 'SCHEDULED',
+    overallScore: null,
+    fireflies: { hasRecording: false },
+    rubricQuestions: [
+      { id: 'q1', category: 'Product Thinking', question: 'How does the candidate approach product problems?', weight: 2, guideNotes: 'Look for structured thinking and user-centric approach.' },
+      { id: 'q2', category: 'Technical Understanding', question: 'Does the candidate have sufficient technical knowledge?', weight: 1, guideNotes: 'Assess ability to work with engineering teams.' },
+      { id: 'q3', category: 'Communication', question: 'How well does the candidate present their ideas?', weight: 1, guideNotes: 'Look for clarity and persuasiveness.' },
+    ],
+    interviewers: [
+      { id: 'int-2', name: 'David Okonkwo', email: 'david@curacel.co', role: 'Engineering Lead', avatar: 'bg-indigo-500', status: 'PENDING', overallRating: 0, recommendation: '', notes: '', scores: [], customQuestions: [] },
+      { id: 'int-3', name: 'Amara Nwosu', email: 'amara@curacel.co', role: 'Product Lead', avatar: 'bg-pink-500', status: 'PENDING', overallRating: 0, recommendation: '', notes: '', scores: [], customQuestions: [] },
+    ],
+    publicLink: 'https://people.curacel.co/interview/mock-2-token',
+    publicLinkExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  'mock-3': {
+    id: 'mock-3',
+    type: 'CEO_CHAT',
+    name: 'CEO Chat',
+    candidate: {
+      id: 'cand-3',
+      name: 'Ngozi Uchenna',
+      email: 'ngozi.uchenna@yahoo.com',
+      position: 'Head of Sales',
+      avatar: 'bg-amber-500',
     },
-    {
-      id: 'q3',
-      category: 'Interest & Motivation',
-      question: 'Why is the candidate interested in this role and Curacel?',
-      weight: 1,
-      guideNotes: 'Look for genuine interest, research done about the company, and career alignment.',
+    scheduledAt: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+    duration: 30,
+    status: 'SCHEDULED',
+    overallScore: null,
+    fireflies: { hasRecording: false },
+    rubricQuestions: [
+      { id: 'q1', category: 'Leadership', question: 'How does the candidate approach leadership?', weight: 2, guideNotes: 'Look for vision and ability to inspire.' },
+      { id: 'q2', category: 'Strategic Thinking', question: 'Does the candidate think strategically?', weight: 2, guideNotes: 'Assess long-term planning abilities.' },
+      { id: 'q3', category: 'Culture Add', question: 'Will this candidate add to our culture?', weight: 1, guideNotes: 'Consider diversity of thought and values alignment.' },
+    ],
+    interviewers: [
+      { id: 'int-4', name: 'Henry Mascot', email: 'henry@curacel.co', role: 'CEO', avatar: 'bg-gray-700', status: 'PENDING', overallRating: 0, recommendation: '', notes: '', scores: [], customQuestions: [] },
+    ],
+    publicLink: 'https://people.curacel.co/interview/mock-3-token',
+    publicLinkExpiry: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+  'mock-4': {
+    id: 'mock-4',
+    type: 'HR_SCREEN',
+    name: 'People Chat',
+    candidate: {
+      id: 'cand-4',
+      name: 'Adaeze Igwe',
+      email: 'adaeze.igwe@gmail.com',
+      position: 'Product Manager',
+      avatar: 'bg-teal-500',
     },
-    {
-      id: 'q4',
-      category: 'Experience Relevance',
-      question: 'How relevant is the candidate\'s past experience to this role?',
-      weight: 2,
-      guideNotes: 'Consider industry, technologies, scale of systems worked on.',
-    },
-    {
-      id: 'q5',
-      category: 'Salary Expectations',
-      question: 'Are the candidate\'s salary expectations aligned with our budget?',
-      weight: 1,
-      guideNotes: 'Budget range: $80,000 - $100,000. Consider total compensation.',
-    },
-    {
-      id: 'q6',
-      category: 'Availability',
-      question: 'What is the candidate\'s notice period and availability?',
-      weight: 1,
-      guideNotes: 'Ideal: 2-4 weeks notice. Can accommodate up to 2 months if strong candidate.',
-    },
-  ],
-
-  // Interviewers and their evaluations
-  interviewers: [
-    {
-      id: 'interviewer-1',
-      name: 'Sarah Johnson',
-      email: 'sarah@curacel.co',
-      role: 'HR Manager',
-      avatar: 'bg-purple-500',
-      status: 'SUBMITTED',
-      submittedAt: '2025-12-18T11:30:00Z',
-      overallRating: 4,
-      recommendation: 'ADVANCE',
-      notes: 'Strong candidate with excellent communication skills. Genuine interest in our mission. Salary expectations are slightly above budget but negotiable.',
-      scores: [
-        { questionId: 'q1', score: 4, notes: 'Clear and articulate. Structured responses.' },
-        { questionId: 'q2', score: 4, notes: 'Strong alignment with PRESS values, especially Passionate.' },
-        { questionId: 'q3', score: 5, notes: 'Very well researched. Specific about why Curacel.' },
-        { questionId: 'q4', score: 4, notes: 'Excellent fintech background at Paystack.' },
-        { questionId: 'q5', score: 3, notes: 'Asking $90-100k, our budget is $80-95k.' },
-        { questionId: 'q6', score: 4, notes: '4 weeks notice, can start Jan 15.' },
+    scheduledAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    duration: 45,
+    status: 'COMPLETED',
+    overallScore: 82,
+    fireflies: {
+      hasRecording: true,
+      meetingId: 'fireflies-mock4',
+      duration: '42:15',
+      transcriptUrl: 'https://app.fireflies.ai/view/mock4',
+      summary: 'Adaeze demonstrated excellent communication skills and deep product management experience. She showed strong alignment with Curacel\'s mission to transform insurance in Africa.',
+      actionItems: [
+        'Schedule Team Chat with Product team',
+        'Send product case study assignment',
+        'Share company culture deck',
       ],
-      customQuestions: [
-        {
-          id: 'cq1',
-          question: 'What do you know about the insurance industry in Africa?',
-          answer: 'Mentioned the low penetration rates and opportunity for digital transformation.',
-          score: 4,
-        },
+      highlights: [
+        { timestamp: '05:12', text: 'Discussed experience leading product at a fintech startup' },
+        { timestamp: '15:30', text: 'Explained approach to user research and data-driven decisions' },
+        { timestamp: '28:45', text: 'Talked about cross-functional collaboration' },
+        { timestamp: '38:00', text: 'Asked insightful questions about Curacel\'s product roadmap' },
       ],
     },
-  ],
+    rubricQuestions: [
+      { id: 'q1', category: 'Communication', question: 'How well does the candidate communicate their thoughts and experiences?', weight: 1, guideNotes: 'Look for clarity, structure, and ability to articulate complex ideas simply.' },
+      { id: 'q2', category: 'Cultural Fit', question: 'Does the candidate align with our company values (PRESS)?', weight: 1, guideNotes: 'Assess passion, relentlessness, empowerment, sense of urgency, and seeing possibilities.' },
+      { id: 'q3', category: 'Interest & Motivation', question: 'Why is the candidate interested in this role and Curacel?', weight: 1, guideNotes: 'Look for genuine interest, research done about the company, and career alignment.' },
+      { id: 'q4', category: 'Experience Relevance', question: 'How relevant is the candidate\'s past experience to this role?', weight: 2, guideNotes: 'Consider industry, technologies, scale of systems worked on.' },
+    ],
+    interviewers: [
+      {
+        id: 'int-1',
+        name: 'Sarah Chen',
+        email: 'sarah@curacel.co',
+        role: 'People Operations',
+        avatar: 'bg-purple-500',
+        status: 'SUBMITTED',
+        submittedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000 + 2 * 60 * 60 * 1000).toISOString(),
+        overallRating: 4,
+        recommendation: 'ADVANCE',
+        notes: 'Strong candidate with excellent communication skills. Genuine interest in our mission. Great cultural fit.',
+        scores: [
+          { questionId: 'q1', score: 5, notes: 'Exceptionally clear and articulate. Very structured responses.' },
+          { questionId: 'q2', score: 4, notes: 'Strong alignment with PRESS values, especially Passionate and Relentless.' },
+          { questionId: 'q3', score: 4, notes: 'Well researched. Specific about why insurance tech excites her.' },
+          { questionId: 'q4', score: 4, notes: 'Excellent product management background at fintech companies.' },
+        ],
+        customQuestions: [
+          { id: 'cq1', question: 'What do you know about the insurance industry in Africa?', answer: 'Mentioned the low penetration rates (3%) and opportunity for digital-first solutions to reach underserved populations.', score: 4 },
+        ],
+      },
+    ],
+    publicLink: 'https://people.curacel.co/interview/mock-4-token',
+    publicLinkExpiry: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+  },
+}
 
-  // Public interview link
-  publicLink: 'https://people.curacel.co/interview/abc123-token',
-  publicLinkExpiry: '2025-12-17T23:59:59Z',
+// Alias mock-5 to mock-4 for backward compatibility
+mockInterviewsData['mock-5'] = mockInterviewsData['mock-4']
+
+// Get interview data by ID, with fallback
+const getInterviewData = (interviewId: string) => {
+  return mockInterviewsData[interviewId] || mockInterviewsData['mock-4']
 }
 
 // Rating scale component
@@ -219,6 +314,9 @@ export default function InterviewDetailPage() {
   const params = useParams()
   const candidateId = params.id as string
   const interviewId = params.interviewId as string
+
+  // Get interview data based on the URL parameter
+  const interviewData = getInterviewData(interviewId)
 
   const [activeTab, setActiveTab] = useState('overview')
   const [expandedInterviewer, setExpandedInterviewer] = useState<string | null>(

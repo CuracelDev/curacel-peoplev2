@@ -101,6 +101,18 @@ export const jobRouter = router({
           competencies: {
             include: { competency: true },
           },
+          hiringFlowSnapshot: {
+            include: {
+              flow: {
+                include: {
+                  snapshots: {
+                    orderBy: { version: 'desc' },
+                    take: 1,
+                  },
+                },
+              },
+            },
+          },
         },
       })
 
@@ -111,7 +123,23 @@ export const jobRouter = router({
         })
       }
 
-      return job
+      // Calculate if the flow is outdated
+      let flowOutdated = false
+      let latestVersion: number | null = null
+      let currentVersion: number | null = null
+
+      if (job.hiringFlowSnapshot?.flow?.snapshots?.[0]) {
+        latestVersion = job.hiringFlowSnapshot.flow.snapshots[0].version
+        currentVersion = job.hiringFlowSnapshot.version
+        flowOutdated = latestVersion > currentVersion
+      }
+
+      return {
+        ...job,
+        flowOutdated,
+        latestVersion,
+        currentVersion,
+      }
     }),
 
   // Create a new job
@@ -147,11 +175,25 @@ export const jobRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { followerIds, competencyIds, deadline, ...data } = input
+      const { followerIds, competencyIds, deadline, hiringFlowId, ...data } = input
+
+      // Convert hiringFlowId to hiringFlowSnapshotId by finding the latest snapshot
+      let hiringFlowSnapshotId: string | undefined
+      if (hiringFlowId) {
+        const latestSnapshot = await ctx.prisma.hiringFlowSnapshot.findFirst({
+          where: { flowId: hiringFlowId },
+          orderBy: { version: 'desc' },
+        })
+        if (latestSnapshot) {
+          hiringFlowSnapshotId = latestSnapshot.id
+        }
+      }
 
       const job = await ctx.prisma.job.create({
         data: {
           ...data,
+          hiringFlowId, // Keep legacy field for reference
+          hiringFlowSnapshotId, // Assign the latest snapshot
           deadline: deadline ? new Date(deadline) : null,
           locations: data.locations,
           followers: {
@@ -210,7 +252,7 @@ export const jobRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, followerIds, competencyIds, deadline, locations, ...data } = input
+      const { id, followerIds, competencyIds, deadline, locations, hiringFlowId, ...data } = input
 
       const existing = await ctx.prisma.job.findUnique({ where: { id } })
       if (!existing) {
@@ -229,6 +271,23 @@ export const jobRouter = router({
 
       if (locations !== undefined) {
         updateData.locations = locations
+      }
+
+      // Convert hiringFlowId to hiringFlowSnapshotId if provided
+      if (hiringFlowId !== undefined) {
+        updateData.hiringFlowId = hiringFlowId
+
+        if (hiringFlowId) {
+          const latestSnapshot = await ctx.prisma.hiringFlowSnapshot.findFirst({
+            where: { flowId: hiringFlowId },
+            orderBy: { version: 'desc' },
+          })
+          if (latestSnapshot) {
+            updateData.hiringFlowSnapshotId = latestSnapshot.id
+          }
+        } else {
+          updateData.hiringFlowSnapshotId = null
+        }
       }
 
       // Update job with optional relation replacements
