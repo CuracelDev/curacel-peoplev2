@@ -16,6 +16,9 @@ import {
   BookOpen,
   Bot,
   Users,
+  GitBranch,
+  FileQuestion,
+  ClipboardCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -69,6 +72,29 @@ const settingsSections = [
         description: 'Configure onboarding and offboarding workflows.',
         icon: ListChecks,
         href: '/settings/on-offboarding',
+      },
+    ],
+  },
+  {
+    title: 'Hiring',
+    items: [
+      {
+        title: 'Hiring Flows',
+        description: 'Define interview stages for different roles.',
+        icon: GitBranch,
+        href: '/recruiting/settings?section=flows',
+      },
+      {
+        title: 'Interest Forms',
+        description: 'Create application forms for candidates.',
+        icon: FileQuestion,
+        href: '/recruiting/settings?section=forms',
+      },
+      {
+        title: 'Interview Rubrics',
+        description: 'Set evaluation criteria for interviews.',
+        icon: ClipboardCheck,
+        href: '/recruiting/settings?section=rubrics',
       },
     ],
   },
