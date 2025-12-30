@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   Save,
@@ -107,7 +108,14 @@ type Criteria = {
   weight: number
 }
 
+const sectionMap: Record<string, string> = {
+  flows: 'interview',
+  forms: 'interestForms',
+  rubrics: 'rubrics',
+}
+
 export default function SettingsPage() {
+  const searchParams = useSearchParams()
   const [activeSection, setActiveSection] = useState('competencies')
   const [selectedDepartment, setSelectedDepartment] = useState('engineering')
   const [oceanProfile, setOceanProfile] = useState({
@@ -187,6 +195,14 @@ export default function SettingsPage() {
   const createCompetencyMutation = trpc.competency.create.useMutation({
     onSuccess: () => competenciesQuery.refetch(),
   })
+
+  // Handle section query parameter from URL
+  useEffect(() => {
+    const section = searchParams.get('section')
+    if (section && sectionMap[section]) {
+      setActiveSection(sectionMap[section])
+    }
+  }, [searchParams])
 
   useEffect(() => {
     if (!flows.length) return
