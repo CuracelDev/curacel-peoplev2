@@ -105,7 +105,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Hiring Stats Row */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col">
@@ -160,7 +160,7 @@ export default function DashboardPage() {
       </div>
 
       {/* People Stats Row */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col">
@@ -203,7 +203,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Pipeline Overview + Recent Activity */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2 border-0 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg font-semibold">Pipeline Overview</CardTitle>
@@ -287,7 +287,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Top Candidates + Quick Actions */}
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 lg:grid-cols-2">
         <Card className="border-0 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-lg font-semibold">Top Candidates</CardTitle>
@@ -460,7 +460,7 @@ export default function DashboardPage() {
       </Card>
 
       {/* Contract Status + Active Onboarding */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold">Contract Status</CardTitle>
@@ -560,7 +560,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Recent Hires + Upcoming Starts */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center gap-2">

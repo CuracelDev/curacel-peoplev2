@@ -50,7 +50,7 @@ export function Header({
 
   return (
     <header className="sticky top-0 z-40 border-b bg-white">
-      <div className="flex h-16 items-center justify-between px-6">
+      <div className="flex h-16 items-center justify-between px-3 sm:px-4 lg:px-6">
         <div className="flex items-center gap-3">
           {/* Mobile menu button */}
           <button
@@ -94,7 +94,7 @@ export function Header({
                   )}
                 </button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-80">
+              <DropdownMenuContent align="end" className="w-[calc(100vw-2rem)] sm:w-80 max-w-80">
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {notifications.length === 0 ? (

@@ -5,8 +5,9 @@ import { trpc } from '@/lib/trpc-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { cn } from '@/lib/utils'
-import { Plus, Search, Loader2, AlertCircle, Sparkles, ArrowUp, Mic, Square } from 'lucide-react'
+import { Plus, Search, Loader2, AlertCircle, Sparkles, ArrowUp, Mic, Square, Menu } from 'lucide-react'
 
 type ChatMessage = {
   id: string
@@ -327,13 +328,98 @@ export default function AIAgentPage() {
     })
   }, [chatList, search])
 
+  const chatHistoryContent = (
+    <>
+      <div className="p-4">
+        <div className="flex items-center justify-between">
+          <Button size="sm" variant="outline" onClick={handleNewChat} disabled={createChatMutation.isPending}>
+            <Plus className="mr-2 h-4 w-4" />
+            New chat
+          </Button>
+        </div>
+        <div className="mt-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              value={search}
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Search chats"
+              className="pl-9 focus-visible:ring-0 focus-visible:ring-offset-0 focus-visible:outline-none"
+            />
+          </div>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto overscroll-contain p-3">
+        {filteredChats.length === 0 ? (
+          <div className="px-3 py-6 text-sm text-muted-foreground">No chats yet.</div>
+        ) : (
+          <div className="space-y-1">
+            {filteredChats.map((chat: { id: string; title: string; updatedAt?: Date; lastMessage?: { content?: string; createdAt?: Date } }) => {
+              const title = truncateWords(chat.title, 4)
+              return (
+                <button
+                  key={chat.id}
+                  onClick={() => setActiveChatId(chat.id)}
+                  className={cn(
+                    'w-full rounded-xl px-3 py-3 text-left transition-colors',
+                    chat.id === activeChatId
+                      ? 'bg-primary/10 text-primary'
+                      : 'hover:bg-secondary text-foreground'
+                  )}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <p
+                      className={cn(
+                        'truncate text-sm',
+                        chat.id === activeChatId ? 'text-primary' : 'text-foreground'
+                      )}
+                    >
+                      {title}
+                    </p>
+                    <span
+                      className={cn(
+                        'text-[9px]',
+                        chat.id === activeChatId ? 'text-primary/70' : 'text-muted-foreground'
+                      )}
+                    >
+                      {chat.updatedAt && formatTime(chat.updatedAt)}
+                    </span>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+        )}
+      </div>
+    </>
+  )
+
   return (
-    <div className="flex h-[calc(100vh-7rem)] flex-col gap-6">
+    <div className="flex h-[calc(100vh-7rem)] flex-col gap-4 md:gap-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold text-foreground">Blue AI</h1>
+        <div className="flex items-center gap-3">
+          {/* Mobile menu button */}
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant="outline" size="icon" className="md:hidden">
+                <Menu className="h-5 w-5" />
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="w-[85vw] max-w-72 p-0">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Chat History</SheetTitle>
+              </SheetHeader>
+              <div className="flex h-full flex-col">
+                {chatHistoryContent}
+              </div>
+            </SheetContent>
+          </Sheet>
+          <h1 className="text-xl md:text-2xl font-semibold text-foreground">Blue AI</h1>
+        </div>
       </div>
       <div className="flex min-h-0 flex-1">
-        <aside className="flex min-h-0 w-72 shrink-0 flex-col bg-white">
+        {/* Desktop sidebar */}
+        <aside className="hidden md:flex min-h-0 w-72 shrink-0 flex-col bg-white">
           <div className="p-4">
             <div className="flex items-center justify-between">
               <Button size="sm" variant="outline" onClick={handleNewChat} disabled={createChatMutation.isPending}>
@@ -399,7 +485,7 @@ export default function AIAgentPage() {
         </aside>
 
         <section className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
-          <div className="flex-1 overflow-y-auto overscroll-contain bg-secondary/40 px-6 py-5">
+          <div className="flex-1 overflow-y-auto overscroll-contain bg-secondary/40 px-3 md:px-6 py-4 md:py-5">
             {!activeChatData || activeChatData.messages.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center text-center">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary">
@@ -470,7 +556,7 @@ export default function AIAgentPage() {
             )}
           </div>
 
-          <div className="border-t border-border bg-white px-6 py-4">
+          <div className="border-t border-border bg-white px-3 md:px-6 py-3 md:py-4">
             <div className="flex items-end gap-2">
               <Textarea
                 ref={textareaRef}
@@ -488,7 +574,7 @@ export default function AIAgentPage() {
                 size="icon"
                 variant="outline"
                 className={cn(
-                  'h-12 w-12 shrink-0 rounded-full',
+                  'h-10 w-10 md:h-12 md:w-12 shrink-0 rounded-full',
                   isRecording && 'bg-red-50 border-red-300 text-red-600 hover:bg-red-100 hover:text-red-700'
                 )}
                 title={isRecording ? 'Stop recording' : 'Start voice input'}
@@ -505,7 +591,7 @@ export default function AIAgentPage() {
                 onClick={handleSend}
                 disabled={!input.trim() || isBusy || isRecording || isTranscribing}
                 size="icon"
-                className="h-12 w-12 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
+                className="h-10 w-10 md:h-12 md:w-12 shrink-0 rounded-full bg-primary text-primary-foreground hover:bg-primary/90"
               >
                 {chatMutation.isPending ? (
                   <Loader2 className="h-5 w-5 animate-spin" />

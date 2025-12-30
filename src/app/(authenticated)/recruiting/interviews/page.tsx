@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { trpc } from '@/lib/trpc-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -40,11 +40,11 @@ import {
   AlertCircle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { format, formatDistanceToNow, isPast, isToday, isTomorrow, addDays, addHours, subDays } from 'date-fns'
+import { format, isPast, isToday, isTomorrow, addDays, addHours, subDays } from 'date-fns'
 import Link from 'next/link'
 
-// Mock interview data for demonstration
-const mockInterviews = [
+// Helper to generate mock interview data (called inside component to avoid hydration issues)
+const generateMockInterviews = () => [
   {
     id: 'mock-1',
     candidateId: 'cand-1',
@@ -209,12 +209,22 @@ export default function InterviewsPage() {
   // Fetch counts
   const { data: dbCounts } = trpc.interview.getCounts.useQuery()
 
+  // State for mock data (only populated on client to avoid hydration mismatch)
+  const [mockData, setMockData] = useState<ReturnType<typeof generateMockInterviews>>([])
+
+  // Generate mock data only on client side
+  useEffect(() => {
+    if (!dbInterviews || dbInterviews.length === 0) {
+      setMockData(generateMockInterviews())
+    }
+  }, [dbInterviews])
+
   // Use mock data as fallback when no DB data
   const interviews = useMemo(() => {
     if (dbInterviews && dbInterviews.length > 0) return dbInterviews
 
     // Filter mock data based on active filter and status
-    let filtered = [...mockInterviews]
+    let filtered = [...mockData]
     if (activeFilter !== 'all') {
       filtered = filtered.filter(i => i.stage === activeFilter)
     }
@@ -230,7 +240,7 @@ export default function InterviewsPage() {
       )
     }
     return filtered
-  }, [dbInterviews, activeFilter, statusFilter, searchQuery])
+  }, [dbInterviews, mockData, activeFilter, statusFilter, searchQuery])
 
   // Use mock counts as fallback
   const counts = dbCounts && dbCounts.all > 0 ? dbCounts : mockCounts
