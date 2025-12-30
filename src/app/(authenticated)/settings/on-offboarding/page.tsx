@@ -1,9 +1,13 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { Card, CardContent } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, ChevronRight, ListChecks, UserMinus } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { ArrowLeft, ChevronRight, ListChecks, UserMinus, Settings } from 'lucide-react'
+import { trpc } from '@/lib/trpc-client'
 
 const flowOptions = [
   {
@@ -23,6 +27,24 @@ const flowOptions = [
 ]
 
 export default function OnOffboardingSettingsPage() {
+  const [googleTransferEmail, setGoogleTransferEmail] = useState('')
+  const { data: organization } = trpc.organization.get.useQuery()
+  const updateOrganization = trpc.organization.update.useMutation()
+
+  useEffect(() => {
+    if (organization?.googleWorkspaceTransferToEmail) {
+      setGoogleTransferEmail(organization.googleWorkspaceTransferToEmail)
+    }
+  }, [organization])
+
+  const handleSaveGoogleSettings = async () => {
+    if (!organization) return
+    await updateOrganization.mutateAsync({
+      name: organization.name,
+      googleWorkspaceTransferToEmail: googleTransferEmail || null,
+    })
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
@@ -65,6 +87,49 @@ export default function OnOffboardingSettingsPage() {
                 </Link>
               )
             })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* General Settings */}
+      <Card>
+        <CardHeader className="p-5 border-b">
+          <div className="flex items-center gap-3">
+            <div className="bg-gray-100 p-2 rounded-lg">
+              <Settings className="h-5 w-5 text-gray-600" />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">General Settings</h2>
+              <p className="text-sm text-gray-500">Configure general offboarding settings</p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-5">
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="googleTransferEmail" className="text-sm font-medium">
+                Google Workspace - Default file transfer owner
+              </Label>
+              <div className="flex gap-3">
+                <Input
+                  id="googleTransferEmail"
+                  type="email"
+                  value={googleTransferEmail}
+                  onChange={(e) => setGoogleTransferEmail(e.target.value)}
+                  placeholder="admin@company.com"
+                  className="max-w-md"
+                />
+                <Button
+                  onClick={handleSaveGoogleSettings}
+                  disabled={updateOrganization.isPending}
+                >
+                  {updateOrganization.isPending ? 'Saving...' : 'Save'}
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500">
+                Used when transferring Google Drive ownership during employee offboarding.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
