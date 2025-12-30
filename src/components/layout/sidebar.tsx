@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
 import { trpc } from '@/lib/trpc-client'
+import { useState } from 'react'
 import {
   LayoutDashboard,
   Users,
@@ -20,6 +21,9 @@ import {
   FileSignature,
   X,
   BarChart3,
+  ChevronDown,
+  ChevronRight,
+  TrendingUp,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
@@ -48,6 +52,8 @@ type NavItem = {
 type NavSection = {
   title: string
   items: NavItem[]
+  collapsible?: boolean
+  defaultCollapsed?: boolean
 }
 
 const navigationSections: NavSection[] = [
@@ -55,7 +61,6 @@ const navigationSections: NavSection[] = [
     title: '',
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN', 'MANAGER'] },
-      { name: 'Analytics', href: '/analytics', icon: BarChart3, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
     ],
   },
   {
@@ -87,6 +92,15 @@ const navigationSections: NavSection[] = [
       { name: 'Administration', href: '/settings', icon: Settings, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN'] },
     ],
   },
+  {
+    title: 'ANALYTICS',
+    collapsible: true,
+    defaultCollapsed: true,
+    items: [
+      { name: 'Hiring', href: '/analytics', icon: TrendingUp, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
+      { name: 'Employees', href: '/analytics/employees', icon: Users, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
+    ],
+  },
 ]
 
 export function Sidebar({
@@ -101,6 +115,24 @@ export function Sidebar({
   const pathname = usePathname()
   const { data: session } = useSession()
   const userRole = session?.user?.role || 'EMPLOYEE'
+
+  // Track collapsed state for collapsible sections
+  const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>(() => {
+    const initial: Record<string, boolean> = {}
+    navigationSections.forEach(section => {
+      if (section.collapsible && section.defaultCollapsed) {
+        initial[section.title] = true
+      }
+    })
+    return initial
+  })
+
+  const toggleSection = (title: string) => {
+    setCollapsedSections(prev => ({
+      ...prev,
+      [title]: !prev[title],
+    }))
+  }
 
   // Fetch sidebar counts for all badges
   const { data: sidebarCounts } = trpc.dashboard.getSidebarCounts.useQuery(undefined, {
@@ -144,55 +176,81 @@ export function Sidebar({
       </div>
 
       <nav className={cn('flex-1 overflow-y-auto py-3', collapsed && !mobileOpen ? 'px-1' : 'px-2')}>
-        {filteredSections.map((section, sectionIndex) => (
-          <div key={section.title || `section-${sectionIndex}`} className={cn(sectionIndex > 0 && 'mt-6')}>
-            {section.title && (!collapsed || mobileOpen) && (
-              <h3 className="px-3 mb-2 text-[11px] font-semibold text-muted-foreground tracking-wider">
-                {section.title}
-              </h3>
-            )}
-            {section.title && collapsed && !mobileOpen && sectionIndex > 0 && (
-              <div className="mx-2 mb-2 border-t border-border" />
-            )}
-            <ul className="space-y-0.5">
-              {section.items.map((item) => {
-                const isActive = pathname === item.href ||
-                  (item.href !== '/dashboard' && pathname.startsWith(item.href))
-                return (
-                  <li key={item.name}>
-                    <Link
-                      href={item.href}
-                      className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
-                        isActive
-                          ? 'bg-primary text-white'
-                          : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
-                        collapsed && !mobileOpen && 'justify-center px-2'
-                      )}
-                    >
-                      <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-white')} />
-                      {(!collapsed || mobileOpen) && (
-                        <>
-                          <span className="flex-1">{item.name}</span>
-                          {item.badgeKey && sidebarCounts && sidebarCounts[item.badgeKey] > 0 && (
-                            <span className={cn(
-                              'flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-medium',
-                              isActive
-                                ? 'bg-white/20 text-white'
-                                : 'bg-primary text-white'
-                            )}>
-                              {sidebarCounts[item.badgeKey]}
-                            </span>
-                          )}
-                        </>
-                      )}
-                    </Link>
-                  </li>
+        {filteredSections.map((section, sectionIndex) => {
+          const isSectionCollapsed = section.collapsible && collapsedSections[section.title]
+          const isAnySectionItemActive = section.items.some(item =>
+            pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))
+          )
+
+          return (
+            <div key={section.title || `section-${sectionIndex}`} className={cn(sectionIndex > 0 && 'mt-6')}>
+              {section.title && (!collapsed || mobileOpen) && (
+                section.collapsible ? (
+                  <button
+                    onClick={() => toggleSection(section.title)}
+                    className="w-full flex items-center justify-between px-3 mb-2 text-[11px] font-semibold text-muted-foreground tracking-wider hover:text-foreground transition-colors"
+                  >
+                    <span className="flex items-center gap-2">
+                      <BarChart3 className="h-3.5 w-3.5" />
+                      {section.title}
+                    </span>
+                    {isSectionCollapsed ? (
+                      <ChevronRight className="h-3.5 w-3.5" />
+                    ) : (
+                      <ChevronDown className="h-3.5 w-3.5" />
+                    )}
+                  </button>
+                ) : (
+                  <h3 className="px-3 mb-2 text-[11px] font-semibold text-muted-foreground tracking-wider">
+                    {section.title}
+                  </h3>
                 )
-              })}
-            </ul>
-          </div>
-        ))}
+              )}
+              {section.title && collapsed && !mobileOpen && sectionIndex > 0 && (
+                <div className="mx-2 mb-2 border-t border-border" />
+              )}
+              {(!section.collapsible || !isSectionCollapsed) && (
+                <ul className="space-y-0.5">
+                  {section.items.map((item) => {
+                    const isActive = pathname === item.href ||
+                      (item.href !== '/dashboard' && pathname.startsWith(item.href))
+                    return (
+                      <li key={item.name}>
+                        <Link
+                          href={item.href}
+                          className={cn(
+                            'flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200',
+                            isActive
+                              ? 'bg-primary text-white'
+                              : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+                            collapsed && !mobileOpen && 'justify-center px-2'
+                          )}
+                        >
+                          <item.icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-white')} />
+                          {(!collapsed || mobileOpen) && (
+                            <>
+                              <span className="flex-1">{item.name}</span>
+                              {item.badgeKey && sidebarCounts && sidebarCounts[item.badgeKey] > 0 && (
+                                <span className={cn(
+                                  'flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-medium',
+                                  isActive
+                                    ? 'bg-white/20 text-white'
+                                    : 'bg-primary text-white'
+                                )}>
+                                  {sidebarCounts[item.badgeKey]}
+                                </span>
+                              )}
+                            </>
+                          )}
+                        </Link>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </div>
+          )
+        })}
 
         {/* Blue AI - Special styling */}
         <div className="mt-6">
