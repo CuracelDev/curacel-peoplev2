@@ -141,4 +141,65 @@ export const organizationRouter = router({
       
       return org
     }),
+
+  // Get sidebar badge settings
+  getBadgeSettings: adminProcedure.query(async ({ ctx }) => {
+    const org = await ctx.prisma.organization.findFirst()
+
+    const defaultSettings = {
+      openJobs: true,
+      activeCandidates: true,
+      activeEmployees: true,
+      pendingContracts: true,
+      inProgressOnboarding: true,
+      inProgressOffboarding: true,
+    }
+
+    return {
+      enabled: org?.sidebarBadgesEnabled ?? true,
+      settings: (org?.sidebarBadgeSettings as Record<string, boolean> | null) ?? defaultSettings,
+    }
+  }),
+
+  // Update sidebar badge settings
+  updateBadgeSettings: adminProcedure
+    .input(
+      z.object({
+        enabled: z.boolean(),
+        settings: z.object({
+          openJobs: z.boolean(),
+          activeCandidates: z.boolean(),
+          activeEmployees: z.boolean(),
+          pendingContracts: z.boolean(),
+          inProgressOnboarding: z.boolean(),
+          inProgressOffboarding: z.boolean(),
+        }),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      let org = await ctx.prisma.organization.findFirst()
+
+      if (!org) {
+        org = await ctx.prisma.organization.create({
+          data: {
+            name: process.env.COMPANY_NAME || 'Curacel',
+            sidebarBadgesEnabled: input.enabled,
+            sidebarBadgeSettings: input.settings,
+          },
+        })
+      } else {
+        org = await ctx.prisma.organization.update({
+          where: { id: org.id },
+          data: {
+            sidebarBadgesEnabled: input.enabled,
+            sidebarBadgeSettings: input.settings,
+          },
+        })
+      }
+
+      return {
+        enabled: org.sidebarBadgesEnabled,
+        settings: org.sidebarBadgeSettings as Record<string, boolean>,
+      }
+    }),
 })

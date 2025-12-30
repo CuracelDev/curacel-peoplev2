@@ -11,10 +11,20 @@ import { formatAuditAction } from '@/lib/notifications'
 import { NOTIFICATION_ACTION_GROUPS } from '@/lib/notification-actions'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 
+const BADGE_OPTIONS = [
+  { key: 'openJobs', label: 'Jobs', description: 'Open/active job positions' },
+  { key: 'activeCandidates', label: 'Candidates', description: 'Candidates in active pipeline stages' },
+  { key: 'activeEmployees', label: 'Employees', description: 'Current active employees' },
+  { key: 'pendingContracts', label: 'Contracts', description: 'Contracts sent but not yet signed' },
+  { key: 'inProgressOnboarding', label: 'Onboarding', description: 'Onboarding workflows in progress' },
+  { key: 'inProgressOffboarding', label: 'Offboarding', description: 'Offboarding workflows in progress' },
+] as const
+
 export default function NotificationSettingsPage() {
   const utils = trpc.useUtils()
   const { data: settings, isLoading } = trpc.notificationSettings.get.useQuery()
   const { data: adminUsers } = trpc.notificationSettings.listAdmins.useQuery()
+  const { data: badgeSettings } = trpc.organization.getBadgeSettings.useQuery()
   const [saveStatus, setSaveStatus] = useState<{ kind: 'success' | 'error'; message: string } | null>(null)
   const updateSettings = trpc.notificationSettings.update.useMutation({
     onSuccess: () => {
@@ -25,11 +35,32 @@ export default function NotificationSettingsPage() {
       setSaveStatus({ kind: 'error', message: error.message || 'Failed to save notification settings.' })
     },
   })
+  const updateBadgeSettings = trpc.organization.updateBadgeSettings.useMutation({
+    onSuccess: () => {
+      utils.organization.getBadgeSettings.invalidate()
+      utils.dashboard.getSidebarCounts.invalidate()
+      setSaveStatus({ kind: 'success', message: 'Badge settings saved.' })
+    },
+    onError: (error) => {
+      setSaveStatus({ kind: 'error', message: error.message || 'Failed to save badge settings.' })
+    },
+  })
 
   const [emailEnabled, setEmailEnabled] = useState(true)
   const [selectedActions, setSelectedActions] = useState<Set<string>>(new Set())
   const [selectedAdmins, setSelectedAdmins] = useState<Set<string>>(new Set())
   const [recipientMode, setRecipientMode] = useState<'ALL_ADMINS' | 'INITIATOR' | 'SELECTED'>('ALL_ADMINS')
+
+  // Badge settings state
+  const [badgesEnabled, setBadgesEnabled] = useState(true)
+  const [badgeToggles, setBadgeToggles] = useState<Record<string, boolean>>({
+    openJobs: true,
+    activeCandidates: true,
+    activeEmployees: true,
+    pendingContracts: true,
+    inProgressOnboarding: true,
+    inProgressOffboarding: true,
+  })
 
   useEffect(() => {
     if (!settings) return
@@ -38,6 +69,12 @@ export default function NotificationSettingsPage() {
     setSelectedAdmins(new Set(settings.recipients))
     setRecipientMode(settings.recipientMode)
   }, [settings])
+
+  useEffect(() => {
+    if (!badgeSettings) return
+    setBadgesEnabled(badgeSettings.enabled)
+    setBadgeToggles(badgeSettings.settings)
+  }, [badgeSettings])
 
   useEffect(() => {
     if (!saveStatus) return
@@ -87,6 +124,36 @@ export default function NotificationSettingsPage() {
 
   const handleClearActions = () => {
     setSelectedActions(new Set())
+  }
+
+  const toggleBadge = (key: string) => {
+    setBadgeToggles((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }))
+  }
+
+  const handleSaveBadgeSettings = async () => {
+    setSaveStatus(null)
+    try {
+      await updateBadgeSettings.mutateAsync({
+        enabled: badgesEnabled,
+        settings: badgeToggles as {
+          openJobs: boolean
+          activeCandidates: boolean
+          activeEmployees: boolean
+          pendingContracts: boolean
+          inProgressOnboarding: boolean
+          inProgressOffboarding: boolean
+        },
+      })
+    } catch (error) {
+      if (error instanceof Error) {
+        setSaveStatus({ kind: 'error', message: error.message })
+      } else {
+        setSaveStatus({ kind: 'error', message: 'Failed to save badge settings.' })
+      }
+    }
   }
 
   const actionSummary = useMemo(() => `${selectedActions.size} actions selected`, [selectedActions.size])
@@ -233,6 +300,63 @@ export default function NotificationSettingsPage() {
           )}
           <Button type="button" onClick={handleSave} disabled={updateSettings.isPending}>
             {updateSettings.isPending ? 'Saving...' : 'Save changes'}
+          </Button>
+        </div>
+      </div>
+
+      <div className="border-t border-gray-200 pt-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Sidebar Badges</h2>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Badge visibility</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <Label className="text-sm font-medium">Show sidebar badges</Label>
+              <p className="text-xs text-gray-500">Display count badges next to sidebar navigation items.</p>
+            </div>
+            <Switch checked={badgesEnabled} onCheckedChange={setBadgesEnabled} />
+          </div>
+        </CardContent>
+      </Card>
+
+      {badgesEnabled && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Badge metrics</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-sm text-gray-500">Select which metrics to display as badges in the sidebar.</p>
+            <div className="space-y-3">
+              {BADGE_OPTIONS.map((option) => (
+                <div key={option.key} className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2">
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{option.label}</p>
+                    <p className="text-xs text-gray-500">{option.description}</p>
+                  </div>
+                  <Switch
+                    checked={badgeToggles[option.key] ?? true}
+                    onCheckedChange={() => toggleBadge(option.key)}
+                  />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      <div className="flex justify-end">
+        <div className="flex items-center gap-3">
+          {saveStatus && (
+            <span className={saveStatus.kind === 'success' ? 'text-sm text-green-600' : 'text-sm text-red-600'}>
+              {saveStatus.message}
+            </span>
+          )}
+          <Button type="button" onClick={handleSaveBadgeSettings} disabled={updateBadgeSettings.isPending}>
+            {updateBadgeSettings.isPending ? 'Saving...' : 'Save badge settings'}
           </Button>
         </div>
       </div>
