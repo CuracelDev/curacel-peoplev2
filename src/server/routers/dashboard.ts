@@ -1,6 +1,97 @@
 import { router, protectedProcedure, hrAdminProcedure } from '@/lib/trpc'
 
 export const dashboardRouter = router({
+  // Get all sidebar badge counts with settings
+  getSidebarCounts: protectedProcedure.query(async ({ ctx }) => {
+    // Get badge settings from organization
+    const org = await ctx.prisma.organization.findFirst({
+      select: {
+        sidebarBadgesEnabled: true,
+        sidebarBadgeSettings: true,
+      },
+    })
+
+    const badgesEnabled = org?.sidebarBadgesEnabled ?? true
+    const defaultSettings = {
+      openJobs: true,
+      activeCandidates: true,
+      activeEmployees: true,
+      pendingContracts: true,
+      inProgressOnboarding: true,
+      inProgressOffboarding: true,
+    }
+    const settings = (org?.sidebarBadgeSettings as Record<string, boolean> | null) ?? defaultSettings
+
+    // If badges are disabled globally, return zeros
+    if (!badgesEnabled) {
+      return {
+        openJobs: 0,
+        activeCandidates: 0,
+        activeEmployees: 0,
+        pendingContracts: 0,
+        inProgressOnboarding: 0,
+        inProgressOffboarding: 0,
+        settings,
+        enabled: false,
+      }
+    }
+
+    const [
+      openJobs,
+      activeCandidates,
+      activeEmployees,
+      pendingContracts,
+      inProgressOnboarding,
+      inProgressOffboarding,
+    ] = await Promise.all([
+      // Open jobs (ACTIVE status)
+      settings.openJobs
+        ? ctx.prisma.job.count({ where: { status: 'ACTIVE' } })
+        : Promise.resolve(0),
+
+      // Active candidates (in pipeline on active jobs)
+      settings.activeCandidates
+        ? ctx.prisma.jobCandidate.count({
+            where: {
+              job: { status: 'ACTIVE' },
+              stage: { in: ['APPLIED', 'HR_SCREEN', 'TECHNICAL', 'PANEL', 'OFFER'] },
+            },
+          })
+        : Promise.resolve(0),
+
+      // Active employees
+      settings.activeEmployees
+        ? ctx.prisma.employee.count({ where: { status: 'ACTIVE' } })
+        : Promise.resolve(0),
+
+      // Pending contracts (sent but not signed)
+      settings.pendingContracts
+        ? ctx.prisma.offer.count({ where: { status: { in: ['SENT', 'VIEWED'] } } })
+        : Promise.resolve(0),
+
+      // In-progress onboarding
+      settings.inProgressOnboarding
+        ? ctx.prisma.onboardingWorkflow.count({ where: { status: 'IN_PROGRESS' } })
+        : Promise.resolve(0),
+
+      // In-progress offboarding
+      settings.inProgressOffboarding
+        ? ctx.prisma.offboardingWorkflow.count({ where: { status: 'IN_PROGRESS' } })
+        : Promise.resolve(0),
+    ])
+
+    return {
+      openJobs,
+      activeCandidates,
+      activeEmployees,
+      pendingContracts,
+      inProgressOnboarding,
+      inProgressOffboarding,
+      settings,
+      enabled: true,
+    }
+  }),
+
   getStats: hrAdminProcedure
     .query(async ({ ctx }) => {
       const [

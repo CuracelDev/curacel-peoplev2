@@ -34,12 +34,14 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { getInitials } from '@/lib/utils'
 
+type BadgeKey = 'openJobs' | 'activeCandidates' | 'activeEmployees' | 'pendingContracts' | 'inProgressOnboarding' | 'inProgressOffboarding'
+
 type NavItem = {
   name: string
   href: string
   icon: React.ComponentType<{ className?: string }>
   roles: string[]
-  badgeKey?: 'openJobs' | 'activeCandidates'
+  badgeKey?: BadgeKey
 }
 
 type NavSection = {
@@ -65,15 +67,15 @@ const navigationSections: NavSection[] = [
   {
     title: 'OFFER',
     items: [
-      { name: 'Contracts', href: '/contracts', icon: FileSignature, roles: ['SUPER_ADMIN', 'HR_ADMIN'] },
+      { name: 'Contracts', href: '/contracts', icon: FileSignature, roles: ['SUPER_ADMIN', 'HR_ADMIN'], badgeKey: 'pendingContracts' },
     ],
   },
   {
     title: 'PEOPLE',
     items: [
-      { name: 'Employees', href: '/employees', icon: Users, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN'] },
-      { name: 'Onboarding', href: '/onboarding', icon: UserPlus, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN'] },
-      { name: 'Offboarding', href: '/offboarding', icon: UserMinus, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN'] },
+      { name: 'Employees', href: '/employees', icon: Users, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN'], badgeKey: 'activeEmployees' },
+      { name: 'Onboarding', href: '/onboarding', icon: UserPlus, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN'], badgeKey: 'inProgressOnboarding' },
+      { name: 'Offboarding', href: '/offboarding', icon: UserMinus, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN'], badgeKey: 'inProgressOffboarding' },
     ],
   },
   {
@@ -98,8 +100,8 @@ export function Sidebar({
   const { data: session } = useSession()
   const userRole = session?.user?.role || 'EMPLOYEE'
 
-  // Fetch sidebar counts for hiring badges
-  const { data: sidebarCounts } = trpc.job.getSidebarCounts.useQuery(undefined, {
+  // Fetch sidebar counts for all badges
+  const { data: sidebarCounts } = trpc.dashboard.getSidebarCounts.useQuery(undefined, {
     refetchInterval: 30000, // Refresh every 30 seconds
     staleTime: 10000,
   })

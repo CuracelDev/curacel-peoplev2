@@ -784,6 +784,8 @@ model Organization {
   notificationEmailActions Json?
   notificationEmailRecipients Json?
   notificationEmailRecipientMode NotificationRecipientMode @default(ALL_ADMINS)
+  sidebarBadgesEnabled  Boolean  @default(true)
+  sidebarBadgeSettings  Json?    // { openJobs: true, activeCandidates: true, activeEmployees: true, pendingContracts: true, inProgressOnboarding: true, inProgressOffboarding: true }
   legalEntities         LegalEntity[]
   onboardingTaskTemplates OnboardingTaskTemplate[]
   offboardingTaskTemplates OffboardingTaskTemplate[]
