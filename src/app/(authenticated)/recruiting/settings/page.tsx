@@ -22,6 +22,7 @@ import {
   Edit2,
   X,
   ArrowRight,
+  Check,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -128,6 +129,7 @@ export default function SettingsPage() {
   const { flows, setFlows, resetFlows, saveFlows } = useHiringFlows()
   const [activeFlowId, setActiveFlowId] = useState('standard')
   const [flowSaving, setFlowSaving] = useState(false)
+  const [flowSaved, setFlowSaved] = useState(false)
 
   // Interest form state
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null)
@@ -242,8 +244,11 @@ export default function SettingsPage() {
 
   const handleSaveFlows = async () => {
     setFlowSaving(true)
+    setFlowSaved(false)
     try {
       saveFlows()
+      setFlowSaved(true)
+      setTimeout(() => setFlowSaved(false), 2000)
     } finally {
       setFlowSaving(false)
     }
@@ -581,9 +586,18 @@ export default function SettingsPage() {
                       Edit the interview flow for each role type. Changes apply across job setup, templates, and candidate stages.
                     </p>
                   </div>
-                  <Button onClick={handleSaveFlows} disabled={flowSaving}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {flowSaving ? 'Saving...' : 'Save Changes'}
+                  <Button onClick={handleSaveFlows} disabled={flowSaving} variant={flowSaved ? 'outline' : 'default'} className={flowSaved ? 'bg-green-50 text-green-700 border-green-300' : ''}>
+                    {flowSaved ? (
+                      <>
+                        <Check className="h-4 w-4 mr-2" />
+                        Saved!
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-2" />
+                        {flowSaving ? 'Saving...' : 'Save Changes'}
+                      </>
+                    )}
                   </Button>
                 </div>
               </CardHeader>
