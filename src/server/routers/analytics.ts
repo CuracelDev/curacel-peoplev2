@@ -605,4 +605,524 @@ export const analyticsRouter = router({
 
       return { periods, granularity: input.granularity, metric: input.metric }
     }),
+
+  // ============================
+  // MONTHLY TABLE (like spreadsheet)
+  // ============================
+  getMonthlyTable: hrAdminProcedure
+    .input(
+      z.object({
+        year: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const year = input.year ?? new Date().getFullYear()
+      const months = []
+
+      for (let month = 1; month <= 12; month++) {
+        const startDate = startOfMonth(new Date(year, month - 1))
+        const endDate = endOfMonth(new Date(year, month - 1))
+
+        const [interviews, trials, hired, trialsPassedToCeoChat] = await Promise.all([
+          ctx.prisma.candidateInterview.count({
+            where: {
+              status: 'COMPLETED',
+              completedAt: { gte: startDate, lte: endDate },
+            },
+          }),
+          ctx.prisma.jobCandidate.count({
+            where: {
+              stage: { in: ['TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] },
+              updatedAt: { gte: startDate, lte: endDate },
+            },
+          }),
+          ctx.prisma.jobCandidate.count({
+            where: {
+              stage: 'HIRED',
+              updatedAt: { gte: startDate, lte: endDate },
+            },
+          }),
+          ctx.prisma.jobCandidate.count({
+            where: {
+              stage: { in: ['CEO_CHAT', 'OFFER', 'HIRED'] },
+              updatedAt: { gte: startDate, lte: endDate },
+            },
+          }),
+        ])
+
+        const trialPassRate = trials > 0 ? Math.round((trialsPassedToCeoChat / trials) * 100 * 100) / 100 : 0
+        const interviewTrialRate = interviews > 0 ? Math.round((trials / interviews) * 100 * 100) / 100 : 0
+
+        months.push({
+          month,
+          monthName: format(startDate, 'MMMM'),
+          interviews,
+          trials,
+          hired,
+          trialPassRate,
+          interviewTrialRate,
+        })
+      }
+
+      // Calculate yearly totals
+      const totals = months.reduce(
+        (acc, m) => ({
+          interviews: acc.interviews + m.interviews,
+          trials: acc.trials + m.trials,
+          hired: acc.hired + m.hired,
+        }),
+        { interviews: 0, trials: 0, hired: 0 }
+      )
+
+      const [yearlyOffersSent, yearlyOffersAccepted, yearlyActiveJobs, yearlyFilledJobs] = await Promise.all([
+        ctx.prisma.offer.count({
+          where: {
+            esignSentAt: { gte: startOfYear(new Date(year, 0)), lte: endOfYear(new Date(year, 0)) },
+          },
+        }),
+        ctx.prisma.offer.count({
+          where: {
+            status: 'SIGNED',
+            esignSignedAt: { gte: startOfYear(new Date(year, 0)), lte: endOfYear(new Date(year, 0)) },
+          },
+        }),
+        ctx.prisma.job.count({
+          where: { status: { in: ['ACTIVE', 'HIRED'] }, createdAt: { lte: endOfYear(new Date(year, 0)) } },
+        }),
+        ctx.prisma.job.count({
+          where: { status: 'HIRED', updatedAt: { gte: startOfYear(new Date(year, 0)), lte: endOfYear(new Date(year, 0)) } },
+        }),
+      ])
+
+      const keyMetrics = {
+        trialPassRate: totals.trials > 0 ? Math.round((totals.hired / totals.trials) * 100 * 100) / 100 : 0,
+        trialHireRate: totals.trials > 0 ? Math.round((totals.hired / totals.trials) * 100 * 100) / 100 : 0,
+        offerAcceptanceRate: yearlyOffersSent > 0 ? Math.round((yearlyOffersAccepted / yearlyOffersSent) * 100 * 100) / 100 : 0,
+        hiringFillRate: yearlyActiveJobs > 0 ? Math.round((yearlyFilledJobs / yearlyActiveJobs) * 100 * 100) / 100 : 0,
+        interviewTrial: totals.interviews > 0 ? Math.round((totals.trials / totals.interviews) * 100 * 100) / 100 : 0,
+      }
+
+      return { year, months, totals, keyMetrics }
+    }),
+
+  // ============================
+  // WEEKLY INTERVIEWS
+  // ============================
+  getWeeklyInterviews: hrAdminProcedure
+    .input(
+      z.object({
+        year: z.number().optional(),
+        weeksBack: z.number().min(1).max(52).default(26),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const now = new Date()
+      const weeks = []
+
+      for (let i = input.weeksBack - 1; i >= 0; i--) {
+        const weekStart = startOfWeek(subWeeks(now, i), { weekStartsOn: 1 })
+        const weekEnd = endOfWeek(subWeeks(now, i), { weekStartsOn: 1 })
+
+        const [interviews, rolesFilled] = await Promise.all([
+          ctx.prisma.candidateInterview.count({
+            where: {
+              scheduledAt: { gte: weekStart, lte: weekEnd },
+            },
+          }),
+          ctx.prisma.jobCandidate.count({
+            where: {
+              stage: 'HIRED',
+              updatedAt: { gte: weekStart, lte: weekEnd },
+            },
+          }),
+        ])
+
+        weeks.push({
+          weekStart,
+          weekEnd,
+          label: `${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d')}`,
+          interviews,
+          rolesFilled,
+        })
+      }
+
+      return { weeks }
+    }),
+
+  // ============================
+  // HIRING VELOCITY BY ROLE
+  // ============================
+  getHiringVelocityByRole: hrAdminProcedure
+    .input(
+      z.object({
+        years: z.array(z.number()).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const currentYear = new Date().getFullYear()
+      const years = input.years ?? [currentYear - 2, currentYear - 1, currentYear]
+
+      // Get all hired candidates with their job info
+      const hiredCandidates = await ctx.prisma.jobCandidate.findMany({
+        where: {
+          stage: 'HIRED',
+          appliedAt: {
+            gte: startOfYear(new Date(Math.min(...years), 0)),
+            lte: endOfYear(new Date(Math.max(...years), 0)),
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          appliedAt: true,
+          updatedAt: true,
+          job: { select: { title: true, department: true } },
+        },
+        orderBy: { updatedAt: 'desc' },
+      })
+
+      // Per-hire velocity
+      const perHire = hiredCandidates.map((c) => ({
+        id: c.id,
+        name: c.name,
+        role: c.job.title,
+        department: c.job.department,
+        startDate: c.appliedAt,
+        endDate: c.updatedAt,
+        velocityDays: Math.ceil((c.updatedAt.getTime() - c.appliedAt.getTime()) / (1000 * 60 * 60 * 24)),
+        year: c.updatedAt.getFullYear(),
+      }))
+
+      // Average by role and year
+      const roleYearMap = new Map<string, { total: number; count: number; year: number }>()
+      perHire.forEach((h) => {
+        const key = `${h.role}-${h.year}`
+        const existing = roleYearMap.get(key) || { total: 0, count: 0, year: h.year }
+        roleYearMap.set(key, {
+          total: existing.total + h.velocityDays,
+          count: existing.count + 1,
+          year: h.year,
+        })
+      })
+
+      const byRoleYear: { role: string; year: number; avgVelocity: number; count: number }[] = []
+      roleYearMap.forEach((value, key) => {
+        const [role] = key.split('-')
+        byRoleYear.push({
+          role,
+          year: value.year,
+          avgVelocity: Math.round(value.total / value.count),
+          count: value.count,
+        })
+      })
+
+      // Average by role (all time)
+      const roleMap = new Map<string, { total: number; count: number }>()
+      perHire.forEach((h) => {
+        const existing = roleMap.get(h.role) || { total: 0, count: 0 }
+        roleMap.set(h.role, {
+          total: existing.total + h.velocityDays,
+          count: existing.count + 1,
+        })
+      })
+
+      const byRole: { role: string; avgVelocity: number; count: number }[] = []
+      roleMap.forEach((value, role) => {
+        byRole.push({
+          role,
+          avgVelocity: Math.round(value.total / value.count),
+          count: value.count,
+        })
+      })
+
+      return { perHire, byRoleYear, byRole }
+    }),
+
+  // ============================
+  // FUNNEL BY ROLE/YEAR
+  // ============================
+  getFunnelByRoleYear: hrAdminProcedure
+    .input(
+      z.object({
+        years: z.array(z.number()).optional(),
+        roles: z.array(z.string()).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const currentYear = new Date().getFullYear()
+      const years = input.years ?? [currentYear - 2, currentYear - 1, currentYear]
+
+      // Get jobs (roles)
+      const jobs = await ctx.prisma.job.findMany({
+        where: input.roles?.length ? { title: { in: input.roles } } : {},
+        select: { id: true, title: true, department: true },
+        distinct: ['title'],
+      })
+
+      const funnelData = await Promise.all(
+        jobs.map(async (job) => {
+          const yearData = await Promise.all(
+            years.map(async (year) => {
+              const startDate = startOfYear(new Date(year, 0))
+              const endDate = endOfYear(new Date(year, 0))
+
+              const baseWhere = {
+                job: { title: job.title },
+                appliedAt: { gte: startDate, lte: endDate },
+              }
+
+              const [qualifiedCVs, firstStage, secondStage, thirdStage, trial, ceoChat, hired] =
+                await Promise.all([
+                  ctx.prisma.jobCandidate.count({ where: baseWhere }),
+                  ctx.prisma.jobCandidate.count({
+                    where: { ...baseWhere, stage: { in: ['HR_SCREEN', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+                  }),
+                  ctx.prisma.jobCandidate.count({
+                    where: { ...baseWhere, stage: { in: ['TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+                  }),
+                  ctx.prisma.jobCandidate.count({
+                    where: { ...baseWhere, stage: { in: ['PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+                  }),
+                  ctx.prisma.jobCandidate.count({
+                    where: { ...baseWhere, stage: { in: ['TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+                  }),
+                  ctx.prisma.jobCandidate.count({
+                    where: { ...baseWhere, stage: { in: ['CEO_CHAT', 'OFFER', 'HIRED'] } },
+                  }),
+                  ctx.prisma.jobCandidate.count({
+                    where: { ...baseWhere, stage: 'HIRED' },
+                  }),
+                ])
+
+              return {
+                year,
+                qualifiedCVs,
+                firstStage,
+                secondStage,
+                thirdStage,
+                trial,
+                ceoChat,
+                hired,
+                conversionRates: {
+                  qualToFirst: qualifiedCVs > 0 ? Math.round((firstStage / qualifiedCVs) * 100 * 100) / 100 : 0,
+                  firstToSecond: firstStage > 0 ? Math.round((secondStage / firstStage) * 100 * 100) / 100 : 0,
+                  secondToThird: secondStage > 0 ? Math.round((thirdStage / secondStage) * 100 * 100) / 100 : 0,
+                  thirdToTrial: thirdStage > 0 ? Math.round((trial / thirdStage) * 100 * 100) / 100 : 0,
+                  trialToHired: trial > 0 ? Math.round((hired / trial) * 100 * 100) / 100 : 0,
+                  qualToHired: qualifiedCVs > 0 ? Math.round((hired / qualifiedCVs) * 100 * 100) / 100 : 0,
+                },
+              }
+            })
+          )
+
+          return {
+            role: job.title,
+            department: job.department,
+            years: yearData,
+          }
+        })
+      )
+
+      return { funnelData, availableYears: years }
+    }),
+
+  // ============================
+  // FUNNEL SUMMARY WITH DROPOFF
+  // ============================
+  getFunnelSummary: hrAdminProcedure
+    .input(
+      z.object({
+        years: z.array(z.number()).optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const currentYear = new Date().getFullYear()
+      const years = input.years ?? [currentYear - 2, currentYear - 1, currentYear]
+
+      const startDate = startOfYear(new Date(Math.min(...years), 0))
+      const endDate = endOfYear(new Date(Math.max(...years), 0))
+
+      const baseWhere = { appliedAt: { gte: startDate, lte: endDate } }
+
+      const [qualifiedCVs, firstStage, secondStage, thirdStage, trial, ceoChat, hired] =
+        await Promise.all([
+          ctx.prisma.jobCandidate.count({ where: baseWhere }),
+          ctx.prisma.jobCandidate.count({
+            where: { ...baseWhere, stage: { in: ['HR_SCREEN', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+          }),
+          ctx.prisma.jobCandidate.count({
+            where: { ...baseWhere, stage: { in: ['TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+          }),
+          ctx.prisma.jobCandidate.count({
+            where: { ...baseWhere, stage: { in: ['PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+          }),
+          ctx.prisma.jobCandidate.count({
+            where: { ...baseWhere, stage: { in: ['TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+          }),
+          ctx.prisma.jobCandidate.count({
+            where: { ...baseWhere, stage: { in: ['CEO_CHAT', 'OFFER', 'HIRED'] } },
+          }),
+          ctx.prisma.jobCandidate.count({
+            where: { ...baseWhere, stage: 'HIRED' },
+          }),
+        ])
+
+      // Per-year breakdown
+      const byYear = await Promise.all(
+        years.map(async (year) => {
+          const yearStart = startOfYear(new Date(year, 0))
+          const yearEnd = endOfYear(new Date(year, 0))
+          const yearWhere = { appliedAt: { gte: yearStart, lte: yearEnd } }
+
+          const [yCVs, yFirst, ySecond, yThird, yTrial, yCeo, yHired] = await Promise.all([
+            ctx.prisma.jobCandidate.count({ where: yearWhere }),
+            ctx.prisma.jobCandidate.count({
+              where: { ...yearWhere, stage: { in: ['HR_SCREEN', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+            }),
+            ctx.prisma.jobCandidate.count({
+              where: { ...yearWhere, stage: { in: ['TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+            }),
+            ctx.prisma.jobCandidate.count({
+              where: { ...yearWhere, stage: { in: ['PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+            }),
+            ctx.prisma.jobCandidate.count({
+              where: { ...yearWhere, stage: { in: ['TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] } },
+            }),
+            ctx.prisma.jobCandidate.count({
+              where: { ...yearWhere, stage: { in: ['CEO_CHAT', 'OFFER', 'HIRED'] } },
+            }),
+            ctx.prisma.jobCandidate.count({
+              where: { ...yearWhere, stage: 'HIRED' },
+            }),
+          ])
+
+          return {
+            year,
+            qualifiedCVs: yCVs,
+            firstStage: yFirst,
+            secondStage: ySecond,
+            thirdStage: yThird,
+            trial: yTrial,
+            ceoChat: yCeo,
+            hired: yHired,
+            qualToFirstPct: yCVs > 0 ? Math.round((yFirst / yCVs) * 100 * 100) / 100 : 0,
+            qualToHiredPct: yCVs > 0 ? Math.round((yHired / yCVs) * 100 * 100) / 100 : 0,
+          }
+        })
+      )
+
+      // Dropoff analysis
+      const dropoff = [
+        { stage: 'Qual → First', lossCount: qualifiedCVs - firstStage, lossPct: qualifiedCVs > 0 ? Math.round(((qualifiedCVs - firstStage) / qualifiedCVs) * 100 * 100) / 100 : 0 },
+        { stage: 'First → Second', lossCount: firstStage - secondStage, lossPct: firstStage > 0 ? Math.round(((firstStage - secondStage) / firstStage) * 100 * 100) / 100 : 0 },
+        { stage: 'Second → Third', lossCount: secondStage - thirdStage, lossPct: secondStage > 0 ? Math.round(((secondStage - thirdStage) / secondStage) * 100 * 100) / 100 : 0 },
+        { stage: 'Third → Trial', lossCount: thirdStage - trial, lossPct: thirdStage > 0 ? Math.round(((thirdStage - trial) / thirdStage) * 100 * 100) / 100 : 0 },
+        { stage: 'Trial → Hired', lossCount: trial - hired, lossPct: trial > 0 ? Math.round(((trial - hired) / trial) * 100 * 100) / 100 : 0 },
+      ]
+
+      // Top roles by hires
+      const topRoles = await ctx.prisma.jobCandidate.groupBy({
+        by: ['jobId'],
+        where: { ...baseWhere, stage: 'HIRED' },
+        _count: true,
+        orderBy: { _count: { jobId: 'desc' } },
+        take: 5,
+      })
+
+      const topRolesWithNames = await Promise.all(
+        topRoles.map(async (r) => {
+          const job = await ctx.prisma.job.findUnique({
+            where: { id: r.jobId },
+            select: { title: true },
+          })
+          return { role: job?.title ?? 'Unknown', hires: r._count }
+        })
+      )
+
+      return {
+        totals: { qualifiedCVs, firstStage, secondStage, thirdStage, trial, ceoChat, hired },
+        conversionRates: {
+          qualToFirst: qualifiedCVs > 0 ? Math.round((firstStage / qualifiedCVs) * 100 * 100) / 100 : 0,
+          firstToSecond: firstStage > 0 ? Math.round((secondStage / firstStage) * 100 * 100) / 100 : 0,
+          secondToThird: secondStage > 0 ? Math.round((thirdStage / secondStage) * 100 * 100) / 100 : 0,
+          thirdToTrial: thirdStage > 0 ? Math.round((trial / thirdStage) * 100 * 100) / 100 : 0,
+          trialToHired: trial > 0 ? Math.round((hired / trial) * 100 * 100) / 100 : 0,
+          qualToHired: qualifiedCVs > 0 ? Math.round((hired / qualifiedCVs) * 100 * 100) / 100 : 0,
+        },
+        byYear,
+        dropoff,
+        topRoles: topRolesWithNames,
+        biggestLoss: dropoff.reduce((max, d) => (d.lossCount > max.lossCount ? d : max), dropoff[0]),
+        years,
+      }
+    }),
+
+  // ============================
+  // SOURCE BREAKDOWN
+  // ============================
+  getSourceBreakdown: hrAdminProcedure
+    .input(
+      z.object({
+        year: z.number().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const year = input.year ?? new Date().getFullYear()
+      const startDate = startOfYear(new Date(year, 0))
+      const endDate = endOfYear(new Date(year, 0))
+
+      const baseWhere = { appliedAt: { gte: startDate, lte: endDate } }
+
+      // By main source
+      const bySource = await ctx.prisma.jobCandidate.groupBy({
+        by: ['source'],
+        where: baseWhere,
+        _count: true,
+      })
+
+      // By inbound channel
+      const byInboundChannel = await ctx.prisma.jobCandidate.groupBy({
+        by: ['inboundChannel'],
+        where: { ...baseWhere, source: 'INBOUND', inboundChannel: { not: null } },
+        _count: true,
+      })
+
+      // By outbound channel
+      const byOutboundChannel = await ctx.prisma.jobCandidate.groupBy({
+        by: ['outboundChannel'],
+        where: { ...baseWhere, source: 'OUTBOUND', outboundChannel: { not: null } },
+        _count: true,
+      })
+
+      // Hired by source
+      const hiredBySource = await ctx.prisma.jobCandidate.groupBy({
+        by: ['source'],
+        where: { ...baseWhere, stage: 'HIRED' },
+        _count: true,
+      })
+
+      const total = bySource.reduce((sum, s) => sum + s._count, 0)
+
+      return {
+        year,
+        bySource: bySource.map((s) => ({
+          source: s.source ?? 'UNKNOWN',
+          count: s._count,
+          percentage: total > 0 ? Math.round((s._count / total) * 100 * 100) / 100 : 0,
+        })),
+        byInboundChannel: byInboundChannel.map((c) => ({
+          channel: c.inboundChannel ?? 'UNKNOWN',
+          count: c._count,
+        })),
+        byOutboundChannel: byOutboundChannel.map((c) => ({
+          channel: c.outboundChannel ?? 'UNKNOWN',
+          count: c._count,
+        })),
+        hiredBySource: hiredBySource.map((s) => ({
+          source: s.source ?? 'UNKNOWN',
+          hires: s._count,
+        })),
+        total,
+      }
+    }),
 })
