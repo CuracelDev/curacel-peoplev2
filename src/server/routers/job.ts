@@ -1,6 +1,10 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { router, protectedProcedure } from '@/lib/trpc'
+import { router, protectedProcedure, publicProcedure } from '@/lib/trpc'
+
+const InboundChannelEnum = z.enum(['YC', 'PEOPLEOS', 'COMPANY_SITE', 'OTHER'])
+const OutboundChannelEnum = z.enum(['LINKEDIN', 'JOB_BOARDS', 'GITHUB', 'TWITTER', 'OTHER'])
+const CandidateSourceEnum = z.enum(['INBOUND', 'OUTBOUND', 'RECRUITER', 'EXCELLER'])
 
 const JobStatusEnum = z.enum(['DRAFT', 'ACTIVE', 'PAUSED', 'HIRED'])
 type JobStatusType = z.infer<typeof JobStatusEnum>
@@ -390,14 +394,19 @@ export const jobRouter = router({
         phone: z.string().optional(),
         resumeUrl: z.string().optional(),
         linkedinUrl: z.string().optional(),
-        source: z.string().optional(),
+        // Enhanced source tracking
+        source: CandidateSourceEnum.default('EXCELLER'),
+        inboundChannel: InboundChannelEnum.optional(),
+        outboundChannel: OutboundChannelEnum.optional(),
+        bio: z.string().optional(),
+        coverLetter: z.string().optional(),
         referredBy: z.string().optional(),
         notes: z.string().optional(),
         score: z.number().min(0).max(100).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { jobId, ...data } = input
+      const { jobId, source, inboundChannel, outboundChannel, ...data } = input
 
       // Check job exists
       const job = await ctx.prisma.job.findUnique({ where: { id: jobId } })
@@ -408,10 +417,20 @@ export const jobRouter = router({
         })
       }
 
+      // Get the current user's employee ID for addedById (OUTBOUND/EXCELLER sources)
+      const addedById = ['OUTBOUND', 'EXCELLER'].includes(source) && ctx.user?.employeeId
+        ? ctx.user.employeeId
+        : undefined
+
       return ctx.prisma.jobCandidate.create({
         data: {
           ...data,
           jobId,
+          source,
+          inboundChannel: source === 'INBOUND' ? inboundChannel : null,
+          outboundChannel: source === 'OUTBOUND' ? outboundChannel : null,
+          addedById,
+          stage: 'APPLIED',
         },
       })
     }),
@@ -464,5 +483,138 @@ export const jobRouter = router({
         where: { id: input.id },
       })
       return { success: true }
+    }),
+
+  // =====================
+  // WEBHOOK PROCEDURES
+  // =====================
+
+  // Update webhook settings for a job
+  updateWebhookSettings: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        webhookUrl: z.string().url().optional().or(z.literal('')),
+        webhookSecret: z.string().optional(),
+        isPublic: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, webhookUrl, webhookSecret, isPublic } = input
+
+      const job = await ctx.prisma.job.findUnique({ where: { id } })
+      if (!job) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Job not found',
+        })
+      }
+
+      return ctx.prisma.job.update({
+        where: { id },
+        data: {
+          webhookUrl: webhookUrl || null,
+          webhookSecret: webhookSecret || null,
+          ...(isPublic !== undefined && { isPublic }),
+        },
+      })
+    }),
+
+  // =====================
+  // PUBLIC PROCEDURES
+  // =====================
+
+  // Get a public job posting by ID
+  getPublicJob: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const job = await ctx.prisma.job.findFirst({
+        where: {
+          id: input.id,
+          isPublic: true,
+          status: 'ACTIVE',
+        },
+        include: {
+          jobDescription: {
+            select: {
+              id: true,
+              name: true,
+              content: true,
+            },
+          },
+        },
+      })
+
+      if (!job) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Job not found or not publicly available',
+        })
+      }
+
+      return job
+    }),
+
+  // Submit a public job application
+  submitApplication: publicProcedure
+    .input(
+      z.object({
+        jobId: z.string(),
+        name: z.string().min(2, 'Name is required'),
+        email: z.string().email('Invalid email address'),
+        phone: z.string().optional(),
+        linkedinUrl: z.string().url().optional().or(z.literal('')),
+        bio: z.string().optional(),
+        coverLetter: z.string().min(10, 'Please write a cover letter'),
+        resumeUrl: z.string().optional(),
+        inboundChannel: InboundChannelEnum.default('PEOPLEOS'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { jobId, inboundChannel, ...candidateData } = input
+
+      // Verify job exists and is public/active
+      const job = await ctx.prisma.job.findFirst({
+        where: {
+          id: jobId,
+          isPublic: true,
+          status: 'ACTIVE',
+        },
+      })
+
+      if (!job) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Job not found or not accepting applications',
+        })
+      }
+
+      // Check if candidate has already applied to this job
+      const existingApplication = await ctx.prisma.jobCandidate.findFirst({
+        where: {
+          jobId,
+          email: input.email,
+        },
+      })
+
+      if (existingApplication) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'You have already applied to this position',
+        })
+      }
+
+      // Create the candidate with INBOUND source
+      const candidate = await ctx.prisma.jobCandidate.create({
+        data: {
+          ...candidateData,
+          jobId,
+          source: 'INBOUND',
+          inboundChannel,
+          stage: 'APPLIED',
+        },
+      })
+
+      return { success: true, candidateId: candidate.id }
     }),
 })
