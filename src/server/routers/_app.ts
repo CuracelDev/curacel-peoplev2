@@ -22,6 +22,7 @@ import { competencyRouter } from './competency'
 import { jobRouter } from './job'
 import { interestFormRouter } from './interest-form'
 import { interviewStageRouter } from './interview-stage'
+import { analyticsRouter } from './analytics'
 
 export const appRouter = router({
   employee: employeeRouter,
@@ -47,6 +48,7 @@ export const appRouter = router({
   job: jobRouter,
   interestForm: interestFormRouter,
   interviewStage: interviewStageRouter,
+  analytics: analyticsRouter,
 })
 
 export type AppRouter = typeof appRouter

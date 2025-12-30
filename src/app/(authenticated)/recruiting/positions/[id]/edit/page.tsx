@@ -238,7 +238,7 @@ export default function EditJobPage() {
         title: formData.title.trim(),
         department: formData.department || null,
         employmentType: formData.employmentType,
-        status: formData.status as 'DRAFT' | 'ACTIVE' | 'CLOSED',
+        status: formData.status as 'DRAFT' | 'ACTIVE' | 'PAUSED' | 'HIRED',
         priority: Number(formData.priority),
         deadline: formData.deadline || null,
         hiresCount: Number(formData.hiresCount) || 1,
@@ -372,7 +372,8 @@ export default function EditJobPage() {
                     <SelectContent>
                       <SelectItem value="DRAFT">Draft</SelectItem>
                       <SelectItem value="ACTIVE">Active</SelectItem>
-                      <SelectItem value="CLOSED">Closed</SelectItem>
+                      <SelectItem value="PAUSED">Paused</SelectItem>
+                      <SelectItem value="HIRED">Hired</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -654,7 +655,8 @@ export default function EditJobPage() {
                 <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Status</div>
                 <Badge className={cn(
                   formData.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
-                  formData.status === 'CLOSED' ? 'bg-gray-100 text-gray-700' : 'bg-yellow-100 text-yellow-700'
+                  formData.status === 'PAUSED' ? 'bg-orange-100 text-orange-700' :
+                  formData.status === 'HIRED' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
                 )}>{formData.status}</Badge>
               </div>
               <div>

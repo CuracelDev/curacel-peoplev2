@@ -19,6 +19,7 @@ import {
   HelpCircle,
   FileSignature,
   X,
+  BarChart3,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
@@ -54,6 +55,7 @@ const navigationSections: NavSection[] = [
     title: '',
     items: [
       { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'IT_ADMIN', 'MANAGER'] },
+      { name: 'Analytics', href: '/analytics', icon: BarChart3, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
     ],
   },
   {

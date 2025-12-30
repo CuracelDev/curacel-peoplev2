@@ -53,19 +53,21 @@ function getJobIconBg(department?: string | null) {
   return 'bg-indigo-600'
 }
 
-type FilterStatus = 'all' | 'ACTIVE' | 'DRAFT' | 'CLOSED'
+type FilterStatus = 'all' | 'ACTIVE' | 'DRAFT' | 'PAUSED' | 'HIRED'
 
 const STATUS_LABELS: Record<string, string> = {
   all: 'All',
   ACTIVE: 'Active',
   DRAFT: 'Draft',
-  CLOSED: 'Closed',
+  PAUSED: 'Paused',
+  HIRED: 'Hired',
 }
 
 const STATUS_BADGES: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',
   DRAFT: 'bg-yellow-100 text-yellow-700',
-  CLOSED: 'bg-gray-100 text-gray-700',
+  PAUSED: 'bg-orange-100 text-orange-700',
+  HIRED: 'bg-blue-100 text-blue-700',
 }
 
 // Priority badge styles
@@ -154,7 +156,7 @@ export default function PositionsPage() {
 
       {/* Filter Bar */}
       <div className="flex items-center gap-3 mb-6">
-        {(['all', 'ACTIVE', 'DRAFT', 'CLOSED'] as FilterStatus[]).map((status) => (
+        {(['all', 'ACTIVE', 'DRAFT', 'PAUSED', 'HIRED'] as FilterStatus[]).map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}

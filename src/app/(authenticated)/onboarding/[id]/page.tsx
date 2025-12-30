@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
+import { Switch } from '@/components/ui/switch'
+import { Label } from '@/components/ui/label'
 import {
   Dialog,
   DialogContent,
@@ -33,7 +35,7 @@ import {
   ClipboardList,
 } from 'lucide-react'
 import Link from 'next/link'
-import { useState, type ReactNode } from 'react'
+import { useState, useMemo, type ReactNode } from 'react'
 import { formatDate, taskStatusColors, cn } from '@/lib/utils'
 import type { OnboardingTask } from '@/lib/onboarding-tasks'
 
@@ -147,6 +149,7 @@ export default function OnboardingDetailPage() {
   const [skipDialogOpen, setSkipDialogOpen] = useState(false)
   const [selectedTaskId, setSelectedTaskId] = useState<string>('')
   const [skipReason, setSkipReason] = useState('')
+  const [sendByodAgreement, setSendByodAgreement] = useState(false)
   const [peopleOpsTasksExpanded, setPeopleOpsTasksExpanded] = useState(true)
   const [employeeTasksExpanded, setEmployeeTasksExpanded] = useState(true)
 
@@ -180,6 +183,7 @@ export default function OnboardingDetailPage() {
     onSuccess: () => {
       setSkipDialogOpen(false)
       setSkipReason('')
+      setSendByodAgreement(false)
       refetch()
     },
   })
@@ -400,14 +404,27 @@ export default function OnboardingDetailPage() {
 
   const handleSkipTask = (taskId: string) => {
     setSelectedTaskId(taskId)
+    setSendByodAgreement(false)
     setSkipDialogOpen(true)
   }
 
   const confirmSkipTask = () => {
     if (selectedTaskId && skipReason) {
-      skipTask.mutate({ taskId: selectedTaskId, reason: skipReason })
+      skipTask.mutate({
+        taskId: selectedTaskId,
+        reason: skipReason,
+        sendByodAgreement: isDeviceTask ? sendByodAgreement : undefined,
+      })
     }
   }
+
+  // Check if the selected task is a device-related task
+  const selectedTask = workflow?.tasks.find((t: { id: string }) => t.id === selectedTaskId)
+  const isDeviceTask = useMemo(() => {
+    if (!selectedTask) return false
+    const name = (selectedTask as { name: string }).name.toLowerCase()
+    return name.includes('laptop') || name.includes('hardware') || name.includes('device') || name.includes('ship')
+  }, [selectedTask])
 
   return (
     <div className="space-y-4">
@@ -777,11 +794,32 @@ export default function OnboardingDetailPage() {
               Please provide a reason for skipping this task.
             </DialogDescription>
           </DialogHeader>
-          <Input
-            placeholder="Reason for skipping..."
-            value={skipReason}
-            onChange={(e) => setSkipReason(e.target.value)}
-          />
+          <div className="space-y-4">
+            <Input
+              placeholder="Reason for skipping..."
+              value={skipReason}
+              onChange={(e) => setSkipReason(e.target.value)}
+            />
+            {isDeviceTask && (
+              <div className="rounded-md border border-blue-200 bg-blue-50 p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="byod-toggle" className="text-sm font-medium text-gray-900">
+                      Send BYOD Agreement
+                    </Label>
+                    <p className="text-xs text-gray-500 mt-0.5">
+                      Employee will use their own device - send BYOD undertaking form for signature
+                    </p>
+                  </div>
+                  <Switch
+                    id="byod-toggle"
+                    checked={sendByodAgreement}
+                    onCheckedChange={setSendByodAgreement}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setSkipDialogOpen(false)}>
               Cancel
