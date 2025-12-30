@@ -59,7 +59,7 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
           }}
           onMobileMenuClick={() => setMobileOpen(true)}
         />
-        <main className="px-3 py-3">
+        <main className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
           <Breadcrumb className="mb-4" />
           {children}
         </main>

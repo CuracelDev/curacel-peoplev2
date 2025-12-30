@@ -159,7 +159,7 @@ export function Sidebar({
         'hidden lg:flex',
         collapsed ? 'lg:w-16' : 'lg:w-56',
         // Mobile: show as overlay when mobileOpen
-        mobileOpen && 'flex w-72'
+        mobileOpen && 'flex w-[85vw] max-w-72'
       )}
     >
       <div className={cn('flex h-14 items-center border-b border-border flex-shrink-0 justify-between', collapsed ? 'px-2' : 'px-4')}>

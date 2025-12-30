@@ -143,9 +143,9 @@ export default function PositionsPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       {/* Action Bar */}
-      <div className="flex justify-end mb-6">
+      <div className="flex justify-end mb-4 sm:mb-6">
         <Link href="/recruiting/positions/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
@@ -155,7 +155,7 @@ export default function PositionsPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="flex items-center gap-3 mb-6">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
         {(['all', 'ACTIVE', 'DRAFT', 'PAUSED', 'HIRED'] as FilterStatus[]).map((status) => (
           <button
             key={status}
@@ -210,9 +210,9 @@ export default function PositionsPage() {
               <Link
                 key={job.id}
                 href={`/recruiting/positions/${job.id}/candidates`}
-                className="bg-white border border-gray-200 rounded-xl p-5 flex gap-5 transition-all hover:border-indigo-500 hover:shadow-md"
+                className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 flex gap-3 sm:gap-5 transition-all hover:border-indigo-500 hover:shadow-md"
               >
-                <div className={cn('w-12 h-12 rounded-lg flex items-center justify-center text-white flex-shrink-0', getJobIconBg(job.department))}>
+                <div className={cn('hidden sm:flex w-12 h-12 rounded-lg items-center justify-center text-white flex-shrink-0', getJobIconBg(job.department))}>
                   {getJobIcon(job.department)}
                 </div>
 
@@ -257,28 +257,28 @@ export default function PositionsPage() {
                   </div>
 
                   {/* Job Stats */}
-                  <div className="flex gap-6 mt-4 pt-4 border-t border-gray-100">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 mt-4 pt-4 border-t border-gray-100">
                     <div className="text-center">
-                      <div className="text-xl font-semibold text-gray-900">{stats.applicants}</div>
+                      <div className="text-lg sm:text-xl font-semibold text-gray-900">{stats.applicants}</div>
                       <div className="text-xs text-gray-500">Applicants</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-xl font-semibold text-gray-900">{stats.inReview}</div>
+                      <div className="text-lg sm:text-xl font-semibold text-gray-900">{stats.inReview}</div>
                       <div className="text-xs text-gray-500">In Review</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-xl font-semibold text-gray-900">{stats.interviewing}</div>
+                      <div className="text-lg sm:text-xl font-semibold text-gray-900">{stats.interviewing}</div>
                       <div className="text-xs text-gray-500">Interviewing</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-xl font-semibold text-gray-900">{stats.offerStage}</div>
+                      <div className="text-lg sm:text-xl font-semibold text-gray-900">{stats.offerStage}</div>
                       <div className="text-xs text-gray-500">Offer Stage</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Score Circle */}
-                <div className="flex flex-col items-end justify-center">
+                <div className="hidden sm:flex flex-col items-end justify-center">
                   <ScoreCircle score={stats.avgScore} />
                 </div>
               </Link>

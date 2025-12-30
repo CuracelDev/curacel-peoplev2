@@ -167,9 +167,9 @@ export default function RecruitingDashboard() {
   const [selectedJob, setSelectedJob] = useState('all')
 
   return (
-    <div className="p-6">
+    <div className="p-3 sm:p-6">
       {/* Stats Grid */}
-      <div className="grid grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4 mb-4 sm:mb-6">
         {stats.map((stat, i) => (
           <Card key={i}>
             <CardContent className="p-5">
@@ -185,7 +185,7 @@ export default function RecruitingDashboard() {
       </div>
 
       {/* Pipeline and Activity Row */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
         {/* Pipeline Overview */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between py-4 px-5">
@@ -255,7 +255,7 @@ export default function RecruitingDashboard() {
       </div>
 
       {/* Top Candidates and Quick Actions Row */}
-      <div className="grid grid-cols-2 gap-6 mb-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
         {/* Top Candidates */}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between py-4 px-5">
