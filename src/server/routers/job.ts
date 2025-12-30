@@ -2,7 +2,7 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure } from '@/lib/trpc'
 
-const JobStatusEnum = z.enum(['DRAFT', 'ACTIVE', 'CLOSED'])
+const JobStatusEnum = z.enum(['DRAFT', 'ACTIVE', 'PAUSED', 'HIRED'])
 type JobStatusType = z.infer<typeof JobStatusEnum>
 
 const JobCandidateStageEnum = z.enum([
@@ -10,6 +10,8 @@ const JobCandidateStageEnum = z.enum([
   'HR_SCREEN',
   'TECHNICAL',
   'PANEL',
+  'TRIAL',
+  'CEO_CHAT',
   'OFFER',
   'HIRED',
   'REJECTED',
@@ -277,26 +279,37 @@ export const jobRouter = router({
       return { success: true }
     }),
 
-  // Close a job (soft status change)
-  close: protectedProcedure
+  // Pause a job
+  pause: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       return ctx.prisma.job.update({
         where: { id: input.id },
-        data: { status: 'CLOSED' },
+        data: { status: 'PAUSED' },
+      })
+    }),
+
+  // Mark a job as hired (all positions filled)
+  markHired: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.job.update({
+        where: { id: input.id },
+        data: { status: 'HIRED' },
       })
     }),
 
   // Get job counts by status
   getCounts: protectedProcedure.query(async ({ ctx }) => {
-    const [all, active, draft, closed] = await Promise.all([
+    const [all, active, draft, paused, hired] = await Promise.all([
       ctx.prisma.job.count(),
       ctx.prisma.job.count({ where: { status: 'ACTIVE' } }),
       ctx.prisma.job.count({ where: { status: 'DRAFT' } }),
-      ctx.prisma.job.count({ where: { status: 'CLOSED' } }),
+      ctx.prisma.job.count({ where: { status: 'PAUSED' } }),
+      ctx.prisma.job.count({ where: { status: 'HIRED' } }),
     ])
 
-    return { all, active, draft, closed }
+    return { all, active, draft, paused, hired }
   }),
 
   // List candidates for a job

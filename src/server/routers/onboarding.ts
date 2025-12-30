@@ -902,10 +902,27 @@ export const onboardingRouter = router({
     .input(z.object({
       taskId: z.string(),
       reason: z.string(),
+      sendByodAgreement: z.boolean().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       const task = await ctx.prisma.onboardingTask.findUnique({
         where: { id: input.taskId },
+        include: {
+          workflow: {
+            include: {
+              employee: {
+                select: {
+                  id: true,
+                  fullName: true,
+                  personalEmail: true,
+                  workEmail: true,
+                  jobTitle: true,
+                  department: true,
+                },
+              },
+            },
+          },
+        },
       })
 
       if (!task) {
@@ -922,10 +939,59 @@ export const onboardingRouter = router({
         },
       })
 
+      // Send BYOD agreement if requested
+      if (input.sendByodAgreement && task.workflow?.employee) {
+        const employee = task.workflow.employee
+        const candidateEmail = employee.workEmail || employee.personalEmail
+
+        if (candidateEmail) {
+          // Find the BYOD template
+          const byodTemplate = await ctx.prisma.offerTemplate.findFirst({
+            where: {
+              name: { contains: 'BYOD', mode: 'insensitive' },
+              isActive: true,
+            },
+          })
+
+          if (byodTemplate) {
+            // Create the BYOD agreement offer
+            const byodOffer = await ctx.prisma.offer.create({
+              data: {
+                employeeId: employee.id,
+                candidateEmail,
+                candidateName: employee.fullName,
+                templateId: byodTemplate.id,
+                variables: {
+                  employee_name: employee.fullName,
+                  department: employee.department || 'N/A',
+                  job_title: employee.jobTitle || 'N/A',
+                  device_model: 'To be provided by employee',
+                  serial_number: 'N/A',
+                  charger_serial: 'N/A',
+                  imei_number: 'N/A',
+                  signature_date: new Date().toISOString().split('T')[0],
+                },
+                status: 'DRAFT',
+                notes: 'BYOD Agreement - Auto-created when device provisioning was skipped',
+              },
+            })
+
+            // Log event
+            await ctx.prisma.offerEvent.create({
+              data: {
+                offerId: byodOffer.id,
+                type: 'created',
+                details: { note: 'BYOD agreement created during onboarding (device task skipped)' },
+              },
+            })
+          }
+        }
+      }
+
       // Check if all tasks are complete
       await checkAndCompleteWorkflow(ctx.prisma, task.workflowId)
 
-      return { success: true }
+      return { success: true, byodAgreementCreated: input.sendByodAgreement || false }
     }),
 
   // Public endpoint for employee self-service onboarding
