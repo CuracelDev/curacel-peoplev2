@@ -101,5 +101,10 @@ export const useHiringFlows = () => {
     updateFlows(getDefaultHiringFlows())
   }, [updateFlows])
 
-  return { flows, setFlows: updateFlows, resetFlows }
+  const saveFlows = useCallback(() => {
+    // Already persisted on each update, but this provides an explicit save action
+    writeStoredFlows(flows)
+  }, [flows])
+
+  return { flows, setFlows: updateFlows, resetFlows, saveFlows }
 }
