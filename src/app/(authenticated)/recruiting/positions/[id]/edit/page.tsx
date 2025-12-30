@@ -31,7 +31,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
-import { useHiringFlows } from '@/lib/recruiting/hiring-flows'
 import { trpc } from '@/lib/trpc-client'
 
 const flowAppearance = {
@@ -105,7 +104,9 @@ export default function EditJobPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [initialized, setInitialized] = useState(false)
 
-  const { flows } = useHiringFlows()
+  // Use tRPC for hiring flows instead of localStorage
+  const { data: hiringFlows } = trpc.hiringFlow.list.useQuery()
+  const flows = hiringFlows ?? []
 
   // Initialize form with job data
   useEffect(() => {

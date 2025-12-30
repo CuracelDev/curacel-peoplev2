@@ -1027,6 +1027,46 @@ model OnboardingSettings {
 }
 
 // ============================================
+// HIRING FLOWS
+// ============================================
+
+// Master hiring flow definition (editable in settings)
+model HiringFlow {
+  id          String   @id @default(uuid())
+  name        String   @unique  // "Standard", "Engineering", "Sales"
+  description String?
+  stages      Json     // Array of stage names: ["Apply", "People Chat", "Assessment", "Team Chat", "Trial", "CEO Chat", "Offer"]
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+
+  // Track all snapshots of this flow
+  snapshots   HiringFlowSnapshot[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([isDefault])
+}
+
+// Immutable snapshot of a flow at a point in time
+model HiringFlowSnapshot {
+  id          String      @id @default(uuid())
+  flowId      String
+  flow        HiringFlow  @relation(fields: [flowId], references: [id], onDelete: Cascade)
+
+  version     Int         // Auto-incrementing per flow
+  stages      Json        // Frozen copy of stages at snapshot time
+  snapshotAt  DateTime    @default(now())
+
+  // Jobs using this snapshot
+  jobs        Job[]
+
+  @@unique([flowId, version])
+  @@index([flowId])
+}
+
+// ============================================
 // JOB SETTINGS - JDs, RUBRICS, COMPETENCIES
 // ============================================
 
@@ -1123,8 +1163,10 @@ model Job {
   // Locations (stored as JSON array of strings)
   locations           Json        @default("[]")
 
-  // Interview flow (stored as flow ID from config)
-  hiringFlowId        String?
+  // Interview flow - references a snapshot of a hiring flow
+  hiringFlowId        String?   // Legacy field - to be migrated
+  hiringFlowSnapshotId String?
+  hiringFlowSnapshot   HiringFlowSnapshot? @relation(fields: [hiringFlowSnapshotId], references: [id])
 
   // Job Description reference
   jobDescriptionId    String?
@@ -1165,6 +1207,7 @@ model Job {
   @@index([deadline])
   @@index([createdAt])
   @@index([interestFormId])
+  @@index([hiringFlowSnapshotId])
   @@index([slug])
   @@index([isPublic])
 }
@@ -1221,6 +1264,7 @@ model JobCandidate {
 
   // Pipeline tracking
   stage       JobCandidateStage @default(APPLIED)
+  customStageName String?       // For legacy candidates when flow changes - stores display name
   score       Int?              // Overall AI score 0-100
 
   // Score breakdown (AI-generated)

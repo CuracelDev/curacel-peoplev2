@@ -56,7 +56,6 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import { useHiringFlows, type HiringFlow } from '@/lib/recruiting/hiring-flows'
 import { trpc } from '@/lib/trpc-client'
 
 const settingsNav = [
@@ -138,10 +137,35 @@ export default function SettingsPage() {
     agreeableness: 70,
     neuroticism: 30,
   })
-  const { flows, setFlows, resetFlows, saveFlows } = useHiringFlows()
-  const [activeFlowId, setActiveFlowId] = useState('standard')
-  const [flowSaving, setFlowSaving] = useState(false)
+  // Hiring flow state - now using tRPC instead of localStorage
+  const hiringFlowsQuery = trpc.hiringFlow.list.useQuery()
+  const [activeFlowId, setActiveFlowId] = useState<string | null>(null)
+  const [editedFlow, setEditedFlow] = useState<{
+    name: string
+    description: string
+    stages: string[]
+  } | null>(null)
   const [flowSaved, setFlowSaved] = useState(false)
+  const [showFlowMappingDialog, setShowFlowMappingDialog] = useState(false)
+  const [stageMapping, setStageMapping] = useState<Record<string, string | null>>({})
+  const [originalStages, setOriginalStages] = useState<string[]>([])
+
+  const updateFlowMutation = trpc.hiringFlow.update.useMutation({
+    onSuccess: () => {
+      hiringFlowsQuery.refetch()
+      setFlowSaved(true)
+      setEditedFlow(null)
+      setShowFlowMappingDialog(false)
+      setTimeout(() => setFlowSaved(false), 2000)
+    },
+  })
+
+  const createFlowMutation = trpc.hiringFlow.create.useMutation({
+    onSuccess: (data) => {
+      hiringFlowsQuery.refetch()
+      setActiveFlowId(data.id)
+    },
+  })
 
   // Interest form state
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null)
@@ -245,52 +269,105 @@ export default function SettingsPage() {
     }
   }, [searchParams])
 
+  // Set active flow when data loads
   useEffect(() => {
+    const flows = hiringFlowsQuery.data ?? []
     if (!flows.length) return
-    if (!flows.some((flow) => flow.id === activeFlowId)) {
+    if (!activeFlowId || !flows.some((flow) => flow.id === activeFlowId)) {
       setActiveFlowId(flows[0].id)
     }
-  }, [flows, activeFlowId])
+  }, [hiringFlowsQuery.data, activeFlowId])
 
-  const activeFlow = flows.find((flow) => flow.id === activeFlowId) ?? flows[0]
+  // Initialize edited flow when active flow changes
+  useEffect(() => {
+    const activeFlow = (hiringFlowsQuery.data ?? []).find((f) => f.id === activeFlowId)
+    if (activeFlow && !editedFlow) {
+      setEditedFlow({
+        name: activeFlow.name,
+        description: activeFlow.description || '',
+        stages: [...activeFlow.stages],
+      })
+      setOriginalStages([...activeFlow.stages])
+    }
+  }, [activeFlowId, hiringFlowsQuery.data, editedFlow])
 
-  const updateActiveFlow = (updates: Partial<HiringFlow>) => {
-    if (!activeFlow) return
-    const nextFlows = flows.map((flow) =>
-      flow.id === activeFlow.id ? { ...flow, ...updates } : flow
-    )
-    setFlows(nextFlows)
+  const flows = hiringFlowsQuery.data ?? []
+  const activeFlow = flows.find((flow) => flow.id === activeFlowId)
+
+  const updateEditedFlow = (updates: Partial<typeof editedFlow>) => {
+    if (!editedFlow) return
+    setEditedFlow({ ...editedFlow, ...updates })
   }
 
   const updateStage = (index: number, value: string) => {
-    if (!activeFlow) return
-    const nextStages = activeFlow.stages.map((stage, i) =>
+    if (!editedFlow) return
+    const nextStages = editedFlow.stages.map((stage, i) =>
       i === index ? value : stage
     )
-    updateActiveFlow({ stages: nextStages })
+    updateEditedFlow({ stages: nextStages })
   }
 
   const addStage = () => {
-    if (!activeFlow) return
-    updateActiveFlow({ stages: [...activeFlow.stages, 'New Stage'] })
+    if (!editedFlow) return
+    updateEditedFlow({ stages: [...editedFlow.stages, 'New Stage'] })
   }
 
   const removeStage = (index: number) => {
-    if (!activeFlow || activeFlow.stages.length <= 1) return
-    const nextStages = activeFlow.stages.filter((_, i) => i !== index)
-    updateActiveFlow({ stages: nextStages })
+    if (!editedFlow || editedFlow.stages.length <= 1) return
+    const nextStages = editedFlow.stages.filter((_, i) => i !== index)
+    updateEditedFlow({ stages: nextStages })
   }
 
   const handleSaveFlows = async () => {
-    setFlowSaving(true)
-    setFlowSaved(false)
-    try {
-      saveFlows()
-      setFlowSaved(true)
-      setTimeout(() => setFlowSaved(false), 2000)
-    } finally {
-      setFlowSaving(false)
+    if (!activeFlowId || !editedFlow) return
+
+    // Check if stages have changed
+    const stagesChanged = JSON.stringify(editedFlow.stages) !== JSON.stringify(originalStages)
+    const hasJobsToMigrate = activeFlow && activeFlow.totalJobs > 0 && stagesChanged
+
+    if (hasJobsToMigrate) {
+      // Show mapping dialog
+      const removedStages = originalStages.filter((s) => !editedFlow.stages.includes(s))
+      const initialMapping: Record<string, string | null> = {}
+      for (const stage of originalStages) {
+        initialMapping[stage] = editedFlow.stages.includes(stage) ? stage : null
+      }
+      setStageMapping(initialMapping)
+      setShowFlowMappingDialog(true)
+    } else {
+      // No migration needed, save directly
+      updateFlowMutation.mutate({
+        id: activeFlowId,
+        name: editedFlow.name,
+        description: editedFlow.description || null,
+        stages: editedFlow.stages,
+      })
     }
+  }
+
+  const handleConfirmFlowUpdate = () => {
+    if (!activeFlowId || !editedFlow) return
+    updateFlowMutation.mutate({
+      id: activeFlowId,
+      name: editedFlow.name,
+      description: editedFlow.description || null,
+      stages: editedFlow.stages,
+      stageMapping,
+    })
+  }
+
+  const handleFlowChange = (flowId: string) => {
+    setActiveFlowId(flowId)
+    setEditedFlow(null) // Reset edited flow so it gets reloaded
+  }
+
+  const handleResetFlow = () => {
+    if (!activeFlow) return
+    setEditedFlow({
+      name: activeFlow.name,
+      description: activeFlow.description || '',
+      stages: [...activeFlow.stages],
+    })
   }
 
   // Form dialog helpers
@@ -625,7 +702,7 @@ export default function SettingsPage() {
                       Edit the interview flow for each role type. Changes apply across job setup, templates, and candidate stages.
                     </p>
                   </div>
-                  <Button onClick={handleSaveFlows} disabled={flowSaving} variant={flowSaved ? 'outline' : 'default'} className={flowSaved ? 'bg-green-50 text-green-700 border-green-300' : ''}>
+                  <Button onClick={handleSaveFlows} disabled={updateFlowMutation.isPending} variant={flowSaved ? 'outline' : 'default'} className={flowSaved ? 'bg-green-50 text-green-700 border-green-300' : ''}>
                     {flowSaved ? (
                       <>
                         <Check className="h-4 w-4 mr-2" />
@@ -634,36 +711,67 @@ export default function SettingsPage() {
                     ) : (
                       <>
                         <Save className="h-4 w-4 mr-2" />
-                        {flowSaving ? 'Saving...' : 'Save Changes'}
+                        {updateFlowMutation.isPending ? 'Saving...' : 'Save Changes'}
                       </>
                     )}
                   </Button>
                 </div>
               </CardHeader>
               <CardContent className="p-5">
+                {hiringFlowsQuery.isLoading ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                  </div>
+                ) : (
                 <div className="grid grid-cols-[220px_1fr] gap-6">
                   <div className="space-y-4">
                     <div>
                       <Label className="mb-2 block">Role Flow</Label>
-                      <Select value={activeFlowId} onValueChange={setActiveFlowId}>
+                      <Select value={activeFlowId ?? ''} onValueChange={handleFlowChange}>
                         <SelectTrigger>
                           <SelectValue placeholder="Select flow" />
                         </SelectTrigger>
                         <SelectContent>
                           {flows.map((flow) => (
                             <SelectItem key={flow.id} value={flow.id}>
-                              {flow.name}
+                              <div className="flex items-center gap-2">
+                                <span>{flow.name}</span>
+                                {flow.isDefault && (
+                                  <Badge variant="secondary" className="text-xs">Default</Badge>
+                                )}
+                              </div>
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
+
+                    {/* Flow stats */}
+                    {activeFlow && (
+                      <div className="rounded-lg border border-gray-200 p-3 space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Jobs using this flow:</span>
+                          <span className="font-medium">{activeFlow.totalJobs}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Current version:</span>
+                          <span className="font-medium">v{activeFlow.latestVersion}</span>
+                        </div>
+                        {activeFlow.outdatedJobs > 0 && (
+                          <div className="mt-2 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5">
+                            <span>⚠️</span>
+                            <span>{activeFlow.outdatedJobs} job(s) on older version</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <div className="rounded-lg border border-gray-200 p-3 text-xs text-gray-500">
                       These stages power the flow preview in job creation and the flow selector in JD templates.
                     </div>
-                    <Button variant="outline" size="sm" onClick={resetFlows}>
+                    <Button variant="outline" size="sm" onClick={handleResetFlow}>
                       <RotateCcw className="h-4 w-4 mr-2" />
-                      Reset to defaults
+                      Discard Changes
                     </Button>
                   </div>
 
@@ -672,16 +780,16 @@ export default function SettingsPage() {
                       <div className="space-y-2">
                         <Label>Flow Name</Label>
                         <Input
-                          value={activeFlow?.name ?? ''}
-                          onChange={(e) => updateActiveFlow({ name: e.target.value })}
+                          value={editedFlow?.name ?? ''}
+                          onChange={(e) => updateEditedFlow({ name: e.target.value })}
                           placeholder="e.g., Engineering"
                         />
                       </div>
                       <div className="space-y-2">
                         <Label>Description</Label>
                         <Input
-                          value={activeFlow?.description ?? ''}
-                          onChange={(e) => updateActiveFlow({ description: e.target.value })}
+                          value={editedFlow?.description ?? ''}
+                          onChange={(e) => updateEditedFlow({ description: e.target.value })}
                           placeholder="Short description for this flow"
                         />
                       </div>
@@ -696,8 +804,8 @@ export default function SettingsPage() {
                         </Button>
                       </div>
                       <div className="space-y-2">
-                        {(activeFlow?.stages ?? []).map((stage, index) => (
-                          <div key={`${activeFlow?.id}-stage-${index}`} className="flex items-center gap-3">
+                        {(editedFlow?.stages ?? []).map((stage, index) => (
+                          <div key={`${activeFlowId}-stage-${index}`} className="flex items-center gap-3">
                             <div className="h-9 w-9 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center text-sm font-semibold">
                               {index + 1}
                             </div>
@@ -710,7 +818,7 @@ export default function SettingsPage() {
                               variant="ghost"
                               size="icon"
                               onClick={() => removeStage(index)}
-                              disabled={(activeFlow?.stages.length ?? 0) <= 1}
+                              disabled={(editedFlow?.stages.length ?? 0) <= 1}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -722,8 +830,8 @@ export default function SettingsPage() {
                     <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
                       <div className="text-xs text-gray-500 uppercase tracking-wide">Preview</div>
                       <div className="flex flex-wrap gap-2 mt-2">
-                        {(activeFlow?.stages ?? []).map((stage) => (
-                          <Badge key={`${activeFlow?.id}-${stage}`} variant="secondary">
+                        {(editedFlow?.stages ?? []).map((stage, idx) => (
+                          <Badge key={`preview-${idx}-${stage}`} variant="secondary">
                             {stage}
                           </Badge>
                         ))}
@@ -731,9 +839,74 @@ export default function SettingsPage() {
                     </div>
                   </div>
                 </div>
+                )}
               </CardContent>
             </Card>
           )}
+
+          {/* Stage Mapping Dialog */}
+          <Dialog open={showFlowMappingDialog} onOpenChange={setShowFlowMappingDialog}>
+            <DialogContent className="max-w-lg">
+              <DialogHeader>
+                <DialogTitle>Map Existing Stages</DialogTitle>
+                <DialogDescription>
+                  {activeFlow?.totalJobs} job(s) are using this flow. Map old stages to new stages to migrate candidates.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center text-sm font-medium text-gray-500">
+                  <div>Old Stage</div>
+                  <div></div>
+                  <div>New Stage</div>
+                </div>
+                {originalStages.map((oldStage) => (
+                  <div key={oldStage} className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                    <div className="px-3 py-2 bg-gray-100 rounded-md text-sm">{oldStage}</div>
+                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                    <Select
+                      value={stageMapping[oldStage] ?? 'unmapped'}
+                      onValueChange={(value) =>
+                        setStageMapping((prev) => ({
+                          ...prev,
+                          [oldStage]: value === 'unmapped' ? null : value,
+                        }))
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="unmapped">
+                          <span className="text-gray-400">Keep as legacy</span>
+                        </SelectItem>
+                        {(editedFlow?.stages ?? []).map((newStage) => (
+                          <SelectItem key={newStage} value={newStage}>
+                            {newStage}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ))}
+                {editedFlow && (
+                  <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
+                    <strong>New stages added:</strong>{' '}
+                    {editedFlow.stages
+                      .filter((s) => !originalStages.includes(s))
+                      .join(', ') || 'None'}
+                  </div>
+                )}
+              </div>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowFlowMappingDialog(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleConfirmFlowUpdate} disabled={updateFlowMutation.isPending}>
+                  {updateFlowMutation.isPending ? 'Saving...' : 'Save & Update Jobs'}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
 
           {/* Interest Forms */}
           {activeSection === 'interestForms' && (

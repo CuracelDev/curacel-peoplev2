@@ -11,6 +11,8 @@ import {
   ChevronRight,
   Pencil,
   Loader2,
+  AlertTriangle,
+  RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -117,8 +119,14 @@ const STATUS_LABELS: Record<string, string> = {
 export default function CandidatesListPage() {
   const params = useParams()
   const jobId = params.id as string
+  const utils = trpc.useUtils()
   const { data: job, isLoading: jobLoading } = trpc.job.get.useQuery({ id: jobId })
   const { data: candidatesData, isLoading: candidatesLoading } = trpc.job.listCandidates.useQuery({ jobId })
+  const upgradeFlowMutation = trpc.hiringFlow.upgradeJobFlow.useMutation({
+    onSuccess: () => {
+      utils.job.get.invalidate({ id: jobId })
+    },
+  })
 
   const [selectedStage, setSelectedStage] = useState('all')
   const [sortBy, setSortBy] = useState('score-desc')
@@ -141,14 +149,30 @@ export default function CandidatesListPage() {
     rejected: 0,
   }
 
-  const stages = [
-    { id: 'all', label: 'All', count: counts.all },
-    { id: 'APPLIED', label: 'Applied', count: counts.applied },
-    { id: 'HR_SCREEN', label: 'HR Screen', count: counts.hrScreen },
-    { id: 'TECHNICAL', label: 'Technical', count: counts.technical },
-    { id: 'PANEL', label: 'Panel', count: counts.panel },
-    { id: 'OFFER', label: 'Offer', count: counts.offer },
-  ]
+  // Get stages from hiring flow snapshot or use defaults
+  const hiringFlowStages = useMemo(() => {
+    if (job?.hiringFlowSnapshot?.stages) {
+      return job.hiringFlowSnapshot.stages as string[]
+    }
+    // Fallback to default stages if no hiring flow is assigned
+    return ['Apply', 'People Chat', 'Assessment', 'Team Chat', 'Trial', 'CEO Chat', 'Offer']
+  }, [job?.hiringFlowSnapshot?.stages])
+
+  // Build stages array from hiring flow
+  const stages = useMemo(() => {
+    const baseStages = [{ id: 'all', label: 'All', count: counts.all }]
+
+    // Add stages from hiring flow
+    hiringFlowStages.forEach((stage, index) => {
+      baseStages.push({
+        id: `STAGE_${index}`,
+        label: stage,
+        count: 0, // Will be calculated from candidates
+      })
+    })
+
+    return baseStages
+  }, [hiringFlowStages, counts.all])
 
   // Filter candidates by stage
   const stageFilteredCandidates = useMemo(() => {
@@ -295,6 +319,51 @@ export default function CandidatesListPage() {
           </div>
         </div>
       </div>
+
+      {/* Flow Outdated Banner */}
+      {job.flowOutdated && job.hiringFlowSnapshot?.flow && (
+        <div className="mb-4 flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+            <div>
+              <p className="text-sm font-medium text-amber-800">
+                Hiring flow has been updated
+              </p>
+              <p className="text-xs text-amber-700">
+                This job is using version {job.currentVersion} of the &quot;{job.hiringFlowSnapshot.flow.name}&quot; flow.
+                Version {job.latestVersion} is now available.
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            variant="outline"
+            className="border-amber-300 text-amber-700 hover:bg-amber-100"
+            onClick={() => upgradeFlowMutation.mutate({ jobId })}
+            disabled={upgradeFlowMutation.isPending}
+          >
+            {upgradeFlowMutation.isPending ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4 mr-2" />
+            )}
+            Update to v{job.latestVersion}
+          </Button>
+        </div>
+      )}
+
+      {/* Hiring Flow Info */}
+      {job.hiringFlowSnapshot?.flow && (
+        <div className="mb-4 text-sm text-gray-500">
+          <span className="font-medium text-gray-700">{job.hiringFlowSnapshot.flow.name}</span>
+          {' '}flow • {hiringFlowStages.length} stages
+          {!job.flowOutdated && (
+            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+              Up to date
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Stats Row - Always fits in 1 row */}
       <div className="flex gap-3 min-w-0 mb-6">
