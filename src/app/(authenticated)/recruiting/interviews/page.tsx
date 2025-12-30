@@ -42,6 +42,7 @@ import {
 import { cn } from '@/lib/utils'
 import { format, isPast, isToday, isTomorrow, addDays, addHours, subDays } from 'date-fns'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 // Helper to generate mock interview data (called inside component to avoid hydration issues)
 const generateMockInterviews = () => [
@@ -87,8 +88,8 @@ const generateMockInterviews = () => [
   {
     id: 'mock-3',
     candidateId: 'cand-3',
-    stage: 'PANEL',
-    stageName: 'Panel Interview',
+    stage: 'TEAM_CHAT',
+    stageName: 'Team Chat',
     scheduledAt: addDays(new Date(), 3),
     duration: 90,
     status: 'SCHEDULED',
@@ -168,9 +169,8 @@ const generateMockInterviews = () => [
 const mockCounts = {
   all: 6,
   HR_SCREEN: 2,
-  TEAM_CHAT: 1,
+  TEAM_CHAT: 2,
   ADVISOR_CHAT: 1,
-  PANEL: 1,
   CEO_CHAT: 1,
   upcoming: 5,
 }
@@ -181,7 +181,6 @@ const stageConfig: Record<string, { label: string; color: string }> = {
   TEAM_CHAT: { label: 'Team Chat', color: 'bg-purple-100 text-purple-800' },
   ADVISOR_CHAT: { label: 'Advisor Chat', color: 'bg-indigo-100 text-indigo-800' },
   TECHNICAL: { label: 'Coding Test', color: 'bg-amber-100 text-amber-800' },
-  PANEL: { label: 'Panel', color: 'bg-green-100 text-green-800' },
   CEO_CHAT: { label: 'CEO Chat', color: 'bg-pink-100 text-pink-800' },
   TRIAL: { label: 'Work Trial', color: 'bg-orange-100 text-orange-800' },
 }
@@ -195,6 +194,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.C
 }
 
 export default function InterviewsPage() {
+  const router = useRouter()
   const [activeFilter, setActiveFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
@@ -245,13 +245,12 @@ export default function InterviewsPage() {
   // Use mock counts as fallback
   const counts = dbCounts && dbCounts.all > 0 ? dbCounts : mockCounts
 
-  // Filter stages for display (Coding Test is not an interview type)
+  // Filter stages for display
   const stages = [
-    { key: 'all', label: 'All Interviews' },
+    { key: 'all', label: 'All' },
     { key: 'HR_SCREEN', label: 'People Chat' },
     { key: 'TEAM_CHAT', label: 'Team Chat' },
     { key: 'ADVISOR_CHAT', label: 'Advisor Chat' },
-    { key: 'PANEL', label: 'Panel' },
     { key: 'CEO_CHAT', label: 'CEO Chat' },
   ]
 
@@ -267,43 +266,38 @@ export default function InterviewsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Filter Cards */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Interviews</h1>
-          <p className="text-sm text-gray-500">
-            Manage and track all candidate interviews
-          </p>
-        </div>
-        <Button>
-          <Calendar className="h-4 w-4 mr-2" />
-          Schedule Interview
-        </Button>
-      </div>
-
-      {/* Stage Filter Cards */}
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        {stages.map((stage) => (
-          <Card
-            key={stage.key}
-            className={cn(
-              'min-w-[140px] cursor-pointer transition-all hover:shadow-md border-2',
-              activeFilter === stage.key
-                ? 'border-primary bg-primary/5'
-                : 'border-transparent'
-            )}
-            onClick={() => setActiveFilter(stage.key)}
-          >
-            <CardContent className="p-4">
-              <div className="text-xs text-gray-500 truncate">{stage.label}</div>
-              <div className="text-xl font-bold mt-1">
+        <div className="flex gap-1.5 flex-nowrap">
+          {stages.map((stage) => (
+            <button
+              key={stage.key}
+              className={cn(
+                'px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap',
+                activeFilter === stage.key
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              )}
+              onClick={() => setActiveFilter(stage.key)}
+            >
+              {stage.label}
+              <span className={cn(
+                'ml-1.5 px-1 py-0.5 rounded text-[10px]',
+                activeFilter === stage.key
+                  ? 'bg-white/20'
+                  : 'bg-gray-200'
+              )}>
                 {stage.key === 'all'
                   ? counts?.all || 0
                   : (counts as Record<string, number>)?.[stage.key] || 0}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </span>
+            </button>
+          ))}
+        </div>
+        <Button size="sm">
+          <Calendar className="h-4 w-4 mr-2" />
+          Schedule Interview
+        </Button>
       </div>
 
       {/* Search and Filters */}
@@ -369,12 +363,13 @@ export default function InterviewsPage() {
                   const StatusIcon = status.icon
 
                   return (
-                    <TableRow key={interview.id} className="cursor-pointer hover:bg-gray-50">
+                    <TableRow
+                      key={interview.id}
+                      className="cursor-pointer hover:bg-gray-50"
+                      onClick={() => router.push(`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}`)}
+                    >
                       <TableCell>
-                        <Link
-                          href={`/recruiting/candidates/${interview.candidateId}`}
-                          className="flex items-center gap-3"
-                        >
+                        <div className="flex items-center gap-3">
                           <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
                             <User className="h-4 w-4 text-gray-500" />
                           </div>
@@ -386,7 +381,7 @@ export default function InterviewsPage() {
                               {interview.candidate?.email}
                             </div>
                           </div>
-                        </Link>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="text-sm">
@@ -400,9 +395,9 @@ export default function InterviewsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Calendar className="h-4 w-4 text-gray-400" />
-                          <div className="text-sm">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                          <div className="text-xs whitespace-nowrap">
                             <div className={cn(
                               interview.scheduledAt && isPast(new Date(interview.scheduledAt)) && interview.status === 'SCHEDULED'
                                 ? 'text-red-600'
@@ -411,7 +406,7 @@ export default function InterviewsPage() {
                               {formatInterviewDate(interview.scheduledAt)}
                             </div>
                             {interview.duration && (
-                              <div className="text-gray-500 text-xs">
+                              <div className="text-gray-500 text-[10px]">
                                 {interview.duration} min
                               </div>
                             )}

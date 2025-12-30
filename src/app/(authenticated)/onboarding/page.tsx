@@ -75,7 +75,7 @@ export default function OnboardingPage() {
       </Card>
 
       {/* Stats */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
@@ -161,9 +161,9 @@ export default function OnboardingPage() {
                 const progress = getProgress(workflow.tasks)
                 return (
                   <Link key={workflow.id} href={`/onboarding/${workflow.id}`}>
-                    <div className="flex items-center gap-4 p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg hover:bg-gray-50 transition-colors">
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-3">
+                        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                           <p className="font-medium truncate">{workflow.employee.fullName}</p>
                           <Badge className={getStatusColor(workflow.status)}>
                             {workflow.status.replace('_', ' ')}
@@ -176,7 +176,7 @@ export default function OnboardingPage() {
                           Start: {workflow.employee.startDate ? formatDate(workflow.employee.startDate) : 'TBD'}
                         </p>
                       </div>
-                      <div className="w-48">
+                      <div className="w-full sm:w-48">
                         <div className="flex items-center justify-between text-sm mb-1">
                           <span className="text-gray-500">Progress</span>
                           <span className="font-medium">{progress}%</span>

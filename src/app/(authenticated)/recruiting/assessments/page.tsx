@@ -90,12 +90,12 @@ export default function AssessmentsPage() {
 
   // Filter types for display
   const types = [
-    { key: 'all', label: 'All Assessments', icon: ClipboardCheck },
-    { key: 'CODING_TEST', label: 'Coding Tests', icon: Code },
-    { key: 'KANDI_IO', label: 'Kandi.io', icon: Sparkles },
-    { key: 'PERSONALITY_MBTI', label: 'MBTI', icon: Brain },
-    { key: 'PERSONALITY_BIG5', label: 'Big 5', icon: Brain },
-    { key: 'WORK_TRIAL', label: 'Work Trial', icon: Briefcase },
+    { key: 'all', label: 'All' },
+    { key: 'CODING_TEST', label: 'Coding Tests' },
+    { key: 'KANDI_IO', label: 'Kandi.io' },
+    { key: 'PERSONALITY_MBTI', label: 'MBTI' },
+    { key: 'PERSONALITY_BIG5', label: 'Big 5' },
+    { key: 'WORK_TRIAL', label: 'Work Trial' },
   ]
 
   // Score color based on value
@@ -108,47 +108,38 @@ export default function AssessmentsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Header with Filter Cards */}
       <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Assessments</h1>
-          <p className="text-sm text-gray-500">
-            Track and manage candidate assessments
-          </p>
+        <div className="flex gap-2">
+          {types.map((type) => (
+            <button
+              key={type.key}
+              className={cn(
+                'px-4 py-2 rounded-lg text-sm font-medium transition-all',
+                activeFilter === type.key
+                  ? 'bg-primary text-white'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+              )}
+              onClick={() => setActiveFilter(type.key)}
+            >
+              {type.label}
+              <span className={cn(
+                'ml-2 px-1.5 py-0.5 rounded text-xs',
+                activeFilter === type.key
+                  ? 'bg-white/20'
+                  : 'bg-gray-200'
+              )}>
+                {type.key === 'all'
+                  ? counts?.all || 0
+                  : counts?.[type.key] || 0}
+              </span>
+            </button>
+          ))}
         </div>
         <Button>
           <Send className="h-4 w-4 mr-2" />
           Send Assessment
         </Button>
-      </div>
-
-      {/* Type Filter Cards */}
-      <div className="flex gap-3 overflow-x-auto pb-2">
-        {types.map((type) => {
-          const Icon = type.icon
-          return (
-            <Card
-              key={type.key}
-              className={cn(
-                'min-w-[140px] cursor-pointer transition-all hover:shadow-md',
-                activeFilter === type.key && 'ring-2 ring-primary'
-              )}
-              onClick={() => setActiveFilter(type.key)}
-            >
-              <CardContent className="pt-3 pb-3 px-3">
-                <div className="flex items-center gap-2 mb-1">
-                  <Icon className="h-4 w-4 text-gray-400" />
-                  <span className="text-xs text-gray-500 truncate">{type.label}</span>
-                </div>
-                <div className="text-xl font-bold">
-                  {type.key === 'all'
-                    ? counts?.all || 0
-                    : counts?.[type.key] || 0}
-                </div>
-              </CardContent>
-            </Card>
-          )
-        })}
       </div>
 
       {/* Search and Filters */}

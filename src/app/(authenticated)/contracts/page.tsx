@@ -116,17 +116,17 @@ export default function ContractsPage() {
               <Link
                 key={offer.id}
                 href={`/contracts/${offer.id}`}
-                className="flex items-center justify-between px-6 py-4 hover:bg-gray-50 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 transition-colors"
               >
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-10 w-10">
+                <div className="flex items-center gap-3 sm:gap-4">
+                  <Avatar className="h-10 w-10 flex-shrink-0">
                     <AvatarFallback className="bg-primary text-primary-foreground text-sm font-medium">
                       {getInitials(offer.candidateName)}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="font-medium text-gray-900">{offer.candidateName}</p>
-                    <div className="flex items-center gap-2 text-sm">
+                  <div className="min-w-0">
+                    <p className="font-medium text-gray-900 truncate">{offer.candidateName}</p>
+                    <div className="flex flex-wrap items-center gap-2 text-sm">
                       <span className="text-gray-500">{getContractDateText(offer)}</span>
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusStyle(offer.status)}`}>
                         {contractStatusLabels[offer.status]}
@@ -134,7 +134,7 @@ export default function ContractsPage() {
                     </div>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-left sm:text-right pl-13 sm:pl-0">
                   <p className="font-medium text-gray-900">{getJobTitle(offer)}</p>
                   {getStartDate(offer) && (
                     <p className="text-sm text-gray-500">{getStartDate(offer)}</p>

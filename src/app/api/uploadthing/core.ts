@@ -14,6 +14,17 @@ export const ourFileRouter = {
       console.log('File uploaded:', file.url)
       return { url: file.url }
     }),
+
+  // Endpoint for public candidate resume uploads (no auth required)
+  candidateResume: f({
+    pdf: { maxFileSize: '5MB', maxFileCount: 1 },
+    'application/msword': { maxFileSize: '5MB', maxFileCount: 1 },
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { maxFileSize: '5MB', maxFileCount: 1 },
+  })
+    .onUploadComplete(async ({ file }) => {
+      console.log('Candidate resume uploaded:', file.url)
+      return { url: file.url }
+    }),
 } satisfies FileRouter
 
 export type OurFileRouter = typeof ourFileRouter

@@ -25,6 +25,8 @@ import { interviewStageRouter } from './interview-stage'
 import { interviewRouter } from './interview'
 import { assessmentRouter } from './assessment'
 import { analyticsRouter } from './analytics'
+import { recruiterRouter } from './recruiter'
+import { recruitingSettingsRouter } from './recruiting-settings'
 
 export const appRouter = router({
   employee: employeeRouter,
@@ -53,6 +55,8 @@ export const appRouter = router({
   interview: interviewRouter,
   assessment: assessmentRouter,
   analytics: analyticsRouter,
+  recruiter: recruiterRouter,
+  recruitingSettings: recruitingSettingsRouter,
 })
 
 export type AppRouter = typeof appRouter

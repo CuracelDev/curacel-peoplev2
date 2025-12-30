@@ -1,0 +1,492 @@
+'use client'
+
+import { useState } from 'react'
+import { useParams } from 'next/navigation'
+import { trpc } from '@/lib/trpc-client'
+import {
+  Briefcase,
+  Building2,
+  MapPin,
+  CheckCircle,
+  Loader2,
+  Upload,
+  AlertCircle,
+  DollarSign,
+  Clock,
+  Users,
+  ArrowLeft,
+} from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { cn } from '@/lib/utils'
+import Link from 'next/link'
+
+// Format salary for display
+function formatSalary(min?: number | null, max?: number | null, currency?: string | null) {
+  if (!min && !max) return null
+  const curr = currency || 'USD'
+  const formatter = new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: curr,
+    maximumFractionDigits: 0,
+  })
+  if (min && max) {
+    return `${formatter.format(min)} - ${formatter.format(max)}`
+  }
+  if (min) return `${formatter.format(min)}+`
+  if (max) return `Up to ${formatter.format(max)}`
+  return null
+}
+
+// Format employment type
+function formatEmploymentType(type: string) {
+  const types: Record<string, string> = {
+    'full-time': 'Full-time',
+    'part-time': 'Part-time',
+    'contract': 'Contract',
+    'internship': 'Internship',
+  }
+  return types[type] || type
+}
+
+export default function PublicCareersPage() {
+  const params = useParams()
+  const jobId = params.id as string
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    linkedinUrl: '',
+    bio: '',
+    coverLetter: '',
+    resumeUrl: '',
+    inboundChannel: 'PEOPLEOS',
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSubmitted, setIsSubmitted] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [consentChecked, setConsentChecked] = useState(false)
+
+  // Fetch job details
+  const { data: job, isLoading, error } = trpc.job.getPublicJob.useQuery(
+    { id: jobId },
+    { enabled: !!jobId }
+  )
+
+  // Submit application mutation
+  const submitApplication = trpc.job.submitApplication.useMutation({
+    onSuccess: () => {
+      setIsSubmitted(true)
+    },
+    onError: (err) => {
+      setErrors({ submit: err.message })
+    },
+  })
+
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }))
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+    if (!formData.name.trim()) newErrors.name = 'Name is required'
+    if (!formData.email.trim()) newErrors.email = 'Email is required'
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Invalid email address'
+    }
+    if (!formData.coverLetter.trim()) newErrors.coverLetter = 'Please tell us why you want to apply'
+    if (!consentChecked) newErrors.consent = 'You must agree to the data processing terms'
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validateForm()) return
+
+    setIsSubmitting(true)
+    try {
+      await submitApplication.mutateAsync({
+        jobId,
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone || undefined,
+        linkedinUrl: formData.linkedinUrl || undefined,
+        bio: formData.bio || undefined,
+        coverLetter: formData.coverLetter,
+        resumeUrl: formData.resumeUrl || undefined,
+        inboundChannel: formData.inboundChannel as 'YC' | 'PEOPLEOS' | 'COMPANY_SITE' | 'OTHER',
+      })
+    } catch {
+      // Error handled by mutation
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
+      </div>
+    )
+  }
+
+  // Error state
+  if (error || !job) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full text-center">
+          <CardContent className="pt-10 pb-10">
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="h-8 w-8 text-red-600" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Job Not Found</h1>
+            <p className="text-gray-600 mb-6">
+              This job posting may have been removed or is no longer available.
+            </p>
+            <Link href="/">
+              <Button variant="outline">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Home
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  // Success state
+  if (isSubmitted) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <Card className="max-w-md w-full text-center">
+          <CardContent className="pt-10 pb-10">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="h-8 w-8 text-green-600" />
+            </div>
+            <h1 className="text-2xl font-bold mb-2">Application Submitted!</h1>
+            <p className="text-gray-600 mb-6">
+              Thank you for your interest in the {job.title} position at Curacel.
+              We have received your application and will review it shortly.
+            </p>
+            <p className="text-sm text-gray-500">
+              You will receive a confirmation email at {formData.email}.
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
+  const salary = formatSalary(job.salaryMin, job.salaryMax, job.salaryCurrency)
+  const locations = (job.locations as string[]) || []
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
+        <div className="max-w-4xl mx-auto px-4 py-12">
+          <div className="flex items-center gap-2 text-indigo-200 text-sm mb-4">
+            <Building2 className="h-4 w-4" />
+            <span>Curacel</span>
+          </div>
+          <h1 className="text-3xl md:text-4xl font-bold mb-4">{job.title}</h1>
+          <div className="flex flex-wrap gap-3 text-sm">
+            {job.department && (
+              <div className="flex items-center gap-2">
+                <Briefcase className="h-4 w-4" />
+                <span>{job.department}</span>
+              </div>
+            )}
+            {locations.length > 0 && (
+              <div className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                <span>{locations.join(', ')}</span>
+              </div>
+            )}
+            <Badge className="bg-white/20 hover:bg-white/30 text-white border-0">
+              {formatEmploymentType(job.employmentType)}
+            </Badge>
+          </div>
+          {salary && (
+            <div className="mt-4 flex items-center gap-2 text-indigo-100">
+              <DollarSign className="h-4 w-4" />
+              <span className="font-medium">{salary}</span>
+              {job.salaryFrequency && (
+                <span className="text-indigo-200">/ {job.salaryFrequency}</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="grid md:grid-cols-3 gap-8">
+          {/* Job Description */}
+          <div className="md:col-span-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>About This Role</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {job.jobDescription?.content ? (
+                  <div
+                    className="prose prose-sm max-w-none"
+                    dangerouslySetInnerHTML={{ __html: job.jobDescription.content }}
+                  />
+                ) : (
+                  <p className="text-gray-500">No description available.</p>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Quick Info Sidebar */}
+          <div className="space-y-4">
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">Quick Info</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3 text-sm">
+                {job.department && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Users className="h-4 w-4" />
+                    <span>{job.department}</span>
+                  </div>
+                )}
+                {job.employmentType && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <Clock className="h-4 w-4" />
+                    <span>{formatEmploymentType(job.employmentType)}</span>
+                  </div>
+                )}
+                {locations.length > 0 && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <MapPin className="h-4 w-4" />
+                    <span>{locations.join(', ')}</span>
+                  </div>
+                )}
+                {salary && (
+                  <div className="flex items-center gap-2 text-gray-600">
+                    <DollarSign className="h-4 w-4" />
+                    <span>{salary}</span>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* Application Form */}
+        <Card className="mt-8">
+          <CardHeader>
+            <CardTitle>Apply for this position</CardTitle>
+            <CardDescription>
+              Fill out the form below to submit your application. Fields marked with * are required.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* Name */}
+                <div className="space-y-2">
+                  <Label htmlFor="name">
+                    Full Name <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="name"
+                    placeholder="John Doe"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange('name', e.target.value)}
+                    className={cn(errors.name && 'border-red-500')}
+                  />
+                  {errors.name && (
+                    <p className="text-red-500 text-sm">{errors.name}</p>
+                  )}
+                </div>
+
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="email">
+                    Email Address <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="john@example.com"
+                    value={formData.email}
+                    onChange={(e) => handleInputChange('email', e.target.value)}
+                    className={cn(errors.email && 'border-red-500')}
+                  />
+                  {errors.email && (
+                    <p className="text-red-500 text-sm">{errors.email}</p>
+                  )}
+                </div>
+
+                {/* Phone */}
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Phone Number</Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+234 XXX XXX XXXX"
+                    value={formData.phone}
+                    onChange={(e) => handleInputChange('phone', e.target.value)}
+                  />
+                </div>
+
+                {/* LinkedIn */}
+                <div className="space-y-2">
+                  <Label htmlFor="linkedin">LinkedIn Profile URL</Label>
+                  <Input
+                    id="linkedin"
+                    type="url"
+                    placeholder="https://linkedin.com/in/yourprofile"
+                    value={formData.linkedinUrl}
+                    onChange={(e) => handleInputChange('linkedinUrl', e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Bio */}
+              <div className="space-y-2">
+                <Label htmlFor="bio">Brief Bio</Label>
+                <Textarea
+                  id="bio"
+                  placeholder="Tell us a bit about yourself, your background, and experience..."
+                  value={formData.bio}
+                  onChange={(e) => handleInputChange('bio', e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              {/* Cover Letter */}
+              <div className="space-y-2">
+                <Label htmlFor="coverLetter">
+                  Why are you applying? <span className="text-red-500">*</span>
+                </Label>
+                <Textarea
+                  id="coverLetter"
+                  placeholder="Tell us why you're interested in this role and what makes you a great fit..."
+                  value={formData.coverLetter}
+                  onChange={(e) => handleInputChange('coverLetter', e.target.value)}
+                  className={cn('min-h-[150px]', errors.coverLetter && 'border-red-500')}
+                />
+                {errors.coverLetter && (
+                  <p className="text-red-500 text-sm">{errors.coverLetter}</p>
+                )}
+              </div>
+
+              {/* How did you hear about us */}
+              <div className="space-y-2">
+                <Label htmlFor="channel">How did you hear about this opportunity?</Label>
+                <Select
+                  value={formData.inboundChannel}
+                  onValueChange={(value) => handleInputChange('inboundChannel', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="YC">Y Combinator</SelectItem>
+                    <SelectItem value="PEOPLEOS">PeopleOS Careers Page</SelectItem>
+                    <SelectItem value="COMPANY_SITE">Company Website</SelectItem>
+                    <SelectItem value="OTHER">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Resume Upload Placeholder */}
+              <div className="space-y-2">
+                <Label>Resume/CV (Optional)</Label>
+                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer bg-gray-50">
+                  <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                  <p className="text-sm text-gray-600">
+                    Drag and drop your resume or <span className="text-indigo-600">browse</span>
+                  </p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    PDF, DOC, or DOCX (max 5MB)
+                  </p>
+                </div>
+              </div>
+
+              {/* Consent */}
+              <div className="flex items-start space-x-2 pt-4">
+                <Checkbox
+                  id="consent"
+                  checked={consentChecked}
+                  onCheckedChange={(checked) => {
+                    setConsentChecked(checked === true)
+                    if (errors.consent) setErrors(prev => ({ ...prev, consent: '' }))
+                  }}
+                />
+                <Label htmlFor="consent" className="font-normal text-sm leading-relaxed cursor-pointer">
+                  I agree to the processing of my personal data for recruitment purposes.
+                  I understand that my information will be stored securely and used only
+                  for evaluating my application. <span className="text-red-500">*</span>
+                </Label>
+              </div>
+              {errors.consent && (
+                <p className="text-red-500 text-sm">{errors.consent}</p>
+              )}
+
+              {/* Submit Error */}
+              {errors.submit && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2 text-red-700">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="text-sm">{errors.submit}</span>
+                </div>
+              )}
+
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                className="w-full bg-indigo-600 hover:bg-indigo-700"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  'Submit Application'
+                )}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
+
+        {/* Footer */}
+        <div className="text-center text-sm text-gray-500 mt-8 pb-8">
+          <p>By submitting this form, you agree to our privacy policy.</p>
+          <p className="mt-2">
+            Having trouble? Contact us at{' '}
+            <a href="mailto:careers@curacel.co" className="text-indigo-600 hover:underline">
+              careers@curacel.co
+            </a>
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}

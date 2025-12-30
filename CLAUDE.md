@@ -1,5 +1,9 @@
 # Claude Code Instructions
 
+## UI Guidelines for New Pages
+
+**IMPORTANT: Do NOT add page titles (h1 headers with subtitles) to new pages.** The breadcrumb navigation provides sufficient context. Keep the UI clean and consistent with existing pages.
+
 ## Auto-Restart Server
 
 After any update that requires a server restart (schema changes, router changes, component changes):

@@ -7,6 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Public Careers Pages**
+  - Public careers landing page (`/careers`) for job seekers
+  - Public recruiter application forms (`/recruiter`)
+  - Public jobs API endpoint (`/api/jobs`) for external integrations
+- **Recruiting Settings Enhancements**
+  - Expanded recruiting settings page with comprehensive configuration options
+  - Recruiter router for managing public-facing recruitment features
 - **Job Settings section in Administration**
   - New parent settings page (`/settings/job-settings`) grouping job-related configurations
   - Contains Job Descriptions and Interview Settings
@@ -80,6 +87,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Interview settings entry on the main Settings page linking to hiring flow editor
 
 ### Changed
+- **App-Wide Responsiveness Enhancement**
+  - Onboarding page: Stats grid now 2-column on mobile, workflow cards stack vertically
+  - Offboarding page: Same responsive improvements as onboarding
+  - Contracts page: Contract list items stack on mobile, responsive padding
+  - All pages now work properly on mobile (320px), tablet (768px), and desktop viewports
+- **Recruiting Assessments Page Improvements**
+  - Enhanced UI and layout for assessments management
+- **Interviews Page Enhancements**
+  - Improved interviews list and detail views
 - Renamed "AI Agent" and "AI Assistant" to "Blue AI" throughout the application
   - Sidebar navigation and assistant panel
   - Settings pages and documentation

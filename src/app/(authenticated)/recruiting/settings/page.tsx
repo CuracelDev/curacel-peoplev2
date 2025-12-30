@@ -23,6 +23,14 @@ import {
   X,
   ArrowRight,
   Check,
+  Webhook,
+  UserCircle2,
+  Globe,
+  Copy,
+  ExternalLink,
+  RefreshCw,
+  Building2,
+  Layers,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -58,6 +66,10 @@ const settingsNav = [
   { id: 'interview', name: 'Hiring Flow', icon: GitBranch },
   { id: 'interestForms', name: 'Interest Forms', icon: FileQuestion },
   { id: 'rubrics', name: 'Interview Rubrics', icon: ClipboardCheck },
+  { id: 'webhooks', name: 'Webhooks', icon: Webhook },
+  { id: 'recruiters', name: 'External Recruiters', icon: UserCircle2 },
+  { id: 'sources', name: 'Source Channels', icon: Layers },
+  { id: 'careers', name: 'Public Careers', icon: Globe },
 ]
 
 const stageOptions = [
@@ -155,6 +167,13 @@ export default function SettingsPage() {
   const rubricTemplatesQuery = trpc.interviewStage.listTemplates.useQuery()
   const competenciesQuery = trpc.competency.list.useQuery()
 
+  // New recruiting settings queries
+  const recruitingSettingsQuery = trpc.recruitingSettings.get.useQuery()
+  const recruitersQuery = trpc.recruiter.list.useQuery()
+  const jobWebhooksQuery = trpc.recruitingSettings.getJobWebhooks.useQuery()
+  const sourceChannelsQuery = trpc.recruitingSettings.getSourceChannels.useQuery()
+  const publicJobsQuery = trpc.recruitingSettings.getPublicJobs.useQuery()
+
   // API mutations
   const createFormMutation = trpc.interestForm.create.useMutation({
     onSuccess: () => {
@@ -196,6 +215,26 @@ export default function SettingsPage() {
 
   const createCompetencyMutation = trpc.competency.create.useMutation({
     onSuccess: () => competenciesQuery.refetch(),
+  })
+
+  // New recruiting settings mutations
+  const updateSettingsMutation = trpc.recruitingSettings.update.useMutation({
+    onSuccess: () => {
+      recruitingSettingsQuery.refetch()
+    },
+  })
+  const testWebhookMutation = trpc.recruitingSettings.testWebhook.useMutation()
+  const createRecruiterMutation = trpc.recruiter.create.useMutation({
+    onSuccess: () => recruitersQuery.refetch(),
+  })
+  const updateRecruiterMutation = trpc.recruiter.update.useMutation({
+    onSuccess: () => recruitersQuery.refetch(),
+  })
+  const toggleJobPublicMutation = trpc.recruitingSettings.toggleJobPublic.useMutation({
+    onSuccess: () => publicJobsQuery.refetch(),
+  })
+  const addRecruiterToJobMutation = trpc.recruiter.addToJob.useMutation({
+    onSuccess: () => recruitersQuery.refetch(),
   })
 
   // Handle section query parameter from URL
@@ -980,6 +1019,425 @@ export default function SettingsPage() {
                     </div>
                   </>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Webhooks Section */}
+          {activeSection === 'webhooks' && (
+            <Card id="webhooks">
+              <CardHeader className="p-5 border-b">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-lg font-semibold">Webhook Integration</h2>
+                    <p className="text-sm text-gray-500">
+                      Configure webhooks to automatically push job data to external systems like n8n, Zapier, or your own APIs.
+                    </p>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 space-y-6">
+                {/* Global Webhook */}
+                <div className="space-y-4">
+                  <h3 className="font-medium">Global Webhook</h3>
+                  <p className="text-sm text-gray-500">This webhook receives events for all jobs.</p>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Webhook URL</Label>
+                      <Input
+                        placeholder="https://hooks.example.com/webhook"
+                        defaultValue={recruitingSettingsQuery.data?.globalWebhookUrl || ''}
+                        onChange={(e) => {
+                          // Will save on blur or button click
+                        }}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Secret Key (optional)</Label>
+                      <Input
+                        placeholder="For HMAC signature verification"
+                        type="password"
+                        defaultValue={recruitingSettingsQuery.data?.globalWebhookSecret || ''}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        if (recruitingSettingsQuery.data?.globalWebhookUrl) {
+                          testWebhookMutation.mutate({
+                            webhookUrl: recruitingSettingsQuery.data.globalWebhookUrl,
+                            webhookSecret: recruitingSettingsQuery.data.globalWebhookSecret || undefined,
+                          })
+                        }
+                      }}
+                      disabled={!recruitingSettingsQuery.data?.globalWebhookUrl || testWebhookMutation.isPending}
+                    >
+                      {testWebhookMutation.isPending ? 'Testing...' : 'Test Webhook'}
+                    </Button>
+                    <Button>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save Settings
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Job-specific webhooks */}
+                <div className="border-t pt-6 space-y-4">
+                  <h3 className="font-medium">Job-Specific Webhooks</h3>
+                  <p className="text-sm text-gray-500">Jobs with individual webhook configurations.</p>
+                  {jobWebhooksQuery.isLoading ? (
+                    <div className="flex items-center justify-center py-6">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                    </div>
+                  ) : (jobWebhooksQuery.data?.length || 0) === 0 ? (
+                    <div className="text-center py-6 text-gray-500">
+                      <Webhook className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                      <p>No job-specific webhooks configured.</p>
+                      <p className="text-sm">Configure webhooks on individual job pages.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {jobWebhooksQuery.data?.map((job) => (
+                        <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div>
+                            <div className="font-medium">{job.title}</div>
+                            <div className="text-sm text-gray-500 truncate max-w-md">{job.webhookUrl}</div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {job.lastWebhookAt && (
+                              <span className="text-xs text-gray-400">
+                                Last pushed: {new Date(job.lastWebhookAt).toLocaleDateString()}
+                              </span>
+                            )}
+                            <Badge variant={job.status === 'ACTIVE' ? 'default' : 'secondary'}>
+                              {job.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Webhook className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-medium text-blue-900">Webhook Payload</div>
+                      <p className="text-sm text-blue-700 mt-1">
+                        Webhooks send JSON payloads with job details including title, description, requirements, salary, and public link.
+                        Use the webhook secret to verify requests via HMAC signature in the X-Webhook-Signature header.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* External Recruiters Section */}
+          {activeSection === 'recruiters' && (
+            <Card id="recruiters">
+              <CardHeader className="p-5 border-b">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-lg font-semibold">External Recruiters</h2>
+                    <p className="text-sm text-gray-500">
+                      Manage external recruiters and their access to job postings. Recruiters get unique portal links.
+                    </p>
+                  </div>
+                  <Button onClick={() => {
+                    const name = prompt('Recruiter name:')
+                    if (!name) return
+                    const email = prompt('Recruiter email:')
+                    if (!email) return
+                    const org = prompt('Organization name (optional):')
+                    createRecruiterMutation.mutate({ name, email, organizationName: org || undefined })
+                  }}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Recruiter
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5">
+                {recruitersQuery.isLoading ? (
+                  <div className="flex items-center justify-center py-10">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                  </div>
+                ) : (recruitersQuery.data?.length || 0) === 0 ? (
+                  <div className="text-center py-10 text-gray-500">
+                    <UserCircle2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p>No external recruiters yet.</p>
+                    <p className="text-sm">Add recruiters to give them portal access to submit candidates.</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {recruitersQuery.data?.map((recruiter) => (
+                      <div key={recruiter.id} className="p-4 border rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                              <span className="text-purple-700 font-medium">
+                                {recruiter.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="font-medium flex items-center gap-2">
+                                {recruiter.name}
+                                {!recruiter.isActive && (
+                                  <Badge variant="secondary">Inactive</Badge>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-500">
+                                {recruiter.email}
+                                {recruiter.organizationName && ` • ${recruiter.organizationName}`}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-4">
+                            <div className="text-right text-sm text-gray-500">
+                              <div>{recruiter._count.candidates} candidates</div>
+                              <div>{recruiter._count.jobAccess} job{recruiter._count.jobAccess !== 1 ? 's' : ''} assigned</div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                updateRecruiterMutation.mutate({
+                                  id: recruiter.id,
+                                  isActive: !recruiter.isActive,
+                                })
+                              }}
+                            >
+                              {recruiter.isActive ? 'Deactivate' : 'Activate'}
+                            </Button>
+                          </div>
+                        </div>
+                        {recruiter.jobAccess.length > 0 && (
+                          <div className="mt-3 pt-3 border-t">
+                            <div className="text-xs text-gray-400 mb-2">Assigned Jobs</div>
+                            <div className="flex flex-wrap gap-2">
+                              {recruiter.jobAccess.map((access) => (
+                                <Badge key={access.id} variant="outline" className="flex items-center gap-1">
+                                  {access.job.title}
+                                  <button
+                                    className="ml-1 hover:text-red-500"
+                                    onClick={() => {
+                                      navigator.clipboard.writeText(
+                                        `${window.location.origin}/recruiter/${access.accessToken}`
+                                      )
+                                    }}
+                                  >
+                                    <Copy className="h-3 w-3" />
+                                  </button>
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <UserCircle2 className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-medium text-purple-900">Recruiter Portal</div>
+                      <p className="text-sm text-purple-700 mt-1">
+                        Each recruiter gets a unique portal link per job. They can view job details, submit candidates, and track their submissions.
+                        Assign jobs to recruiters from the job edit page.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Source Channels Section */}
+          {activeSection === 'sources' && (
+            <Card id="sources">
+              <CardHeader className="p-5 border-b">
+                <h2 className="text-lg font-semibold">Source Channels</h2>
+                <p className="text-sm text-gray-500">
+                  Configure candidate source channels for tracking where candidates come from.
+                </p>
+              </CardHeader>
+              <CardContent className="p-5 space-y-6">
+                {/* Inbound Channels */}
+                <div className="space-y-3">
+                  <h3 className="font-medium">Inbound Channels</h3>
+                  <p className="text-sm text-gray-500">For candidates who apply directly.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {sourceChannelsQuery.data?.inbound.map((channel) => (
+                      <Badge key={channel} variant="secondary" className="py-1.5 px-3">
+                        {channel === 'YC' ? 'Y Combinator' :
+                         channel === 'PEOPLEOS' ? 'PeopleOS' :
+                         channel === 'COMPANY_SITE' ? 'Company Website' :
+                         channel}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Outbound Channels */}
+                <div className="space-y-3 border-t pt-6">
+                  <h3 className="font-medium">Outbound Channels</h3>
+                  <p className="text-sm text-gray-500">For candidates sourced by your team.</p>
+                  <div className="flex flex-wrap gap-2">
+                    {sourceChannelsQuery.data?.outbound.map((channel) => (
+                      <Badge key={channel} variant="outline" className="py-1.5 px-3">
+                        {channel === 'LINKEDIN' ? 'LinkedIn' :
+                         channel === 'JOB_BOARDS' ? 'Job Boards' :
+                         channel === 'GITHUB' ? 'GitHub' :
+                         channel === 'TWITTER' ? 'Twitter/X' :
+                         channel}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Source Display Info */}
+                <div className="border-t pt-6 space-y-3">
+                  <h3 className="font-medium">How Sources Are Displayed</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-3 bg-green-50 rounded-lg">
+                      <Badge className="bg-green-100 text-green-800 mb-2">INBOUND</Badge>
+                      <p className="text-sm text-gray-600">Shows channel name: &quot;YC&quot;, &quot;PeopleOS&quot;</p>
+                    </div>
+                    <div className="p-3 bg-blue-50 rounded-lg">
+                      <Badge className="bg-blue-100 text-blue-800 mb-2">OUTBOUND</Badge>
+                      <p className="text-sm text-gray-600">Shows channel + sourcer: &quot;LinkedIn - John D.&quot;</p>
+                    </div>
+                    <div className="p-3 bg-purple-50 rounded-lg">
+                      <Badge className="bg-purple-100 text-purple-800 mb-2">RECRUITER</Badge>
+                      <p className="text-sm text-gray-600">Shows recruiter: &quot;ABC Recruiting&quot;</p>
+                    </div>
+                    <div className="p-3 bg-orange-50 rounded-lg">
+                      <Badge className="bg-orange-100 text-orange-800 mb-2">EXCELLER</Badge>
+                      <p className="text-sm text-gray-600">Shows employee: &quot;Exceller: Jane D.&quot;</p>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Public Careers Section */}
+          {activeSection === 'careers' && (
+            <Card id="careers">
+              <CardHeader className="p-5 border-b">
+                <h2 className="text-lg font-semibold">Public Careers Page</h2>
+                <p className="text-sm text-gray-500">
+                  Configure your public-facing careers page and manage which jobs are publicly visible.
+                </p>
+              </CardHeader>
+              <CardContent className="p-5 space-y-6">
+                {/* Company Branding */}
+                <div className="space-y-4">
+                  <h3 className="font-medium">Company Branding</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Company Logo URL</Label>
+                      <Input
+                        placeholder="https://example.com/logo.png"
+                        defaultValue={recruitingSettingsQuery.data?.companyLogoUrl || ''}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Company Description</Label>
+                      <Textarea
+                        placeholder="Brief company description for careers page"
+                        defaultValue={recruitingSettingsQuery.data?.companyDescription || ''}
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+                  <Button>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Branding
+                  </Button>
+                </div>
+
+                {/* Public Jobs */}
+                <div className="border-t pt-6 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <h3 className="font-medium">Public Job Listings</h3>
+                      <p className="text-sm text-gray-500">Jobs that are visible on your public careers page.</p>
+                    </div>
+                  </div>
+
+                  {publicJobsQuery.isLoading ? (
+                    <div className="flex items-center justify-center py-6">
+                      <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                    </div>
+                  ) : (publicJobsQuery.data?.length || 0) === 0 ? (
+                    <div className="text-center py-6 text-gray-500">
+                      <Globe className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                      <p>No public job listings yet.</p>
+                      <p className="text-sm">Toggle jobs to public from the positions page.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {publicJobsQuery.data?.map((job) => (
+                        <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Globe className="h-5 w-5 text-green-600" />
+                            <div>
+                              <div className="font-medium">{job.title}</div>
+                              <div className="text-sm text-gray-500">{job.department || 'No department'}</div>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const url = `${window.location.origin}/careers/${job.id}`
+                                navigator.clipboard.writeText(url)
+                              }}
+                            >
+                              <Copy className="h-4 w-4 mr-1" />
+                              Copy Link
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(`/careers/${job.id}`, '_blank')}
+                            >
+                              <ExternalLink className="h-4 w-4 mr-1" />
+                              Preview
+                            </Button>
+                            <Switch
+                              checked={job.isPublic}
+                              onCheckedChange={(checked) => {
+                                toggleJobPublicMutation.mutate({ jobId: job.id, isPublic: checked })
+                              }}
+                            />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-start gap-3">
+                    <Globe className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <div>
+                      <div className="font-medium text-green-900">Public Application Links</div>
+                      <p className="text-sm text-green-700 mt-1">
+                        Public jobs get a unique URL that candidates can use to view details and apply directly.
+                        Share these links on your website, social media, or job boards.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
