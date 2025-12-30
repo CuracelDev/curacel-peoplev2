@@ -1,15 +1,32 @@
-# Claude Code Project Configuration
+# Claude Code Instructions
 
-## Screenshots
-Screenshots referenced in conversations are located at:
-```
-/Users/henrymascot/Pictures/Screenshots/
-```
+## Auto-Restart Server
 
-When I reference screenshots, I may use:
-- A specific path like `Pictures/Screenshots/Screenshot 2025-12-30 at 1.30.40 AM.png`
-- Relative references like "latest screenshot", "last 3 screenshots", "most recent screenshot"
+After any update that requires a server restart (schema changes, router changes, component changes):
+1. Kill any existing dev server on port 3000
+2. Run `npm run dev` in background
+3. Display the new URL (http://localhost:3000)
 
-For relative references, list the files in the Screenshots folder sorted by modification time and read the appropriate ones. For example:
-- "latest screenshot" = most recently modified file
-- "last 3 screenshots" = 3 most recently modified files
+## Auto-Push to GitHub
+
+After every successful update:
+1. Stage all changes with `git add -A`
+2. Commit with a descriptive message following conventional commits (feat:, fix:, etc.)
+3. Push to origin main with `git push origin main`
+
+## Development Workflow
+
+1. Make code changes
+2. Restart dev server if needed
+3. Verify changes work
+4. Commit and push to GitHub
+
+## Tech Stack
+
+- Next.js 14 with App Router
+- TypeScript
+- Prisma ORM with PostgreSQL
+- tRPC for API
+- Tailwind CSS
+- Recharts for data visualization
+- NextAuth.js for authentication
