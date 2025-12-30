@@ -296,19 +296,19 @@ export default function CandidatesListPage() {
         </div>
       </div>
 
-      {/* Stats Row */}
-      <div className="grid grid-cols-5 gap-4 mb-6">
+      {/* Stats Row - Always fits in 1 row */}
+      <div className="flex gap-3 min-w-0 mb-6">
         {stages.map((stage) => (
           <Card
             key={stage.id}
             className={cn(
-              'p-5 cursor-pointer transition-all',
+              'flex-1 min-w-0 p-4 cursor-pointer transition-all border-0 shadow-sm',
               selectedStage === stage.id && 'ring-2 ring-indigo-500'
             )}
             onClick={() => handleStageChange(stage.id)}
           >
-            <div className="text-sm text-gray-500 mb-1">{stage.label}</div>
-            <div className="text-2xl font-semibold text-gray-900">{stage.count}</div>
+            <div className="text-xs text-gray-500 mb-1 truncate">{stage.label}</div>
+            <div className="text-xl font-bold text-gray-900">{stage.count}</div>
           </Card>
         ))}
       </div>
