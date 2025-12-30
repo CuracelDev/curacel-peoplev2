@@ -455,8 +455,8 @@ const docSections: DocSection[] = [
       {
         title: 'Where to edit',
         items: [
-          'Go to Recruiting > Settings > Interview.',
-          'Or open Settings > Interview settings to jump into the same page.',
+          'Go to Recruiting > Settings > Hiring Flow.',
+          'Or open Settings > Hiring > Hiring Flows to jump into the same page.',
           'Pick the role flow you want to manage.',
         ],
       },
@@ -468,7 +468,7 @@ const docSections: DocSection[] = [
           'Edit stage names to match your process.',
           'Add or remove stages to reflect real-world steps.',
           'Review the preview to confirm the order.',
-          'Click Save changes to apply updates.',
+          'Click Save Changes to apply updates (button turns green to confirm).',
         ],
       },
       {
@@ -476,6 +476,80 @@ const docSections: DocSection[] = [
         items: [
           'SUPER_ADMIN and HR_ADMIN can edit hiring flows.',
           'MANAGER can view flows when creating positions.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'recruiting-interest-forms',
+    title: 'Interest forms',
+    description: 'Create application forms that candidates fill out when applying.',
+    blocks: [
+      {
+        title: 'What they are',
+        items: [
+          'Interest forms are custom application questionnaires linked to job postings.',
+          'Candidates complete these forms when they apply for a position.',
+          'Forms can include text fields, dropdowns, multi-select, rating scales, and more.',
+          'One form can be marked as default for new jobs.',
+        ],
+      },
+      {
+        title: 'Create or edit a form',
+        ordered: true,
+        items: [
+          'Go to Recruiting > Settings > Interest Forms.',
+          'Click Create Form or Edit on an existing form.',
+          'Enter a form name and optional description.',
+          'Add questions with the appropriate field type (Short Text, Long Text, Dropdown, Multi-Select, Rating Scale, etc).',
+          'Mark questions as required or optional.',
+          'For dropdown or multi-select, enter comma-separated options.',
+          'Click Create Form or Update Form to save.',
+        ],
+      },
+      {
+        title: 'Link to jobs',
+        items: [
+          'When creating or editing a job, select an interest form to attach.',
+          'Candidates see and complete this form on the public apply page.',
+          'View submitted responses in the candidate profile.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'recruiting-rubrics',
+    title: 'Interview rubrics',
+    description: 'Define scoring criteria for consistent candidate evaluation.',
+    blocks: [
+      {
+        title: 'What they are',
+        items: [
+          'Rubrics define the criteria interviewers use to score candidates.',
+          'Each rubric is tied to an interview stage (HR Screen, Technical, Panel, etc).',
+          'Criteria include a name, description, and weight (1-5).',
+          'Scores use a 1-5 scale from Poor to Excellent.',
+        ],
+      },
+      {
+        title: 'Create or edit a rubric',
+        ordered: true,
+        items: [
+          'Go to Recruiting > Settings > Interview Rubrics.',
+          'Click Create Rubric or Edit on an existing rubric.',
+          'Enter a rubric name and select the interview stage.',
+          'Add scoring criteria with names, descriptions, and weights.',
+          'Higher weights indicate more important criteria.',
+          'Click Create Rubric or Update Rubric to save.',
+        ],
+      },
+      {
+        title: 'Using rubrics in interviews',
+        items: [
+          'When scheduling an interview, the assigned rubric determines the scorecard.',
+          'Interviewers rate each criterion from 1-5 with notes.',
+          'Scores are aggregated across all interviewers for comparison.',
+          'Click on a rubric to preview the scoring scale and criteria.',
         ],
       },
     ],
