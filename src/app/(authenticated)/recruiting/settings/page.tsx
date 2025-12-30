@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import {
   Save,
-  Heart,
   Star,
   Smile,
   Users,
@@ -27,7 +26,6 @@ import {
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
-import { Textarea } from '@/components/ui/textarea'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Slider } from '@/components/ui/slider'
@@ -42,7 +40,6 @@ import { cn } from '@/lib/utils'
 import { useHiringFlows, type HiringFlow } from '@/lib/recruiting/hiring-flows'
 
 const settingsNav = [
-  { id: 'values', name: 'Company Values', icon: Heart },
   { id: 'competencies', name: 'Competencies', icon: Star },
   { id: 'personality', name: 'Personality Templates', icon: Smile },
   { id: 'team', name: 'Team Profiles', icon: Users },
@@ -51,14 +48,6 @@ const settingsNav = [
   { id: 'rubrics', name: 'Interview Rubrics', icon: ClipboardCheck },
   { id: 'integrations', name: 'Integrations', icon: Lock },
   { id: 'api', name: 'API & Keys', icon: Settings },
-]
-
-const pressValues = [
-  { letter: 'P', name: 'Passionate Work', description: "We approach every challenge with enthusiasm and dedication. We don't just do our jobs - we care deeply about the impact of our work." },
-  { letter: 'R', name: 'Relentless Growth', description: 'We continuously push ourselves to learn, improve, and expand our capabilities. Comfort zones are meant to be challenged.' },
-  { letter: 'E', name: 'Empowered Action', description: "We take ownership and make decisions. We don't wait for permission to do what's right for our customers and colleagues." },
-  { letter: 'S', name: 'Sense of Urgency', description: 'We move quickly and decisively. In insurance, timing matters - we treat every problem as if it needs solving today.' },
-  { letter: 'S', name: 'Seeing Possibilities', description: 'We see opportunities where others see obstacles. We\'re building the future of insurance in Africa.' },
 ]
 
 const competencies = [
@@ -192,7 +181,7 @@ const scoreScaleLabels = {
 }
 
 export default function SettingsPage() {
-  const [activeSection, setActiveSection] = useState('values')
+  const [activeSection, setActiveSection] = useState('competencies')
   const [selectedDepartment, setSelectedDepartment] = useState('engineering')
   const [oceanProfile, setOceanProfile] = useState({
     openness: 75,
@@ -287,31 +276,6 @@ export default function SettingsPage() {
 
         {/* Settings Content */}
         <div className="space-y-6">
-          {/* Company Values (PRESS) */}
-          <Card id="values">
-            <CardHeader className="p-5 border-b">
-              <h2 className="text-lg font-semibold">Company Values (PRESS)</h2>
-              <p className="text-sm text-gray-500">Define the core values that guide your hiring decisions. These are used by the AI to evaluate cultural fit.</p>
-            </CardHeader>
-            <CardContent className="p-5 space-y-3">
-              {pressValues.map((value, i) => (
-                <div key={i} className="flex gap-4 p-4 border border-gray-200 rounded-xl">
-                  <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-lg flex items-center justify-center text-2xl font-bold flex-shrink-0">
-                    {value.letter}
-                  </div>
-                  <div className="flex-1">
-                    <div className="font-semibold mb-1">{value.name}</div>
-                    <Textarea
-                      rows={2}
-                      defaultValue={value.description}
-                      className="mt-2"
-                    />
-                  </div>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-
           {/* Competency Framework */}
           <Card id="competencies">
             <CardHeader className="p-5 border-b">
