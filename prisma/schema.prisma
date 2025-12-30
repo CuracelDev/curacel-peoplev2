@@ -241,6 +241,7 @@ model Employee {
   // Recruiting relations
   managedJobs     Job[]           @relation("JobHiringManager")
   followedJobs    JobFollower[]   @relation("JobFollowers")
+  addedCandidates JobCandidate[]  @relation("CandidatesAddedBy")
 
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -1140,11 +1141,21 @@ model Job {
   interestFormId      String?
   interestForm        InterestFormTemplate? @relation("JobInterestForm", fields: [interestFormId], references: [id])
 
+  // Public page settings
+  slug                String?     @unique  // URL slug for public page (e.g., "senior-backend-engineer")
+  isPublic            Boolean     @default(false)  // Whether to show on public careers page
+
+  // Webhook configuration
+  webhookUrl          String?     // URL to push job postings to
+  webhookSecret       String?     // Optional HMAC secret for verification
+  lastWebhookAt       DateTime?   // Last webhook push timestamp
+
   // Relations
   followers           JobFollower[]
   competencies        JobCompetency[]
   candidates          JobCandidate[]
   interviewStages     InterviewStageTemplate[] @relation("JobInterviewStages")
+  recruiterAccess     RecruiterJob[]
 
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
@@ -1154,6 +1165,8 @@ model Job {
   @@index([deadline])
   @@index([createdAt])
   @@index([interestFormId])
+  @@index([slug])
+  @@index([isPublic])
 }
 
 model JobFollower {
@@ -1256,9 +1269,22 @@ model JobCandidate {
   decisionBy     String?       // Employee/User ID
   decisionAt     DateTime?
 
-  // Source
-  source      String?           // "linkedin", "referral", "careers-page", etc.
-  referredBy  String?           // Employee ID if referral
+  // Source tracking (enhanced)
+  source          CandidateSource   @default(INBOUND)
+  inboundChannel  InboundChannel?   // Sub-source for INBOUND (YC, PeopleOS, etc.)
+  outboundChannel OutboundChannel?  // Sub-source for OUTBOUND (LinkedIn, Job boards, etc.)
+
+  // Who added/sourced this candidate
+  addedById       String?           // Employee ID who sourced/added (for OUTBOUND/EXCELLER)
+  addedBy         Employee?         @relation("CandidatesAddedBy", fields: [addedById], references: [id])
+  referredBy      String?           // Legacy field - Employee ID if referral
+
+  // Recruiter link (for RECRUITER source)
+  recruiterCandidate RecruiterCandidate?
+
+  // Application content
+  bio             String?           @db.Text  // Brief bio
+  coverLetter     String?           @db.Text  // Why they are applying
 
   // Notes (internal)
   notes       String?           @db.Text
@@ -1276,6 +1302,9 @@ model JobCandidate {
 
   // Interview stages tracking
   interviews  CandidateInterview[]
+
+  // Assessment tracking
+  assessments CandidateAssessment[]
 
   @@unique([jobId, email])
   @@index([jobId, stage])
@@ -1366,8 +1395,10 @@ model InterviewerToken {
 
 enum JobCandidateStage {
   APPLIED
-  HR_SCREEN
-  TECHNICAL
+  HR_SCREEN      // People Chat
+  TEAM_CHAT      // Team Chat (NEW)
+  ADVISOR_CHAT   // Advisor Chat (NEW)
+  TECHNICAL      // Coding Assessment/Test
   PANEL
   TRIAL
   CEO_CHAT
@@ -1382,6 +1413,107 @@ enum JobStatus {
   ACTIVE
   PAUSED
   HIRED
+}
+
+// ============================================
+// RECRUITING - CANDIDATE SOURCE TRACKING
+// ============================================
+
+enum CandidateSource {
+  INBOUND    // Applied via public job page
+  OUTBOUND   // Sourced by team member from external platforms
+  RECRUITER  // Added by external recruiter
+  EXCELLER   // Added by internal Curacel employee
+}
+
+enum InboundChannel {
+  YC           // Y Combinator Work at a Startup
+  PEOPLEOS     // PeopleOS careers page
+  COMPANY_SITE // Direct company website
+  OTHER        // Other inbound channel
+}
+
+enum OutboundChannel {
+  LINKEDIN    // LinkedIn sourcing
+  JOB_BOARDS  // Indeed, Glassdoor, etc.
+  GITHUB      // GitHub profiles
+  TWITTER     // Twitter/X
+  OTHER       // Other outbound channel
+}
+
+// ============================================
+// RECRUITING - EXTERNAL RECRUITERS
+// ============================================
+
+model Recruiter {
+  id               String   @id @default(uuid())
+  name             String
+  email            String   @unique
+  organizationName String?
+  isActive         Boolean  @default(true)
+
+  jobAccess        RecruiterJob[]
+  candidates       RecruiterCandidate[]
+
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([email])
+  @@index([isActive])
+}
+
+model RecruiterJob {
+  id          String    @id @default(uuid())
+  recruiterId String
+  recruiter   Recruiter @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  jobId       String
+  job         Job       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  accessToken String    @unique @default(uuid())
+  lastAccessedAt DateTime?
+
+  createdAt   DateTime  @default(now())
+
+  @@unique([recruiterId, jobId])
+  @@index([accessToken])
+  @@index([jobId])
+}
+
+model RecruiterCandidate {
+  id          String       @id @default(uuid())
+  recruiterId String
+  recruiter   Recruiter    @relation(fields: [recruiterId], references: [id], onDelete: Cascade)
+  candidateId String       @unique
+  candidate   JobCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime     @default(now())
+
+  @@index([recruiterId])
+}
+
+// ============================================
+// RECRUITING - SETTINGS
+// ============================================
+
+model RecruitingSettings {
+  id                 String   @id @default(uuid())
+  organizationId     String   @unique
+
+  // Global webhook
+  globalWebhookUrl   String?
+  globalWebhookSecret String?
+
+  // Branding for public careers page
+  companyLogoUrl     String?
+  companyDescription String?  @db.Text
+  socialLinks        Json?    // { linkedin, twitter, website }
+
+  // Custom channels (JSON arrays)
+  customInboundChannels  Json? // ["Custom Channel 1", ...]
+  customOutboundChannels Json?
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
 }
 
 // ============================================
@@ -1559,4 +1691,156 @@ model InterviewCriteriaScore {
 
   @@unique([evaluationId, criteriaId])
   @@index([criteriaId])
+}
+
+// ============================================
+// RECRUITING - ASSESSMENTS
+// ============================================
+
+enum AssessmentType {
+  CODING_TEST
+  KANDI_IO
+  PERSONALITY_MBTI
+  PERSONALITY_BIG5
+  WORK_TRIAL
+  CUSTOM
+}
+
+enum AssessmentStatus {
+  NOT_STARTED
+  INVITED
+  IN_PROGRESS
+  COMPLETED
+  EXPIRED
+  CANCELLED
+}
+
+// Assessment Template - configurable per organization/team
+model AssessmentTemplate {
+  id              String           @id @default(uuid())
+  organizationId  String
+  teamId          String?          // NULL = global, set = team-specific
+
+  name            String           // e.g., "Backend Coding Challenge"
+  description     String?
+  type            AssessmentType
+
+  // Configuration
+  durationMinutes Int?
+  passingScore    Int?
+  instructions    String?          @db.Text
+
+  // External platform (Kandi.io, etc.)
+  externalUrl     String?
+  externalPlatform String?         // "kandi", "hackerrank", etc.
+
+  // Email template for sending
+  emailSubject    String?
+  emailBody       String?          @db.Text
+
+  // Webhook for receiving results
+  webhookUrl      String?
+  webhookSecret   String?
+
+  // Scoring rubric (JSON)
+  scoringRubric   Json?            // { criteria: [{name, weight, maxScore}] }
+
+  isActive        Boolean          @default(true)
+  sortOrder       Int              @default(0)
+
+  candidateAssessments CandidateAssessment[]
+  workTrialTemplate    WorkTrialTemplate?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([organizationId, type])
+  @@index([teamId])
+  @@index([isActive])
+}
+
+// Candidate Assessment - results per candidate
+model CandidateAssessment {
+  id              String           @id @default(uuid())
+  candidateId     String
+  candidate       JobCandidate     @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  templateId      String
+  template        AssessmentTemplate @relation(fields: [templateId], references: [id])
+
+  status          AssessmentStatus @default(NOT_STARTED)
+
+  // Scores (supports multiple score types)
+  overallScore    Int?             // 0-100
+  scores          Json?            // { correctness: 7, codeQuality: 7, alignment: 7 }
+  percentile      Int?
+
+  // Results
+  resultUrl       String?          // Link to external report
+  resultData      Json?            // Structured result (webhook payload, etc.)
+  recommendation  String?          // HIRE, HOLD, NO_HIRE
+  summary         String?          @db.Text
+  strengths       Json?            // Array of strings
+  risks           Json?            // Array of strings
+  questionsForCandidate Json?      // Array of interview questions
+
+  // File uploads (PDF/image results)
+  fileUrl         String?
+  fileName        String?
+  extractedData   Json?            // AI-extracted data from file
+
+  // Work Trial specific
+  dashboardUrl    String?          // Google Sheet URL
+  dashboardData   Json?            // Synced data from sheet
+  dailyUpdates    Json?            // Array of daily standup entries
+  completionPercent Int?           // 0-100
+  qualityScore    Int?             // 0-100
+
+  // Timing
+  inviteSentAt    DateTime?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  expiresAt       DateTime?
+  lastSyncedAt    DateTime?        // For dashboard sync
+
+  // Invite
+  inviteToken     String?          @unique
+
+  notes           String?          @db.Text
+  evaluatedBy     String?          // Employee ID who reviewed
+  evaluatedAt     DateTime?
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@unique([candidateId, templateId])
+  @@index([candidateId])
+  @@index([templateId])
+  @@index([status])
+}
+
+// Work Trial Template - extended config for work trials
+model WorkTrialTemplate {
+  id                   String             @id @default(uuid())
+  assessmentTemplateId String             @unique
+  assessmentTemplate   AssessmentTemplate @relation(fields: [assessmentTemplateId], references: [id], onDelete: Cascade)
+
+  // Template structure
+  tasks                Json               // Array of { name, description, deliverables }
+  durationDays         Int                @default(5)
+
+  // People
+  defaultBuddyId       String?            // Default buddy employee
+
+  // Check-ins
+  checkInSchedule      Json?              // { day1: true, day3: true, day5: true }
+
+  // Dashboard template
+  dashboardTemplateUrl String?            // Google Sheet template to clone
+  dashboardMetrics     Json?              // { columns: ["Task", "Status", "Notes", ...] }
+
+  // Evaluation rubric
+  evaluationCriteria   Json?              // Array of { name, weight, description }
+
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
 }

@@ -15,6 +15,8 @@ export const dashboardRouter = router({
     const defaultSettings = {
       openJobs: true,
       activeCandidates: true,
+      scheduledInterviews: true,
+      pendingAssessments: true,
       activeEmployees: true,
       pendingContracts: true,
       inProgressOnboarding: true,
@@ -27,6 +29,8 @@ export const dashboardRouter = router({
       return {
         openJobs: 0,
         activeCandidates: 0,
+        scheduledInterviews: 0,
+        pendingAssessments: 0,
         activeEmployees: 0,
         pendingContracts: 0,
         inProgressOnboarding: 0,
@@ -39,6 +43,8 @@ export const dashboardRouter = router({
     const [
       openJobs,
       activeCandidates,
+      scheduledInterviews,
+      pendingAssessments,
       activeEmployees,
       pendingContracts,
       inProgressOnboarding,
@@ -54,7 +60,26 @@ export const dashboardRouter = router({
         ? ctx.prisma.jobCandidate.count({
             where: {
               job: { status: 'ACTIVE' },
-              stage: { in: ['APPLIED', 'HR_SCREEN', 'TECHNICAL', 'PANEL', 'OFFER'] },
+              stage: { in: ['APPLIED', 'HR_SCREEN', 'TEAM_CHAT', 'ADVISOR_CHAT', 'TECHNICAL', 'PANEL', 'OFFER'] },
+            },
+          })
+        : Promise.resolve(0),
+
+      // Scheduled interviews (upcoming)
+      settings.scheduledInterviews
+        ? ctx.prisma.candidateInterview.count({
+            where: {
+              status: 'SCHEDULED',
+              scheduledAt: { gte: new Date() },
+            },
+          })
+        : Promise.resolve(0),
+
+      // Pending assessments (not started, invited, or in progress)
+      settings.pendingAssessments
+        ? ctx.prisma.candidateAssessment.count({
+            where: {
+              status: { in: ['NOT_STARTED', 'INVITED', 'IN_PROGRESS'] },
             },
           })
         : Promise.resolve(0),
@@ -83,6 +108,8 @@ export const dashboardRouter = router({
     return {
       openJobs,
       activeCandidates,
+      scheduledInterviews,
+      pendingAssessments,
       activeEmployees,
       pendingContracts,
       inProgressOnboarding,

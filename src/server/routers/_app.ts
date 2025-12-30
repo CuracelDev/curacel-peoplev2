@@ -22,6 +22,8 @@ import { competencyRouter } from './competency'
 import { jobRouter } from './job'
 import { interestFormRouter } from './interest-form'
 import { interviewStageRouter } from './interview-stage'
+import { interviewRouter } from './interview'
+import { assessmentRouter } from './assessment'
 import { analyticsRouter } from './analytics'
 
 export const appRouter = router({
@@ -48,6 +50,8 @@ export const appRouter = router({
   job: jobRouter,
   interestForm: interestFormRouter,
   interviewStage: interviewStageRouter,
+  interview: interviewRouter,
+  assessment: assessmentRouter,
   analytics: analyticsRouter,
 })
 

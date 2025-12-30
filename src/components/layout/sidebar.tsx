@@ -24,6 +24,8 @@ import {
   ChevronDown,
   ChevronRight,
   TrendingUp,
+  Calendar,
+  ClipboardCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Logo } from '@/components/ui/logo'
@@ -39,7 +41,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { getInitials } from '@/lib/utils'
 
-type BadgeKey = 'openJobs' | 'activeCandidates' | 'activeEmployees' | 'pendingContracts' | 'inProgressOnboarding' | 'inProgressOffboarding'
+type BadgeKey = 'openJobs' | 'activeCandidates' | 'scheduledInterviews' | 'pendingAssessments' | 'activeEmployees' | 'pendingContracts' | 'inProgressOnboarding' | 'inProgressOffboarding'
 
 type NavItem = {
   name: string
@@ -68,6 +70,8 @@ const navigationSections: NavSection[] = [
     items: [
       { name: 'Jobs', href: '/recruiting/positions', icon: Briefcase, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'openJobs' },
       { name: 'Candidates', href: '/recruiting/candidates', icon: UserSearch, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'activeCandidates' },
+      { name: 'Interviews', href: '/recruiting/interviews', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'scheduledInterviews' },
+      { name: 'Assessments', href: '/recruiting/assessments', icon: ClipboardCheck, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'pendingAssessments' },
       { name: 'Question Bank', href: '/recruiting/questions', icon: HelpCircle, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
     ],
   },
