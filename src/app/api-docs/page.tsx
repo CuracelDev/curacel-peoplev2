@@ -13,7 +13,7 @@ export default function ApiDocsPage() {
             Public documentation for integrating with Curacel People. Version 1.0
           </p>
           <p className="text-xs text-gray-500">
-            Last updated: December 2024
+            Last updated: December 30, 2024
           </p>
         </div>
 
@@ -358,25 +358,115 @@ export default function ApiDocsPage() {
         <section id="recruiting">
           <Card>
             <CardHeader>
-              <CardTitle>Recruiting (Beta)</CardTitle>
-              <CardDescription>Hiring flows and recruiting configuration</CardDescription>
+              <CardTitle>Recruiting</CardTitle>
+              <CardDescription>Jobs, candidates, interest forms, and interview rubrics</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 text-sm text-gray-700">
-              <p>
-                Recruiting configuration is currently managed in the app under
-                <strong> Recruiting → Settings → Interview</strong>. Public API endpoints for
-                hiring flows will be documented here once available.
-              </p>
-              <div className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-800">
-                <strong>Status:</strong> API access is not yet available for hiring flows.
+              <div className="space-y-2">
+                <h4 className="font-semibold">Jobs</h4>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">GET</Badge>
+                  <code>/api/v1/jobs</code>
+                  <span className="text-gray-500">— list jobs</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-green-600">POST</Badge>
+                  <code>/api/v1/jobs</code>
+                  <span className="text-gray-500">— create job</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">GET</Badge>
+                  <code>/api/v1/jobs/:id</code>
+                  <span className="text-gray-500">— fetch job</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-amber-600">PATCH</Badge>
+                  <code>/api/v1/jobs/:id</code>
+                  <span className="text-gray-500">— update job</span>
+                </div>
               </div>
+
+              <div className="space-y-2">
+                <h4 className="font-semibold">Candidates</h4>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">GET</Badge>
+                  <code>/api/v1/candidates</code>
+                  <span className="text-gray-500">— list candidates</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-green-600">POST</Badge>
+                  <code>/api/v1/candidates</code>
+                  <span className="text-gray-500">— create candidate</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">GET</Badge>
+                  <code>/api/v1/candidates/:id</code>
+                  <span className="text-gray-500">— fetch candidate</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-amber-600">PATCH</Badge>
+                  <code>/api/v1/candidates/:id/stage</code>
+                  <span className="text-gray-500">— update candidate stage</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-semibold">Interest Forms</h4>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">GET</Badge>
+                  <code>/api/v1/interest-forms</code>
+                  <span className="text-gray-500">— list forms</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-green-600">POST</Badge>
+                  <code>/api/v1/interest-forms</code>
+                  <span className="text-gray-500">— create form</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-semibold">Interview Rubrics</h4>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">GET</Badge>
+                  <code>/api/v1/interview-rubrics</code>
+                  <span className="text-gray-500">— list rubrics</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-green-600">POST</Badge>
+                  <code>/api/v1/interview-rubrics</code>
+                  <span className="text-gray-500">— create rubric</span>
+                </div>
+              </div>
+
               <div className="rounded bg-gray-900 p-3 text-xs text-gray-100">
-                <pre>{`{
-  "id": "engineering",
-  "name": "Engineering",
-  "description": "Includes technical assessment",
-  "stages": ["Apply", "HR", "Kand.io", "Technical", "Panel"],
-  "hiresCount": 2
+                <pre>{`// Job response example
+{
+  "id": "job_123",
+  "title": "Senior Software Engineer",
+  "team": "Engineering",
+  "status": "OPEN",
+  "employmentType": "FULL_TIME",
+  "locations": ["Lagos", "Remote"],
+  "hiringFlow": "engineering",
+  "stages": ["Apply", "HR", "Technical", "Panel"],
+  "candidateCount": 24,
+  "createdAt": "2024-12-15T10:00:00Z"
+}`}</pre>
+              </div>
+
+              <div className="rounded bg-gray-900 p-3 text-xs text-gray-100">
+                <pre>{`// Candidate response example
+{
+  "id": "cand_456",
+  "fullName": "Ada Lovelace",
+  "email": "ada@example.com",
+  "jobId": "job_123",
+  "stage": "TECHNICAL",
+  "rating": 4,
+  "appliedAt": "2024-12-20T09:00:00Z",
+  "interestFormResponses": [
+    { "question": "Years of experience", "answer": "5" }
+  ]
 }`}</pre>
               </div>
             </CardContent>
