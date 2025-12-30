@@ -299,6 +299,26 @@ export const jobRouter = router({
     return { all, active, draft, closed }
   }),
 
+  // Get sidebar counts (open jobs and active candidates)
+  getSidebarCounts: protectedProcedure.query(async ({ ctx }) => {
+    // Count ACTIVE jobs
+    const openJobs = await ctx.prisma.job.count({
+      where: { status: 'ACTIVE' },
+    })
+
+    // Count candidates in active stages on ACTIVE jobs
+    const activeCandidates = await ctx.prisma.jobCandidate.count({
+      where: {
+        job: { status: 'ACTIVE' },
+        stage: {
+          in: ['APPLIED', 'HR_SCREEN', 'TECHNICAL', 'PANEL', 'OFFER'],
+        },
+      },
+    })
+
+    return { openJobs, activeCandidates }
+  }),
+
   // List candidates for a job
   listCandidates: protectedProcedure
     .input(

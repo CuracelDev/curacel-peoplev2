@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useSession, signOut } from 'next-auth/react'
+import { trpc } from '@/lib/trpc-client'
 import {
   LayoutDashboard,
   Users,
@@ -38,7 +39,7 @@ type NavItem = {
   href: string
   icon: React.ComponentType<{ className?: string }>
   roles: string[]
-  badge?: number
+  badgeKey?: 'openJobs' | 'activeCandidates'
 }
 
 type NavSection = {
@@ -56,8 +57,8 @@ const navigationSections: NavSection[] = [
   {
     title: 'HIRING',
     items: [
-      { name: 'Jobs', href: '/recruiting/positions', icon: Briefcase, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badge: 5 },
-      { name: 'Candidates', href: '/recruiting/candidates', icon: UserSearch, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badge: 24 },
+      { name: 'Jobs', href: '/recruiting/positions', icon: Briefcase, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'openJobs' },
+      { name: 'Candidates', href: '/recruiting/candidates', icon: UserSearch, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'activeCandidates' },
       { name: 'Question Bank', href: '/recruiting/questions', icon: HelpCircle, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
     ],
   },
@@ -96,6 +97,12 @@ export function Sidebar({
   const pathname = usePathname()
   const { data: session } = useSession()
   const userRole = session?.user?.role || 'EMPLOYEE'
+
+  // Fetch sidebar counts for hiring badges
+  const { data: sidebarCounts } = trpc.job.getSidebarCounts.useQuery(undefined, {
+    refetchInterval: 30000, // Refresh every 30 seconds
+    staleTime: 10000,
+  })
 
   const filteredSections = navigationSections
     .map(section => ({
@@ -163,14 +170,14 @@ export function Sidebar({
                       {(!collapsed || mobileOpen) && (
                         <>
                           <span className="flex-1">{item.name}</span>
-                          {item.badge !== undefined && (
+                          {item.badgeKey && sidebarCounts && sidebarCounts[item.badgeKey] > 0 && (
                             <span className={cn(
                               'flex h-4 min-w-[16px] items-center justify-center rounded-full px-1 text-[10px] font-medium',
                               isActive
                                 ? 'bg-white/20 text-white'
                                 : 'bg-primary text-white'
                             )}>
-                              {item.badge}
+                              {sidebarCounts[item.badgeKey]}
                             </span>
                           )}
                         </>
