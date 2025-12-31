@@ -38,10 +38,7 @@ import {
   Pencil,
   Trash2,
   Loader2,
-  Webhook,
   Target,
-  Copy,
-  Check,
   Search,
   FileText,
 } from 'lucide-react'
@@ -67,7 +64,6 @@ const assessmentTypes: { key: AssessmentType; label: string }[] = [
 ]
 
 export default function AssessmentSettingsPage() {
-  const [copiedWebhook, setCopiedWebhook] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
 
@@ -93,14 +89,6 @@ export default function AssessmentSettingsPage() {
       toast.error(error.message || 'Failed to delete assessment')
     },
   })
-
-  const copyWebhookUrl = () => {
-    const webhookUrl = `${window.location.origin}/api/webhooks/assessments/webhook`
-    navigator.clipboard.writeText(webhookUrl)
-    setCopiedWebhook(true)
-    toast.success('Webhook URL copied to clipboard')
-    setTimeout(() => setCopiedWebhook(false), 2000)
-  }
 
   return (
     <div className="space-y-6">
@@ -243,41 +231,6 @@ export default function AssessmentSettingsPage() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
-
-      {/* Webhook URL Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Webhook className="h-5 w-5" />
-            Webhook Configuration
-          </CardTitle>
-          <CardDescription>
-            Configure webhooks to receive assessment results from external platforms
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-center gap-2">
-              <Input
-                readOnly
-                value={typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/assessments/webhook` : '/api/webhooks/assessments/webhook'}
-                className="font-mono text-sm"
-              />
-              <Button variant="outline" size="icon" onClick={copyWebhookUrl}>
-                {copiedWebhook ? (
-                  <Check className="h-4 w-4 text-green-500" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Use this URL to receive webhook events from external assessment platforms.
-              Replace <code className="bg-muted px-1 rounded">webhook</code> with the platform name (e.g., <code className="bg-muted px-1 rounded">kandi</code>).
-            </p>
-          </div>
         </CardContent>
       </Card>
     </div>
