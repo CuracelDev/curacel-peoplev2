@@ -31,6 +31,10 @@ import {
   RefreshCw,
   Building2,
   Layers,
+  Video,
+  Calendar,
+  Mic,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -63,8 +67,10 @@ const settingsNav = [
   { id: 'personality', name: 'Personality Templates', icon: Smile },
   { id: 'team', name: 'Team Profiles', icon: Users },
   { id: 'interview', name: 'Hiring Flow', icon: GitBranch },
+  { id: 'interviewTypes', name: 'Interview Types', icon: Video },
   { id: 'interestForms', name: 'Interest Forms', icon: FileQuestion },
   { id: 'rubrics', name: 'Interview Rubrics', icon: ClipboardCheck },
+  { id: 'integrations', name: 'Integrations', icon: Calendar },
   { id: 'webhooks', name: 'Webhooks', icon: Webhook },
   { id: 'recruiters', name: 'External Recruiters', icon: UserCircle2 },
   { id: 'sources', name: 'Source Channels', icon: Layers },
@@ -122,8 +128,10 @@ type Criteria = {
 
 const sectionMap: Record<string, string> = {
   flows: 'interview',
+  interviewTypes: 'interviewTypes',
   forms: 'interestForms',
   rubrics: 'rubrics',
+  integrations: 'integrations',
 }
 
 export default function SettingsPage() {
@@ -1196,6 +1204,16 @@ export default function SettingsPage() {
             </Card>
           )}
 
+          {/* Interview Types Section */}
+          {activeSection === 'interviewTypes' && (
+            <InterviewTypesSection />
+          )}
+
+          {/* Integrations Section */}
+          {activeSection === 'integrations' && (
+            <IntegrationsSection />
+          )}
+
           {/* Webhooks Section */}
           {activeSection === 'webhooks' && (
             <Card id="webhooks">
@@ -1859,5 +1877,372 @@ export default function SettingsPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+// Interview Types Section Component
+function InterviewTypesSection() {
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const [editingType, setEditingType] = useState<{
+    id?: string
+    name: string
+    slug: string
+    description: string
+    defaultDuration: number
+    questionCategories: string[]
+    allowedRoles: string[]
+  } | null>(null)
+
+  const interviewTypesQuery = trpc.interviewType.list.useQuery()
+  const createTypeMutation = trpc.interviewType.create.useMutation({
+    onSuccess: () => {
+      interviewTypesQuery.refetch()
+      setDialogOpen(false)
+      setEditingType(null)
+    },
+  })
+  const updateTypeMutation = trpc.interviewType.update.useMutation({
+    onSuccess: () => {
+      interviewTypesQuery.refetch()
+      setDialogOpen(false)
+      setEditingType(null)
+    },
+  })
+  const deleteTypeMutation = trpc.interviewType.delete.useMutation({
+    onSuccess: () => interviewTypesQuery.refetch(),
+  })
+
+  const questionCategories = [
+    { value: 'situational', label: 'Situational' },
+    { value: 'behavioral', label: 'Behavioral' },
+    { value: 'technical', label: 'Technical' },
+    { value: 'motivational', label: 'Motivational' },
+    { value: 'culture', label: 'Culture Fit' },
+  ]
+
+  const handleCreate = () => {
+    setEditingType({
+      name: '',
+      slug: '',
+      description: '',
+      defaultDuration: 60,
+      questionCategories: ['behavioral', 'situational'],
+      allowedRoles: [],
+    })
+    setDialogOpen(true)
+  }
+
+  const handleEdit = (type: NonNullable<typeof interviewTypesQuery.data>[number]) => {
+    setEditingType({
+      id: type.id,
+      name: type.name,
+      slug: type.slug,
+      description: type.description || '',
+      defaultDuration: type.defaultDuration,
+      questionCategories: type.questionCategories || [],
+      allowedRoles: type.allowedRoles || [],
+    })
+    setDialogOpen(true)
+  }
+
+  const handleSave = () => {
+    if (!editingType) return
+
+    if (editingType.id) {
+      updateTypeMutation.mutate({
+        id: editingType.id,
+        name: editingType.name,
+        description: editingType.description || undefined,
+        defaultDuration: editingType.defaultDuration,
+        questionCategories: editingType.questionCategories,
+        allowedRoles: editingType.allowedRoles,
+      })
+    } else {
+      createTypeMutation.mutate({
+        name: editingType.name,
+        slug: editingType.slug || editingType.name.toLowerCase().replace(/\s+/g, '-'),
+        description: editingType.description || undefined,
+        defaultDuration: editingType.defaultDuration,
+        questionCategories: editingType.questionCategories,
+        allowedRoles: editingType.allowedRoles,
+      })
+    }
+  }
+
+  const toggleCategory = (category: string) => {
+    if (!editingType) return
+    const cats = editingType.questionCategories
+    if (cats.includes(category)) {
+      setEditingType({ ...editingType, questionCategories: cats.filter(c => c !== category) })
+    } else {
+      setEditingType({ ...editingType, questionCategories: [...cats, category] })
+    }
+  }
+
+  return (
+    <Card id="interviewTypes">
+      <CardHeader className="p-5 border-b">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-semibold">Interview Types</h2>
+            <p className="text-sm text-muted-foreground">
+              Configure interview types with default durations and question categories.
+            </p>
+          </div>
+          <Button onClick={handleCreate}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Type
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-5">
+        {interviewTypesQuery.isLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : (interviewTypesQuery.data?.length || 0) === 0 ? (
+          <div className="text-center py-10 text-muted-foreground">
+            <Video className="h-12 w-12 mx-auto mb-3 text-muted-foreground/60" />
+            <p className="font-medium">No interview types configured</p>
+            <p className="text-sm mt-1">Create interview types to categorize your interviews.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {interviewTypesQuery.data?.map((type) => (
+              <div key={type.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/30 transition-colors">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                    <Video className="h-5 w-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <div className="font-medium">{type.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {type.defaultDuration} min • {type.questionCategories?.length || 0} categories
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">{type.slug}</Badge>
+                  <Button variant="ghost" size="sm" onClick={() => handleEdit(type)}>
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      if (confirm('Are you sure you want to delete this interview type?')) {
+                        deleteTypeMutation.mutate({ id: type.id })
+                      }
+                    }}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+
+      {/* Edit/Create Dialog */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{editingType?.id ? 'Edit Interview Type' : 'Create Interview Type'}</DialogTitle>
+            <DialogDescription>
+              Configure this interview type with a name, duration, and question categories.
+            </DialogDescription>
+          </DialogHeader>
+
+          {editingType && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Name *</Label>
+                <Input
+                  value={editingType.name}
+                  onChange={(e) => setEditingType({ ...editingType, name: e.target.value })}
+                  placeholder="e.g., People Chat, Team Chat, Technical"
+                />
+              </div>
+
+              {!editingType.id && (
+                <div className="space-y-2">
+                  <Label>Slug</Label>
+                  <Input
+                    value={editingType.slug}
+                    onChange={(e) => setEditingType({ ...editingType, slug: e.target.value })}
+                    placeholder="e.g., people-chat"
+                  />
+                  <p className="text-xs text-muted-foreground">Auto-generated from name if left blank</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Textarea
+                  value={editingType.description}
+                  onChange={(e) => setEditingType({ ...editingType, description: e.target.value })}
+                  placeholder="Brief description of this interview type"
+                  rows={2}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Default Duration (minutes)</Label>
+                <Select
+                  value={editingType.defaultDuration.toString()}
+                  onValueChange={(v) => setEditingType({ ...editingType, defaultDuration: parseInt(v) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="90">90 minutes</SelectItem>
+                    <SelectItem value="120">120 minutes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Question Categories</Label>
+                <div className="flex flex-wrap gap-2">
+                  {questionCategories.map((cat) => (
+                    <Badge
+                      key={cat.value}
+                      variant={editingType.questionCategories.includes(cat.value) ? 'default' : 'outline'}
+                      className="cursor-pointer"
+                      onClick={() => toggleCategory(cat.value)}
+                    >
+                      {editingType.questionCategories.includes(cat.value) && (
+                        <Check className="h-3 w-3 mr-1" />
+                      )}
+                      {cat.label}
+                    </Badge>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">Select question categories for this interview type</p>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleSave}
+              disabled={!editingType?.name || createTypeMutation.isPending || updateTypeMutation.isPending}
+            >
+              {(createTypeMutation.isPending || updateTypeMutation.isPending) && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              {editingType?.id ? 'Update Type' : 'Create Type'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  )
+}
+
+// Integrations Section Component
+function IntegrationsSection() {
+  const firefliesConfigQuery = trpc.interview.isFirefliesConfigured.useQuery()
+  const calendarConfigQuery = trpc.interview.isCalendarConfigured.useQuery()
+
+  return (
+    <Card id="integrations">
+      <CardHeader className="p-5 border-b">
+        <h2 className="text-lg font-semibold">Interview Integrations</h2>
+        <p className="text-sm text-muted-foreground">
+          Connect external services for interview scheduling and recording.
+        </p>
+      </CardHeader>
+      <CardContent className="p-5 space-y-6">
+        {/* Fireflies Integration */}
+        <div className="flex items-start justify-between p-4 border rounded-lg">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
+              <Mic className="h-6 w-6 text-orange-600" />
+            </div>
+            <div>
+              <h3 className="font-medium">Fireflies.ai</h3>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Automatically attach meeting transcripts to interviews.
+              </p>
+              {firefliesConfigQuery.data?.configured ? (
+                <Badge className="mt-2 bg-green-100 text-green-800">Connected</Badge>
+              ) : (
+                <Badge variant="secondary" className="mt-2">Not configured</Badge>
+              )}
+            </div>
+          </div>
+          <div className="text-right">
+            {firefliesConfigQuery.data?.configured ? (
+              <p className="text-xs text-muted-foreground">API key configured via environment</p>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Add to your environment:</p>
+                <code className="text-xs bg-muted px-2 py-1 rounded">FIREFLIES_API_KEY=your_key</code>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Google Calendar Integration */}
+        <div className="flex items-start justify-between p-4 border rounded-lg">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
+              <Calendar className="h-6 w-6 text-blue-600" />
+            </div>
+            <div>
+              <h3 className="font-medium">Google Calendar</h3>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                Check interviewer availability and create calendar events with Google Meet.
+              </p>
+              {calendarConfigQuery.data?.configured ? (
+                <Badge className="mt-2 bg-green-100 text-green-800">Connected</Badge>
+              ) : (
+                <Badge variant="secondary" className="mt-2">Not configured</Badge>
+              )}
+            </div>
+          </div>
+          <div className="text-right">
+            {calendarConfigQuery.data?.configured ? (
+              <p className="text-xs text-muted-foreground">Google Workspace connected</p>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">Requires Google Workspace integration</p>
+                <Link href="/settings/applications" className="text-xs text-indigo-600 hover:underline">
+                  Configure in Integrations →
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* AI Configuration */}
+        <div className="flex items-start justify-between p-4 border rounded-lg">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
+              <Star className="h-6 w-6 text-purple-600" />
+            </div>
+            <div>
+              <h3 className="font-medium">BlueAI Analysis</h3>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                AI-powered candidate analysis, question generation, and transcript scoring.
+              </p>
+              <Badge variant="secondary" className="mt-2">Configure in Settings</Badge>
+            </div>
+          </div>
+          <div className="text-right">
+            <Link href="/settings/ai-agent" className="text-xs text-indigo-600 hover:underline">
+              Configure AI Settings →
+            </Link>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }

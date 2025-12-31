@@ -205,11 +205,12 @@ function TemplateEditor({ template, onClose, onSave }: TemplateEditorProps) {
           </div>
           <div className="space-y-2">
             <Label>Stage (optional)</Label>
-            <Select value={stage} onValueChange={setStage}>
+            <Select value={stage || '__none__'} onValueChange={(v) => setStage(v === '__none__' ? '' : v)}>
               <SelectTrigger>
                 <SelectValue placeholder="Select stage" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="__none__">No specific stage</SelectItem>
                 {STAGES.map((s) => (
                   <SelectItem key={s.value} value={s.value}>
                     {s.label}
@@ -368,12 +369,12 @@ export default function EmailTemplatesPage() {
               className="pl-9"
             />
           </div>
-          <Select value={selectedCategory || ''} onValueChange={(v) => setSelectedCategory(v || null)}>
+          <Select value={selectedCategory || '__all__'} onValueChange={(v) => setSelectedCategory(v === '__all__' ? null : v)}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="All categories" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All categories</SelectItem>
+              <SelectItem value="__all__">All categories</SelectItem>
               {TEMPLATE_CATEGORIES.map((cat) => (
                 <SelectItem key={cat.value} value={cat.value}>
                   {cat.label}
