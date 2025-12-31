@@ -435,12 +435,12 @@ export default function EmployeeDetailPage() {
         {/* Right Content */}
         <div className="lg:col-span-3">
           <Tabs defaultValue="personal" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="personal">Personal</TabsTrigger>
-              <TabsTrigger value="employment">Employment</TabsTrigger>
-              <TabsTrigger value="personality">Personality</TabsTrigger>
-              <TabsTrigger value="contract">Contract</TabsTrigger>
-              <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsList className="w-full">
+              <TabsTrigger value="personal" className="flex-1">Personal</TabsTrigger>
+              <TabsTrigger value="employment" className="flex-1">Employment</TabsTrigger>
+              <TabsTrigger value="personality" className="flex-1">Personality</TabsTrigger>
+              <TabsTrigger value="contract" className="flex-1">Contract</TabsTrigger>
+              <TabsTrigger value="applications" className="flex-1">Applications</TabsTrigger>
             </TabsList>
 
             {/* Personal Tab */}
