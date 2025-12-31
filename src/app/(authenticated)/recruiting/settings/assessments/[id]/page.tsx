@@ -134,8 +134,14 @@ export default function EditAssessmentPage() {
     },
   })
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+
+    if (!formData.name || formData.name.length < 2) {
+      toast.error('Please enter an assessment name (at least 2 characters)')
+      return
+    }
+
     updateTemplate.mutate({
       id,
       name: formData.name,
@@ -458,7 +464,11 @@ export default function EditAssessmentPage() {
               Cancel
             </Button>
           </Link>
-          <Button type="submit" disabled={!formData.name || updateTemplate.isPending}>
+          <Button
+            type="button"
+            disabled={!formData.name || formData.name.length < 2 || updateTemplate.isPending}
+            onClick={() => handleSubmit()}
+          >
             {updateTemplate.isPending && (
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
             )}
