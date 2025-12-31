@@ -70,12 +70,12 @@ export default function ApiSettingsPage() {
       {generatedToken ? (
         <Card>
           <CardContent className="space-y-3 py-4">
-            <div className="flex items-center gap-2 text-sm font-semibold text-gray-700">
-              <Key className="h-4 w-4 text-gray-600" />
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <Key className="h-4 w-4 text-foreground/80" />
               Your new API key
             </div>
             <Input value={generatedToken} readOnly />
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted-foreground">
               Store this securely. You will not be able to see it again after you leave this page.
             </p>
           </CardContent>
@@ -84,7 +84,7 @@ export default function ApiSettingsPage() {
 
       <Card>
         <CardContent className="flex flex-col gap-2 py-4">
-          <p className="text-sm text-gray-700">
+          <p className="text-sm text-foreground">
             Share the public API documentation with anyone integrating with Curacel.
           </p>
           <a
@@ -103,25 +103,25 @@ export default function ApiSettingsPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left p-6 font-semibold text-gray-900">Name</th>
-                  <th className="text-left p-6 font-semibold text-gray-900">Prefix</th>
-                  <th className="text-left p-6 font-semibold text-gray-900">Created</th>
-                  <th className="text-left p-6 font-semibold text-gray-900">Last Used</th>
-                  <th className="text-left p-6 font-semibold text-gray-900">Status</th>
-                  <th className="text-right p-6 font-semibold text-gray-900"></th>
+                <tr className="border-b border-border">
+                  <th className="text-left p-6 font-semibold text-foreground">Name</th>
+                  <th className="text-left p-6 font-semibold text-foreground">Prefix</th>
+                  <th className="text-left p-6 font-semibold text-foreground">Created</th>
+                  <th className="text-left p-6 font-semibold text-foreground">Last Used</th>
+                  <th className="text-left p-6 font-semibold text-foreground">Status</th>
+                  <th className="text-right p-6 font-semibold text-foreground"></th>
                 </tr>
               </thead>
               <tbody>
                 {tokens?.map((token) => (
-                  <tr key={token.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="p-6 text-gray-900">{token.name}</td>
-                    <td className="p-6 text-gray-600">{token.tokenPrefix}••••</td>
-                    <td className="p-6 text-gray-600">{formatDate(token.createdAt)}</td>
-                    <td className="p-6 text-gray-600">
+                  <tr key={token.id} className="border-b border-border hover:bg-muted">
+                    <td className="p-6 text-foreground">{token.name}</td>
+                    <td className="p-6 text-foreground/80">{token.tokenPrefix}••••</td>
+                    <td className="p-6 text-foreground/80">{formatDate(token.createdAt)}</td>
+                    <td className="p-6 text-foreground/80">
                       {token.lastUsedAt ? formatDate(token.lastUsedAt) : 'Never'}
                     </td>
-                    <td className="p-6 text-gray-600">
+                    <td className="p-6 text-foreground/80">
                       {token.revokedAt ? 'Revoked' : 'Active'}
                     </td>
                     <td className="p-6 text-right">
@@ -138,7 +138,7 @@ export default function ApiSettingsPage() {
                 ))}
                 {(!tokens || tokens.length === 0) && (
                   <tr>
-                    <td colSpan={6} className="p-12 text-center text-gray-500">
+                    <td colSpan={6} className="p-12 text-center text-muted-foreground">
                       No API keys yet. Create one to start using the API.
                     </td>
                   </tr>

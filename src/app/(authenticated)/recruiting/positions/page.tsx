@@ -72,7 +72,7 @@ const STATUS_BADGES: Record<string, string> = {
 
 // Priority badge styles
 const PRIORITY_BADGES: Record<number, { label: string; className: string }> = {
-  1: { label: 'Low', className: 'bg-gray-100 text-gray-600' },
+  1: { label: 'Low', className: 'bg-muted text-foreground/80' },
   2: { label: 'Normal', className: 'bg-blue-100 text-blue-700' },
   3: { label: 'Medium', className: 'bg-yellow-100 text-yellow-700' },
   4: { label: 'High', className: 'bg-orange-100 text-orange-700' },
@@ -108,8 +108,8 @@ function ScoreCircle({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-lg font-semibold text-gray-900">{score}</span>
-        <span className="text-[10px] text-gray-500">avg score</span>
+        <span className="text-lg font-semibold text-foreground">{score}</span>
+        <span className="text-[10px] text-muted-foreground">avg score</span>
       </div>
     </div>
   )
@@ -164,7 +164,7 @@ export default function PositionsPage() {
               'px-3 py-1.5 rounded-full text-sm font-medium border transition-colors',
               filter === status
                 ? 'bg-indigo-600 text-white border-indigo-600'
-                : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300'
+                : 'bg-card text-foreground/80 border-border hover:border-border'
             )}
           >
             {STATUS_LABELS[status]} ({status === 'all' ? counts?.all ?? 0 : counts?.[status.toLowerCase() as keyof typeof counts] ?? 0})
@@ -210,7 +210,7 @@ export default function PositionsPage() {
               <Link
                 key={job.id}
                 href={`/recruiting/positions/${job.id}/candidates`}
-                className="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 flex gap-3 sm:gap-5 transition-all hover:border-indigo-500 hover:shadow-md"
+                className="bg-card border border-border rounded-xl p-4 sm:p-5 flex gap-3 sm:gap-5 transition-all hover:border-indigo-500 hover:shadow-md"
               >
                 <div className={cn('hidden sm:flex w-12 h-12 rounded-lg items-center justify-center text-white flex-shrink-0', getJobIconBg(job.department))}>
                   {getJobIcon(job.department)}
@@ -235,21 +235,21 @@ export default function PositionsPage() {
                   {/* Job Meta */}
                   <div className="flex gap-4 mt-3 flex-wrap">
                     {job.department && (
-                      <div className="flex items-center gap-2 text-[13px] text-gray-500">
+                      <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
                         <Briefcase className="h-3.5 w-3.5" />
                         {job.department}
                       </div>
                     )}
-                    <div className="flex items-center gap-2 text-[13px] text-gray-500">
+                    <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
                       <MapPin className="h-3.5 w-3.5" />
                       {getLocationSummary(job.locations)}
                     </div>
-                    <div className="flex items-center gap-2 text-[13px] text-gray-500">
+                    <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
                       <Calendar className="h-3.5 w-3.5" />
                       Posted {formatDate(job.createdAt)}
                     </div>
                     {job.deadline && (
-                      <div className="flex items-center gap-2 text-[13px] text-gray-500">
+                      <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
                         <Clock className="h-3.5 w-3.5" />
                         Deadline {formatDate(job.deadline)}
                       </div>
@@ -257,22 +257,22 @@ export default function PositionsPage() {
                   </div>
 
                   {/* Job Stats */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 mt-4 pt-4 border-t border-gray-100">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 mt-4 pt-4 border-t border-border">
                     <div className="text-center">
-                      <div className="text-lg sm:text-xl font-semibold text-gray-900">{stats.applicants}</div>
-                      <div className="text-xs text-gray-500">Applicants</div>
+                      <div className="text-lg sm:text-xl font-semibold text-foreground">{stats.applicants}</div>
+                      <div className="text-xs text-muted-foreground">Applicants</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg sm:text-xl font-semibold text-gray-900">{stats.inReview}</div>
-                      <div className="text-xs text-gray-500">In Review</div>
+                      <div className="text-lg sm:text-xl font-semibold text-foreground">{stats.inReview}</div>
+                      <div className="text-xs text-muted-foreground">In Review</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg sm:text-xl font-semibold text-gray-900">{stats.interviewing}</div>
-                      <div className="text-xs text-gray-500">Interviewing</div>
+                      <div className="text-lg sm:text-xl font-semibold text-foreground">{stats.interviewing}</div>
+                      <div className="text-xs text-muted-foreground">Interviewing</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg sm:text-xl font-semibold text-gray-900">{stats.offerStage}</div>
-                      <div className="text-xs text-gray-500">Offer Stage</div>
+                      <div className="text-lg sm:text-xl font-semibold text-foreground">{stats.offerStage}</div>
+                      <div className="text-xs text-muted-foreground">Offer Stage</div>
                     </div>
                   </div>
                 </div>
@@ -287,10 +287,10 @@ export default function PositionsPage() {
 
           {/* Empty State */}
           {filteredJobs.length === 0 && !isLoading && (
-            <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-8 text-center">
-              <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="font-semibold text-gray-700 mb-1">No jobs found</h3>
-              <p className="text-sm text-gray-500 mb-4">
+            <div className="bg-muted/50 border-2 border-dashed border-border rounded-xl p-8 text-center">
+              <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="font-semibold text-foreground mb-1">No jobs found</h3>
+              <p className="text-sm text-muted-foreground mb-4">
                 {filter !== 'all' || department !== 'all'
                   ? 'Try adjusting your filters'
                   : 'Get started by creating your first job posting'}
@@ -308,13 +308,13 @@ export default function PositionsPage() {
           {filteredJobs.length > 0 && (
             <Link
               href="/recruiting/positions/new"
-              className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl p-5 flex flex-col items-center justify-center min-h-[160px] transition-all hover:border-indigo-500 hover:bg-indigo-50/30"
+              className="bg-muted/50 border-2 border-dashed border-border rounded-xl p-5 flex flex-col items-center justify-center min-h-[160px] transition-all hover:border-indigo-500 hover:bg-indigo-50/30"
             >
-              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-gray-400 mb-3">
+              <div className="w-12 h-12 bg-muted rounded-full flex items-center justify-center text-muted-foreground mb-3">
                 <Plus className="h-6 w-6" />
               </div>
-              <div className="font-semibold text-gray-700">Create New Job</div>
-              <div className="text-[13px] text-gray-500 mt-1">Set up a new hiring position</div>
+              <div className="font-semibold text-foreground">Create New Job</div>
+              <div className="text-[13px] text-muted-foreground mt-1">Set up a new hiring position</div>
             </Link>
           )}
         </div>

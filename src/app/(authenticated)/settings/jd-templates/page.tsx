@@ -172,7 +172,7 @@ const DEPARTMENTS = [
 ]
 
 function getDepartmentInfo(department: string) {
-  return DEPARTMENTS.find(d => d.value === department) || { icon: Briefcase, color: 'text-gray-500 bg-gray-50' }
+  return DEPARTMENTS.find(d => d.value === department) || { icon: Briefcase, color: 'text-muted-foreground bg-muted/50' }
 }
 
 export default function JDsPage() {
@@ -267,7 +267,7 @@ export default function JDsPage() {
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search JDs..."
             value={searchQuery}
@@ -331,11 +331,11 @@ export default function JDsPage() {
                           {hasVersions && (
                             <button
                               onClick={() => toggleExpanded(jd.id)}
-                              className="p-1 hover:bg-gray-100 rounded transition-colors"
+                              className="p-1 hover:bg-muted rounded transition-colors"
                             >
                               <ChevronRight
                                 className={cn(
-                                  "h-4 w-4 text-gray-400 transition-transform",
+                                  "h-4 w-4 text-muted-foreground transition-transform",
                                   isExpanded && "rotate-90"
                                 )}
                               />
@@ -348,11 +348,11 @@ export default function JDsPage() {
                           <div>
                             <Link
                               href={`/settings/jd-templates/${jd.id}`}
-                              className="font-medium text-gray-900 hover:text-primary hover:underline"
+                              className="font-medium text-foreground hover:text-primary hover:underline"
                             >
                               {jd.name}
                             </Link>
-                            <p className="text-sm text-gray-500 line-clamp-1 max-w-[250px]">
+                            <p className="text-sm text-muted-foreground line-clamp-1 max-w-[250px]">
                               {jd.description}
                             </p>
                           </div>
@@ -368,10 +368,10 @@ export default function JDsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
-                          <GitBranch className="h-3.5 w-3.5 text-gray-400" />
+                          <GitBranch className="h-3.5 w-3.5 text-muted-foreground" />
                           <span className="text-sm">v{jd.version}</span>
                           {hasVersions && (
-                            <span className="text-xs text-gray-400">
+                            <span className="text-xs text-muted-foreground">
                               ({versionHistory.length} older)
                             </span>
                           )}
@@ -390,7 +390,7 @@ export default function JDsPage() {
                           </Badge>
                         )}
                       </TableCell>
-                      <TableCell className="text-sm text-gray-500">
+                      <TableCell className="text-sm text-muted-foreground">
                         {jd.updatedAt}
                       </TableCell>
                       <TableCell>
@@ -450,36 +450,36 @@ export default function JDsPage() {
                     </TableRow>
                     {/* Version History Rows */}
                     {isExpanded && versionHistory.map((version) => (
-                      <TableRow key={version.id} className="bg-gray-50/50">
+                      <TableRow key={version.id} className="bg-muted/50/50">
                         <TableCell>
                           <div className="flex items-center gap-3 pl-12">
-                            <div className="w-0.5 h-8 bg-gray-200 -ml-3" />
+                            <div className="w-0.5 h-8 bg-muted -ml-3" />
                             <Link
                               href={`/settings/jd-templates/${version.id}`}
-                              className="text-sm text-gray-600 hover:text-primary hover:underline"
+                              className="text-sm text-foreground/80 hover:text-primary hover:underline"
                             >
                               {version.name}
                             </Link>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-gray-500">{version.department}</span>
+                          <span className="text-sm text-muted-foreground">{version.department}</span>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-gray-500">{version.flowType}</span>
+                          <span className="text-sm text-muted-foreground">{version.flowType}</span>
                         </TableCell>
                         <TableCell>
-                          <div className="flex items-center gap-1.5 text-gray-500">
+                          <div className="flex items-center gap-1.5 text-muted-foreground">
                             <History className="h-3.5 w-3.5" />
                             <span className="text-sm">v{version.version}</span>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <Badge variant="outline" className="text-gray-500">
+                          <Badge variant="outline" className="text-muted-foreground">
                             Archived
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm text-gray-400">
+                        <TableCell className="text-sm text-muted-foreground">
                           {version.updatedAt}
                         </TableCell>
                         <TableCell>
@@ -514,14 +514,14 @@ export default function JDsPage() {
           </Table>
         </div>
       ) : (
-        <div className="text-center py-12 border rounded-lg bg-gray-50">
-          <Briefcase className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+        <div className="text-center py-12 border rounded-lg bg-muted/50">
+          <Briefcase className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">
             {searchQuery || departmentFilter !== 'all' || statusFilter !== 'all'
               ? 'No JDs match your filters'
               : 'No job descriptions yet'}
           </h3>
-          <p className="text-gray-500 mb-4">
+          <p className="text-muted-foreground mb-4">
             {searchQuery || departmentFilter !== 'all' || statusFilter !== 'all'
               ? 'Try adjusting your search or filters'
               : 'Get started by creating your first job description.'}
@@ -539,7 +539,7 @@ export default function JDsPage() {
 
       {/* Stats */}
       {latestJDs.length > 0 && (
-        <div className="flex items-center gap-6 text-sm text-gray-500">
+        <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <span>{latestJDs.length} job description{latestJDs.length !== 1 ? 's' : ''}</span>
           <span>{latestJDs.filter(jd => jd.isActive).length} published</span>
           <span>{latestJDs.filter(jd => !jd.isActive).length} draft{latestJDs.filter(jd => !jd.isActive).length !== 1 ? 's' : ''}</span>

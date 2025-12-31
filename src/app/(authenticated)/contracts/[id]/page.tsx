@@ -127,7 +127,7 @@ export default function ContractDetailPage() {
   if (!contract) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Contract not found</p>
+        <p className="text-muted-foreground">Contract not found</p>
         <Button variant="outline" className="mt-4" onClick={() => router.back()}>
           Go Back
         </Button>
@@ -227,8 +227,8 @@ export default function ContractDetailPage() {
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
-            <h1 className="text-xl font-semibold text-gray-900">{contract.candidateName}</h1>
-            <p className="text-sm text-gray-500">{contract.candidateEmail}</p>
+            <h1 className="text-xl font-semibold text-foreground">{contract.candidateName}</h1>
+            <p className="text-sm text-muted-foreground">{contract.candidateEmail}</p>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
@@ -406,7 +406,7 @@ export default function ContractDetailPage() {
               <CardContent className="grid gap-4 md:grid-cols-2">
                 {employmentDetails.map((item) => (
                   <div key={item.label} className="space-y-1">
-                    <p className="text-sm text-gray-500">{item.label}</p>
+                    <p className="text-sm text-muted-foreground">{item.label}</p>
                     <p className="font-medium">{item.value}</p>
                   </div>
                 ))}
@@ -423,7 +423,7 @@ export default function ContractDetailPage() {
               <div className="grid gap-4 md:grid-cols-2">
                 {contractMetadata.map((item) => (
                   <div key={item.label} className="space-y-1">
-                    <p className="text-sm text-gray-500">{item.label}</p>
+                    <p className="text-sm text-muted-foreground">{item.label}</p>
                     <p className="font-medium">{item.value}</p>
                   </div>
                 ))}
@@ -432,28 +432,28 @@ export default function ContractDetailPage() {
               <Separator />
 
               <div>
-                <p className="text-sm text-gray-500 mb-3">Variables</p>
+                <p className="text-sm text-muted-foreground mb-3">Variables</p>
                 <div className="space-y-2">
                   {variableEntries.map(([key, value]) => (
                     <div
                       key={key}
-                      className="grid grid-cols-[180px,minmax(0,1fr)] gap-4 rounded-md border border-gray-100 bg-white/60 px-3 py-2"
+                      className="grid grid-cols-[180px,minmax(0,1fr)] gap-4 rounded-md border border-border bg-card/60 px-3 py-2"
                     >
-                      <span className="text-sm font-medium text-gray-600 capitalize">
+                      <span className="text-sm font-medium text-foreground/80 capitalize">
                         {key.replace(/_/g, ' ')}
                       </span>
-                      <span className="min-w-0 text-sm text-gray-900 leading-6 whitespace-pre-wrap break-words">
+                      <span className="min-w-0 text-sm text-foreground leading-6 whitespace-pre-wrap break-words">
                         {value}
                       </span>
                     </div>
                   ))}
                   {hasHiddenSignatureImageUrl && (
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Signature block image URL hidden (too long).
                     </p>
                   )}
                   {variableEntries.length === 0 && (
-                    <p className="text-gray-500">No variables provided for this contract.</p>
+                    <p className="text-muted-foreground">No variables provided for this contract.</p>
                   )}
                 </div>
               </div>
@@ -470,11 +470,11 @@ export default function ContractDetailPage() {
             </CardHeader>
             <CardContent>
               {contract.renderedHtml ? (
-                <div className="prose prose-sm max-w-none border rounded-lg bg-white shadow-inner overflow-auto">
+                <div className="prose prose-sm max-w-none border rounded-lg bg-card shadow-inner overflow-auto">
                   <div className="min-h-[300px] p-6" dangerouslySetInnerHTML={{ __html: contract.renderedHtml }} />
                 </div>
               ) : (
-                <p className="text-gray-500">No preview available</p>
+                <p className="text-muted-foreground">No preview available</p>
               )}
               {contract.signedDocUrl && (
                 <div className="mt-4">
@@ -503,7 +503,7 @@ export default function ContractDetailPage() {
             </CardHeader>
             <CardContent>
               {contract.events.length === 0 ? (
-                <p className="text-gray-500">No activity yet.</p>
+                <p className="text-muted-foreground">No activity yet.</p>
               ) : (
                 <div className="space-y-4">
                   {contract.events.map((event, index) => (
@@ -515,16 +515,16 @@ export default function ContractDetailPage() {
                           }`}
                         />
                         {index < contract.events.length - 1 && (
-                          <div className="w-0.5 flex-1 bg-gray-200 my-1" />
+                          <div className="w-0.5 flex-1 bg-muted my-1" />
                         )}
                       </div>
                       <div className="pb-4">
                         <p className="font-medium capitalize">{event.type}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {formatDateTime(event.occurredAt)}
                         </p>
                         {event.description && (
-                          <p className="text-sm text-gray-600 mt-1">{event.description}</p>
+                          <p className="text-sm text-foreground/80 mt-1">{event.description}</p>
                         )}
                       </div>
                     </div>

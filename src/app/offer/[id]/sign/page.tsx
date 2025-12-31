@@ -105,7 +105,7 @@ export default function OfferSigningPage() {
               <p className="text-sm text-slate-600 mb-3">Review your offer below</p>
               {offer.renderedHtml ? (
                 <div
-                  className="prose prose-sm max-w-none border rounded-lg bg-white shadow-inner p-6"
+                  className="prose prose-sm max-w-none border rounded-lg bg-card shadow-inner p-6"
                   dangerouslySetInnerHTML={{ __html: offer.renderedHtml }}
                 />
               ) : (
@@ -146,7 +146,7 @@ export default function OfferSigningPage() {
                 />
                 {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
                 {signatureImage && (
-                  <div className="border rounded-md p-2 inline-block bg-white">
+                  <div className="border rounded-md p-2 inline-block bg-card">
                     <p className="text-xs text-slate-500 mb-1">Preview</p>
                     <Image
                       src={signatureImage}

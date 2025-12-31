@@ -87,7 +87,7 @@ export function SourceBreakdown({
           {/* Summary Table */}
           <div className="space-y-4">
             <div>
-              <h4 className="text-sm font-medium text-gray-700 mb-2">By Source</h4>
+              <h4 className="text-sm font-medium text-foreground mb-2">By Source</h4>
               <div className="space-y-2">
                 {bySource.map((s, i) => (
                   <div key={s.source} className="flex items-center justify-between">
@@ -96,11 +96,11 @@ export function SourceBreakdown({
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: COLORS[i % COLORS.length] }}
                       />
-                      <span className="text-sm text-gray-700">{SOURCE_LABELS[s.source] || s.source}</span>
+                      <span className="text-sm text-foreground">{SOURCE_LABELS[s.source] || s.source}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm font-semibold">{s.count.toLocaleString()}</span>
-                      <span className="text-xs text-gray-500 w-12 text-right">{s.percentage.toFixed(1)}%</span>
+                      <span className="text-xs text-muted-foreground w-12 text-right">{s.percentage.toFixed(1)}%</span>
                     </div>
                   </div>
                 ))}
@@ -109,11 +109,11 @@ export function SourceBreakdown({
 
             {hiredBySource.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Hires by Source</h4>
+                <h4 className="text-sm font-medium text-foreground mb-2">Hires by Source</h4>
                 <div className="space-y-1">
                   {hiredBySource.map((s) => (
                     <div key={s.source} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">{SOURCE_LABELS[s.source] || s.source}</span>
+                      <span className="text-foreground/80">{SOURCE_LABELS[s.source] || s.source}</span>
                       <span className="font-semibold text-green-600">{s.hires} hired</span>
                     </div>
                   ))}
@@ -123,7 +123,7 @@ export function SourceBreakdown({
 
             <div className="pt-2 border-t">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-gray-700">Total Candidates</span>
+                <span className="text-sm font-medium text-foreground">Total Candidates</span>
                 <span className="text-lg font-bold">{total.toLocaleString()}</span>
               </div>
             </div>
@@ -135,11 +135,11 @@ export function SourceBreakdown({
           <div className="mt-6 pt-6 border-t grid gap-4 md:grid-cols-2">
             {byInboundChannel.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Inbound Channels</h4>
+                <h4 className="text-sm font-medium text-foreground mb-2">Inbound Channels</h4>
                 <div className="space-y-1">
                   {byInboundChannel.map((c) => (
                     <div key={c.channel} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">{c.channel}</span>
+                      <span className="text-foreground/80">{c.channel}</span>
                       <span className="font-medium">{c.count}</span>
                     </div>
                   ))}
@@ -148,11 +148,11 @@ export function SourceBreakdown({
             )}
             {byOutboundChannel.length > 0 && (
               <div>
-                <h4 className="text-sm font-medium text-gray-700 mb-2">Outbound Channels</h4>
+                <h4 className="text-sm font-medium text-foreground mb-2">Outbound Channels</h4>
                 <div className="space-y-1">
                   {byOutboundChannel.map((c) => (
                     <div key={c.channel} className="flex items-center justify-between text-sm">
-                      <span className="text-gray-600">{c.channel}</span>
+                      <span className="text-foreground/80">{c.channel}</span>
                       <span className="font-medium">{c.count}</span>
                     </div>
                   ))}

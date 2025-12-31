@@ -419,7 +419,7 @@ export default function AIAgentPage() {
       </div>
       <div className="flex min-h-0 flex-1">
         {/* Desktop sidebar */}
-        <aside className="hidden md:flex min-h-0 w-72 shrink-0 flex-col bg-white">
+        <aside className="hidden md:flex min-h-0 w-72 shrink-0 flex-col bg-card">
           <div className="p-4">
             <div className="flex items-center justify-between">
               <Button size="sm" variant="outline" onClick={handleNewChat} disabled={createChatMutation.isPending}>
@@ -484,7 +484,7 @@ export default function AIAgentPage() {
           </div>
         </aside>
 
-        <section className="flex min-h-0 flex-1 flex-col overflow-hidden bg-white">
+        <section className="flex min-h-0 flex-1 flex-col overflow-hidden bg-card">
           <div className="flex-1 overflow-y-auto overscroll-contain bg-secondary/40 px-3 md:px-6 py-4 md:py-5">
             {!activeChatData || activeChatData.messages.length === 0 ? (
               <div className="flex h-full flex-col items-center justify-center text-center">
@@ -502,7 +502,7 @@ export default function AIAgentPage() {
                     <button
                       key={prompt}
                       onClick={() => handleSuggestedPrompt(prompt)}
-                      className="w-full rounded-lg border border-border bg-white px-4 py-2 text-left text-sm text-foreground hover:bg-secondary"
+                      className="w-full rounded-lg border border-border bg-card px-4 py-2 text-left text-sm text-foreground hover:bg-secondary"
                     >
                       {prompt}
                     </button>
@@ -526,7 +526,7 @@ export default function AIAgentPage() {
                           ? 'bg-primary text-primary-foreground'
                           : message.isError
                           ? 'border border-red-200 bg-red-50 text-red-800'
-                          : 'bg-white text-foreground shadow-sm'
+                          : 'bg-card text-foreground shadow-sm'
                       )}
                     >
                       {message.isError && (
@@ -543,7 +543,7 @@ export default function AIAgentPage() {
                 ))}
                 {chatMutation.isPending && (
                   <div className="flex justify-start">
-                    <div className="rounded-2xl bg-white px-4 py-2 text-sm text-muted-foreground shadow-sm">
+                    <div className="rounded-2xl bg-card px-4 py-2 text-sm text-muted-foreground shadow-sm">
                       <span className="flex items-center gap-2">
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Thinking...
@@ -556,7 +556,7 @@ export default function AIAgentPage() {
             )}
           </div>
 
-          <div className="border-t border-border bg-white px-3 md:px-6 py-3 md:py-4">
+          <div className="border-t border-border bg-card px-3 md:px-6 py-3 md:py-4">
             <div className="flex items-end gap-2">
               <Textarea
                 ref={textareaRef}

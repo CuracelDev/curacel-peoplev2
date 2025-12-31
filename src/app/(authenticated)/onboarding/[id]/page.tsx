@@ -59,11 +59,11 @@ function EmployeeTaskItem({
       ? 'bg-green-100 text-green-800'
       : taskStatus === 'in_progress'
         ? 'bg-blue-100 text-blue-800'
-        : 'bg-gray-100 text-gray-600'
+        : 'bg-muted text-foreground/80'
     : 'bg-yellow-50 text-yellow-700'
 
   return (
-    <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-gray-50 border-b last:border-b-0">
+    <div className="flex items-center justify-between py-2 px-3 rounded-lg hover:bg-muted border-b last:border-b-0">
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           {task.url ? (
@@ -78,7 +78,7 @@ function EmployeeTaskItem({
               <ExternalLink className="inline-block ml-1 h-3 w-3" />
             </a>
           ) : (
-            <span className="text-sm font-medium text-gray-900 truncate">{task.title}</span>
+            <span className="text-sm font-medium text-foreground truncate">{task.title}</span>
           )}
           {task.isConditional && (
             <Badge variant="outline" className="text-xs shrink-0">
@@ -87,7 +87,7 @@ function EmployeeTaskItem({
           )}
         </div>
         {task.notes && (
-          <p className="text-xs text-gray-500 mt-0.5 truncate">{task.notes}</p>
+          <p className="text-xs text-muted-foreground mt-0.5 truncate">{task.notes}</p>
         )}
       </div>
       <Badge className={cn('ml-2 shrink-0', statusColor)}>{statusLabel}</Badge>
@@ -111,17 +111,17 @@ function EmployeeTaskSection({
   return (
     <div className="border rounded-lg">
       <button
-        className="w-full flex items-center justify-between p-3 hover:bg-gray-50"
+        className="w-full flex items-center justify-between p-3 hover:bg-muted"
         onClick={() => setIsExpanded(!isExpanded)}
       >
         <div className="flex items-center gap-2">
           {isExpanded ? (
-            <ChevronDown className="h-4 w-4 text-gray-500" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground" />
           ) : (
-            <ChevronRight className="h-4 w-4 text-gray-500" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground" />
           )}
           {icon}
-          <span className="font-medium text-gray-900">{title}</span>
+          <span className="font-medium text-foreground">{title}</span>
           <Badge variant="secondary" className="text-xs">
             {tasks.length} tasks
           </Badge>
@@ -199,7 +199,7 @@ export default function OnboardingDetailPage() {
   if (!workflow) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Workflow not found</p>
+        <p className="text-muted-foreground">Workflow not found</p>
         <Button variant="outline" className="mt-4" onClick={() => router.back()}>
           Go Back
         </Button>
@@ -240,7 +240,7 @@ export default function OnboardingDetailPage() {
     if (task.automationType?.includes('slack')) {
       return <MessageSquare className="h-5 w-5 text-purple-500" />
     }
-    return <User className="h-5 w-5 text-gray-500" />
+    return <User className="h-5 w-5 text-muted-foreground" />
   }
 
   const appIdByType = (() => {
@@ -288,7 +288,7 @@ export default function OnboardingDetailPage() {
 
   const renderBitbucketRules = () => {
     if (!bitbucketApp) {
-      return <span className="text-sm text-gray-500">Bitbucket app not initialized.</span>
+      return <span className="text-sm text-muted-foreground">Bitbucket app not initialized.</span>
     }
     if (!bitbucketRules || bitbucketRules.length === 0) {
       return (
@@ -305,14 +305,14 @@ export default function OnboardingDetailPage() {
           const groups = Array.isArray(provisionData.groups) ? provisionData.groups : []
           const repos = Array.isArray(provisionData.repositories) ? provisionData.repositories : []
           return (
-            <div key={rule.id} className="rounded-md border border-gray-200 bg-gray-50 p-2">
-              <div className="text-xs text-gray-600">
+            <div key={rule.id} className="rounded-md border border-border bg-muted/50 p-2">
+              <div className="text-xs text-foreground/80">
                 {rule.name} · Priority {rule.priority} · {rule.isActive ? 'Active' : 'Inactive'}
               </div>
               {groups.length > 0 ? (
                 <div className="mt-1 flex flex-wrap gap-2">
                   {groups.map((group: string, idx: number) => (
-                    <span key={`${group}-${idx}`} className="text-xs text-gray-700">
+                    <span key={`${group}-${idx}`} className="text-xs text-foreground">
                       {group}
                     </span>
                   ))}
@@ -321,14 +321,14 @@ export default function OnboardingDetailPage() {
               {repos.length > 0 ? (
                 <div className={`mt-1 flex flex-wrap gap-2 ${groups.length ? 'pt-1' : ''}`}>
                   {repos.map((repo: any, idx: number) => (
-                    <span key={`${repo.repoSlug ?? 'repo'}-${idx}`} className="text-xs text-gray-700">
+                    <span key={`${repo.repoSlug ?? 'repo'}-${idx}`} className="text-xs text-foreground">
                       {repo.repoSlug || 'Unknown repo'} — {repo.permission || 'read'}
                     </span>
                   ))}
                 </div>
               ) : null}
               {groups.length === 0 && repos.length === 0 ? (
-                <div className="mt-1 text-xs text-gray-500">No groups or repositories configured in this rule.</div>
+                <div className="mt-1 text-xs text-muted-foreground">No groups or repositories configured in this rule.</div>
               ) : null}
             </div>
           )
@@ -339,10 +339,10 @@ export default function OnboardingDetailPage() {
 
   const renderBitbucketOptions = () => {
     if (!bitbucketApp) {
-      return <span className="text-xs text-gray-500">Bitbucket app not initialized.</span>
+      return <span className="text-xs text-muted-foreground">Bitbucket app not initialized.</span>
     }
     if (!bitbucketOptions) {
-      return <span className="text-xs text-gray-500">Loading Bitbucket teams...</span>
+      return <span className="text-xs text-muted-foreground">Loading Bitbucket teams...</span>
     }
     if (bitbucketOptions.error) {
       return <span className="text-xs text-red-600">{bitbucketOptions.error}</span>
@@ -355,7 +355,7 @@ export default function OnboardingDetailPage() {
     return (
       <div className="space-y-2">
         <div>
-          <p className="text-xs text-gray-600">Teams</p>
+          <p className="text-xs text-foreground/80">Teams</p>
           {groups.length > 0 ? (
             <div className="mt-1 flex flex-wrap gap-2">
               {groups.slice(0, maxItems).map((group: any) => {
@@ -363,21 +363,21 @@ export default function OnboardingDetailPage() {
                   ? `${group.name} (${group.slug})`
                   : (group.name || group.slug)
                 return (
-                  <span key={group.slug || label} className="text-xs text-gray-700">
+                  <span key={group.slug || label} className="text-xs text-foreground">
                     {label}
                   </span>
                 )
               })}
               {groups.length > maxItems && (
-                <span className="text-xs text-gray-500">+{groups.length - maxItems} more</span>
+                <span className="text-xs text-muted-foreground">+{groups.length - maxItems} more</span>
               )}
             </div>
           ) : (
-            <div className="mt-1 text-xs text-gray-500">No teams found in this workspace.</div>
+            <div className="mt-1 text-xs text-muted-foreground">No teams found in this workspace.</div>
           )}
         </div>
         <div>
-          <p className="text-xs text-gray-600">Repositories</p>
+          <p className="text-xs text-foreground/80">Repositories</p>
           {repositories.length > 0 ? (
             <div className="mt-1 flex flex-wrap gap-2">
               {repositories.slice(0, maxItems).map((repo: any) => {
@@ -385,17 +385,17 @@ export default function OnboardingDetailPage() {
                   ? `${repo.name} (${repo.slug})`
                   : (repo.name || repo.slug)
                 return (
-                  <span key={repo.slug || label} className="text-xs text-gray-700">
+                  <span key={repo.slug || label} className="text-xs text-foreground">
                     {label}
                   </span>
                 )
               })}
               {repositories.length > maxItems && (
-                <span className="text-xs text-gray-500">+{repositories.length - maxItems} more</span>
+                <span className="text-xs text-muted-foreground">+{repositories.length - maxItems} more</span>
               )}
             </div>
           ) : (
-            <div className="mt-1 text-xs text-gray-500">No repositories found in this workspace.</div>
+            <div className="mt-1 text-xs text-muted-foreground">No repositories found in this workspace.</div>
           )}
         </div>
       </div>
@@ -433,10 +433,10 @@ export default function OnboardingDetailPage() {
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1">
-          <h1 className="text-xl font-semibold text-gray-900">
+          <h1 className="text-xl font-semibold text-foreground">
             Onboarding: {workflow.employee.fullName}
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             {workflow.employee.jobTitle} • {workflow.employee.department}
           </p>
         </div>
@@ -444,7 +444,7 @@ export default function OnboardingDetailPage() {
           workflow.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
           workflow.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
           workflow.status === 'FAILED' ? 'bg-red-100 text-red-800' :
-          'bg-gray-100 text-gray-800'
+          'bg-muted text-foreground'
         }>
           {workflow.status.replace('_', ' ')}
         </Badge>
@@ -456,16 +456,16 @@ export default function OnboardingDetailPage() {
           <div className="flex items-center gap-6">
             <div className="flex-1">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">Overall Progress</span>
+                <span className="text-sm text-muted-foreground">Overall Progress</span>
                 <span className="text-sm font-medium">{overallProgress}%</span>
               </div>
               <Progress value={overallProgress} className="h-3" />
-              <p className="text-sm text-gray-400 mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 PeopleOps: {peopleOpsProgress}% • Employee: {employeeTasksProgress}%
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-gray-500">Start Date</p>
+              <p className="text-sm text-muted-foreground">Start Date</p>
               <p className="font-medium">
                 {workflow.employee.startDate ? formatDate(workflow.employee.startDate) : 'TBD'}
               </p>
@@ -488,9 +488,9 @@ export default function OnboardingDetailPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {peopleOpsTasksExpanded ? (
-                <ChevronDown className="h-5 w-5 text-gray-500" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <ChevronRight className="h-5 w-5 text-gray-500" />
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               )}
               <ClipboardList className="h-5 w-5 text-orange-500" />
               <CardTitle className="text-lg">PeopleOps Tasks</CardTitle>
@@ -506,7 +506,7 @@ export default function OnboardingDetailPage() {
                     ? 'text-green-600'
                     : peopleOpsProgress > 0
                       ? 'text-blue-600'
-                      : 'text-gray-500'
+                      : 'text-muted-foreground'
                 )}
               >
                 {peopleOpsProgress}%
@@ -542,7 +542,7 @@ export default function OnboardingDetailPage() {
                       <div className="flex items-start gap-2 flex-1 min-w-0">
                         <div className="mt-0.5">{getTaskIcon(task)}</div>
                         <div className="min-w-0">
-                          <span className="text-sm font-medium text-gray-900 truncate block">{task.name}</span>
+                          <span className="text-sm font-medium text-foreground truncate block">{task.name}</span>
                           {task.status === 'SUCCESS' && provisionedAccount && (
                             <span className="text-xs text-green-600 truncate block">
                               {provisionedAccount.externalEmail || provisionedAccount.externalUsername}
@@ -552,7 +552,7 @@ export default function OnboardingDetailPage() {
                             <span
                               className={cn(
                                 'text-xs truncate block',
-                                task.status === 'FAILED' ? 'text-red-600' : 'text-gray-500'
+                                task.status === 'FAILED' ? 'text-red-600' : 'text-muted-foreground'
                               )}
                             >
                               {task.statusMessage}
@@ -560,10 +560,10 @@ export default function OnboardingDetailPage() {
                           )}
                           {isBitbucketTask(task) && (
                             <div className="mt-2">
-                              <p className="text-xs font-semibold text-gray-600">Bitbucket provisioning rules</p>
+                              <p className="text-xs font-semibold text-foreground/80">Bitbucket provisioning rules</p>
                               <div className="mt-1">{renderBitbucketRules()}</div>
                               <div className="mt-3">
-                                <p className="text-xs font-semibold text-gray-600">
+                                <p className="text-xs font-semibold text-foreground/80">
                                   Bitbucket teams and repositories
                                 </p>
                                 <div className="mt-1">{renderBitbucketOptions()}</div>
@@ -579,7 +579,7 @@ export default function OnboardingDetailPage() {
                         {task.status === 'SUCCESS' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
                         {task.status === 'FAILED' && <XCircle className="h-4 w-4 text-red-500" />}
                         {task.status === 'IN_PROGRESS' && <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />}
-                        {task.status === 'SKIPPED' && <SkipForward className="h-4 w-4 text-gray-400" />}
+                        {task.status === 'SKIPPED' && <SkipForward className="h-4 w-4 text-muted-foreground" />}
                         {task.status === 'PENDING' && (
                           <>
                             {task.type === 'AUTOMATED' ? (
@@ -676,9 +676,9 @@ export default function OnboardingDetailPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {employeeTasksExpanded ? (
-                <ChevronDown className="h-5 w-5 text-gray-500" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <ChevronRight className="h-5 w-5 text-gray-500" />
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               )}
               <User className="h-5 w-5 text-blue-600" />
               <CardTitle className="text-lg">{workflow.employee.fullName} Tasks</CardTitle>
@@ -688,7 +688,7 @@ export default function OnboardingDetailPage() {
             </div>
             <div className="flex items-center gap-3 text-sm">
               {employeeTasksLastUpdated && (
-                <span className="text-gray-400">Updated: {employeeTasksLastUpdated}</span>
+                <span className="text-muted-foreground">Updated: {employeeTasksLastUpdated}</span>
               )}
               <span
                 className={cn(
@@ -697,7 +697,7 @@ export default function OnboardingDetailPage() {
                     ? 'text-green-600'
                     : employeeTasksProgress > 0
                       ? 'text-blue-600'
-                      : 'text-gray-500'
+                      : 'text-muted-foreground'
                 )}
               >
                 {employeeTasksProgress}%
@@ -771,7 +771,7 @@ export default function OnboardingDetailPage() {
                   )}
                   <div className="flex-1 min-w-0">
                     <p className="font-medium">{account.app.name}</p>
-                    <p className="text-sm text-gray-500 truncate">
+                    <p className="text-sm text-muted-foreground truncate">
                       {account.externalEmail || account.externalUsername || 'Pending'}
                     </p>
                   </div>
@@ -804,10 +804,10 @@ export default function OnboardingDetailPage() {
               <div className="rounded-md border border-blue-200 bg-blue-50 p-3">
                 <div className="flex items-center justify-between">
                   <div>
-                    <Label htmlFor="byod-toggle" className="text-sm font-medium text-gray-900">
+                    <Label htmlFor="byod-toggle" className="text-sm font-medium text-foreground">
                       Send BYOD Agreement
                     </Label>
-                    <p className="text-xs text-gray-500 mt-0.5">
+                    <p className="text-xs text-muted-foreground mt-0.5">
                       Employee will use their own device - send BYOD undertaking form for signature
                     </p>
                   </div>

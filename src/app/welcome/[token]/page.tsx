@@ -377,10 +377,10 @@ export default function OnboardingSelfServicePage() {
           <div className="flex justify-center mb-4">
             <Logo className="h-12 w-12" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">
+          <h1 className="text-3xl font-bold text-foreground">
             Welcome to {companyName || process.env.NEXT_PUBLIC_COMPANY_NAME || 'Curacel'}!
           </h1>
-          <p className="text-gray-600 mt-2">
+          <p className="text-foreground/80 mt-2">
             Complete your onboarding to get started, {employee.fullName.split(' ')[0]}
           </p>
         </div>
@@ -403,14 +403,14 @@ export default function OnboardingSelfServicePage() {
                       'flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium transition-all',
                       isActive && 'bg-primary text-primary-foreground',
                       isCompleted && 'bg-primary/20 text-primary hover:bg-primary/30 cursor-pointer',
-                      !isActive && !isCompleted && 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      !isActive && !isCompleted && 'bg-muted text-muted-foreground cursor-not-allowed'
                     )}
                   >
                     <Icon className="h-4 w-4" />
                     <span className="hidden sm:inline">{step.label}</span>
                   </button>
                   {index < steps.length - 1 && (
-                    <ChevronRight className="h-4 w-4 text-gray-300 mx-1" />
+                    <ChevronRight className="h-4 w-4 text-muted-foreground/60 mx-1" />
                   )}
                 </div>
               )
@@ -432,33 +432,33 @@ export default function OnboardingSelfServicePage() {
               <CardContent>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="flex items-center gap-3">
-                    <Calendar className="h-5 w-5 text-gray-400" />
+                    <Calendar className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-gray-500">Start Date</p>
+                      <p className="text-sm text-muted-foreground">Start Date</p>
                       <p className="font-medium">
                         {employee.startDate ? formatDate(employee.startDate) : 'To be confirmed'}
                       </p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <Building2 className="h-5 w-5 text-gray-400" />
+                    <Building2 className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-gray-500">Department</p>
+                      <p className="text-sm text-muted-foreground">Department</p>
                       <p className="font-medium">{employee.department || 'TBD'}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
-                    <User className="h-5 w-5 text-gray-400" />
+                    <User className="h-5 w-5 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-gray-500">Job Title</p>
+                      <p className="text-sm text-muted-foreground">Job Title</p>
                       <p className="font-medium">{employee.jobTitle || 'TBD'}</p>
                     </div>
                   </div>
                   {employee.manager && (
                     <div className="flex items-center gap-3">
-                      <User className="h-5 w-5 text-gray-400" />
+                      <User className="h-5 w-5 text-muted-foreground" />
                       <div>
-                        <p className="text-sm text-gray-500">Manager</p>
+                        <p className="text-sm text-muted-foreground">Manager</p>
                         <p className="font-medium">{employee.manager.fullName}</p>
                       </div>
                     </div>
@@ -762,7 +762,7 @@ export default function OnboardingSelfServicePage() {
                 {/* Document Uploads */}
                 <div>
                   <h3 className="text-lg font-medium mb-4">Document Uploads</h3>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-foreground/80 mb-4">
                     Upload or provide links to the following documents from your previous employer
                   </p>
                   <div className="space-y-4">
@@ -801,7 +801,7 @@ export default function OnboardingSelfServicePage() {
                 {/* Employment Referencing */}
                 <div>
                   <h3 className="text-lg font-medium mb-4">Employment Referencing</h3>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-foreground/80 mb-4">
                     Please provide contact details for your HR department or manager for employment verification
                   </p>
                   <div className="grid gap-4 md:grid-cols-2">
@@ -888,7 +888,7 @@ export default function OnboardingSelfServicePage() {
               {/* Section 1: What you should know about me */}
               <div>
                 <h3 className="text-lg font-semibold mb-4">What You Should Know About Me</h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-foreground/80 mb-4">
                   Help your teammates understand how you work best. Answer as many or as few as you'd like.
                 </p>
                 <div className="space-y-6">
@@ -912,7 +912,7 @@ export default function OnboardingSelfServicePage() {
               {/* Section 2: Priority Hierarchy */}
               <div>
                 <h3 className="text-lg font-semibold mb-4">Priority Hierarchy</h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-foreground/80 mb-4">
                   Organize your life values by priority in each of the four boxes below.
                 </p>
 
@@ -965,7 +965,7 @@ export default function OnboardingSelfServicePage() {
 
                   {/* Not Important (highly negotiable/doesn't matter) */}
                   <div>
-                    <Label htmlFor="notImportant" className="text-sm font-semibold text-gray-600">
+                    <Label htmlFor="notImportant" className="text-sm font-semibold text-foreground/80">
                       Not Important (highly negotiable/doesn't matter)
                     </Label>
                     <Textarea
@@ -980,13 +980,13 @@ export default function OnboardingSelfServicePage() {
                 </div>
 
                 {/* Life Values Legend */}
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg border">
+                <div className="mt-6 p-4 bg-muted/50 rounded-lg border">
                   <h4 className="font-semibold text-sm mb-3">Life Values List (for reference)</h4>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {LIFE_VALUES.map((value) => (
                       <div key={value.name} className="flex items-start gap-2">
                         <span className="font-medium text-sm">{value.name}:</span>
-                        <span className="text-xs text-gray-600">{value.description}</span>
+                        <span className="text-xs text-foreground/80">{value.description}</span>
                       </div>
                     ))}
                   </div>
@@ -1031,7 +1031,7 @@ export default function OnboardingSelfServicePage() {
               {/* MBTI Section */}
               <div>
                 <h3 className="text-lg font-semibold mb-4">1. Myers-Briggs Type Indicator (MBTI)</h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-foreground/80 mb-4">
                   If you don't know your type, take the test at{' '}
                   <a
                     href="https://www.16personalities.com"
@@ -1086,8 +1086,8 @@ export default function OnboardingSelfServicePage() {
                 </div>
 
                 {/* Sample Image */}
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
-                  <p className="text-sm text-gray-600 mb-2">Example MBTI result:</p>
+                <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
+                  <p className="text-sm text-foreground/80 mb-2">Example MBTI result:</p>
                   <button
                     type="button"
                     onClick={() => setPreviewImage({ src: '/samples/mbti-example.png', alt: 'MBTI Example' })}
@@ -1107,7 +1107,7 @@ export default function OnboardingSelfServicePage() {
               {/* Big Five Section */}
               <div>
                 <h3 className="text-lg font-semibold mb-4">2. Big Five Personality Test</h3>
-                <p className="text-sm text-gray-600 mb-4">
+                <p className="text-sm text-foreground/80 mb-4">
                   If you don't know your results, take the test at{' '}
                   <a
                     href="https://bigfive-test.com"
@@ -1155,8 +1155,8 @@ export default function OnboardingSelfServicePage() {
                 </div>
 
                 {/* Sample Image */}
-                <div className="mt-4 p-4 bg-gray-50 rounded-lg border">
-                  <p className="text-sm text-gray-600 mb-2">Example Big Five result:</p>
+                <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
+                  <p className="text-sm text-foreground/80 mb-2">Example Big Five result:</p>
                   <button
                     type="button"
                     onClick={() => setPreviewImage({ src: '/samples/bigfive-example.png', alt: 'Big Five Example' })}
@@ -1236,32 +1236,32 @@ export default function OnboardingSelfServicePage() {
                 <div className="grid gap-3">
                   <a
                     href="#"
-                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted transition-colors"
                   >
                     <BookOpen className="h-5 w-5 text-blue-500" />
                     <div>
                       <p className="font-medium">Employee Handbook</p>
-                      <p className="text-sm text-gray-500">Company policies and guidelines</p>
+                      <p className="text-sm text-muted-foreground">Company policies and guidelines</p>
                     </div>
                   </a>
                   <a
                     href="#"
-                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted transition-colors"
                   >
                     <Shield className="h-5 w-5 text-green-500" />
                     <div>
                       <p className="font-medium">IT Security Policy</p>
-                      <p className="text-sm text-gray-500">Security best practices</p>
+                      <p className="text-sm text-muted-foreground">Security best practices</p>
                     </div>
                   </a>
                   <a
                     href="#"
-                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted transition-colors"
                   >
                     <Building2 className="h-5 w-5 text-purple-500" />
                     <div>
                       <p className="font-medium">Benefits Guide</p>
-                      <p className="text-sm text-gray-500">Health, retirement, and perks</p>
+                      <p className="text-sm text-muted-foreground">Health, retirement, and perks</p>
                     </div>
                   </a>
                 </div>
@@ -1279,7 +1279,7 @@ export default function OnboardingSelfServicePage() {
               <CardContent>
                 <div className="space-y-3">
                   {workflow.tasks.map((task) => (
-                    <div key={task.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div key={task.name} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                       <span>{task.name}</span>
                       <Badge
                         variant={task.status === 'SUCCESS' ? 'success' : 'secondary'}
@@ -1301,7 +1301,7 @@ export default function OnboardingSelfServicePage() {
         )}
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500">
+        <div className="text-center text-sm text-muted-foreground">
           <p>Have any questions? Ask the people team</p>
         </div>
       </div>

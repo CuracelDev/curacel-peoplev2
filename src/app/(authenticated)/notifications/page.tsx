@@ -52,7 +52,7 @@ export default function NotificationsPage() {
   if (!isAdmin) {
     return (
       <div className="space-y-4">
-        <p className="text-gray-600">Notifications are available to admin roles only.</p>
+        <p className="text-foreground/80">Notifications are available to admin roles only.</p>
       </div>
     )
   }
@@ -61,7 +61,7 @@ export default function NotificationsPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-end gap-3">
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600">Show archived</span>
+          <span className="text-sm text-foreground/80">Show archived</span>
           <Switch checked={showArchived} onCheckedChange={setShowArchived} />
         </div>
         <Button variant="outline" asChild>
@@ -81,9 +81,9 @@ export default function NotificationsPage() {
           ) : error ? (
             <div className="text-center py-8 text-red-500">Error loading notifications: {error.message}</div>
           ) : notifications.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">No notifications yet.</div>
+            <div className="text-center py-8 text-muted-foreground">No notifications yet.</div>
           ) : (
-            <div className="divide-y divide-gray-200">
+            <div className="divide-y divide-border">
               {notifications.map((notification) => {
                 const actionLabel = formatAuditAction(notification.action)
                 const resourceLabel = notification.resourceType.replace(/_/g, ' ')
@@ -96,17 +96,17 @@ export default function NotificationsPage() {
                         {actionLabel}
                       </Badge>
                       <div>
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-foreground">
                           {actorLabel} · {resourceLabel}
                         </p>
                         {notification.resourceId && (
-                          <p className="text-xs text-gray-500 font-mono">
+                          <p className="text-xs text-muted-foreground font-mono">
                             {notification.resourceId.slice(0, 8)}...
                           </p>
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                    <div className="flex items-center gap-3 text-xs text-muted-foreground">
                       <span>{formatDateTime(notification.createdAt)}</span>
                       {notification.archivedAt ? (
                         <Button

@@ -101,7 +101,7 @@ export default function TeamMembersPage() {
             <CardTitle>App Admins</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-gray-600">You don’t have access to this page.</p>
+            <p className="text-sm text-foreground/80">You don’t have access to this page.</p>
           </CardContent>
         </Card>
       </div>
@@ -179,7 +179,7 @@ export default function TeamMembersPage() {
           >
             {createInvite.isPending ? 'Sending...' : 'Send invite'}
           </Button>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             The invite email includes a link to set a password and sign in.
           </p>
         </CardContent>
@@ -191,22 +191,22 @@ export default function TeamMembersPage() {
         </CardHeader>
         <CardContent className="space-y-3">
           {invitesQuery.isLoading ? (
-            <p className="text-sm text-gray-600">Loading invites...</p>
+            <p className="text-sm text-foreground/80">Loading invites...</p>
           ) : pendingInvites.length === 0 ? (
-            <p className="text-sm text-gray-600">No pending invites.</p>
+            <p className="text-sm text-foreground/80">No pending invites.</p>
           ) : (
             <div className="space-y-2">
               {pendingInvites.map((invite) => (
                 <div
                   key={invite.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"
                 >
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="text-sm font-medium text-gray-900 truncate">{invite.email}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{invite.email}</p>
                       <Badge variant="secondary">{invite.role}</Badge>
                     </div>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Expires {invite.expiresAt.toLocaleString()}
                     </p>
                   </div>
@@ -249,13 +249,13 @@ export default function TeamMembersPage() {
           </div>
 
           {usersQuery.isLoading ? (
-            <p className="text-sm text-gray-600">Loading users...</p>
+            <p className="text-sm text-foreground/80">Loading users...</p>
           ) : usersQuery.data?.users?.length ? (
             <div className="space-y-2">
               {usersQuery.data.users.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 p-3"
+                  className="flex items-center justify-between gap-3 rounded-lg border border-border p-3"
                 >
                   <div className="flex min-w-0 items-center gap-3">
                     <Avatar className="h-9 w-9">
@@ -265,12 +265,12 @@ export default function TeamMembersPage() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-medium text-foreground truncate">
                         {user.name || user.email}
                       </p>
-                      <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                       {user.employee?.fullName ? (
-                        <p className="text-xs text-gray-500 truncate">
+                        <p className="text-xs text-muted-foreground truncate">
                           Linked employee: {user.employee.fullName}
                         </p>
                       ) : null}
@@ -316,7 +316,7 @@ export default function TeamMembersPage() {
               ))}
             </div>
           ) : (
-            <p className="text-sm text-gray-600">No users found.</p>
+            <p className="text-sm text-foreground/80">No users found.</p>
           )}
         </CardContent>
       </Card>

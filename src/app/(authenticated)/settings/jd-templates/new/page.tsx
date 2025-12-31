@@ -270,10 +270,10 @@ export default function NewJDPage() {
           </Link>
         </Button>
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">
+          <h1 className="text-2xl font-semibold text-foreground">
             {fromId ? 'Create New Version' : 'Create Job Description'}
           </h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             {fromId
               ? 'Create a new version based on an existing JD'
               : 'Add a new job description to your hiring pipeline'}
@@ -363,7 +363,7 @@ export default function NewJDPage() {
                         <SelectItem key={flow.value} value={flow.value}>
                           <div>
                             <div className="font-medium">{flow.label}</div>
-                            <div className="text-xs text-gray-500">{flow.description}</div>
+                            <div className="text-xs text-muted-foreground">{flow.description}</div>
                           </div>
                         </SelectItem>
                       ))}
@@ -465,7 +465,7 @@ export default function NewJDPage() {
               <div
                 className={cn(
                   "border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors",
-                  uploadedFiles.length > 0 ? "border-primary bg-primary/5" : "border-gray-300 hover:border-gray-400"
+                  uploadedFiles.length > 0 ? "border-primary bg-primary/5" : "border-border hover:border-gray-400"
                 )}
                 onClick={() => fileInputRef.current?.click()}
               >
@@ -477,9 +477,9 @@ export default function NewJDPage() {
                   accept=".pdf,.doc,.docx,.txt"
                   onChange={handleFileChange}
                 />
-                <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-lg font-medium text-gray-700">Click to upload or drag and drop</p>
-                <p className="text-sm text-gray-500 mt-2">PDF, DOC, DOCX, TXT up to 10MB each</p>
+                <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-lg font-medium text-foreground">Click to upload or drag and drop</p>
+                <p className="text-sm text-muted-foreground mt-2">PDF, DOC, DOCX, TXT up to 10MB each</p>
               </div>
 
               {/* Uploaded files list */}
@@ -488,12 +488,12 @@ export default function NewJDPage() {
                   <Label>Files to upload ({uploadedFiles.length})</Label>
                   <div className="space-y-2">
                     {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                         <div className="flex items-center gap-3 min-w-0">
-                          <FileText className="h-5 w-5 text-gray-500 flex-shrink-0" />
+                          <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                           <div className="min-w-0">
                             <span className="text-sm font-medium truncate block">{file.name}</span>
-                            <span className="text-xs text-gray-400">({(file.size / 1024).toFixed(1)} KB)</span>
+                            <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(1)} KB)</span>
                           </div>
                         </div>
                         <Button
@@ -563,7 +563,7 @@ export default function NewJDPage() {
               <div className="space-y-2">
                 <Label htmlFor="importUrl">Job Posting URL</Label>
                 <div className="relative">
-                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <LinkIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     id="importUrl"
                     value={importUrl}
@@ -578,8 +578,8 @@ export default function NewJDPage() {
               </div>
 
               {/* Supported sources */}
-              <div className="p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm font-medium text-gray-700 mb-3">Supported sources:</p>
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm font-medium text-foreground mb-3">Supported sources:</p>
                 <div className="flex flex-wrap gap-2">
                   <Badge variant="outline">YC Work at a Startup</Badge>
                   <Badge variant="outline">LinkedIn Jobs</Badge>
@@ -654,7 +654,7 @@ export default function NewJDPage() {
                 <GitBranch className="h-5 w-5 text-blue-500 mt-0.5" />
                 <div className="text-left">
                   <div className="font-medium">Create as new version (v{(existingJD?.version || 0) + 1})</div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-muted-foreground">
                     The current version will be archived and this will become the active version.
                   </div>
                 </div>
@@ -666,10 +666,10 @@ export default function NewJDPage() {
               onClick={() => setDuplicateDialogOpen(false)}
             >
               <div className="flex items-start gap-3">
-                <Pencil className="h-5 w-5 text-gray-500 mt-0.5" />
+                <Pencil className="h-5 w-5 text-muted-foreground mt-0.5" />
                 <div className="text-left">
                   <div className="font-medium">Use a different name</div>
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-muted-foreground">
                     Go back and change the job title to something unique.
                   </div>
                 </div>

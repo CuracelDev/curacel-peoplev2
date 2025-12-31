@@ -116,7 +116,7 @@ export default function ContractTemplatesPage() {
 
   const getTemplateIconColor = (template: { id: string }) => {
     const info = TEMPLATE_DISPLAY_INFO[template.id]
-    return info?.iconColor || 'text-gray-500'
+    return info?.iconColor || 'text-muted-foreground'
   }
 
   const getTemplateHref = (template: { id: string }) => {
@@ -220,10 +220,10 @@ export default function ContractTemplatesPage() {
                   <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer relative">
                     <CardHeader>
                       <div className="flex items-start justify-between mb-2">
-                        <div className={`${iconColor} p-2 rounded-lg bg-gray-50`}>
+                        <div className={`${iconColor} p-2 rounded-lg bg-muted/50`}>
                           <Icon className="h-6 w-6" />
                         </div>
-                        <ArrowUpRight className="h-5 w-5 text-gray-400" />
+                        <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <CardTitle className="text-lg">{template.name}</CardTitle>
                     </CardHeader>
@@ -249,8 +249,8 @@ export default function ContractTemplatesPage() {
       {customTemplates.length > 0 && (
         <>
           <div className="mt-8">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">Custom Templates</h2>
-            <p className="text-sm text-gray-500 mb-4">Templates created by your organization</p>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Custom Templates</h2>
+            <p className="text-sm text-muted-foreground mb-4">Templates created by your organization</p>
           </div>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {customTemplates.map((template) => (
@@ -258,10 +258,10 @@ export default function ContractTemplatesPage() {
                 <Card className="h-full hover:shadow-lg transition-shadow cursor-pointer relative">
                   <CardHeader>
                     <div className="flex items-start justify-between mb-2">
-                      <div className="text-blue-500 p-2 rounded-lg bg-gray-50">
+                      <div className="text-blue-500 p-2 rounded-lg bg-muted/50">
                         <FileText className="h-6 w-6" />
                       </div>
-                      <ArrowUpRight className="h-5 w-5 text-gray-400" />
+                      <ArrowUpRight className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <CardTitle className="text-lg">{template.name}</CardTitle>
                   </CardHeader>
@@ -285,9 +285,9 @@ export default function ContractTemplatesPage() {
       {/* Empty state */}
       {(!templates || templates.length === 0) && (
         <div className="text-center py-12">
-          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No templates found</h3>
-          <p className="text-gray-500 mb-4">Get started by creating your first contract template.</p>
+          <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No templates found</h3>
+          <p className="text-muted-foreground mb-4">Get started by creating your first contract template.</p>
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
             Create New Template

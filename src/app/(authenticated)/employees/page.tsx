@@ -155,7 +155,7 @@ export default function EmployeesPage() {
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
               <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search employees..."
                   value={search}
@@ -208,7 +208,7 @@ export default function EmployeesPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : data?.employees.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               No employees found
             </div>
           ) : (
@@ -216,18 +216,18 @@ export default function EmployeesPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Name</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Job Title</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Department</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Status</th>
-                    <th className="text-left py-3 px-4 font-medium text-gray-500">Start Date</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Name</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Job Title</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Department</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Status</th>
+                    <th className="text-left py-3 px-4 font-medium text-muted-foreground">Start Date</th>
                   </tr>
                 </thead>
                 <tbody>
                   {data?.employees.map((employee) => (
                     <tr
                       key={employee.id}
-                      className="border-b hover:bg-gray-50 cursor-pointer"
+                      className="border-b hover:bg-muted cursor-pointer"
                       role="link"
                       tabIndex={0}
                       onClick={() => router.push(`/employees/${employee.id}`)}
@@ -248,7 +248,7 @@ export default function EmployeesPage() {
                           </Avatar>
                           <div>
                             <p className="font-medium">{employee.fullName}</p>
-                            <p className="text-sm text-gray-500">{employee.personalEmail}</p>
+                            <p className="text-sm text-muted-foreground">{employee.personalEmail}</p>
                           </div>
                         </div>
                       </td>
@@ -272,7 +272,7 @@ export default function EmployeesPage() {
           {/* Pagination */}
           {data && data.pages > 1 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, data.total)} of {data.total}
               </p>
               <div className="flex gap-2">

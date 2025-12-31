@@ -61,7 +61,7 @@ export default function ContractsPage() {
       case 'EXPIRED':
         return 'bg-amber-50 text-amber-700 border border-amber-200'
       default:
-        return 'bg-gray-50 text-gray-700 border border-gray-200'
+        return 'bg-muted/50 text-foreground border border-border'
     }
   }
 
@@ -95,7 +95,7 @@ export default function ContractsPage() {
       </div>
 
       {/* Contracts List */}
-      <div className="bg-white rounded-lg border">
+      <div className="bg-card rounded-lg border">
 
         {isLoading ? (
           <div className="flex items-center justify-center py-12">
@@ -103,7 +103,7 @@ export default function ContractsPage() {
           </div>
         ) : data?.offers.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-gray-500 mb-4">No contracts found</p>
+            <p className="text-muted-foreground mb-4">No contracts found</p>
             <Link href="/contracts/new">
               <Button variant="outline">
                 Create your first contract
@@ -116,7 +116,7 @@ export default function ContractsPage() {
               <Link
                 key={offer.id}
                 href={`/contracts/${offer.id}`}
-                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-6 py-3 sm:py-4 hover:bg-gray-50 transition-colors"
+                className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-3 sm:px-6 py-3 sm:py-4 hover:bg-muted transition-colors"
               >
                 <div className="flex items-center gap-3 sm:gap-4">
                   <Avatar className="h-10 w-10 flex-shrink-0">
@@ -125,9 +125,9 @@ export default function ContractsPage() {
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="font-medium text-gray-900 truncate">{offer.candidateName}</p>
+                    <p className="font-medium text-foreground truncate">{offer.candidateName}</p>
                     <div className="flex flex-wrap items-center gap-2 text-sm">
-                      <span className="text-gray-500">{getContractDateText(offer)}</span>
+                      <span className="text-muted-foreground">{getContractDateText(offer)}</span>
                       <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusStyle(offer.status)}`}>
                         {contractStatusLabels[offer.status]}
                       </span>
@@ -135,9 +135,9 @@ export default function ContractsPage() {
                   </div>
                 </div>
                 <div className="text-left sm:text-right pl-13 sm:pl-0">
-                  <p className="font-medium text-gray-900">{getJobTitle(offer)}</p>
+                  <p className="font-medium text-foreground">{getJobTitle(offer)}</p>
                   {getStartDate(offer) && (
-                    <p className="text-sm text-gray-500">{getStartDate(offer)}</p>
+                    <p className="text-sm text-muted-foreground">{getStartDate(offer)}</p>
                   )}
                 </div>
               </Link>
@@ -148,7 +148,7 @@ export default function ContractsPage() {
         {/* Pagination */}
         {data && data.pages > 1 && (
           <div className="flex items-center justify-between px-6 py-4 border-t">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, data.total)} of {data.total}
             </p>
             <div className="flex gap-2">

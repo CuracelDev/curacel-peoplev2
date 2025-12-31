@@ -45,7 +45,7 @@ const PRIORITIES = [
   { value: '4', label: 'High', color: 'bg-orange-100 text-orange-700' },
   { value: '3', label: 'Medium', color: 'bg-yellow-100 text-yellow-700' },
   { value: '2', label: 'Low', color: 'bg-blue-100 text-blue-700' },
-  { value: '1', label: 'Not Urgent', color: 'bg-gray-100 text-gray-700' },
+  { value: '1', label: 'Not Urgent', color: 'bg-muted text-foreground' },
 ]
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'AUD']
@@ -289,7 +289,7 @@ export default function EditJobPage() {
   if (!job) {
     return (
       <div className="p-6 text-center">
-        <h2 className="text-xl font-semibold text-gray-900">Job not found</h2>
+        <h2 className="text-xl font-semibold text-foreground">Job not found</h2>
         <Link href="/recruiting/positions">
           <Button className="mt-4">Back to Jobs</Button>
         </Link>
@@ -325,8 +325,8 @@ export default function EditJobPage() {
         {/* Form Column */}
         <div className="space-y-4">
           {/* Basic Information */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">1</div>
               <h2 className="font-semibold">Basic Information</h2>
             </div>
@@ -465,13 +465,13 @@ export default function EditJobPage() {
                     }}
                   />
                   {locationDropdownOpen && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    <div className="absolute z-10 w-full mt-1 bg-card border rounded-lg shadow-lg max-h-48 overflow-y-auto">
                       {filteredLocations.map((loc) => (
                         <button
                           key={loc.value}
                           type="button"
                           className={cn(
-                            'w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between',
+                            'w-full text-left px-3 py-2 hover:bg-muted flex items-center justify-between',
                             officeLocations.some((s) => s.toLowerCase() === loc.value.toLowerCase()) && 'bg-indigo-50'
                           )}
                           onMouseDown={(e) => e.preventDefault()}
@@ -489,8 +489,8 @@ export default function EditJobPage() {
           </div>
 
           {/* Salary and Equity */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">2</div>
               <h2 className="font-semibold">Salary and Equity</h2>
             </div>
@@ -523,8 +523,8 @@ export default function EditJobPage() {
           </div>
 
           {/* Job Description */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">3</div>
               <h2 className="font-semibold">Job Description</h2>
             </div>
@@ -540,8 +540,8 @@ export default function EditJobPage() {
           </div>
 
           {/* Competencies */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">4</div>
               <h2 className="font-semibold">Role Competencies</h2>
             </div>
@@ -564,7 +564,7 @@ export default function EditJobPage() {
                 </div>
               )}
               <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input placeholder="Search competencies..." value={competencySearch} onChange={(e) => setCompetencySearch(e.target.value)} className="pl-10" />
               </div>
               <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
@@ -575,10 +575,10 @@ export default function EditJobPage() {
                     onClick={() => toggleCompetency(comp.id)}
                     className={cn(
                       'flex items-center gap-2 p-3 border rounded-lg transition-all text-left',
-                      selectedCompetencies.includes(comp.id) ? 'border-indigo-500 bg-indigo-50/50' : 'border-gray-200 hover:border-gray-300'
+                      selectedCompetencies.includes(comp.id) ? 'border-indigo-500 bg-indigo-50/50' : 'border-border hover:border-border'
                     )}
                   >
-                    <div className={cn('w-[18px] h-[18px] rounded flex items-center justify-center flex-shrink-0', selectedCompetencies.includes(comp.id) ? 'bg-indigo-600 text-white' : 'border-2 border-gray-300')}>
+                    <div className={cn('w-[18px] h-[18px] rounded flex items-center justify-center flex-shrink-0', selectedCompetencies.includes(comp.id) ? 'bg-indigo-600 text-white' : 'border-2 border-border')}>
                       {selectedCompetencies.includes(comp.id) && <Check className="h-3 w-3" />}
                     </div>
                     <span className="text-sm font-medium">{comp.name}</span>
@@ -589,8 +589,8 @@ export default function EditJobPage() {
           </div>
 
           {/* Additional Details */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">5</div>
               <h2 className="font-semibold">Additional Details</h2>
             </div>
@@ -626,9 +626,9 @@ export default function EditJobPage() {
                   />
                 </div>
                 {followerSearch && (
-                  <div className="bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                  <div className="bg-card border rounded-lg shadow-lg max-h-48 overflow-y-auto">
                     {filteredEmployees.map((emp) => (
-                      <button key={emp.id} type="button" className="w-full text-left px-3 py-2 hover:bg-gray-50" onClick={() => { toggleFollower(emp.id); setFollowerSearch('') }}>
+                      <button key={emp.id} type="button" className="w-full text-left px-3 py-2 hover:bg-muted" onClick={() => { toggleFollower(emp.id); setFollowerSearch('') }}>
                         {emp.fullName}
                       </button>
                     ))}
@@ -645,7 +645,7 @@ export default function EditJobPage() {
 
         {/* Preview Sidebar */}
         <div className="sticky top-20">
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-5">
               <div className="text-xs opacity-80 mb-2">Job Preview</div>
               <div className="text-xl font-semibold">{formData.title || 'Job Title'}</div>
@@ -653,7 +653,7 @@ export default function EditJobPage() {
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Status</div>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Status</div>
                 <Badge className={cn(
                   formData.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
                   formData.status === 'PAUSED' ? 'bg-orange-100 text-orange-700' :
@@ -661,28 +661,28 @@ export default function EditJobPage() {
                 )}>{formData.status}</Badge>
               </div>
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Employment</div>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Employment</div>
                 <div className="font-medium capitalize">{formData.employmentType.replace('-', ' ')}</div>
               </div>
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Priority</div>
-                <Badge className={PRIORITIES.find(p => p.value === formData.priority)?.color || 'bg-gray-100'}>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Priority</div>
+                <Badge className={PRIORITIES.find(p => p.value === formData.priority)?.color || 'bg-muted'}>
                   {PRIORITIES.find(p => p.value === formData.priority)?.label || 'Medium'}
                 </Badge>
               </div>
               {formData.deadline && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Deadline</div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Deadline</div>
                   <div className="font-medium text-sm">{new Date(formData.deadline).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</div>
                 </div>
               )}
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Hires</div>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Hires</div>
                 <div className="font-medium text-sm">{formData.hiresCount || 1}</div>
               </div>
               {(formData.salaryMin || formData.salaryMax) && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Salary</div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Salary</div>
                   <div className="font-medium text-sm">
                     {formData.salaryCurrency} {formData.salaryMin && Number(formData.salaryMin).toLocaleString()}{formData.salaryMin && formData.salaryMax && ' - '}{formData.salaryMax && Number(formData.salaryMax).toLocaleString()} {formData.salaryFrequency}
                   </div>

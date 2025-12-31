@@ -54,7 +54,7 @@ export function MetricCard({
   }
 
   const getChangeColor = () => {
-    if (change === undefined || change === 0) return 'text-gray-500'
+    if (change === undefined || change === 0) return 'text-muted-foreground'
     return change > 0 ? 'text-green-600' : 'text-red-500'
   }
 
@@ -65,7 +65,7 @@ export function MetricCard({
       <CardContent className="pt-6">
         <div className="flex items-start justify-between">
           <div className="flex flex-col">
-            <span className="text-sm text-gray-500">{title}</span>
+            <span className="text-sm text-muted-foreground">{title}</span>
             <span className="text-3xl font-bold mt-1">{formatValue(value)}</span>
             {change !== undefined && (
               <span className={cn('text-xs mt-1 flex items-center gap-1', getChangeColor())}>
@@ -74,7 +74,7 @@ export function MetricCard({
               </span>
             )}
             {subtitle && !change && (
-              <span className="text-xs text-gray-500 mt-1">{subtitle}</span>
+              <span className="text-xs text-muted-foreground mt-1">{subtitle}</span>
             )}
           </div>
           {Icon && (

@@ -528,8 +528,8 @@ export default function SettingsPage() {
       {/* Page Header */}
       <div className="flex justify-between items-start mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900">Hiring Settings</h1>
-          <p className="text-sm text-gray-500">Configure company-wide hiring criteria and interview processes</p>
+          <h1 className="text-2xl font-semibold text-foreground">Hiring Settings</h1>
+          <p className="text-sm text-muted-foreground">Configure company-wide hiring criteria and interview processes</p>
         </div>
       </div>
 
@@ -545,7 +545,7 @@ export default function SettingsPage() {
                   'w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left',
                   activeSection === item.id
                     ? 'bg-indigo-50 text-indigo-600'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                    : 'text-foreground/80 hover:bg-muted hover:text-foreground'
                 )}
               >
                 <item.icon className="h-[18px] w-[18px]" />
@@ -562,7 +562,7 @@ export default function SettingsPage() {
             <Card id="competencies">
               <CardHeader className="p-5 border-b">
                 <h2 className="text-lg font-semibold">Competency Framework</h2>
-                <p className="text-sm text-gray-500">Define the competencies expected of all hires. Role-specific competencies are set per job.</p>
+                <p className="text-sm text-muted-foreground">Define the competencies expected of all hires. Role-specific competencies are set per job.</p>
               </CardHeader>
               <CardContent className="p-5">
                 {competenciesQuery.isLoading ? (
@@ -573,17 +573,17 @@ export default function SettingsPage() {
                   <>
                     <div className="grid grid-cols-2 gap-3">
                       {competencies.map((competency) => (
-                        <div key={competency.id} className="p-4 border border-gray-200 rounded-xl">
+                        <div key={competency.id} className="p-4 border border-border rounded-xl">
                           <div className="flex justify-between items-start mb-2">
                             <div className="font-semibold">{competency.name}</div>
                             <Badge variant="secondary">{competency.category}</Badge>
                           </div>
-                          <div className="text-sm text-gray-600">{competency.description}</div>
+                          <div className="text-sm text-foreground/80">{competency.description}</div>
                         </div>
                       ))}
                     </div>
                     {competencies.length === 0 && (
-                      <div className="text-center py-10 text-gray-500">
+                      <div className="text-center py-10 text-muted-foreground">
                         No competencies defined yet. Add your first competency.
                       </div>
                     )}
@@ -612,7 +612,7 @@ export default function SettingsPage() {
             <Card id="personality">
               <CardHeader className="p-5 border-b">
                 <h2 className="text-lg font-semibold">Personality Templates</h2>
-                <p className="text-sm text-gray-500">Define ideal OCEAN personality profiles for different departments. Used for team fit analysis.</p>
+                <p className="text-sm text-muted-foreground">Define ideal OCEAN personality profiles for different departments. Used for team fit analysis.</p>
               </CardHeader>
               <CardContent className="p-5">
                 <div className="mb-4">
@@ -634,8 +634,8 @@ export default function SettingsPage() {
                   <Label className="mb-4 block">OCEAN Profile ({selectedDepartment})</Label>
                   <div className="grid grid-cols-5 gap-3">
                     {Object.entries(oceanProfile).map(([key, value]) => (
-                      <div key={key} className="text-center p-3 border border-gray-200 rounded-lg">
-                        <div className="text-xs text-gray-500 mb-2 capitalize">{key}</div>
+                      <div key={key} className="text-center p-3 border border-border rounded-lg">
+                        <div className="text-xs text-muted-foreground mb-2 capitalize">{key}</div>
                         <div className="text-lg font-semibold mb-2">{value}%</div>
                         <Slider
                           value={[value]}
@@ -674,11 +674,11 @@ export default function SettingsPage() {
             <Card id="team">
               <CardHeader className="p-5 border-b">
                 <h2 className="text-lg font-semibold">Team Profiles</h2>
-                <p className="text-sm text-gray-500">Configure team-specific settings and preferences.</p>
+                <p className="text-sm text-muted-foreground">Configure team-specific settings and preferences.</p>
               </CardHeader>
               <CardContent className="p-5">
-                <div className="text-center py-10 text-gray-500">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <div className="text-center py-10 text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
                   <p>Team profiles are managed in the Teams settings.</p>
                   <Button variant="outline" className="mt-4" asChild>
                     <Link href="/settings/teams">
@@ -698,7 +698,7 @@ export default function SettingsPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-lg font-semibold">Hiring Flow</h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Edit the interview flow for each role type. Changes apply across job setup, templates, and candidate stages.
                     </p>
                   </div>
@@ -748,13 +748,13 @@ export default function SettingsPage() {
 
                     {/* Flow stats */}
                     {activeFlow && (
-                      <div className="rounded-lg border border-gray-200 p-3 space-y-2">
+                      <div className="rounded-lg border border-border p-3 space-y-2">
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Jobs using this flow:</span>
+                          <span className="text-muted-foreground">Jobs using this flow:</span>
                           <span className="font-medium">{activeFlow.totalJobs}</span>
                         </div>
                         <div className="flex justify-between text-sm">
-                          <span className="text-gray-500">Current version:</span>
+                          <span className="text-muted-foreground">Current version:</span>
                           <span className="font-medium">v{activeFlow.latestVersion}</span>
                         </div>
                         {activeFlow.outdatedJobs > 0 && (
@@ -766,7 +766,7 @@ export default function SettingsPage() {
                       </div>
                     )}
 
-                    <div className="rounded-lg border border-gray-200 p-3 text-xs text-gray-500">
+                    <div className="rounded-lg border border-border p-3 text-xs text-muted-foreground">
                       These stages power the flow preview in job creation and the flow selector in JD templates.
                     </div>
                     <Button variant="outline" size="sm" onClick={handleResetFlow}>
@@ -806,7 +806,7 @@ export default function SettingsPage() {
                       <div className="space-y-2">
                         {(editedFlow?.stages ?? []).map((stage, index) => (
                           <div key={`${activeFlowId}-stage-${index}`} className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-lg bg-gray-100 text-gray-600 flex items-center justify-center text-sm font-semibold">
+                            <div className="h-9 w-9 rounded-lg bg-muted text-foreground/80 flex items-center justify-center text-sm font-semibold">
                               {index + 1}
                             </div>
                             <Input
@@ -827,8 +827,8 @@ export default function SettingsPage() {
                       </div>
                     </div>
 
-                    <div className="rounded-lg border border-gray-200 bg-gray-50 p-4">
-                      <div className="text-xs text-gray-500 uppercase tracking-wide">Preview</div>
+                    <div className="rounded-lg border border-border bg-muted/50 p-4">
+                      <div className="text-xs text-muted-foreground uppercase tracking-wide">Preview</div>
                       <div className="flex flex-wrap gap-2 mt-2">
                         {(editedFlow?.stages ?? []).map((stage, idx) => (
                           <Badge key={`preview-${idx}-${stage}`} variant="secondary">
@@ -854,15 +854,15 @@ export default function SettingsPage() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-4 py-4">
-                <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center text-sm font-medium text-gray-500">
+                <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center text-sm font-medium text-muted-foreground">
                   <div>Old Stage</div>
                   <div></div>
                   <div>New Stage</div>
                 </div>
                 {originalStages.map((oldStage) => (
                   <div key={oldStage} className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
-                    <div className="px-3 py-2 bg-gray-100 rounded-md text-sm">{oldStage}</div>
-                    <ArrowRight className="h-4 w-4 text-gray-400" />
+                    <div className="px-3 py-2 bg-muted rounded-md text-sm">{oldStage}</div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
                     <Select
                       value={stageMapping[oldStage] ?? 'unmapped'}
                       onValueChange={(value) =>
@@ -877,7 +877,7 @@ export default function SettingsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="unmapped">
-                          <span className="text-gray-400">Keep as legacy</span>
+                          <span className="text-muted-foreground">Keep as legacy</span>
                         </SelectItem>
                         {(editedFlow?.stages ?? []).map((newStage) => (
                           <SelectItem key={newStage} value={newStage}>
@@ -915,7 +915,7 @@ export default function SettingsPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-lg font-semibold">Interest Forms</h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Create and manage application forms that candidates fill out when applying. These forms can be linked to specific jobs.
                     </p>
                   </div>
@@ -940,7 +940,7 @@ export default function SettingsPage() {
                             'flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all',
                             selectedFormId === form.id
                               ? 'border-indigo-300 bg-indigo-50'
-                              : 'border-gray-200 hover:border-gray-300'
+                              : 'border-border hover:border-border'
                           )}
                           onClick={() => setSelectedFormId(selectedFormId === form.id ? null : form.id)}
                         >
@@ -954,7 +954,7 @@ export default function SettingsPage() {
                                 <Badge className="bg-green-100 text-green-700">Default</Badge>
                               )}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-muted-foreground">
                               {form.questions.length} questions · Linked to {form._count.jobs} job{form._count.jobs !== 1 ? 's' : ''}
                             </div>
                           </div>
@@ -981,8 +981,8 @@ export default function SettingsPage() {
                     </div>
 
                     {interestForms.length === 0 && (
-                      <div className="text-center py-10 text-gray-500">
-                        <FileQuestion className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <div className="text-center py-10 text-muted-foreground">
+                        <FileQuestion className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
                         <p>No interest forms yet. Create your first form to start collecting candidate applications.</p>
                       </div>
                     )}
@@ -997,10 +997,10 @@ export default function SettingsPage() {
                             Edit Form
                           </Button>
                         </div>
-                        <div className="bg-gray-50 rounded-lg p-4 space-y-3 max-h-[400px] overflow-y-auto">
+                        <div className="bg-muted/50 rounded-lg p-4 space-y-3 max-h-[400px] overflow-y-auto">
                           {selectedForm.questions.map((q, i) => (
-                            <div key={q.id} className="flex items-start gap-3 bg-white p-3 rounded-lg border border-gray-200">
-                              <div className="flex items-center justify-center w-6 h-6 rounded bg-gray-100 text-gray-500 text-xs font-medium flex-shrink-0">
+                            <div key={q.id} className="flex items-start gap-3 bg-card p-3 rounded-lg border border-border">
+                              <div className="flex items-center justify-center w-6 h-6 rounded bg-muted text-muted-foreground text-xs font-medium flex-shrink-0">
                                 {i + 1}
                               </div>
                               <div className="flex-1">
@@ -1008,12 +1008,12 @@ export default function SettingsPage() {
                                   <span className="text-sm font-medium">{q.label}</span>
                                   {q.isRequired && <span className="text-red-500 text-xs">*</span>}
                                 </div>
-                                <div className="text-xs text-gray-400 mt-1">{q.type}</div>
+                                <div className="text-xs text-muted-foreground mt-1">{q.type}</div>
                               </div>
                             </div>
                           ))}
                           {selectedForm.questions.length === 0 && (
-                            <div className="text-center py-6 text-gray-500">
+                            <div className="text-center py-6 text-muted-foreground">
                               No questions yet. Edit the form to add questions.
                             </div>
                           )}
@@ -1045,7 +1045,7 @@ export default function SettingsPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-lg font-semibold">Interview Rubrics</h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Define scoring criteria for each interview stage. Evaluators use these to consistently score candidates.
                     </p>
                   </div>
@@ -1070,7 +1070,7 @@ export default function SettingsPage() {
                             'flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all',
                             selectedRubricId === rubric.id
                               ? 'border-indigo-300 bg-indigo-50'
-                              : 'border-gray-200 hover:border-gray-300'
+                              : 'border-border hover:border-border'
                           )}
                           onClick={() => setSelectedRubricId(selectedRubricId === rubric.id ? null : rubric.id)}
                         >
@@ -1082,7 +1082,7 @@ export default function SettingsPage() {
                               <span className="font-semibold">{rubric.name}</span>
                               <Badge variant="secondary">{rubric.stage.replace('_', ' ')}</Badge>
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-muted-foreground">
                               {rubric.criteria.length} criteria
                             </div>
                           </div>
@@ -1104,9 +1104,9 @@ export default function SettingsPage() {
                               <Trash2 className="h-4 w-4 text-red-500" />
                             </Button>
                             {selectedRubricId === rubric.id ? (
-                              <ChevronUp className="h-5 w-5 text-gray-400" />
+                              <ChevronUp className="h-5 w-5 text-muted-foreground" />
                             ) : (
-                              <ChevronDown className="h-5 w-5 text-gray-400" />
+                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
                             )}
                           </div>
                         </div>
@@ -1114,8 +1114,8 @@ export default function SettingsPage() {
                     </div>
 
                     {rubricTemplates.length === 0 && (
-                      <div className="text-center py-10 text-gray-500">
-                        <ClipboardCheck className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                      <div className="text-center py-10 text-muted-foreground">
+                        <ClipboardCheck className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
                         <p>No interview rubrics yet. Create your first rubric to standardize candidate evaluation.</p>
                       </div>
                     )}
@@ -1128,10 +1128,10 @@ export default function SettingsPage() {
                           {selectedRubric.criteria.map((criteria) => (
                             <div
                               key={criteria.id}
-                              className="border border-gray-200 rounded-lg overflow-hidden"
+                              className="border border-border rounded-lg overflow-hidden"
                             >
                               <div
-                                className="flex items-center gap-4 p-4 cursor-pointer hover:bg-gray-50"
+                                className="flex items-center gap-4 p-4 cursor-pointer hover:bg-muted"
                                 onClick={() => setExpandedCriteria(expandedCriteria === criteria.id ? null : criteria.id)}
                               >
                                 <div className="flex-1">
@@ -1140,21 +1140,21 @@ export default function SettingsPage() {
                                     <Badge variant="outline">Weight: {criteria.weight}</Badge>
                                   </div>
                                   {criteria.description && (
-                                    <p className="text-sm text-gray-500 mt-1">{criteria.description}</p>
+                                    <p className="text-sm text-muted-foreground mt-1">{criteria.description}</p>
                                   )}
                                 </div>
                                 {expandedCriteria === criteria.id ? (
-                                  <ChevronUp className="h-5 w-5 text-gray-400" />
+                                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
                                 ) : (
-                                  <ChevronDown className="h-5 w-5 text-gray-400" />
+                                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
                                 )}
                               </div>
                               {expandedCriteria === criteria.id && (
-                                <div className="bg-gray-50 p-4 border-t">
+                                <div className="bg-muted/50 p-4 border-t">
                                   <div className="text-sm font-medium mb-3">Scoring Scale</div>
                                   <div className="grid grid-cols-5 gap-2">
                                     {Object.entries(scoreScaleLabels).map(([score, label]) => (
-                                      <div key={score} className="text-center p-2 bg-white rounded-lg border border-gray-200">
+                                      <div key={score} className="text-center p-2 bg-card rounded-lg border border-border">
                                         <div className={cn(
                                           'text-lg font-bold mb-1',
                                           parseInt(score) >= 4 ? 'text-green-600' :
@@ -1162,7 +1162,7 @@ export default function SettingsPage() {
                                         )}>
                                           {score}
                                         </div>
-                                        <div className="text-xs text-gray-500 leading-tight">{label}</div>
+                                        <div className="text-xs text-muted-foreground leading-tight">{label}</div>
                                       </div>
                                     ))}
                                   </div>
@@ -1171,7 +1171,7 @@ export default function SettingsPage() {
                             </div>
                           ))}
                           {selectedRubric.criteria.length === 0 && (
-                            <div className="text-center py-6 text-gray-500">
+                            <div className="text-center py-6 text-muted-foreground">
                               No criteria yet. Edit the rubric to add scoring criteria.
                             </div>
                           )}
@@ -1203,7 +1203,7 @@ export default function SettingsPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-lg font-semibold">Webhook Integration</h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Configure webhooks to automatically push job data to external systems like n8n, Zapier, or your own APIs.
                     </p>
                   </div>
@@ -1213,7 +1213,7 @@ export default function SettingsPage() {
                 {/* Global Webhook */}
                 <div className="space-y-4">
                   <h3 className="font-medium">Global Webhook</h3>
-                  <p className="text-sm text-gray-500">This webhook receives events for all jobs.</p>
+                  <p className="text-sm text-muted-foreground">This webhook receives events for all jobs.</p>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Webhook URL</Label>
@@ -1259,14 +1259,14 @@ export default function SettingsPage() {
                 {/* Job-specific webhooks */}
                 <div className="border-t pt-6 space-y-4">
                   <h3 className="font-medium">Job-Specific Webhooks</h3>
-                  <p className="text-sm text-gray-500">Jobs with individual webhook configurations.</p>
+                  <p className="text-sm text-muted-foreground">Jobs with individual webhook configurations.</p>
                   {jobWebhooksQuery.isLoading ? (
                     <div className="flex items-center justify-center py-6">
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
                     </div>
                   ) : (jobWebhooksQuery.data?.length || 0) === 0 ? (
-                    <div className="text-center py-6 text-gray-500">
-                      <Webhook className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Webhook className="h-10 w-10 mx-auto mb-3 text-muted-foreground/60" />
                       <p>No job-specific webhooks configured.</p>
                       <p className="text-sm">Configure webhooks on individual job pages.</p>
                     </div>
@@ -1276,11 +1276,11 @@ export default function SettingsPage() {
                         <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div>
                             <div className="font-medium">{job.title}</div>
-                            <div className="text-sm text-gray-500 truncate max-w-md">{job.webhookUrl}</div>
+                            <div className="text-sm text-muted-foreground truncate max-w-md">{job.webhookUrl}</div>
                           </div>
                           <div className="flex items-center gap-2">
                             {job.lastWebhookAt && (
-                              <span className="text-xs text-gray-400">
+                              <span className="text-xs text-muted-foreground">
                                 Last pushed: {new Date(job.lastWebhookAt).toLocaleDateString()}
                               </span>
                             )}
@@ -1317,7 +1317,7 @@ export default function SettingsPage() {
                 <div className="flex justify-between items-start">
                   <div>
                     <h2 className="text-lg font-semibold">External Recruiters</h2>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Manage external recruiters and their access to job postings. Recruiters get unique portal links.
                     </p>
                   </div>
@@ -1340,8 +1340,8 @@ export default function SettingsPage() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                   </div>
                 ) : (recruitersQuery.data?.length || 0) === 0 ? (
-                  <div className="text-center py-10 text-gray-500">
-                    <UserCircle2 className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <div className="text-center py-10 text-muted-foreground">
+                    <UserCircle2 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
                     <p>No external recruiters yet.</p>
                     <p className="text-sm">Add recruiters to give them portal access to submit candidates.</p>
                   </div>
@@ -1363,14 +1363,14 @@ export default function SettingsPage() {
                                   <Badge variant="secondary">Inactive</Badge>
                                 )}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-muted-foreground">
                                 {recruiter.email}
                                 {recruiter.organizationName && ` • ${recruiter.organizationName}`}
                               </div>
                             </div>
                           </div>
                           <div className="flex items-center gap-4">
-                            <div className="text-right text-sm text-gray-500">
+                            <div className="text-right text-sm text-muted-foreground">
                               <div>{recruiter._count.candidates} candidates</div>
                               <div>{recruiter._count.jobAccess} job{recruiter._count.jobAccess !== 1 ? 's' : ''} assigned</div>
                             </div>
@@ -1390,7 +1390,7 @@ export default function SettingsPage() {
                         </div>
                         {recruiter.jobAccess.length > 0 && (
                           <div className="mt-3 pt-3 border-t">
-                            <div className="text-xs text-gray-400 mb-2">Assigned Jobs</div>
+                            <div className="text-xs text-muted-foreground mb-2">Assigned Jobs</div>
                             <div className="flex flex-wrap gap-2">
                               {recruiter.jobAccess.map((access) => (
                                 <Badge key={access.id} variant="outline" className="flex items-center gap-1">
@@ -1436,7 +1436,7 @@ export default function SettingsPage() {
             <Card id="sources">
               <CardHeader className="p-5 border-b">
                 <h2 className="text-lg font-semibold">Source Channels</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Configure candidate source channels for tracking where candidates come from.
                 </p>
               </CardHeader>
@@ -1444,7 +1444,7 @@ export default function SettingsPage() {
                 {/* Inbound Channels */}
                 <div className="space-y-3">
                   <h3 className="font-medium">Inbound Channels</h3>
-                  <p className="text-sm text-gray-500">For candidates who apply directly.</p>
+                  <p className="text-sm text-muted-foreground">For candidates who apply directly.</p>
                   <div className="flex flex-wrap gap-2">
                     {sourceChannelsQuery.data?.inbound.map((channel) => (
                       <Badge key={channel} variant="secondary" className="py-1.5 px-3">
@@ -1460,7 +1460,7 @@ export default function SettingsPage() {
                 {/* Outbound Channels */}
                 <div className="space-y-3 border-t pt-6">
                   <h3 className="font-medium">Outbound Channels</h3>
-                  <p className="text-sm text-gray-500">For candidates sourced by your team.</p>
+                  <p className="text-sm text-muted-foreground">For candidates sourced by your team.</p>
                   <div className="flex flex-wrap gap-2">
                     {sourceChannelsQuery.data?.outbound.map((channel) => (
                       <Badge key={channel} variant="outline" className="py-1.5 px-3">
@@ -1480,19 +1480,19 @@ export default function SettingsPage() {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-3 bg-green-50 rounded-lg">
                       <Badge className="bg-green-100 text-green-800 mb-2">INBOUND</Badge>
-                      <p className="text-sm text-gray-600">Shows channel name: &quot;YC&quot;, &quot;PeopleOS&quot;</p>
+                      <p className="text-sm text-foreground/80">Shows channel name: &quot;YC&quot;, &quot;PeopleOS&quot;</p>
                     </div>
                     <div className="p-3 bg-blue-50 rounded-lg">
                       <Badge className="bg-blue-100 text-blue-800 mb-2">OUTBOUND</Badge>
-                      <p className="text-sm text-gray-600">Shows channel + sourcer: &quot;LinkedIn - John D.&quot;</p>
+                      <p className="text-sm text-foreground/80">Shows channel + sourcer: &quot;LinkedIn - John D.&quot;</p>
                     </div>
                     <div className="p-3 bg-purple-50 rounded-lg">
                       <Badge className="bg-purple-100 text-purple-800 mb-2">RECRUITER</Badge>
-                      <p className="text-sm text-gray-600">Shows recruiter: &quot;ABC Recruiting&quot;</p>
+                      <p className="text-sm text-foreground/80">Shows recruiter: &quot;ABC Recruiting&quot;</p>
                     </div>
                     <div className="p-3 bg-orange-50 rounded-lg">
                       <Badge className="bg-orange-100 text-orange-800 mb-2">EXCELLER</Badge>
-                      <p className="text-sm text-gray-600">Shows employee: &quot;Exceller: Jane D.&quot;</p>
+                      <p className="text-sm text-foreground/80">Shows employee: &quot;Exceller: Jane D.&quot;</p>
                     </div>
                   </div>
                 </div>
@@ -1505,7 +1505,7 @@ export default function SettingsPage() {
             <Card id="careers">
               <CardHeader className="p-5 border-b">
                 <h2 className="text-lg font-semibold">Public Careers Page</h2>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Configure your public-facing careers page and manage which jobs are publicly visible.
                 </p>
               </CardHeader>
@@ -1541,7 +1541,7 @@ export default function SettingsPage() {
                   <div className="flex justify-between items-center">
                     <div>
                       <h3 className="font-medium">Public Job Listings</h3>
-                      <p className="text-sm text-gray-500">Jobs that are visible on your public careers page.</p>
+                      <p className="text-sm text-muted-foreground">Jobs that are visible on your public careers page.</p>
                     </div>
                   </div>
 
@@ -1550,8 +1550,8 @@ export default function SettingsPage() {
                       <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
                     </div>
                   ) : (publicJobsQuery.data?.length || 0) === 0 ? (
-                    <div className="text-center py-6 text-gray-500">
-                      <Globe className="h-10 w-10 mx-auto mb-3 text-gray-300" />
+                    <div className="text-center py-6 text-muted-foreground">
+                      <Globe className="h-10 w-10 mx-auto mb-3 text-muted-foreground/60" />
                       <p>No public job listings yet.</p>
                       <p className="text-sm">Toggle jobs to public from the positions page.</p>
                     </div>
@@ -1563,7 +1563,7 @@ export default function SettingsPage() {
                             <Globe className="h-5 w-5 text-green-600" />
                             <div>
                               <div className="font-medium">{job.title}</div>
-                              <div className="text-sm text-gray-500">{job.department || 'No department'}</div>
+                              <div className="text-sm text-muted-foreground">{job.department || 'No department'}</div>
                             </div>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1663,8 +1663,8 @@ export default function SettingsPage() {
 
               <div className="space-y-3">
                 {formQuestions.map((q, index) => (
-                  <div key={index} className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center justify-center w-8 h-8 rounded bg-gray-100 text-gray-500 text-sm font-medium flex-shrink-0">
+                  <div key={index} className="flex items-start gap-3 p-4 border border-border rounded-lg">
+                    <div className="flex items-center justify-center w-8 h-8 rounded bg-muted text-muted-foreground text-sm font-medium flex-shrink-0">
                       {index + 1}
                     </div>
                     <div className="flex-1 space-y-3">
@@ -1719,7 +1719,7 @@ export default function SettingsPage() {
                 ))}
 
                 {formQuestions.length === 0 && (
-                  <div className="text-center py-6 text-gray-500 border border-dashed border-gray-200 rounded-lg">
+                  <div className="text-center py-6 text-muted-foreground border border-dashed border-border rounded-lg">
                     No questions yet. Click &quot;Add Question&quot; to start building your form.
                   </div>
                 )}
@@ -1795,8 +1795,8 @@ export default function SettingsPage() {
 
               <div className="space-y-3">
                 {rubricCriteria.map((c, index) => (
-                  <div key={index} className="flex items-start gap-3 p-4 border border-gray-200 rounded-lg">
-                    <GripVertical className="h-5 w-5 text-gray-400 mt-2 flex-shrink-0 cursor-grab" />
+                  <div key={index} className="flex items-start gap-3 p-4 border border-border rounded-lg">
+                    <GripVertical className="h-5 w-5 text-muted-foreground mt-2 flex-shrink-0 cursor-grab" />
                     <div className="flex-1 space-y-3">
                       <div className="grid grid-cols-[1fr_100px] gap-3">
                         <Input
@@ -1839,7 +1839,7 @@ export default function SettingsPage() {
                 ))}
 
                 {rubricCriteria.length === 0 && (
-                  <div className="text-center py-6 text-gray-500 border border-dashed border-gray-200 rounded-lg">
+                  <div className="text-center py-6 text-muted-foreground border border-dashed border-border rounded-lg">
                     No criteria yet. Click &quot;Add Criteria&quot; to define what evaluators should score.
                   </div>
                 )}

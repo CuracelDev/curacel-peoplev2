@@ -283,17 +283,17 @@ export default function PublicInterestFormPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-10 pb-10">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <h1 className="text-2xl font-bold mb-2">Application Submitted!</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-foreground/80 mb-6">
               Thank you for your interest in joining {job.company}. We have received your application for the {job.title} position and will review it shortly.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               You will receive a confirmation email at the address you provided.
             </p>
           </CardContent>
@@ -303,7 +303,7 @@ export default function PublicInterestFormPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/50">
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
         <div className="max-w-3xl mx-auto px-4 py-12">
@@ -321,7 +321,7 @@ export default function PublicInterestFormPage() {
               <MapPin className="h-4 w-4" />
               <span>{job.location}</span>
             </div>
-            <div className="bg-white/20 px-3 py-1 rounded-full">
+            <div className="bg-card/20 px-3 py-1 rounded-full">
               {job.type}
             </div>
           </div>
@@ -448,11 +448,11 @@ export default function PublicInterestFormPage() {
                   <span className="text-red-500">*</span>
                 </Label>
                 <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer">
-                  <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm text-gray-600">
+                  <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-foreground/80">
                     Drag and drop your resume or <span className="text-indigo-600">browse</span>
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     PDF, DOC, or DOCX (max 5MB)
                   </p>
                 </div>
@@ -486,7 +486,7 @@ export default function PublicInterestFormPage() {
         </Card>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500 mt-8 pb-8">
+        <div className="text-center text-sm text-muted-foreground mt-8 pb-8">
           <p>By submitting this form, you agree to our privacy policy.</p>
           <p className="mt-2">
             Having trouble? Contact us at{' '}

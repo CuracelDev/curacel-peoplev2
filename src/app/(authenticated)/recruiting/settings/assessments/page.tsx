@@ -190,7 +190,7 @@ export default function AssessmentSettingsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-semibold">Assessment Settings</h1>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             Configure assessment templates for different evaluation types
           </p>
         </div>
@@ -390,7 +390,7 @@ export default function AssessmentSettingsPage() {
                               value={formData.webhookUrl}
                               onChange={(e) => setFormData({ ...formData, webhookUrl: e.target.value })}
                             />
-                            <p className="text-xs text-gray-500">
+                            <p className="text-xs text-muted-foreground">
                               Results from external assessment tools will be sent to this URL
                             </p>
                           </div>
@@ -421,10 +421,10 @@ export default function AssessmentSettingsPage() {
               <CardContent>
                 {isLoading ? (
                   <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                   </div>
                 ) : !templates?.length ? (
-                  <div className="text-center py-8 text-gray-500">
+                  <div className="text-center py-8 text-muted-foreground">
                     <p>No templates configured yet</p>
                     <p className="text-sm">Create your first template to get started</p>
                   </div>
@@ -447,7 +447,7 @@ export default function AssessmentSettingsPage() {
                             <div>
                               <div className="font-medium">{template.name}</div>
                               {template.description && (
-                                <div className="text-sm text-gray-500 truncate max-w-xs">
+                                <div className="text-sm text-muted-foreground truncate max-w-xs">
                                   {template.description}
                                 </div>
                               )}
@@ -465,7 +465,7 @@ export default function AssessmentSettingsPage() {
                             {template.passingScore ? `${template.passingScore}%` : '-'}
                           </TableCell>
                           <TableCell>
-                            <Badge className={template.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}>
+                            <Badge className={template.isActive ? 'bg-green-100 text-green-800' : 'bg-muted text-foreground/80'}>
                               {template.isActive ? 'Active' : 'Inactive'}
                             </Badge>
                           </TableCell>

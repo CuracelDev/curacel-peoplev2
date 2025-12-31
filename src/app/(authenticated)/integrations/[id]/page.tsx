@@ -238,7 +238,7 @@ export default function IntegrationDetailPage() {
   if (!appId) {
     return (
       <div className="p-6">
-        <p className="text-sm text-gray-500">No app id provided.</p>
+        <p className="text-sm text-muted-foreground">No app id provided.</p>
       </div>
     )
   }
@@ -376,8 +376,8 @@ export default function IntegrationDetailPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-semibold text-gray-900">{app.name}</h1>
-          <p className="text-sm text-gray-500">{app.description}</p>
+          <h1 className="text-xl font-semibold text-foreground">{app.name}</h1>
+          <p className="text-sm text-muted-foreground">{app.description}</p>
         </div>
         <div className="flex items-center gap-3">
           <Switch
@@ -401,11 +401,11 @@ export default function IntegrationDetailPage() {
             <CardDescription>Manage the connection for this application</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="flex items-center justify-between gap-3 p-3 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between gap-3 p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-2">
                 {!hasConnection ? (
                   <>
-                    <XCircle className="h-5 w-5 text-gray-400" />
+                    <XCircle className="h-5 w-5 text-muted-foreground" />
                     <span className="text-sm">Not connected</span>
                   </>
                 ) : connectionState === 'testing' ? (
@@ -425,7 +425,7 @@ export default function IntegrationDetailPage() {
                   </>
                 ) : (
                   <>
-                    <CheckCircle2 className="h-5 w-5 text-gray-400" />
+                    <CheckCircle2 className="h-5 w-5 text-muted-foreground" />
                     <span className="text-sm">Configured</span>
                   </>
                 )}
@@ -468,8 +468,8 @@ export default function IntegrationDetailPage() {
 
             {app.type === 'BITBUCKET' ? (
               <div className="rounded-lg border border-dashed p-4 space-y-2">
-                <p className="text-sm font-medium text-gray-900">Bitbucket connection</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-sm font-medium text-foreground">Bitbucket connection</p>
+                <p className="text-xs text-muted-foreground">
                   Configure Bitbucket credentials in Settings. Provisioning rules below use workspace groups and repositories.
                 </p>
                 <Button asChild size="sm" variant="outline">
@@ -480,8 +480,8 @@ export default function IntegrationDetailPage() {
               <>
                 {app.type === 'PASSBOLT' ? (
                   <div className="rounded-lg border border-dashed p-4 space-y-2">
-                    <p className="text-sm font-medium text-gray-900">Passbolt connection</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-sm font-medium text-foreground">Passbolt connection</p>
+                    <p className="text-xs text-muted-foreground">
                       Configure Passbolt API or CLI credentials in Settings. Webhook setup below remains a fallback option.
                     </p>
                     <Button asChild size="sm" variant="outline">
@@ -493,10 +493,10 @@ export default function IntegrationDetailPage() {
                 <div className="rounded-lg border p-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <p className="text-sm font-medium text-gray-900">
+                      <p className="text-sm font-medium text-foreground">
                         {app.type === 'PASSBOLT' ? 'Webhook setup (fallback)' : 'Webhook setup (no-code)'}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Provide URLs your system exposes to provision/deprovision access.
                       </p>
                     </div>
@@ -590,7 +590,7 @@ export default function IntegrationDetailPage() {
                           {primaryConnection ? 'Save' : 'Connect'}
                         </Button>
                       </div>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         Provision/deprovision requests include employee details as JSON.
                       </p>
                     </>
@@ -599,14 +599,14 @@ export default function IntegrationDetailPage() {
               </>
             )}
 
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-muted-foreground">
               <p>
                 Active accounts:{' '}
-                <span className="font-semibold text-gray-900">{activeAccountsCount}</span>
+                <span className="font-semibold text-foreground">{activeAccountsCount}</span>
               </p>
               <p>
                 Provisioning rules:{' '}
-                <span className="font-semibold text-gray-900">{rulesCount}</span>
+                <span className="font-semibold text-foreground">{rulesCount}</span>
               </p>
             </div>
           </CardContent>
@@ -621,8 +621,8 @@ export default function IntegrationDetailPage() {
             {app.type === 'GOOGLE_WORKSPACE' && (
               <div className="rounded-lg border p-4 space-y-4">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Map employees to Google groups</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm font-semibold text-foreground">Map employees to Google groups</p>
+                  <p className="text-xs text-muted-foreground">
                     Map all employees, a team (department), or a role (job title) to one or more Google groups.
                   </p>
                 </div>
@@ -661,18 +661,18 @@ export default function IntegrationDetailPage() {
                   />
                   <div className="max-h-56 overflow-auto rounded-md border p-2 space-y-2">
                     {googleGroupsQuery.isLoading && (
-                      <p className="text-xs text-gray-500">Loading groups...</p>
+                      <p className="text-xs text-muted-foreground">Loading groups...</p>
                     )}
                     {googleGroupsQuery.data?.error && (
                       <p className="text-xs text-red-600">{googleGroupsQuery.data.error}</p>
                     )}
                     {!googleGroupsQuery.isLoading && !googleGroupsQuery.data?.error && filteredGoogleGroups.length === 0 && (
-                      <p className="text-xs text-gray-500">No groups found.</p>
+                      <p className="text-xs text-muted-foreground">No groups found.</p>
                     )}
                     {filteredGoogleGroups.map((group) => (
                       <label
                         key={group.email}
-                        className="flex items-start gap-2 rounded-md px-2 py-1 hover:bg-gray-50"
+                        className="flex items-start gap-2 rounded-md px-2 py-1 hover:bg-muted"
                       >
                         <input
                           type="checkbox"
@@ -681,8 +681,8 @@ export default function IntegrationDetailPage() {
                           onChange={() => toggleGoogleGroup(group.email)}
                         />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{group.name}</p>
-                          <p className="text-xs text-gray-500 truncate">{group.email}</p>
+                          <p className="text-sm font-medium text-foreground truncate">{group.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{group.email}</p>
                         </div>
                       </label>
                     ))}
@@ -690,8 +690,8 @@ export default function IntegrationDetailPage() {
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs text-gray-500">
-                    Selected groups: <span className="font-semibold text-gray-900">{selectedGoogleGroups.length}</span>
+                  <p className="text-xs text-muted-foreground">
+                    Selected groups: <span className="font-semibold text-foreground">{selectedGoogleGroups.length}</span>
                   </p>
                   <Button
                     onClick={() => {
@@ -733,8 +733,8 @@ export default function IntegrationDetailPage() {
             {app.type === 'BITBUCKET' && (
               <div className="rounded-lg border p-4 space-y-4">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Map employees to Bitbucket access</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm font-semibold text-foreground">Map employees to Bitbucket access</p>
+                  <p className="text-xs text-muted-foreground">
                     Assign workspace groups and repository permissions based on team or role.
                   </p>
                 </div>
@@ -773,7 +773,7 @@ export default function IntegrationDetailPage() {
                   />
                   <div className="max-h-56 overflow-auto rounded-md border p-2 space-y-2">
                     {bitbucketOptionsQuery.isLoading && (
-                      <p className="text-xs text-gray-500">Loading groups...</p>
+                      <p className="text-xs text-muted-foreground">Loading groups...</p>
                     )}
                     {bitbucketOptionsQuery.data?.error && (
                       <p className="text-xs text-red-600">{bitbucketOptionsQuery.data.error}</p>
@@ -781,12 +781,12 @@ export default function IntegrationDetailPage() {
                     {!bitbucketOptionsQuery.isLoading &&
                       !bitbucketOptionsQuery.data?.error &&
                       filteredBitbucketGroups.length === 0 && (
-                        <p className="text-xs text-gray-500">No groups found.</p>
+                        <p className="text-xs text-muted-foreground">No groups found.</p>
                       )}
                     {filteredBitbucketGroups.map((group) => (
                       <label
                         key={group.slug}
-                        className="flex items-start gap-2 rounded-md px-2 py-1 hover:bg-gray-50"
+                        className="flex items-start gap-2 rounded-md px-2 py-1 hover:bg-muted"
                       >
                         <input
                           type="checkbox"
@@ -795,8 +795,8 @@ export default function IntegrationDetailPage() {
                           onChange={() => toggleBitbucketGroup(group.slug)}
                         />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{group.name}</p>
-                          <p className="text-xs text-gray-500 truncate">{group.slug}</p>
+                          <p className="text-sm font-medium text-foreground truncate">{group.name}</p>
+                          <p className="text-xs text-muted-foreground truncate">{group.slug}</p>
                         </div>
                       </label>
                     ))}
@@ -812,7 +812,7 @@ export default function IntegrationDetailPage() {
                   />
                   <div className="max-h-56 overflow-auto rounded-md border p-2 space-y-2">
                     {bitbucketOptionsQuery.isLoading && (
-                      <p className="text-xs text-gray-500">Loading repositories...</p>
+                      <p className="text-xs text-muted-foreground">Loading repositories...</p>
                     )}
                     {bitbucketOptionsQuery.data?.error && (
                       <p className="text-xs text-red-600">{bitbucketOptionsQuery.data.error}</p>
@@ -820,14 +820,14 @@ export default function IntegrationDetailPage() {
                     {!bitbucketOptionsQuery.isLoading &&
                       !bitbucketOptionsQuery.data?.error &&
                       filteredBitbucketRepos.length === 0 && (
-                        <p className="text-xs text-gray-500">No repositories found.</p>
+                        <p className="text-xs text-muted-foreground">No repositories found.</p>
                       )}
                     {filteredBitbucketRepos.map((repo) => {
                       const selectedPermission = selectedBitbucketRepos[repo.slug]
                       return (
                         <div
                           key={repo.slug}
-                          className="flex flex-wrap items-center justify-between gap-3 rounded-md px-2 py-1 hover:bg-gray-50"
+                          className="flex flex-wrap items-center justify-between gap-3 rounded-md px-2 py-1 hover:bg-muted"
                         >
                           <label className="flex items-start gap-2">
                             <input
@@ -837,8 +837,8 @@ export default function IntegrationDetailPage() {
                               onChange={() => toggleBitbucketRepo(repo.slug)}
                             />
                             <div className="min-w-0">
-                              <p className="text-sm font-medium text-gray-900 truncate">{repo.name}</p>
-                              <p className="text-xs text-gray-500 truncate">{repo.slug}</p>
+                              <p className="text-sm font-medium text-foreground truncate">{repo.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">{repo.slug}</p>
                             </div>
                           </label>
                           <Select
@@ -862,9 +862,9 @@ export default function IntegrationDetailPage() {
                 </div>
 
                 <div className="flex items-center justify-between gap-3">
-                  <p className="text-xs text-gray-500">
-                    Selected groups: <span className="font-semibold text-gray-900">{selectedBitbucketGroups.length}</span>{' '}
-                    · Repositories: <span className="font-semibold text-gray-900">{selectedBitbucketRepoEntries.length}</span>
+                  <p className="text-xs text-muted-foreground">
+                    Selected groups: <span className="font-semibold text-foreground">{selectedBitbucketGroups.length}</span>{' '}
+                    · Repositories: <span className="font-semibold text-foreground">{selectedBitbucketRepoEntries.length}</span>
                   </p>
                   <Button
                     onClick={() => {
@@ -915,8 +915,8 @@ export default function IntegrationDetailPage() {
             {app.type === 'JIRA' && (
               <div className="rounded-lg border p-4 space-y-4">
                 <div>
-                  <p className="text-sm font-semibold text-gray-900">Map employees to Jira access</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-sm font-semibold text-foreground">Map employees to Jira access</p>
+                  <p className="text-xs text-muted-foreground">
                     Assign Jira groups and project roles based on team, role, or a Jira board selection.
                   </p>
                 </div>
@@ -963,18 +963,18 @@ export default function IntegrationDetailPage() {
                   />
                   <div className="max-h-56 overflow-auto rounded-md border p-2 space-y-2">
                     {jiraGroupsQuery.isLoading && (
-                      <p className="text-xs text-gray-500">Loading groups...</p>
+                      <p className="text-xs text-muted-foreground">Loading groups...</p>
                     )}
                     {jiraGroupsQuery.data?.error && (
                       <p className="text-xs text-red-600">{jiraGroupsQuery.data.error}</p>
                     )}
                     {!jiraGroupsQuery.isLoading && !jiraGroupsQuery.data?.error && filteredJiraGroups.length === 0 && (
-                      <p className="text-xs text-gray-500">No groups found.</p>
+                      <p className="text-xs text-muted-foreground">No groups found.</p>
                     )}
                     {filteredJiraGroups.map((group) => (
                       <label
                         key={group.name}
-                        className="flex items-start gap-2 rounded-md px-2 py-1 hover:bg-gray-50"
+                        className="flex items-start gap-2 rounded-md px-2 py-1 hover:bg-muted"
                       >
                         <input
                           type="checkbox"
@@ -983,7 +983,7 @@ export default function IntegrationDetailPage() {
                           onChange={() => toggleJiraGroup(group.name)}
                         />
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-gray-900 truncate">{group.name}</p>
+                          <p className="text-sm font-medium text-foreground truncate">{group.name}</p>
                         </div>
                       </label>
                     ))}
@@ -1006,25 +1006,25 @@ export default function IntegrationDetailPage() {
                       Clear
                     </Button>
                     {jiraRuleScope === 'JIRA_BOARD' ? (
-                      <span className="text-xs text-gray-500">Select exactly one board.</span>
+                      <span className="text-xs text-muted-foreground">Select exactly one board.</span>
                     ) : null}
                   </div>
                   <div className="max-h-56 overflow-auto rounded-md border p-2 space-y-2">
                     {jiraBoardsQuery.isLoading && (
-                      <p className="text-xs text-gray-500">Loading boards...</p>
+                      <p className="text-xs text-muted-foreground">Loading boards...</p>
                     )}
                     {jiraBoardsQuery.data?.error && (
                       <p className="text-xs text-red-600">{jiraBoardsQuery.data.error}</p>
                     )}
                     {!jiraBoardsQuery.isLoading && !jiraBoardsQuery.data?.error && filteredJiraBoards.length === 0 && (
-                      <p className="text-xs text-gray-500">No boards found.</p>
+                      <p className="text-xs text-muted-foreground">No boards found.</p>
                     )}
                     {filteredJiraBoards.map((board) => {
                       const boardId = String(board.id)
                       return (
                         <label
                           key={boardId}
-                          className="flex items-start gap-2 rounded-md px-2 py-1 hover:bg-gray-50"
+                          className="flex items-start gap-2 rounded-md px-2 py-1 hover:bg-muted"
                         >
                           <input
                             type="checkbox"
@@ -1033,9 +1033,9 @@ export default function IntegrationDetailPage() {
                             onChange={() => toggleJiraBoard(boardId)}
                           />
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-gray-900 truncate">{board.name}</p>
+                            <p className="text-sm font-medium text-foreground truncate">{board.name}</p>
                             {board.projectKey ? (
-                              <p className="text-xs text-gray-500 truncate">{board.projectKey}</p>
+                              <p className="text-xs text-muted-foreground truncate">{board.projectKey}</p>
                             ) : null}
                           </div>
                         </label>
@@ -1054,14 +1054,14 @@ export default function IntegrationDetailPage() {
                         const roleInfo = projectId ? jiraRolesByProjectId[projectId] : undefined
                         const roles = roleInfo?.roles ?? []
                         return (
-                          <div key={boardId} className="grid gap-2 rounded-md border border-gray-100 p-3">
-                            <div className="text-sm font-medium text-gray-900">{board.name}</div>
+                          <div key={boardId} className="grid gap-2 rounded-md border border-border p-3">
+                            <div className="text-sm font-medium text-foreground">{board.name}</div>
                             {!projectId ? (
-                              <p className="text-xs text-gray-500">Project information not available for this board.</p>
+                              <p className="text-xs text-muted-foreground">Project information not available for this board.</p>
                             ) : roleInfo?.error ? (
                               <p className="text-xs text-red-600">{roleInfo.error}</p>
                             ) : roles.length === 0 ? (
-                              <p className="text-xs text-gray-500">Loading roles...</p>
+                              <p className="text-xs text-muted-foreground">Loading roles...</p>
                             ) : (
                               <Select
                                 value={jiraBoardRoleById[boardId] || ''}
@@ -1089,11 +1089,11 @@ export default function IntegrationDetailPage() {
                 )}
 
                 <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Selected groups:{' '}
-                    <span className="font-semibold text-gray-900">{selectedJiraGroups.length}</span>{' '}
+                    <span className="font-semibold text-foreground">{selectedJiraGroups.length}</span>{' '}
                     · Selected boards:{' '}
-                    <span className="font-semibold text-gray-900">{selectedJiraBoards.length}</span>
+                    <span className="font-semibold text-foreground">{selectedJiraBoards.length}</span>
                   </p>
                   <Button
                     onClick={() => {
@@ -1175,7 +1175,7 @@ export default function IntegrationDetailPage() {
             )}
 
             {app.provisioningRules.length === 0 && (
-              <p className="text-sm text-gray-500">No rules configured yet.</p>
+              <p className="text-sm text-muted-foreground">No rules configured yet.</p>
             )}
             {app.provisioningRules.map((rule) => {
               const provisionData = (rule.provisionData ?? {}) as Record<string, unknown>
@@ -1201,13 +1201,13 @@ export default function IntegrationDetailPage() {
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="font-medium">{rule.name}</p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-muted-foreground">
                         {describeCondition(condition, boardName)}
                       </p>
                       {groups.length > 0 && (
                         <div className="mt-2 flex flex-wrap gap-2">
                           {groups.map((group) => (
-                            <span key={group} className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600">
+                            <span key={group} className="rounded-full bg-muted px-2 py-0.5 text-xs text-foreground/80">
                               {group}
                             </span>
                           ))}
@@ -1218,7 +1218,7 @@ export default function IntegrationDetailPage() {
                           {projectRoles.map((role, index) => (
                             <span
                               key={`${role.boardName || 'board'}-${role.roleName || 'role'}-${index}`}
-                              className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
+                              className="rounded-full bg-muted px-2 py-0.5 text-xs text-foreground/80"
                             >
                               {role.boardName || 'Board'}{role.roleName ? ` · ${role.roleName}` : ''}
                             </span>
@@ -1230,7 +1230,7 @@ export default function IntegrationDetailPage() {
                           {repositories.map((repo) => (
                             <span
                               key={`${repo.repoSlug}-${repo.permission || 'read'}`}
-                              className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-600"
+                              className="rounded-full bg-muted px-2 py-0.5 text-xs text-foreground/80"
                             >
                               {repo.repoSlug}{repo.permission ? ` · ${repo.permission}` : ''}
                             </span>

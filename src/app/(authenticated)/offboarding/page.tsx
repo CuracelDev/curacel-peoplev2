@@ -75,8 +75,8 @@ export default function OffboardingPage() {
       case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800'
       case 'PENDING': return 'bg-yellow-100 text-yellow-800'
       case 'FAILED': return 'bg-red-100 text-red-800'
-      case 'CANCELLED': return 'bg-gray-100 text-gray-800'
-      default: return 'bg-gray-100 text-gray-800'
+      case 'CANCELLED': return 'bg-muted text-foreground'
+      default: return 'bg-muted text-foreground'
     }
   }
 
@@ -160,7 +160,7 @@ export default function OffboardingPage() {
                 <p className="text-2xl font-bold">
                   {data?.workflows.filter(w => w.status === 'PENDING').length || 0}
                 </p>
-                <p className="text-sm text-gray-500">Scheduled</p>
+                <p className="text-sm text-muted-foreground">Scheduled</p>
               </div>
             </div>
           </CardContent>
@@ -175,7 +175,7 @@ export default function OffboardingPage() {
                 <p className="text-2xl font-bold">
                   {data?.workflows.filter(w => w.status === 'IN_PROGRESS').length || 0}
                 </p>
-                <p className="text-sm text-gray-500">In Progress</p>
+                <p className="text-sm text-muted-foreground">In Progress</p>
               </div>
             </div>
           </CardContent>
@@ -190,7 +190,7 @@ export default function OffboardingPage() {
                 <p className="text-2xl font-bold">
                   {data?.workflows.filter(w => w.status === 'COMPLETED').length || 0}
                 </p>
-                <p className="text-sm text-gray-500">Completed</p>
+                <p className="text-sm text-muted-foreground">Completed</p>
               </div>
             </div>
           </CardContent>
@@ -205,7 +205,7 @@ export default function OffboardingPage() {
                 <p className="text-2xl font-bold">
                   {data?.workflows.filter(w => w.status === 'FAILED').length || 0}
                 </p>
-                <p className="text-sm text-gray-500">Failed</p>
+                <p className="text-sm text-muted-foreground">Failed</p>
               </div>
             </div>
           </CardContent>
@@ -226,7 +226,7 @@ export default function OffboardingPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : data?.workflows.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               No offboarding workflows found
             </div>
           ) : (
@@ -235,7 +235,7 @@ export default function OffboardingPage() {
                 const progress = getProgress(workflow.tasks)
                 return (
                   <Link key={workflow.id} href={`/offboarding/${workflow.id}`}>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg hover:bg-muted transition-colors">
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                           <p className="font-medium truncate">{workflow.employee.fullName}</p>
@@ -246,20 +246,20 @@ export default function OffboardingPage() {
                             <Badge variant="destructive">Immediate</Badge>
                           )}
                         </div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {workflow.employee.jobTitle} • {workflow.employee.department}
                         </p>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                           Last Day: {workflow.employee.endDate ? formatDate(workflow.employee.endDate) : 'TBD'}
                         </p>
                       </div>
                       <div className="w-full sm:w-48">
                         <div className="flex items-center justify-between text-sm mb-1">
-                          <span className="text-gray-500">Progress</span>
+                          <span className="text-muted-foreground">Progress</span>
                           <span className="font-medium">{progress}%</span>
                         </div>
                         <Progress value={progress} className="h-2" />
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {workflow.tasks.filter(t => t.status === 'SUCCESS').length} of {workflow.tasks.length} tasks
                         </p>
                       </div>
@@ -273,7 +273,7 @@ export default function OffboardingPage() {
           {/* Pagination */}
           {data && data.pages > 1 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Page {page} of {data.pages}
               </p>
               <div className="flex gap-2">
@@ -328,7 +328,7 @@ export default function OffboardingPage() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <Label className="text-sm font-medium">Immediate offboarding</Label>
-                    <p className="text-xs text-gray-500">Run automated tasks immediately.</p>
+                    <p className="text-xs text-muted-foreground">Run automated tasks immediately.</p>
                   </div>
                   <Switch checked={isImmediate} onCheckedChange={setIsImmediate} />
                 </div>
@@ -371,7 +371,7 @@ export default function OffboardingPage() {
               <div className="rounded-lg border p-4 space-y-4">
                 <div>
                   <Label className="text-sm font-medium">Google Workspace offboarding</Label>
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Delete the account, transfer Drive ownership, and optionally map the email as an alias.
                   </p>
                 </div>
@@ -379,7 +379,7 @@ export default function OffboardingPage() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <Label className="text-sm font-medium">Delete Google account</Label>
-                    <p className="text-xs text-gray-500">Deletes the user after transfer (instead of suspending).</p>
+                    <p className="text-xs text-muted-foreground">Deletes the user after transfer (instead of suspending).</p>
                   </div>
                   <Switch checked={googleDeleteAccount} onCheckedChange={setGoogleDeleteAccount} />
                 </div>
@@ -390,14 +390,14 @@ export default function OffboardingPage() {
                     <div className="flex items-center gap-2">
                       <button
                         type="button"
-                        className={`rounded-full border px-3 py-1 text-xs font-medium ${transferEnabled ? 'border-blue-600 text-blue-600' : 'border-gray-300 text-gray-500'}`}
+                        className={`rounded-full border px-3 py-1 text-xs font-medium ${transferEnabled ? 'border-blue-600 text-blue-600' : 'border-border text-muted-foreground'}`}
                         onClick={() => setTransferEnabled(true)}
                       >
                         Transfer
                       </button>
                       <button
                         type="button"
-                        className={`rounded-full border px-3 py-1 text-xs font-medium ${!transferEnabled ? 'border-blue-600 text-blue-600' : 'border-gray-300 text-gray-500'}`}
+                        className={`rounded-full border px-3 py-1 text-xs font-medium ${!transferEnabled ? 'border-blue-600 text-blue-600' : 'border-border text-muted-foreground'}`}
                         onClick={() => {
                           setTransferEnabled(false)
                           setGoogleTransferToEmail('')
@@ -410,7 +410,7 @@ export default function OffboardingPage() {
                   </div>
                   {transferEnabled && (
                     <>
-                      <p className="mt-2 text-xs text-gray-500">
+                      <p className="mt-2 text-xs text-muted-foreground">
                         Select the user who should receive the offboarded employee’s data.
                       </p>
                       <div className="relative mt-3">
@@ -425,19 +425,19 @@ export default function OffboardingPage() {
                           placeholder="Search for a user"
                         />
                         {transferDropdownOpen && (
-                          <div className="absolute z-20 mt-2 w-full rounded-md border bg-white shadow-sm max-h-64 overflow-auto">
+                          <div className="absolute z-20 mt-2 w-full rounded-md border bg-card shadow-sm max-h-64 overflow-auto">
                             {googleUsersQuery.isLoading ? (
-                              <div className="px-3 py-2 text-sm text-gray-500">Loading Google Workspace users...</div>
+                              <div className="px-3 py-2 text-sm text-muted-foreground">Loading Google Workspace users...</div>
                             ) : googleUsersQuery.data?.error ? (
                               <div className="px-3 py-2 text-sm text-red-600">{googleUsersQuery.data.error}</div>
                             ) : filteredTransferUsers.length === 0 ? (
-                              <div className="px-3 py-2 text-sm text-gray-500">No matching users</div>
+                              <div className="px-3 py-2 text-sm text-muted-foreground">No matching users</div>
                             ) : (
                               filteredTransferUsers.map((user) => (
                                 <button
                                   key={user.email}
                                   type="button"
-                                  className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50"
+                                  className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
                                   onClick={() => {
                                     setGoogleTransferToEmail(user.email)
                                     setTransferSearch(`${user.name} (${user.email})`)
@@ -452,7 +452,7 @@ export default function OffboardingPage() {
                         )}
                       </div>
                       {!googleUsersQuery.isLoading && !googleUsersQuery.data?.error ? (
-                        <p className="mt-2 text-xs text-gray-500">
+                        <p className="mt-2 text-xs text-muted-foreground">
                           {filteredTransferUsers.length} user{filteredTransferUsers.length === 1 ? '' : 's'} found
                         </p>
                       ) : null}
@@ -501,10 +501,10 @@ export default function OffboardingPage() {
                       placeholder="Search and select Google user"
                     />
                     {aliasDropdownOpen && (
-                      <div className="absolute z-20 mt-2 w-full rounded-md border bg-white shadow-sm max-h-64 overflow-auto">
+                      <div className="absolute z-20 mt-2 w-full rounded-md border bg-card shadow-sm max-h-64 overflow-auto">
                         <button
                           type="button"
-                          className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50"
+                          className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
                           onClick={() => {
                             setGoogleAliasToEmail('')
                             setGoogleAliasSearch('')
@@ -514,17 +514,17 @@ export default function OffboardingPage() {
                           No alias mapping
                         </button>
                         {googleUsersQuery.isLoading ? (
-                          <div className="px-3 py-2 text-sm text-gray-500">Loading Google Workspace users...</div>
+                          <div className="px-3 py-2 text-sm text-muted-foreground">Loading Google Workspace users...</div>
                         ) : googleUsersQuery.data?.error ? (
                           <div className="px-3 py-2 text-sm text-red-600">{googleUsersQuery.data.error}</div>
                         ) : filteredGoogleUsers.length === 0 ? (
-                          <div className="px-3 py-2 text-sm text-gray-500">No matching users</div>
+                          <div className="px-3 py-2 text-sm text-muted-foreground">No matching users</div>
                         ) : (
                           filteredGoogleUsers.map((user) => (
                             <button
                               key={user.email}
                               type="button"
-                              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50"
+                              className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
                               onClick={() => {
                                 setGoogleAliasToEmail(user.email)
                                 setGoogleAliasSearch(`${user.name} (${user.email})`)
@@ -539,7 +539,7 @@ export default function OffboardingPage() {
                     )}
                   </div>
                   {!googleUsersQuery.isLoading && !googleUsersQuery.data?.error ? (
-                    <p className="mt-2 text-xs text-gray-500">
+                    <p className="mt-2 text-xs text-muted-foreground">
                       {filteredGoogleUsers.length} user{filteredGoogleUsers.length === 1 ? '' : 's'} found
                     </p>
                   ) : null}

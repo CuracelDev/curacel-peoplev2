@@ -143,7 +143,7 @@ export default function PublicCareersPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
       </div>
     )
@@ -152,14 +152,14 @@ export default function PublicCareersPage() {
   // Error state
   if (error || !job) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-10 pb-10">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertCircle className="h-8 w-8 text-red-600" />
             </div>
             <h1 className="text-2xl font-bold mb-2">Job Not Found</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-foreground/80 mb-6">
               This job posting may have been removed or is no longer available.
             </p>
             <Link href="/">
@@ -177,18 +177,18 @@ export default function PublicCareersPage() {
   // Success state
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-10 pb-10">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <h1 className="text-2xl font-bold mb-2">Application Submitted!</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-foreground/80 mb-6">
               Thank you for your interest in the {job.title} position at Curacel.
               We have received your application and will review it shortly.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               You will receive a confirmation email at {formData.email}.
             </p>
           </CardContent>
@@ -201,7 +201,7 @@ export default function PublicCareersPage() {
   const locations = (job.locations as string[]) || []
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/50">
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white">
         <div className="max-w-4xl mx-auto px-4 py-12">
@@ -223,7 +223,7 @@ export default function PublicCareersPage() {
                 <span>{locations.join(', ')}</span>
               </div>
             )}
-            <Badge className="bg-white/20 hover:bg-white/30 text-white border-0">
+            <Badge className="bg-card/20 hover:bg-card/30 text-white border-0">
               {formatEmploymentType(job.employmentType)}
             </Badge>
           </div>
@@ -254,7 +254,7 @@ export default function PublicCareersPage() {
                     dangerouslySetInnerHTML={{ __html: job.jobDescription.content }}
                   />
                 ) : (
-                  <p className="text-gray-500">No description available.</p>
+                  <p className="text-muted-foreground">No description available.</p>
                 )}
               </CardContent>
             </Card>
@@ -268,25 +268,25 @@ export default function PublicCareersPage() {
               </CardHeader>
               <CardContent className="space-y-3 text-sm">
                 {job.department && (
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-2 text-foreground/80">
                     <Users className="h-4 w-4" />
                     <span>{job.department}</span>
                   </div>
                 )}
                 {job.employmentType && (
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-2 text-foreground/80">
                     <Clock className="h-4 w-4" />
                     <span>{formatEmploymentType(job.employmentType)}</span>
                   </div>
                 )}
                 {locations.length > 0 && (
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-2 text-foreground/80">
                     <MapPin className="h-4 w-4" />
                     <span>{locations.join(', ')}</span>
                   </div>
                 )}
                 {salary && (
-                  <div className="flex items-center gap-2 text-gray-600">
+                  <div className="flex items-center gap-2 text-foreground/80">
                     <DollarSign className="h-4 w-4" />
                     <span>{salary}</span>
                   </div>
@@ -418,12 +418,12 @@ export default function PublicCareersPage() {
               {/* Resume Upload Placeholder */}
               <div className="space-y-2">
                 <Label>Resume/CV (Optional)</Label>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer bg-gray-50">
-                  <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm text-gray-600">
+                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer bg-muted/50">
+                  <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                  <p className="text-sm text-foreground/80">
                     Drag and drop your resume or <span className="text-indigo-600">browse</span>
                   </p>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     PDF, DOC, or DOCX (max 5MB)
                   </p>
                 </div>
@@ -477,7 +477,7 @@ export default function PublicCareersPage() {
         </Card>
 
         {/* Footer */}
-        <div className="text-center text-sm text-gray-500 mt-8 pb-8">
+        <div className="text-center text-sm text-muted-foreground mt-8 pb-8">
           <p>By submitting this form, you agree to our privacy policy.</p>
           <p className="mt-2">
             Having trouble? Contact us at{' '}

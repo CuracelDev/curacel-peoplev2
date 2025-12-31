@@ -146,7 +146,7 @@ export default function OrganizationProfilePage() {
       <SettingsPageHeader title="Organization Profile" />
 
       {/* Tabs */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-border">
         <nav className="flex gap-6">
           {tabs.map((tab) => (
             <button
@@ -156,7 +156,7 @@ export default function OrganizationProfilePage() {
                 'py-3 text-sm font-medium border-b-2 -mb-px transition-colors',
                 activeTab === tab.id
                   ? 'border-indigo-600 text-indigo-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
               )}
             >
               {tab.name}
@@ -176,7 +176,7 @@ export default function OrganizationProfilePage() {
                   <Label htmlFor="logo">Upload company logo</Label>
                   <div className="flex items-center gap-4">
                     {logoPreview ? (
-                      <div className="h-16 w-16 rounded-lg overflow-hidden border border-gray-200 flex items-center justify-center bg-gray-50">
+                      <div className="h-16 w-16 rounded-lg overflow-hidden border border-border flex items-center justify-center bg-muted/50">
                         <Image
                           src={logoPreview}
                           alt="Company logo"
@@ -187,7 +187,7 @@ export default function OrganizationProfilePage() {
                         />
                       </div>
                     ) : (
-                      <div className="h-16 w-16 rounded-lg border border-gray-200 flex items-center justify-center bg-gray-50">
+                      <div className="h-16 w-16 rounded-lg border border-border flex items-center justify-center bg-muted/50">
                         <Logo className="h-8 w-8 text-blue-600" />
                       </div>
                     )}
@@ -208,7 +208,7 @@ export default function OrganizationProfilePage() {
                         <Upload className="mr-2 h-4 w-4" />
                         Choose File
                       </Button>
-                      <p className="text-sm text-gray-500 mt-1">No file chosen</p>
+                      <p className="text-sm text-muted-foreground mt-1">No file chosen</p>
                     </div>
                   </div>
                 </div>
@@ -293,7 +293,7 @@ export default function OrganizationProfilePage() {
                 {/* Detailed Description */}
                 <div className="space-y-2">
                   <Label htmlFor="detailedDescription">Tell us more about your company</Label>
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Here is your chance to wax lyrical about your company and why people should join your team.
                   </p>
                   <Controller
@@ -327,11 +327,11 @@ export default function OrganizationProfilePage() {
           <Card>
             <CardHeader className="p-5 border-b">
               <h2 className="text-lg font-semibold">Company Values (PRESS)</h2>
-              <p className="text-sm text-gray-500">Define the core values that guide your hiring decisions. These are used by the AI to evaluate cultural fit.</p>
+              <p className="text-sm text-muted-foreground">Define the core values that guide your hiring decisions. These are used by the AI to evaluate cultural fit.</p>
             </CardHeader>
             <CardContent className="p-5 space-y-3">
               {pressValues.map((value, i) => (
-                <div key={i} className="flex gap-4 p-4 border border-gray-200 rounded-xl">
+                <div key={i} className="flex gap-4 p-4 border border-border rounded-xl">
                   <div className="w-12 h-12 bg-gradient-to-br from-indigo-500 to-purple-600 text-white rounded-lg flex items-center justify-center text-2xl font-bold flex-shrink-0">
                     {value.letter}
                   </div>

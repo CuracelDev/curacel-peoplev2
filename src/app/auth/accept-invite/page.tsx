@@ -111,10 +111,10 @@ export default function AcceptInvitePage() {
             </div>
           ) : null}
 
-          <div className="text-sm text-gray-700">
+          <div className="text-sm text-foreground">
             {inviteEmail ? (
               <>
-                Signing up as <span className="font-medium text-gray-900">{inviteEmail}</span>
+                Signing up as <span className="font-medium text-foreground">{inviteEmail}</span>
               </>
             ) : (
               'Loading invite...'

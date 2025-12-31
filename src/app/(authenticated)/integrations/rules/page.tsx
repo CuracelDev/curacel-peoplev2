@@ -37,8 +37,8 @@ export default function IntegrationRulesPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">Provisioning Rules</h1>
-          <p className="text-gray-500 mt-1">
+          <h1 className="text-3xl font-bold text-foreground">Provisioning Rules</h1>
+          <p className="text-muted-foreground mt-1">
             Rules that apply when provisioning applications (e.g., Google Workspace, Slack)
           </p>
         </div>
@@ -57,7 +57,7 @@ export default function IntegrationRulesPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {rules.length === 0 && (
-            <p className="text-sm text-gray-500">No provisioning rules configured.</p>
+            <p className="text-sm text-muted-foreground">No provisioning rules configured.</p>
           )}
 
           <div className="space-y-3">
@@ -69,8 +69,8 @@ export default function IntegrationRulesPage() {
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-base font-semibold">{rule.name}</p>
-                    <p className="text-sm text-gray-500">{rule.description || 'No description'}</p>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-sm text-muted-foreground">{rule.description || 'No description'}</p>
+                    <p className="text-xs text-muted-foreground mt-1">
                       App: {rule.app?.name || rule.app?.type || 'Unknown'} · Priority: {rule.priority}
                     </p>
                   </div>
@@ -80,15 +80,15 @@ export default function IntegrationRulesPage() {
                 </div>
 
                 <div className="grid gap-3 md:grid-cols-2">
-                  <div className="rounded-md bg-gray-50 p-3">
-                    <p className="text-xs font-semibold text-gray-600 mb-1">Condition</p>
-                    <pre className="whitespace-pre-wrap text-xs text-gray-800">
+                  <div className="rounded-md bg-muted/50 p-3">
+                    <p className="text-xs font-semibold text-foreground/80 mb-1">Condition</p>
+                    <pre className="whitespace-pre-wrap text-xs text-foreground">
 {JSON.stringify(rule.condition, null, 2)}
                     </pre>
                   </div>
-                  <div className="rounded-md bg-gray-50 p-3">
-                    <p className="text-xs font-semibold text-gray-600 mb-1">Provision Data</p>
-                    <pre className="whitespace-pre-wrap text-xs text-gray-800">
+                  <div className="rounded-md bg-muted/50 p-3">
+                    <p className="text-xs font-semibold text-foreground/80 mb-1">Provision Data</p>
+                    <pre className="whitespace-pre-wrap text-xs text-foreground">
 {JSON.stringify(rule.provisionData, null, 2)}
                     </pre>
                   </div>

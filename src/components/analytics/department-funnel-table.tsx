@@ -36,7 +36,7 @@ export function DepartmentFunnelTable({ data, year, title }: DepartmentFunnelTab
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-left text-xs text-gray-500 uppercase tracking-wider border-b">
+              <tr className="text-left text-xs text-muted-foreground uppercase tracking-wider border-b">
                 <th className="pb-3 font-medium">Department</th>
                 <th className="pb-3 font-medium text-center">Applied</th>
                 <th className="pb-3 font-medium text-center"></th>
@@ -56,18 +56,18 @@ export function DepartmentFunnelTable({ data, year, title }: DepartmentFunnelTab
                 <th className="pb-3 font-medium text-right">Conversion</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {data.length === 0 ? (
                 <tr>
-                  <td colSpan={17} className="py-8 text-center text-gray-500">
+                  <td colSpan={17} className="py-8 text-center text-muted-foreground">
                     No data available for this year
                   </td>
                 </tr>
               ) : (
                 data.map((row) => (
-                  <tr key={row.department} className="hover:bg-gray-50">
+                  <tr key={row.department} className="hover:bg-muted/50">
                     <td className="py-3">
-                      <span className="text-sm font-medium text-gray-900">
+                      <span className="text-sm font-medium text-foreground">
                         {row.department || 'Unassigned'}
                       </span>
                     </td>
@@ -75,43 +75,43 @@ export function DepartmentFunnelTable({ data, year, title }: DepartmentFunnelTab
                       <span className="text-sm font-semibold">{row.funnel.applied}</span>
                     </td>
                     <td className="py-3 text-center">
-                      <ArrowRight className="h-3 w-3 text-gray-300 mx-auto" />
+                      <ArrowRight className="h-3 w-3 text-muted-foreground/60 mx-auto" />
                     </td>
                     <td className="py-3 text-center">
                       <span className="text-sm">{row.funnel.hrScreen}</span>
                     </td>
                     <td className="py-3 text-center">
-                      <ArrowRight className="h-3 w-3 text-gray-300 mx-auto" />
+                      <ArrowRight className="h-3 w-3 text-muted-foreground/60 mx-auto" />
                     </td>
                     <td className="py-3 text-center">
                       <span className="text-sm">{row.funnel.technical}</span>
                     </td>
                     <td className="py-3 text-center">
-                      <ArrowRight className="h-3 w-3 text-gray-300 mx-auto" />
+                      <ArrowRight className="h-3 w-3 text-muted-foreground/60 mx-auto" />
                     </td>
                     <td className="py-3 text-center">
                       <span className="text-sm">{row.funnel.panel}</span>
                     </td>
                     <td className="py-3 text-center">
-                      <ArrowRight className="h-3 w-3 text-gray-300 mx-auto" />
+                      <ArrowRight className="h-3 w-3 text-muted-foreground/60 mx-auto" />
                     </td>
                     <td className="py-3 text-center">
                       <span className="text-sm">{row.funnel.trial}</span>
                     </td>
                     <td className="py-3 text-center">
-                      <ArrowRight className="h-3 w-3 text-gray-300 mx-auto" />
+                      <ArrowRight className="h-3 w-3 text-muted-foreground/60 mx-auto" />
                     </td>
                     <td className="py-3 text-center">
                       <span className="text-sm">{row.funnel.ceoChatCount}</span>
                     </td>
                     <td className="py-3 text-center">
-                      <ArrowRight className="h-3 w-3 text-gray-300 mx-auto" />
+                      <ArrowRight className="h-3 w-3 text-muted-foreground/60 mx-auto" />
                     </td>
                     <td className="py-3 text-center">
                       <span className="text-sm">{row.funnel.offer}</span>
                     </td>
                     <td className="py-3 text-center">
-                      <ArrowRight className="h-3 w-3 text-gray-300 mx-auto" />
+                      <ArrowRight className="h-3 w-3 text-muted-foreground/60 mx-auto" />
                     </td>
                     <td className="py-3 text-center">
                       <span className="text-sm font-semibold text-green-600">{row.funnel.hired}</span>

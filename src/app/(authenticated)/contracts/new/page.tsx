@@ -203,15 +203,15 @@ export default function NewContractPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-semibold text-gray-900">Create New Contract</h1>
+        <h1 className="text-xl font-semibold text-foreground">Create New Contract</h1>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Section 1: Employment Details */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
+        <div className="bg-card border border-border rounded-lg p-6 space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Employment Details</h2>
-            <p className="text-sm text-gray-500 mt-1">Basic employment information</p>
+            <h2 className="text-xl font-semibold text-foreground">Employment Details</h2>
+            <p className="text-sm text-muted-foreground mt-1">Basic employment information</p>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
@@ -227,7 +227,7 @@ export default function NewContractPage() {
                   rules={{ required: 'Candidate is required' }}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="ring-gray-300 focus:ring-indigo-600">
+                      <SelectTrigger className="ring-border focus:ring-indigo-600">
                         <SelectValue placeholder="Select a candidate" />
                       </SelectTrigger>
                       <SelectContent>
@@ -253,7 +253,7 @@ export default function NewContractPage() {
               {errors.employeeId && (
                 <p className="text-sm text-red-500 mt-1">{errors.employeeId.message}</p>
               )}
-              <p className="text-xs text-gray-500 italic mt-1">Select from list of candidates with link to add new candidate</p>
+              <p className="text-xs text-muted-foreground italic mt-1">Select from list of candidates with link to add new candidate</p>
             </div>
 
             {/* Employment Type */}
@@ -267,7 +267,7 @@ export default function NewContractPage() {
                 rules={{ required: 'Employment type is required' }}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="ring-gray-300 focus:ring-indigo-600 mt-1">
+                    <SelectTrigger className="ring-border focus:ring-indigo-600 mt-1">
                       <SelectValue placeholder="Select employment type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -292,7 +292,7 @@ export default function NewContractPage() {
               <Input
                 id="jobTitle"
                 {...register('jobTitle', { required: 'Job title is required' })}
-                className="ring-gray-300 focus:ring-indigo-600 mt-1"
+                className="ring-border focus:ring-indigo-600 mt-1"
                 placeholder="e.g., Senior Software Engineer"
               />
               {errors.jobTitle && (
@@ -313,7 +313,7 @@ export default function NewContractPage() {
               {errors.anticipatedStartDate && (
                 <p className="text-sm text-red-500 mt-1">{errors.anticipatedStartDate.message}</p>
               )}
-              <p className="text-xs text-gray-500 italic mt-1">Date the candidate is expected to resume</p>
+              <p className="text-xs text-muted-foreground italic mt-1">Date the candidate is expected to resume</p>
             </div>
 
             {/* Anticipated Last Day (conditional) */}
@@ -327,7 +327,7 @@ export default function NewContractPage() {
                   {...register('anticipatedLastDay')}
                   className="mt-1"
                 />
-                <p className="text-xs text-gray-500 italic mt-1">
+                <p className="text-xs text-muted-foreground italic mt-1">
                   Date the contract is ending or due for renewal (applicable for contractor and internship roles)
                 </p>
               </div>
@@ -346,7 +346,7 @@ export default function NewContractPage() {
               {errors.probationEndDate && (
                 <p className="text-sm text-red-500 mt-1">{errors.probationEndDate.message}</p>
               )}
-              <p className="text-xs text-gray-500 italic mt-1">When the candidate&apos;s probation period end</p>
+              <p className="text-xs text-muted-foreground italic mt-1">When the candidate&apos;s probation period end</p>
             </div>
           </div>
 
@@ -366,15 +366,15 @@ export default function NewContractPage() {
                 />
               )}
             />
-            <p className="text-xs text-gray-500 italic mt-1">Default text if left blank provided</p>
+            <p className="text-xs text-muted-foreground italic mt-1">Default text if left blank provided</p>
           </div>
         </div>
 
         {/* Section 2: Offer Contract Details */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
+        <div className="bg-card border border-border rounded-lg p-6 space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Offer Contract Details</h2>
-            <p className="text-sm text-gray-500 mt-1">Contract and offer specifics</p>
+            <h2 className="text-xl font-semibold text-foreground">Offer Contract Details</h2>
+            <p className="text-sm text-muted-foreground mt-1">Contract and offer specifics</p>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
@@ -391,7 +391,7 @@ export default function NewContractPage() {
               {errors.offerDate && (
                 <p className="text-sm text-red-500 mt-1">{errors.offerDate.message}</p>
               )}
-              <p className="text-xs text-gray-500 italic mt-1">Date the offer is made to the candidate (default: today)</p>
+              <p className="text-xs text-muted-foreground italic mt-1">Date the offer is made to the candidate (default: today)</p>
             </div>
 
             {/* Offer Expiration Date */}
@@ -407,7 +407,7 @@ export default function NewContractPage() {
               {errors.offerExpirationDate && (
                 <p className="text-sm text-red-500 mt-1">{errors.offerExpirationDate.message}</p>
               )}
-              <p className="text-xs text-gray-500 italic mt-1">Date the offer will expire if it is not accepted (default: 7 days from today)</p>
+              <p className="text-xs text-muted-foreground italic mt-1">Date the offer will expire if it is not accepted (default: 7 days from today)</p>
             </div>
 
             {/* Supervisor Job Title */}
@@ -418,7 +418,7 @@ export default function NewContractPage() {
               <Input
                 id="supervisorJobTitle"
                 {...register('supervisorJobTitle', { required: 'Supervisor job title is required' })}
-                className="ring-gray-300 focus:ring-indigo-600 mt-1"
+                className="ring-border focus:ring-indigo-600 mt-1"
                 placeholder="e.g., Engineering Manager"
               />
               {errors.supervisorJobTitle && (
@@ -434,10 +434,10 @@ export default function NewContractPage() {
               <Input
                 id="workingHours"
                 {...register('workingHours')}
-                className="ring-gray-300 focus:ring-indigo-600 mt-1"
+                className="ring-border focus:ring-indigo-600 mt-1"
                 placeholder="8:00am to 5:00pm"
               />
-              <p className="text-xs text-gray-500 italic mt-1">Default &quot;8:00am to 5:00pm&quot;</p>
+              <p className="text-xs text-muted-foreground italic mt-1">Default &quot;8:00am to 5:00pm&quot;</p>
             </div>
 
             {/* Legal Entity */}
@@ -452,7 +452,7 @@ export default function NewContractPage() {
                   rules={{ required: 'Legal entity is required' }}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="ring-gray-300 focus:ring-indigo-600">
+                      <SelectTrigger className="ring-border focus:ring-indigo-600">
                         <SelectValue placeholder="Select legal entity" />
                       </SelectTrigger>
                       <SelectContent>
@@ -492,7 +492,7 @@ export default function NewContractPage() {
                   rules={{ required: 'Signature block is required' }}
                   render={({ field }) => (
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="ring-gray-300 focus:ring-indigo-600">
+                      <SelectTrigger className="ring-border focus:ring-indigo-600">
                         <SelectValue placeholder="Select signature block" />
                       </SelectTrigger>
                       <SelectContent>
@@ -530,7 +530,7 @@ export default function NewContractPage() {
                 {...register('scheduleSignatureRequestDate')}
                 className="mt-1"
               />
-              <p className="text-xs text-gray-500 italic mt-1">Auto-send date</p>
+              <p className="text-xs text-muted-foreground italic mt-1">Auto-send date</p>
             </div>
           </div>
 
@@ -550,15 +550,15 @@ export default function NewContractPage() {
                 />
               )}
             />
-            <p className="text-xs text-gray-500 italic mt-1">Default text provided</p>
+            <p className="text-xs text-muted-foreground italic mt-1">Default text provided</p>
           </div>
         </div>
 
         {/* Section 3: Compensation */}
-        <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-6">
+        <div className="bg-card border border-border rounded-lg p-6 space-y-6">
           <div>
-            <h2 className="text-xl font-semibold text-gray-900">Compensation</h2>
-            <p className="text-sm text-gray-500 mt-1">Salary and payment details</p>
+            <h2 className="text-xl font-semibold text-foreground">Compensation</h2>
+            <p className="text-sm text-muted-foreground mt-1">Salary and payment details</p>
           </div>
 
           <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-3">
@@ -572,7 +572,7 @@ export default function NewContractPage() {
                 type="number"
                 step="0.01"
                 {...register('salaryAmount', { required: 'Salary amount is required' })}
-                className="ring-gray-300 focus:ring-indigo-600 mt-1"
+                className="ring-border focus:ring-indigo-600 mt-1"
                 placeholder="100000"
               />
               {errors.salaryAmount && (
@@ -591,7 +591,7 @@ export default function NewContractPage() {
                 rules={{ required: 'Currency is required' }}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="ring-gray-300 focus:ring-indigo-600 mt-1">
+                    <SelectTrigger className="ring-border focus:ring-indigo-600 mt-1">
                       <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
                     <SelectContent>
@@ -622,7 +622,7 @@ export default function NewContractPage() {
                 rules={{ required: 'Payment frequency is required' }}
                 render={({ field }) => (
                   <Select value={field.value} onValueChange={field.onChange}>
-                    <SelectTrigger className="ring-gray-300 focus:ring-indigo-600 mt-1">
+                    <SelectTrigger className="ring-border focus:ring-indigo-600 mt-1">
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
                     <SelectContent>

@@ -287,7 +287,7 @@ export default function HiringRubricsPage() {
       {/* Actions */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search rubrics..."
             value={searchQuery}
@@ -335,7 +335,7 @@ export default function HiringRubricsPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <div className="text-center py-12 text-gray-500">Loading rubrics...</div>
+            <div className="text-center py-12 text-muted-foreground">Loading rubrics...</div>
           ) : filteredRubrics.length > 0 ? (
             <Table>
               <TableHeader>
@@ -353,7 +353,7 @@ export default function HiringRubricsPage() {
                     <TableCell>
                       <div>
                         <div className="font-medium">{rubric.name}</div>
-                        <div className="text-sm text-gray-500 line-clamp-1">
+                        <div className="text-sm text-muted-foreground line-clamp-1">
                           {rubric.description}
                         </div>
                       </div>
@@ -375,7 +375,7 @@ export default function HiringRubricsPage() {
                     <TableCell>
                       <Badge variant="outline">v{rubric.version}</Badge>
                     </TableCell>
-                    <TableCell className="text-sm text-gray-500">
+                    <TableCell className="text-sm text-muted-foreground">
                       {new Date(rubric.updatedAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
@@ -414,9 +414,9 @@ export default function HiringRubricsPage() {
             </Table>
           ) : (
             <div className="text-center py-12">
-              <ClipboardList className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No rubrics yet</h3>
-              <p className="text-gray-500 mb-4">
+              <ClipboardList className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No rubrics yet</h3>
+              <p className="text-muted-foreground mb-4">
                 Create your first hiring rubric to standardize candidate evaluation.
               </p>
               <Button onClick={() => { resetForm(); setCreateDialogOpen(true) }}>

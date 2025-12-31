@@ -41,15 +41,15 @@ export function FunnelChart({ title, stages, showPercentages = true }: FunnelCha
             return (
               <div key={stage.name} className="relative">
                 <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium text-gray-700">{stage.name}</span>
+                  <span className="text-sm font-medium text-foreground">{stage.name}</span>
                   <div className="flex items-center gap-2">
                     <span className="text-sm font-semibold">{stage.value.toLocaleString()}</span>
                     {showPercentages && index > 0 && (
-                      <span className="text-xs text-gray-500">({stage.percentage.toFixed(1)}%)</span>
+                      <span className="text-xs text-muted-foreground">({stage.percentage.toFixed(1)}%)</span>
                     )}
                   </div>
                 </div>
-                <div className="h-8 bg-gray-100 rounded-lg overflow-hidden">
+                <div className="h-8 bg-muted rounded-lg overflow-hidden">
                   <div
                     className={`h-full ${color} transition-all duration-500 rounded-lg flex items-center justify-center`}
                     style={{ width: `${Math.max(widthPercent, 2)}%` }}

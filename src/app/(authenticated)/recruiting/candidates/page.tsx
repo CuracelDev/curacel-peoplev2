@@ -41,7 +41,7 @@ import { format, formatDistanceToNow } from 'date-fns'
 type SortOption = 'score-desc' | 'score-asc' | 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc'
 
 const stageStyles: Record<string, string> = {
-  'APPLIED': 'bg-gray-100 text-gray-600',
+  'APPLIED': 'bg-muted text-foreground/80',
   'HR_SCREEN': 'bg-indigo-100 text-indigo-700',
   'TECHNICAL': 'bg-amber-100 text-amber-700',
   'TEAM_CHAT': 'bg-green-100 text-green-700',
@@ -53,7 +53,7 @@ const stageStyles: Record<string, string> = {
 }
 
 function getScoreColor(score: number | null) {
-  if (!score) return 'text-gray-400 bg-gray-50'
+  if (!score) return 'text-muted-foreground bg-muted/50'
   if (score >= 80) return 'text-green-600 bg-green-50'
   if (score >= 65) return 'text-amber-600 bg-amber-50'
   return 'text-red-600 bg-red-50'
@@ -166,7 +166,7 @@ export default function CandidatesPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -177,37 +177,37 @@ export default function CandidatesPage() {
       <div className="flex gap-3 min-w-0">
         <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'all' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('all')}>
           <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-gray-500 truncate">All</div>
+            <div className="text-xs text-muted-foreground truncate">All</div>
             <div className="text-xl font-bold">{stageCounts.all}</div>
           </CardContent>
         </Card>
         <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'applied' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('applied')}>
           <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-gray-500 truncate">Applied</div>
+            <div className="text-xs text-muted-foreground truncate">Applied</div>
             <div className="text-xl font-bold">{stageCounts.applied}</div>
           </CardContent>
         </Card>
         <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'hrScreen' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('hrScreen')}>
           <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-gray-500 truncate">People Chat</div>
+            <div className="text-xs text-muted-foreground truncate">People Chat</div>
             <div className="text-xl font-bold">{stageCounts.hrScreen}</div>
           </CardContent>
         </Card>
         <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'technical' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('technical')}>
           <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-gray-500 truncate">Coding Test</div>
+            <div className="text-xs text-muted-foreground truncate">Coding Test</div>
             <div className="text-xl font-bold">{stageCounts.technical}</div>
           </CardContent>
         </Card>
         <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'panel' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('panel')}>
           <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-gray-500 truncate">Team Chat</div>
+            <div className="text-xs text-muted-foreground truncate">Team Chat</div>
             <div className="text-xl font-bold">{stageCounts.panel}</div>
           </CardContent>
         </Card>
         <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'offer' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('offer')}>
           <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-gray-500 truncate">Offer</div>
+            <div className="text-xs text-muted-foreground truncate">Offer</div>
             <div className="text-xl font-bold">{stageCounts.offer || 0}</div>
           </CardContent>
         </Card>
@@ -216,7 +216,7 @@ export default function CandidatesPage() {
       {/* Search and Actions */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
           <div className="relative flex-1 sm:flex-none">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="Search candidates..."
               className="pl-9 w-full sm:w-48 lg:w-64"
@@ -346,22 +346,22 @@ export default function CandidatesPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-100">
+              <tr className="border-b border-border">
                 <th className="w-12 py-3 px-4 text-left">
                   <Checkbox
                     checked={selectedCandidates.length === candidates.length && candidates.length > 0}
                     onCheckedChange={toggleAll}
                   />
                 </th>
-                <th className="w-16 py-3 px-2 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Score</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Stage</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Updated</th>
+                <th className="w-16 py-3 px-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">Score</th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Candidate</th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Stage</th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Applied</th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Last Updated</th>
                 <th className="w-16 py-3 px-4"></th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-50">
+            <tbody className="divide-y divide-border">
               {candidates.length > 0 ? candidates.map((candidate) => {
                 const appliedDate = candidate.appliedAt instanceof Date
                   ? candidate.appliedAt
@@ -374,7 +374,7 @@ export default function CandidatesPage() {
                   <tr
                     key={candidate.id}
                     className={cn(
-                      "hover:bg-gray-50 cursor-pointer transition-colors",
+                      "hover:bg-muted cursor-pointer transition-colors",
                       selectedCandidates.includes(candidate.id) && 'bg-indigo-50/50'
                     )}
                   >
@@ -402,25 +402,25 @@ export default function CandidatesPage() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <div className="font-medium text-gray-900">{candidate.name}</div>
-                          <div className="text-xs text-gray-500">{candidate.email}</div>
+                          <div className="font-medium text-foreground">{candidate.name}</div>
+                          <div className="text-xs text-muted-foreground">{candidate.email}</div>
                         </div>
                       </Link>
                     </td>
                     <td className="py-3 px-4">
                       <Link href={`/recruiting/candidates/${candidate.id}`}>
-                        <Badge variant="secondary" className={stageStyles[candidate.stage] || 'bg-gray-100 text-gray-600'}>
+                        <Badge variant="secondary" className={stageStyles[candidate.stage] || 'bg-muted text-foreground/80'}>
                           {candidate.stageDisplayName}
                         </Badge>
                       </Link>
                     </td>
                     <td className="py-3 px-4">
-                      <Link href={`/recruiting/candidates/${candidate.id}`} className="text-sm text-gray-600">
+                      <Link href={`/recruiting/candidates/${candidate.id}`} className="text-sm text-foreground/80">
                         {format(appliedDate, 'MMM d, yyyy')}
                       </Link>
                     </td>
                     <td className="py-3 px-4">
-                      <Link href={`/recruiting/candidates/${candidate.id}`} className="text-sm text-gray-500">
+                      <Link href={`/recruiting/candidates/${candidate.id}`} className="text-sm text-muted-foreground">
                         {formatDistanceToNow(updatedDate, { addSuffix: true })}
                       </Link>
                     </td>
@@ -433,7 +433,7 @@ export default function CandidatesPage() {
                 )
               }) : (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-500">
+                  <td colSpan={7} className="py-8 text-center text-muted-foreground">
                     No candidates found
                   </td>
                 </tr>
@@ -443,8 +443,8 @@ export default function CandidatesPage() {
         </div>
 
         {/* Pagination */}
-        <div className="px-4 py-3 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
-          <div className="text-xs sm:text-sm text-gray-500 order-2 sm:order-1">
+        <div className="px-4 py-3 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div className="text-xs sm:text-sm text-muted-foreground order-2 sm:order-1">
             Showing 1-{candidates.length} of {total} candidates
           </div>
           <div className="flex gap-2 order-1 sm:order-2">
@@ -468,13 +468,13 @@ export default function CandidatesPage() {
             <span className="hidden sm:inline">Advance to Next Stage</span>
             <span className="sm:hidden">Advance</span>
           </Button>
-          <Button size="sm" variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 text-xs sm:text-sm">
+          <Button size="sm" variant="outline" className="border-gray-600 text-muted-foreground/60 hover:bg-gray-800 text-xs sm:text-sm">
             Reject
           </Button>
           <Button
             size="sm"
             variant="ghost"
-            className="text-gray-400 hover:text-white text-xs sm:text-sm"
+            className="text-muted-foreground hover:text-white text-xs sm:text-sm"
             onClick={() => setSelectedCandidates([])}
           >
             Clear

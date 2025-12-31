@@ -42,7 +42,7 @@ function getAppIcon(type: string, iconUrl?: string | null) {
       return <Image src="/logos/standupninja.png" alt="StandupNinja" {...commonProps} />
     default:
       if (iconUrl) return <Image src={iconUrl} alt={type} {...commonProps} />
-      return <Plug className="h-8 w-8 text-gray-500" />
+      return <Plug className="h-8 w-8 text-muted-foreground" />
   }
 }
 
@@ -221,7 +221,7 @@ export default function ApplicationsSettingsPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
                 </div>
               ) : activeApps.length === 0 ? (
-                <p className="text-sm text-gray-600">No enabled applications yet.</p>
+                <p className="text-sm text-foreground/80">No enabled applications yet.</p>
               ) : (
                 activeApps.map((app) => {
                   const hasConnection = app.connections.length > 0
@@ -235,11 +235,11 @@ export default function ApplicationsSettingsPage() {
                         {getAppIcon(app.type, app.iconUrl)}
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-gray-900 truncate">{app.name}</p>
+                            <p className="font-medium text-foreground truncate">{app.name}</p>
                             {statusBadge(hasConnection, app.isEnabled)}
                             {app.type === 'CUSTOM' ? <Badge variant="secondary">Custom</Badge> : null}
                           </div>
-                          <p className="text-sm text-gray-500 truncate">{app.description || '—'}</p>
+                          <p className="text-sm text-muted-foreground truncate">{app.description || '—'}</p>
                         </div>
                       </div>
 
@@ -284,7 +284,7 @@ export default function ApplicationsSettingsPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
                 </div>
               ) : disabledApps.length === 0 ? (
-                <p className="text-sm text-gray-600">No disabled applications.</p>
+                <p className="text-sm text-foreground/80">No disabled applications.</p>
               ) : (
                 disabledApps.map((app) => {
                   const hasConnection = app.connections.length > 0
@@ -298,11 +298,11 @@ export default function ApplicationsSettingsPage() {
                         {getAppIcon(app.type, app.iconUrl)}
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
-                            <p className="font-medium text-gray-900 truncate">{app.name}</p>
+                            <p className="font-medium text-foreground truncate">{app.name}</p>
                             <Badge variant="secondary">Disabled</Badge>
                             {app.type === 'CUSTOM' ? <Badge variant="secondary">Custom</Badge> : null}
                           </div>
-                          <p className="text-sm text-gray-500 truncate">{app.description || '—'}</p>
+                          <p className="text-sm text-muted-foreground truncate">{app.description || '—'}</p>
                         </div>
                       </div>
 
@@ -333,23 +333,23 @@ export default function ApplicationsSettingsPage() {
                           </Link>
                         </Button>
                         {!hasConnection ? (
-                          <div className="hidden md:flex items-center gap-2 text-xs text-gray-500">
+                          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
                             <XCircle className="h-4 w-4" />
                             Not connected
                           </div>
                         ) : isVerified ? (
-                          <div className="hidden md:flex items-center gap-2 text-xs text-gray-500">
+                          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
                             <CheckCircle2 className="h-4 w-4 text-green-600" />
                             Connected
                           </div>
                         ) : isFailed ? (
-                          <div className="hidden md:flex items-center gap-2 text-xs text-gray-500">
+                          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
                             <XCircle className="h-4 w-4 text-red-500" />
                             Configured (Disconnected)
                           </div>
                         ) : (
-                          <div className="hidden md:flex items-center gap-2 text-xs text-gray-500">
-                            <CheckCircle2 className="h-4 w-4 text-gray-400" />
+                          <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
+                            <CheckCircle2 className="h-4 w-4 text-muted-foreground" />
                             Configured
                           </div>
                         )}
@@ -374,7 +374,7 @@ export default function ApplicationsSettingsPage() {
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
                 </div>
               ) : archivedApps.length === 0 ? (
-                <p className="text-sm text-gray-600">No archived applications.</p>
+                <p className="text-sm text-foreground/80">No archived applications.</p>
               ) : (
                 archivedApps.map((app) => (
                   <div key={app.id} className="flex items-center justify-between gap-4 rounded-lg border p-4">
@@ -382,11 +382,11 @@ export default function ApplicationsSettingsPage() {
                       {getAppIcon(app.type, app.iconUrl)}
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-medium text-gray-900 truncate">{app.name}</p>
+                          <p className="font-medium text-foreground truncate">{app.name}</p>
                           <Badge variant="secondary">Archived</Badge>
                           {app.type === 'CUSTOM' ? <Badge variant="secondary">Custom</Badge> : null}
                         </div>
-                        <p className="text-sm text-gray-500 truncate">{app.description || '—'}</p>
+                        <p className="text-sm text-muted-foreground truncate">{app.description || '—'}</p>
                       </div>
                     </div>
 

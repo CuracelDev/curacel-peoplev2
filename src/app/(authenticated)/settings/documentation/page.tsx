@@ -770,19 +770,19 @@ export default function DocumentationPage() {
               <CardContent className="space-y-4">
                 {section.blocks.map((block, blockIndex) => (
                   <div key={`${section.id}-${blockIndex}`} className="space-y-2">
-                    <h4 className="text-sm font-semibold text-gray-900">{block.title}</h4>
+                    <h4 className="text-sm font-semibold text-foreground">{block.title}</h4>
                     {block.text ? (
-                      <p className="text-sm text-gray-600">{block.text}</p>
+                      <p className="text-sm text-foreground/80">{block.text}</p>
                     ) : null}
                     {block.items ? (
                       block.ordered ? (
-                        <ol className="list-decimal list-inside text-sm text-gray-600 space-y-1">
+                        <ol className="list-decimal list-inside text-sm text-foreground/80 space-y-1">
                           {block.items.map((item, itemIndex) => (
                             <li key={`${section.id}-${blockIndex}-${itemIndex}`}>{item}</li>
                           ))}
                         </ol>
                       ) : (
-                        <ul className="list-disc list-inside text-sm text-gray-600 space-y-1">
+                        <ul className="list-disc list-inside text-sm text-foreground/80 space-y-1">
                           {block.items.map((item, itemIndex) => (
                             <li key={`${section.id}-${blockIndex}-${itemIndex}`}>{item}</li>
                           ))}

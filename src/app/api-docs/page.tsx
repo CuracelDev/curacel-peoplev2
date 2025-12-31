@@ -5,14 +5,14 @@ const BASE_URL = process.env.NEXTAUTH_URL || 'https://your-domain.com'
 
 export default function ApiDocsPage() {
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-muted/50 py-10 px-4">
       <div className="mx-auto max-w-4xl space-y-6">
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-gray-900">Curacel People API</h1>
-          <p className="text-sm text-gray-600">
+          <h1 className="text-3xl font-bold text-foreground">Curacel People API</h1>
+          <p className="text-sm text-foreground/80">
             Public documentation for integrating with Curacel People. Version 1.0
           </p>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-muted-foreground">
             Last updated: December 30, 2024
           </p>
         </div>
@@ -43,8 +43,8 @@ export default function ApiDocsPage() {
               <CardTitle>Base URL</CardTitle>
             </CardHeader>
             <CardContent>
-              <code className="rounded bg-gray-100 px-2 py-1 text-sm">{BASE_URL}</code>
-              <p className="mt-2 text-sm text-gray-600">
+              <code className="rounded bg-muted px-2 py-1 text-sm">{BASE_URL}</code>
+              <p className="mt-2 text-sm text-foreground/80">
                 All API endpoints are relative to this base URL. Use HTTPS in production.
               </p>
             </CardContent>
@@ -57,7 +57,7 @@ export default function ApiDocsPage() {
               <CardTitle>Authentication</CardTitle>
               <CardDescription>Secure your API requests with an API key</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-gray-700">
+            <CardContent className="space-y-3 text-sm text-foreground">
               <p>Create an API key from <strong>Settings → API Settings</strong> in the application.</p>
               <p>Include the key in the Authorization header:</p>
               <div className="rounded bg-gray-900 p-3 text-xs text-gray-100">
@@ -80,38 +80,38 @@ export default function ApiDocsPage() {
               <CardTitle>Employees</CardTitle>
               <CardDescription>Manage employee records</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-gray-700">
+            <CardContent className="space-y-4 text-sm text-foreground">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/employees</code>
-                  <span className="text-gray-500">— list employees</span>
+                  <span className="text-muted-foreground">— list employees</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-green-600">POST</Badge>
                   <code>/api/v1/employees</code>
-                  <span className="text-gray-500">— create employee</span>
+                  <span className="text-muted-foreground">— create employee</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/employees/:id</code>
-                  <span className="text-gray-500">— fetch employee</span>
+                  <span className="text-muted-foreground">— fetch employee</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-amber-600">PATCH</Badge>
                   <code>/api/v1/employees/:id</code>
-                  <span className="text-gray-500">— update employee</span>
+                  <span className="text-muted-foreground">— update employee</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-red-600">DELETE</Badge>
                   <code>/api/v1/employees/:id</code>
-                  <span className="text-gray-500">— delete employee</span>
+                  <span className="text-muted-foreground">— delete employee</span>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <h4 className="font-semibold">Query Parameters (GET /employees)</h4>
-                <ul className="list-disc list-inside text-gray-600 space-y-1">
+                <ul className="list-disc list-inside text-foreground/80 space-y-1">
                   <li><code>limit</code> — number of results (default: 20, max: 100)</li>
                   <li><code>page</code> — page number for pagination</li>
                   <li><code>status</code> — filter by status (CANDIDATE, ACTIVE, OFFBOARDING, EXITED)</li>
@@ -170,43 +170,43 @@ export default function ApiDocsPage() {
               <CardTitle>Contracts (Offers)</CardTitle>
               <CardDescription>Create and manage employment contracts</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-gray-700">
+            <CardContent className="space-y-4 text-sm text-foreground">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/contracts</code>
-                  <span className="text-gray-500">— list contracts</span>
+                  <span className="text-muted-foreground">— list contracts</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-green-600">POST</Badge>
                   <code>/api/v1/contracts</code>
-                  <span className="text-gray-500">— create contract</span>
+                  <span className="text-muted-foreground">— create contract</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/contracts/:id</code>
-                  <span className="text-gray-500">— fetch contract</span>
+                  <span className="text-muted-foreground">— fetch contract</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-amber-600">PATCH</Badge>
                   <code>/api/v1/contracts/:id</code>
-                  <span className="text-gray-500">— update contract</span>
+                  <span className="text-muted-foreground">— update contract</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-blue-600">POST</Badge>
                   <code>/api/v1/contracts/:id/send</code>
-                  <span className="text-gray-500">— send for signature</span>
+                  <span className="text-muted-foreground">— send for signature</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-red-600">DELETE</Badge>
                   <code>/api/v1/contracts/:id</code>
-                  <span className="text-gray-500">— delete contract</span>
+                  <span className="text-muted-foreground">— delete contract</span>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <h4 className="font-semibold">Contract Statuses</h4>
-                <ul className="list-disc list-inside text-gray-600 space-y-1">
+                <ul className="list-disc list-inside text-foreground/80 space-y-1">
                   <li><code>DRAFT</code> — created but not sent</li>
                   <li><code>SENT</code> — sent to candidate for signature</li>
                   <li><code>VIEWED</code> — opened by candidate</li>
@@ -241,38 +241,38 @@ export default function ApiDocsPage() {
               <CardTitle>Onboarding</CardTitle>
               <CardDescription>Manage onboarding workflows for new hires</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-gray-700">
+            <CardContent className="space-y-4 text-sm text-foreground">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/onboarding</code>
-                  <span className="text-gray-500">— list workflows</span>
+                  <span className="text-muted-foreground">— list workflows</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-green-600">POST</Badge>
                   <code>/api/v1/onboarding</code>
-                  <span className="text-gray-500">— start onboarding</span>
+                  <span className="text-muted-foreground">— start onboarding</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/onboarding/:id</code>
-                  <span className="text-gray-500">— fetch workflow</span>
+                  <span className="text-muted-foreground">— fetch workflow</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-amber-600">PATCH</Badge>
                   <code>/api/v1/onboarding/:id</code>
-                  <span className="text-gray-500">— update workflow</span>
+                  <span className="text-muted-foreground">— update workflow</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-blue-600">POST</Badge>
                   <code>/api/v1/onboarding/:id/tasks/:taskId/complete</code>
-                  <span className="text-gray-500">— complete task</span>
+                  <span className="text-muted-foreground">— complete task</span>
                 </div>
               </div>
 
               <div className="space-y-2">
                 <h4 className="font-semibold">Workflow Statuses</h4>
-                <ul className="list-disc list-inside text-gray-600 space-y-1">
+                <ul className="list-disc list-inside text-foreground/80 space-y-1">
                   <li><code>NOT_STARTED</code> — workflow created, not begun</li>
                   <li><code>IN_PROGRESS</code> — tasks being completed</li>
                   <li><code>COMPLETED</code> — all tasks finished</li>
@@ -314,27 +314,27 @@ export default function ApiDocsPage() {
               <CardTitle>Offboarding</CardTitle>
               <CardDescription>Manage employee departure workflows</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-gray-700">
+            <CardContent className="space-y-4 text-sm text-foreground">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/offboarding</code>
-                  <span className="text-gray-500">— list workflows</span>
+                  <span className="text-muted-foreground">— list workflows</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-green-600">POST</Badge>
                   <code>/api/v1/offboarding</code>
-                  <span className="text-gray-500">— start offboarding</span>
+                  <span className="text-muted-foreground">— start offboarding</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/offboarding/:id</code>
-                  <span className="text-gray-500">— fetch workflow</span>
+                  <span className="text-muted-foreground">— fetch workflow</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-amber-600">PATCH</Badge>
                   <code>/api/v1/offboarding/:id</code>
-                  <span className="text-gray-500">— update workflow</span>
+                  <span className="text-muted-foreground">— update workflow</span>
                 </div>
               </div>
 
@@ -361,28 +361,28 @@ export default function ApiDocsPage() {
               <CardTitle>Recruiting</CardTitle>
               <CardDescription>Jobs, candidates, interest forms, and interview rubrics</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-gray-700">
+            <CardContent className="space-y-4 text-sm text-foreground">
               <div className="space-y-2">
                 <h4 className="font-semibold">Jobs</h4>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/jobs</code>
-                  <span className="text-gray-500">— list jobs</span>
+                  <span className="text-muted-foreground">— list jobs</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-green-600">POST</Badge>
                   <code>/api/v1/jobs</code>
-                  <span className="text-gray-500">— create job</span>
+                  <span className="text-muted-foreground">— create job</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/jobs/:id</code>
-                  <span className="text-gray-500">— fetch job</span>
+                  <span className="text-muted-foreground">— fetch job</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-amber-600">PATCH</Badge>
                   <code>/api/v1/jobs/:id</code>
-                  <span className="text-gray-500">— update job</span>
+                  <span className="text-muted-foreground">— update job</span>
                 </div>
               </div>
 
@@ -391,22 +391,22 @@ export default function ApiDocsPage() {
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/candidates</code>
-                  <span className="text-gray-500">— list candidates</span>
+                  <span className="text-muted-foreground">— list candidates</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-green-600">POST</Badge>
                   <code>/api/v1/candidates</code>
-                  <span className="text-gray-500">— create candidate</span>
+                  <span className="text-muted-foreground">— create candidate</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/candidates/:id</code>
-                  <span className="text-gray-500">— fetch candidate</span>
+                  <span className="text-muted-foreground">— fetch candidate</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-amber-600">PATCH</Badge>
                   <code>/api/v1/candidates/:id/stage</code>
-                  <span className="text-gray-500">— update candidate stage</span>
+                  <span className="text-muted-foreground">— update candidate stage</span>
                 </div>
               </div>
 
@@ -415,12 +415,12 @@ export default function ApiDocsPage() {
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/interest-forms</code>
-                  <span className="text-gray-500">— list forms</span>
+                  <span className="text-muted-foreground">— list forms</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-green-600">POST</Badge>
                   <code>/api/v1/interest-forms</code>
-                  <span className="text-gray-500">— create form</span>
+                  <span className="text-muted-foreground">— create form</span>
                 </div>
               </div>
 
@@ -429,12 +429,12 @@ export default function ApiDocsPage() {
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/interview-rubrics</code>
-                  <span className="text-gray-500">— list rubrics</span>
+                  <span className="text-muted-foreground">— list rubrics</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-green-600">POST</Badge>
                   <code>/api/v1/interview-rubrics</code>
-                  <span className="text-gray-500">— create rubric</span>
+                  <span className="text-muted-foreground">— create rubric</span>
                 </div>
               </div>
 
@@ -479,22 +479,22 @@ export default function ApiDocsPage() {
               <CardTitle>Applications</CardTitle>
               <CardDescription>Manage connected applications and integrations</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-gray-700">
+            <CardContent className="space-y-4 text-sm text-foreground">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/applications</code>
-                  <span className="text-gray-500">— list applications</span>
+                  <span className="text-muted-foreground">— list applications</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
                   <code>/api/v1/applications/:id</code>
-                  <span className="text-gray-500">— fetch application</span>
+                  <span className="text-muted-foreground">— fetch application</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-blue-600">POST</Badge>
                   <code>/api/v1/applications/:id/test</code>
-                  <span className="text-gray-500">— test connection</span>
+                  <span className="text-muted-foreground">— test connection</span>
                 </div>
               </div>
 
@@ -529,12 +529,12 @@ export default function ApiDocsPage() {
               <CardTitle>Webhooks</CardTitle>
               <CardDescription>Receive real-time notifications about events</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-gray-700">
+            <CardContent className="space-y-4 text-sm text-foreground">
               <p>Configure webhooks to receive notifications when events occur in the system.</p>
 
               <div className="space-y-2">
                 <h4 className="font-semibold">Available Events</h4>
-                <ul className="list-disc list-inside text-gray-600 space-y-1">
+                <ul className="list-disc list-inside text-foreground/80 space-y-1">
                   <li><code>employee.created</code> — new employee added</li>
                   <li><code>employee.updated</code> — employee record changed</li>
                   <li><code>contract.sent</code> — contract sent for signature</li>
@@ -573,12 +573,12 @@ export default function ApiDocsPage() {
               <CardTitle>Error Handling</CardTitle>
               <CardDescription>Understanding API error responses</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-gray-700">
+            <CardContent className="space-y-4 text-sm text-foreground">
               <p>All errors return a JSON response with an error code and message.</p>
 
               <div className="space-y-2">
                 <h4 className="font-semibold">HTTP Status Codes</h4>
-                <ul className="list-disc list-inside text-gray-600 space-y-1">
+                <ul className="list-disc list-inside text-foreground/80 space-y-1">
                   <li><code>200</code> — Success</li>
                   <li><code>201</code> — Created</li>
                   <li><code>400</code> — Bad Request (invalid input)</li>
@@ -609,8 +609,8 @@ export default function ApiDocsPage() {
               <CardTitle>Rate Limits</CardTitle>
               <CardDescription>API usage limits and best practices</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-gray-700">
-              <ul className="list-disc list-inside text-gray-600 space-y-1">
+            <CardContent className="space-y-4 text-sm text-foreground">
+              <ul className="list-disc list-inside text-foreground/80 space-y-1">
                 <li>Default limit: <strong>100 requests per minute</strong> per API key</li>
                 <li>Bulk operations: <strong>10 requests per minute</strong></li>
                 <li>Rate limit headers are included in all responses</li>
@@ -636,7 +636,7 @@ X-RateLimit-Reset: 1705320000`}</pre>
           <CardHeader>
             <CardTitle>Need Help?</CardTitle>
           </CardHeader>
-          <CardContent className="text-sm text-gray-700">
+          <CardContent className="text-sm text-foreground">
             <p>For API support, contact your administrator or check the in-app documentation at Settings → Documentation.</p>
           </CardContent>
         </Card>

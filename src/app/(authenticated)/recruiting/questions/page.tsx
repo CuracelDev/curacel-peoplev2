@@ -257,14 +257,14 @@ export default function QuestionsPage() {
                         'w-full flex items-center gap-3 p-3 border rounded-lg transition-all text-left',
                         selectedCategories.includes(category.id)
                           ? 'border-indigo-500 bg-indigo-50/50'
-                          : 'border-gray-200 hover:border-gray-300'
+                          : 'border-border hover:border-border'
                       )}
                     >
                       <div className={cn(
                         'w-5 h-5 rounded flex items-center justify-center flex-shrink-0',
                         selectedCategories.includes(category.id)
                           ? 'bg-indigo-600 text-white'
-                          : 'border-2 border-gray-300'
+                          : 'border-2 border-border'
                       )}>
                         {selectedCategories.includes(category.id) && <Check className="h-3 w-3" />}
                       </div>
@@ -273,7 +273,7 @@ export default function QuestionsPage() {
                       </div>
                       <div className="flex-1">
                         <div className="font-medium text-sm">{category.name}</div>
-                        <div className="text-xs text-gray-500">{category.description}</div>
+                        <div className="text-xs text-muted-foreground">{category.description}</div>
                       </div>
                     </button>
                   ))}
@@ -286,23 +286,23 @@ export default function QuestionsPage() {
               </Button>
 
               {/* Context Preview */}
-              <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-2">Context Used</div>
+              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">Context Used</div>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Job Description</span>
+                    <span className="text-muted-foreground">Job Description</span>
                     <span className="font-medium">Loaded</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Candidate CV</span>
+                    <span className="text-muted-foreground">Candidate CV</span>
                     <span className="font-medium">Loaded</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Previous Stages</span>
+                    <span className="text-muted-foreground">Previous Stages</span>
                     <span className="font-medium">4 analyzed</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Must Validate</span>
+                    <span className="text-muted-foreground">Must Validate</span>
                     <span className="font-medium">3 points</span>
                   </div>
                 </div>
@@ -332,14 +332,14 @@ export default function QuestionsPage() {
                 {sampleQuestions.situational.map((question) => (
                   <div
                     key={question.id}
-                    className="flex gap-4 p-4 border border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-sm transition-all"
+                    className="flex gap-4 p-4 border border-border rounded-xl hover:border-border hover:shadow-sm transition-all"
                   >
-                    <div className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center font-semibold text-sm text-gray-600 flex-shrink-0">
+                    <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center font-semibold text-sm text-foreground/80 flex-shrink-0">
                       {question.id}
                     </div>
                     <div className="flex-1">
-                      <p className="text-[15px] text-gray-900 mb-2 leading-relaxed">{question.text}</p>
-                      <p className="text-sm text-gray-500 italic">{question.followUp}</p>
+                      <p className="text-[15px] text-foreground mb-2 leading-relaxed">{question.text}</p>
+                      <p className="text-sm text-muted-foreground italic">{question.followUp}</p>
                       <div className="flex gap-2 mt-2">
                         {question.tags.map((tag, i) => (
                           <Badge key={i} variant="secondary" className="text-xs">
@@ -355,12 +355,12 @@ export default function QuestionsPage() {
                           'w-8 h-8 rounded border flex items-center justify-center transition-all',
                           favorites[`situational-${question.id}`]
                             ? 'bg-amber-50 border-amber-300 text-amber-500'
-                            : 'border-gray-200 text-gray-400 hover:bg-gray-50'
+                            : 'border-border text-muted-foreground hover:bg-muted'
                         )}
                       >
                         <Star className={cn('h-4 w-4', favorites[`situational-${question.id}`] && 'fill-current')} />
                       </button>
-                      <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50">
+                      <button className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted">
                         <Copy className="h-4 w-4" />
                       </button>
                     </div>
@@ -389,14 +389,14 @@ export default function QuestionsPage() {
                 {sampleQuestions.behavioral.map((question) => (
                   <div
                     key={question.id}
-                    className="flex gap-4 p-4 border border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-sm transition-all"
+                    className="flex gap-4 p-4 border border-border rounded-xl hover:border-border hover:shadow-sm transition-all"
                   >
-                    <div className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center font-semibold text-sm text-gray-600 flex-shrink-0">
+                    <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center font-semibold text-sm text-foreground/80 flex-shrink-0">
                       {question.id}
                     </div>
                     <div className="flex-1">
-                      <p className="text-[15px] text-gray-900 mb-2 leading-relaxed">{question.text}</p>
-                      <p className="text-sm text-gray-500 italic">{question.followUp}</p>
+                      <p className="text-[15px] text-foreground mb-2 leading-relaxed">{question.text}</p>
+                      <p className="text-sm text-muted-foreground italic">{question.followUp}</p>
                       <div className="flex gap-2 mt-2">
                         {question.tags.map((tag, i) => (
                           <Badge key={i} variant="secondary" className="text-xs">
@@ -412,12 +412,12 @@ export default function QuestionsPage() {
                           'w-8 h-8 rounded border flex items-center justify-center transition-all',
                           favorites[`behavioral-${question.id}`]
                             ? 'bg-amber-50 border-amber-300 text-amber-500'
-                            : 'border-gray-200 text-gray-400 hover:bg-gray-50'
+                            : 'border-border text-muted-foreground hover:bg-muted'
                         )}
                       >
                         <Star className={cn('h-4 w-4', favorites[`behavioral-${question.id}`] && 'fill-current')} />
                       </button>
-                      <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50">
+                      <button className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted">
                         <Copy className="h-4 w-4" />
                       </button>
                     </div>
@@ -446,14 +446,14 @@ export default function QuestionsPage() {
                 {sampleQuestions.technical.map((question) => (
                   <div
                     key={question.id}
-                    className="flex gap-4 p-4 border border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-sm transition-all"
+                    className="flex gap-4 p-4 border border-border rounded-xl hover:border-border hover:shadow-sm transition-all"
                   >
-                    <div className="w-7 h-7 bg-gray-100 rounded-full flex items-center justify-center font-semibold text-sm text-gray-600 flex-shrink-0">
+                    <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center font-semibold text-sm text-foreground/80 flex-shrink-0">
                       {question.id}
                     </div>
                     <div className="flex-1">
-                      <p className="text-[15px] text-gray-900 mb-2 leading-relaxed">{question.text}</p>
-                      <p className="text-sm text-gray-500 italic">{question.followUp}</p>
+                      <p className="text-[15px] text-foreground mb-2 leading-relaxed">{question.text}</p>
+                      <p className="text-sm text-muted-foreground italic">{question.followUp}</p>
                       <div className="flex gap-2 mt-2">
                         {question.tags.map((tag, i) => (
                           <Badge key={i} variant="secondary" className="text-xs">
@@ -469,12 +469,12 @@ export default function QuestionsPage() {
                           'w-8 h-8 rounded border flex items-center justify-center transition-all',
                           favorites[`technical-${question.id}`]
                             ? 'bg-amber-50 border-amber-300 text-amber-500'
-                            : 'border-gray-200 text-gray-400 hover:bg-gray-50'
+                            : 'border-border text-muted-foreground hover:bg-muted'
                         )}
                       >
                         <Star className={cn('h-4 w-4', favorites[`technical-${question.id}`] && 'fill-current')} />
                       </button>
-                      <button className="w-8 h-8 rounded border border-gray-200 flex items-center justify-center text-gray-400 hover:bg-gray-50">
+                      <button className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted">
                         <Copy className="h-4 w-4" />
                       </button>
                     </div>
