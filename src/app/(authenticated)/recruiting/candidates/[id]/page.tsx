@@ -458,6 +458,17 @@ export default function CandidateProfilePage() {
     return Math.round(weightedTotal / totalWeight)
   }, [scoreComponents])
 
+  useEffect(() => {
+    if (!candidate || decisionInitialized) return
+    if (candidate.decisionStatus && candidate.decisionStatus !== 'PENDING') {
+      setSelectedDecision(candidate.decisionStatus)
+    }
+    if (candidate.decisionNotes) {
+      setDecisionNotes(candidate.decisionNotes)
+    }
+    setDecisionInitialized(true)
+  }, [candidate, decisionInitialized])
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -483,17 +494,6 @@ export default function CandidateProfilePage() {
         .map((item) => (typeof item === 'string' ? item : item.title || item.description || ''))
         .filter(Boolean)
     : []
-
-  useEffect(() => {
-    if (!candidate || decisionInitialized) return
-    if (candidate.decisionStatus && candidate.decisionStatus !== 'PENDING') {
-      setSelectedDecision(candidate.decisionStatus)
-    }
-    if (candidate.decisionNotes) {
-      setDecisionNotes(candidate.decisionNotes)
-    }
-    setDecisionInitialized(true)
-  }, [candidate, decisionInitialized])
 
   const handleExportProfile = async () => {
     if (!candidateId) return

@@ -137,6 +137,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Missing slider component in Recruiting settings causing build failure
 - Create Job and Save as Draft actions now respond with validation feedback
 - Dashboard hook order now consistent to prevent render mismatch errors
+- Candidate profile hook order now consistent to prevent render mismatch errors
 
 ## [December 2024]
 
