@@ -747,8 +747,8 @@ export const assessmentRouter = router({
   // Get shareable link for an assessment
   copyLink: protectedProcedure
     .input(z.object({ id: z.string() }))
-    .query(async ({ ctx, input }) => {
-      const assessment = await ctx.prisma.candidateAssessment.findUnique({
+    .mutation(async ({ ctx, input }) => {
+      let assessment = await ctx.prisma.candidateAssessment.findUnique({
         where: { id: input.id },
         include: {
           template: true,
@@ -770,8 +770,16 @@ export const assessmentRouter = router({
         }
       }
 
-      // Otherwise, return internal assessment link
-      // TODO: Generate actual assessment page URL
+      // Ensure inviteToken exists - generate one if not
+      if (!assessment.inviteToken) {
+        assessment = await ctx.prisma.candidateAssessment.update({
+          where: { id: input.id },
+          data: { inviteToken: randomUUID() },
+          include: { template: true },
+        })
+      }
+
+      // Return internal assessment link
       const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
       return {
         url: `${baseUrl}/assessment/${assessment.inviteToken}`,
