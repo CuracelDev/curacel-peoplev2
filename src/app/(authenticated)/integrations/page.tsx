@@ -23,6 +23,11 @@ import { cn } from '@/lib/utils'
 
 export default function IntegrationsPage() {
   const { data: apps, isLoading, refetch } = trpc.integration.listApps.useQuery()
+  const syncApps = trpc.integration.syncApps.useMutation({
+    onSuccess: (data) => {
+      if (data.added > 0) refetch()
+    },
+  })
   const initApps = trpc.integration.initializeApps.useMutation({
     onSuccess: () => refetch(),
   })

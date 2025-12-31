@@ -299,7 +299,7 @@ export default function CandidatesPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search candidates..."
-            className="pl-9 w-full sm:w-48 lg:w-64"
+            className="pl-9 w-full sm:w-72 lg:w-96"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
