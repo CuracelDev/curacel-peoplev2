@@ -366,4 +366,313 @@ export const interviewRouter = router({
         stageDisplayName: stageDisplayNames[interview.stage] || interview.stageName || interview.stage,
       }))
     }),
+
+  // ============================================
+  // Phase 2: Interviewer Management
+  // ============================================
+
+  // Add an interviewer to an interview
+  addInterviewer: protectedProcedure
+    .input(
+      z.object({
+        interviewId: z.string(),
+        employeeId: z.string().optional(),
+        name: z.string(),
+        email: z.string().email(),
+        role: z.string().optional(),
+        generateToken: z.boolean().optional().default(true),
+        tokenExpiresInDays: z.number().optional().default(7),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Get current interview
+      const interview = await ctx.prisma.candidateInterview.findUnique({
+        where: { id: input.interviewId },
+      })
+
+      if (!interview) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Interview not found',
+        })
+      }
+
+      // Get current interviewers array
+      const currentInterviewers = (interview.interviewers as Array<{
+        employeeId?: string
+        name: string
+        email: string
+        role?: string
+      }>) || []
+
+      // Check if interviewer already exists
+      if (currentInterviewers.some(i => i.email === input.email)) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'This interviewer has already been added',
+        })
+      }
+
+      // Add new interviewer
+      const newInterviewer = {
+        employeeId: input.employeeId,
+        name: input.name,
+        email: input.email,
+        role: input.role,
+      }
+
+      // Update interview with new interviewer
+      const updatedInterview = await ctx.prisma.candidateInterview.update({
+        where: { id: input.interviewId },
+        data: {
+          interviewers: [...currentInterviewers, newInterviewer],
+        },
+        include: {
+          candidate: {
+            include: {
+              job: true,
+            },
+          },
+        },
+      })
+
+      // Create token if requested
+      let token = null
+      if (input.generateToken) {
+        const expiresAt = new Date()
+        expiresAt.setDate(expiresAt.getDate() + input.tokenExpiresInDays)
+
+        token = await ctx.prisma.interviewerToken.create({
+          data: {
+            interviewId: input.interviewId,
+            interviewerId: input.employeeId,
+            interviewerName: input.name,
+            interviewerEmail: input.email,
+            interviewerRole: input.role,
+            expiresAt,
+          },
+        })
+      }
+
+      return {
+        interview: {
+          ...updatedInterview,
+          stageDisplayName: stageDisplayNames[updatedInterview.stage] || updatedInterview.stageName || updatedInterview.stage,
+        },
+        token,
+      }
+    }),
+
+  // Remove an interviewer from an interview
+  removeInterviewer: protectedProcedure
+    .input(
+      z.object({
+        interviewId: z.string(),
+        email: z.string().email(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Get current interview
+      const interview = await ctx.prisma.candidateInterview.findUnique({
+        where: { id: input.interviewId },
+      })
+
+      if (!interview) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Interview not found',
+        })
+      }
+
+      // Get current interviewers array
+      const currentInterviewers = (interview.interviewers as Array<{
+        employeeId?: string
+        name: string
+        email: string
+        role?: string
+      }>) || []
+
+      // Remove interviewer
+      const updatedInterviewers = currentInterviewers.filter(i => i.email !== input.email)
+
+      // Update interview
+      const updatedInterview = await ctx.prisma.candidateInterview.update({
+        where: { id: input.interviewId },
+        data: {
+          interviewers: updatedInterviewers,
+        },
+        include: {
+          candidate: {
+            include: {
+              job: true,
+            },
+          },
+        },
+      })
+
+      // Revoke any tokens for this interviewer
+      await ctx.prisma.interviewerToken.updateMany({
+        where: {
+          interviewId: input.interviewId,
+          interviewerEmail: input.email,
+        },
+        data: {
+          isRevoked: true,
+        },
+      })
+
+      return {
+        ...updatedInterview,
+        stageDisplayName: stageDisplayNames[updatedInterview.stage] || updatedInterview.stageName || updatedInterview.stage,
+      }
+    }),
+
+  // Create a new token for an interviewer
+  createInterviewerToken: protectedProcedure
+    .input(
+      z.object({
+        interviewId: z.string(),
+        interviewerName: z.string(),
+        interviewerEmail: z.string().email(),
+        interviewerRole: z.string().optional(),
+        expiresInDays: z.number().optional().default(7),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check interview exists
+      const interview = await ctx.prisma.candidateInterview.findUnique({
+        where: { id: input.interviewId },
+      })
+
+      if (!interview) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Interview not found',
+        })
+      }
+
+      // Revoke any existing tokens for this interviewer
+      await ctx.prisma.interviewerToken.updateMany({
+        where: {
+          interviewId: input.interviewId,
+          interviewerEmail: input.interviewerEmail,
+          isRevoked: false,
+        },
+        data: {
+          isRevoked: true,
+        },
+      })
+
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + input.expiresInDays)
+
+      const token = await ctx.prisma.interviewerToken.create({
+        data: {
+          interviewId: input.interviewId,
+          interviewerName: input.interviewerName,
+          interviewerEmail: input.interviewerEmail,
+          interviewerRole: input.interviewerRole,
+          expiresAt,
+        },
+      })
+
+      return token
+    }),
+
+  // Revoke an interviewer token
+  revokeInterviewerToken: protectedProcedure
+    .input(
+      z.object({
+        tokenId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const token = await ctx.prisma.interviewerToken.update({
+        where: { id: input.tokenId },
+        data: {
+          isRevoked: true,
+        },
+      })
+
+      return token
+    }),
+
+  // Get all tokens for an interview
+  getInterviewerTokens: protectedProcedure
+    .input(
+      z.object({
+        interviewId: z.string(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const tokens = await ctx.prisma.interviewerToken.findMany({
+        where: { interviewId: input.interviewId },
+        orderBy: { createdAt: 'desc' },
+      })
+
+      return tokens.map(token => ({
+        ...token,
+        isExpired: token.expiresAt < new Date(),
+        isActive: !token.isRevoked && token.expiresAt >= new Date(),
+      }))
+    }),
+
+  // Send reminder email to interviewer
+  sendInterviewerReminder: protectedProcedure
+    .input(
+      z.object({
+        tokenId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const token = await ctx.prisma.interviewerToken.findUnique({
+        where: { id: input.tokenId },
+        include: {
+          interview: {
+            include: {
+              candidate: {
+                include: {
+                  job: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      if (!token) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Token not found',
+        })
+      }
+
+      if (token.isRevoked) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Token has been revoked',
+        })
+      }
+
+      if (token.expiresAt < new Date()) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Token has expired',
+        })
+      }
+
+      if (token.evaluationStatus === 'SUBMITTED') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Evaluation has already been submitted',
+        })
+      }
+
+      // TODO: Send email using email service
+      // For now, just return success
+      return {
+        success: true,
+        message: `Reminder would be sent to ${token.interviewerEmail}`,
+      }
+    }),
 })
