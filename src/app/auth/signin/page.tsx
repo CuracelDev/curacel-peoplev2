@@ -63,7 +63,7 @@ export default function SignInPage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="p-3 bg-destructive/10 border border-destructive/30 text-destructive rounded-lg text-sm">
               {error === 'AccessDenied' 
                 ? 'Access denied. Please use your company email to sign in.'
                 : error === 'CredentialsSignin'
@@ -93,7 +93,7 @@ export default function SignInPage() {
               {isLoading ? 'Signing in...' : 'Sign in as Admin'}
             </Button>
             {allowPasswordless ? (
-              <p className="text-center text-xs text-gray-400">
+              <p className="text-center text-xs text-muted-foreground">
                 Development mode may allow passwordless login.
               </p>
             ) : null}
@@ -102,14 +102,14 @@ export default function SignInPage() {
           <div className="text-center">
             <a
               href="/auth/forgot-password"
-              className="text-sm text-blue-600 hover:text-blue-800 hover:underline"
+              className="text-sm text-primary hover:text-primary/80 hover:underline"
             >
               Forgot password?
             </a>
           </div>
 
           <Separator />
-          <p className="text-center text-xs text-gray-400">
+          <p className="text-center text-xs text-muted-foreground">
             Need an account? Ask your admin for an invite.
           </p>
         </CardContent>

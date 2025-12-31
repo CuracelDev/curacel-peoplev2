@@ -100,8 +100,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       {/* Welcome Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Welcome back, {firstName}</h1>
-        <p className="text-gray-500">Here&apos;s what&apos;s happening with your hiring pipeline</p>
+        <h1 className="text-2xl font-bold text-foreground">Welcome back, {firstName}</h1>
+        <p className="text-muted-foreground">Here&apos;s what&apos;s happening with your hiring pipeline</p>
       </div>
 
       {/* Hiring Stats Row */}
@@ -109,7 +109,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              <span className="text-sm text-gray-500">Active Jobs</span>
+              <span className="text-sm text-muted-foreground">Active Jobs</span>
               <span className="text-3xl font-bold mt-1">{hiringStats.activeJobs}</span>
               <span className="text-xs text-green-600 mt-1 flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" />

@@ -2,7 +2,8 @@
 
 import Link from 'next/link'
 import { useSession } from 'next-auth/react'
-import { Bell, Menu } from 'lucide-react'
+import { useTheme } from 'next-themes'
+import { Bell, Menu, Sun, Moon } from 'lucide-react'
 import { trpc } from '@/lib/trpc-client'
 import { Badge } from '@/components/ui/badge'
 import { formatDateTime } from '@/lib/utils'
@@ -25,6 +26,7 @@ export function Header({
   onMobileMenuClick?: () => void
 }) {
   const { data: session } = useSession()
+  const { theme, setTheme } = useTheme()
   const isAdmin = isAdminRole(session?.user?.role)
   const { data } = trpc.notifications.list.useQuery(
     {
@@ -49,14 +51,14 @@ export function Header({
   const unreadCount = unread?.count ?? 0
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-white">
+    <header className="sticky top-0 z-40 border-b bg-card">
       <div className="flex h-16 items-center justify-between px-3 sm:px-4 lg:px-6">
         <div className="flex items-center gap-3">
           {/* Mobile menu button */}
           <button
             type="button"
             onClick={onMobileMenuClick}
-            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-700 hover:bg-gray-100 lg:hidden"
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground/80 hover:bg-muted lg:hidden"
             aria-label="Open menu"
           >
             <Menu className="h-5 w-5" />
@@ -65,13 +67,23 @@ export function Header({
           <button
             type="button"
             onClick={onToggle}
-            className="hidden lg:inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-700 hover:bg-gray-100"
+            className="hidden lg:inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground/80 hover:bg-muted"
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             <Menu className="h-5 w-5" />
           </button>
         </div>
         <div className="flex items-center gap-3">
+          {/* Theme toggle */}
+          <button
+            type="button"
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground/80 hover:bg-muted"
+            aria-label="Toggle theme"
+          >
+            <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+            <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+          </button>
           {isAdmin && (
             <DropdownMenu
               onOpenChange={(open) => {
@@ -83,7 +95,7 @@ export function Header({
               <DropdownMenuTrigger asChild>
                 <button
                   type="button"
-                  className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-gray-700 hover:bg-gray-100"
+                  className="relative inline-flex h-9 w-9 items-center justify-center rounded-md text-foreground/80 hover:bg-muted"
                   aria-label="Open notifications"
                 >
                   <Bell className="h-5 w-5" />
@@ -98,7 +110,7 @@ export function Header({
                 <DropdownMenuLabel>Notifications</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 {notifications.length === 0 ? (
-                  <div className="px-3 py-2 text-sm text-gray-500">No notifications yet.</div>
+                  <div className="px-3 py-2 text-sm text-muted-foreground">No notifications yet.</div>
                 ) : (
                   <div className="max-h-72 overflow-y-auto">
                     {notifications.map((notification) => {
@@ -111,9 +123,9 @@ export function Header({
                           <Badge variant="secondary" className="text-xs">
                             {formatAuditAction(notification.action)}
                           </Badge>
-                          <span className="text-xs text-gray-500">{formatDateTime(notification.createdAt)}</span>
+                          <span className="text-xs text-muted-foreground">{formatDateTime(notification.createdAt)}</span>
                         </div>
-                        <div className="text-sm text-gray-700">
+                        <div className="text-sm text-foreground/80">
                           {actorLabel} · {resourceLabel}
                         </div>
                       </div>
@@ -123,7 +135,7 @@ export function Header({
                 )}
                 <DropdownMenuSeparator />
                 <div className="px-3 py-2 text-sm">
-                  <Link href="/notifications" className="text-sm font-medium text-blue-600 hover:text-blue-700">
+                  <Link href="/notifications" className="text-sm font-medium text-primary hover:text-primary/80">
                     View all notifications
                   </Link>
                 </div>

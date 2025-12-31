@@ -154,7 +154,7 @@ export function Sidebar({
   return (
     <aside
       className={cn(
-        'fixed inset-y-0 left-0 z-50 bg-white border-r border-border transition-all duration-200 flex flex-col',
+        'fixed inset-y-0 left-0 z-50 bg-card border-r border-border transition-all duration-200 flex flex-col',
         // Desktop: show based on collapsed state
         'hidden lg:flex',
         collapsed ? 'lg:w-16' : 'lg:w-56',
@@ -291,7 +291,7 @@ export function Sidebar({
             >
               <Avatar className="h-8 w-8">
                 <AvatarImage src={session?.user?.image || ''} alt={session?.user?.name || ''} />
-                <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">
+                <AvatarFallback className="bg-primary/20 text-primary text-xs">
                   {getInitials(session?.user?.name || 'U')}
                 </AvatarFallback>
               </Avatar>

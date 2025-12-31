@@ -67,13 +67,13 @@ export function DocumentUpload({
       <Label>{label}</Label>
 
       {value ? (
-        <div className="flex items-center gap-2 p-3 bg-green-50 border border-green-200 rounded-lg">
-          <File className="h-4 w-4 text-green-600" />
+        <div className="flex items-center gap-2 p-3 bg-success/10 border border-success/30 rounded-lg">
+          <File className="h-4 w-4 text-success" />
           <a
             href={value}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-sm text-green-700 hover:underline flex-1 truncate"
+            className="text-sm text-success hover:underline flex-1 truncate"
           >
             {value.includes('uploadthing')
               ? 'Uploaded document'
@@ -123,11 +123,11 @@ export function DocumentUpload({
                   accept={accept}
                   onChange={handleFileChange}
                   disabled={uploading}
-                  className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="block w-full text-sm text-muted-foreground file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>
               {uploading && (
-                <p className="text-xs text-blue-600 mt-2">Uploading...</p>
+                <p className="text-xs text-primary mt-2">Uploading...</p>
               )}
             </div>
           ) : (
@@ -151,7 +151,7 @@ export function DocumentUpload({
         </div>
       )}
 
-      {helpText && <p className="text-xs text-gray-500">{helpText}</p>}
+      {helpText && <p className="text-xs text-muted-foreground">{helpText}</p>}
     </div>
   )
 }

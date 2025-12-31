@@ -77,9 +77,9 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
     const handleRedo = () => execCommand('redo')
 
     return (
-      <div className={cn('border border-gray-300 rounded-lg focus-within:ring-2 focus-within:ring-indigo-600', className)}>
+      <div className={cn('border border-border rounded-lg focus-within:ring-2 focus-within:ring-primary', className)}>
         {/* Toolbar */}
-        <div className="flex items-center gap-1 p-2 border-b border-gray-200 bg-gray-50 rounded-t-lg flex-wrap">
+        <div className="flex items-center gap-1 p-2 border-b border-border bg-muted/50 rounded-t-lg flex-wrap">
           <Button
             type="button"
             variant="ghost"
@@ -100,7 +100,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           >
             <Italic className="h-4 w-4" />
           </Button>
-          <div className="w-px h-6 bg-gray-300 mx-1" />
+          <div className="w-px h-6 bg-border mx-1" />
           <Button
             type="button"
             variant="ghost"
@@ -141,7 +141,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           >
             <Code className="h-4 w-4" />
           </Button>
-          <div className="w-px h-6 bg-gray-300 mx-1" />
+          <div className="w-px h-6 bg-border mx-1" />
           <Button
             type="button"
             variant="ghost"
@@ -162,7 +162,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           >
             <ListOrdered className="h-4 w-4" />
           </Button>
-          <div className="w-px h-6 bg-gray-300 mx-1" />
+          <div className="w-px h-6 bg-border mx-1" />
           <Button
             type="button"
             variant="ghost"
@@ -193,7 +193,7 @@ const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
           >
             <AlignRight className="h-4 w-4" />
           </Button>
-          <div className="w-px h-6 bg-gray-300 mx-1" />
+          <div className="w-px h-6 bg-border mx-1" />
           <Button
             type="button"
             variant="ghost"
