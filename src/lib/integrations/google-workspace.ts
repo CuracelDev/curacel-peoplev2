@@ -1,4 +1,4 @@
-import { google, admin_directory_v1, admin_datatransfer_v1 } from 'googleapis'
+import { google, admin_directory_v1, admin_datatransfer_v1, calendar_v3 } from 'googleapis'
 import type { Employee, App, AppAccount, AppProvisioningRule } from '@prisma/client'
 import { generateWorkEmail, generateTemporaryPassword } from '@/lib/utils'
 import { sendAccountCredentialsEmail } from '@/lib/email'
@@ -17,6 +17,7 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
   private config: GoogleWorkspaceConfig
   private admin: admin_directory_v1.Admin | null = null
   private dataTransfer: admin_datatransfer_v1.Admin | null = null
+  private calendar: calendar_v3.Calendar | null = null
   private auth: InstanceType<typeof google.auth.JWT> | null = null
 
   constructor(config: GoogleWorkspaceConfig) {
@@ -36,6 +37,8 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
           'https://www.googleapis.com/auth/admin.directory.user',
           'https://www.googleapis.com/auth/admin.directory.group',
           'https://www.googleapis.com/auth/admin.datatransfer',
+          'https://www.googleapis.com/auth/calendar',
+          'https://www.googleapis.com/auth/calendar.events',
         ],
         subject: this.config.adminEmail, // Impersonate admin
       })
@@ -50,6 +53,13 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
     await this.getAdminClient()
     this.dataTransfer = google.admin({ version: 'datatransfer_v1', auth: this.auth! })
     return this.dataTransfer
+  }
+
+  private async getCalendarClient(): Promise<calendar_v3.Calendar> {
+    if (this.calendar) return this.calendar
+    await this.getAdminClient() // Ensure auth is set up
+    this.calendar = google.calendar({ version: 'v3', auth: this.auth! })
+    return this.calendar
   }
 
   async testConnection(): Promise<{ success: boolean; error?: string }> {
@@ -404,6 +414,284 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
         applicationDataTransfers,
       },
     })
+  }
+
+  // ============================================
+  // Calendar Integration Methods
+  // ============================================
+
+  /**
+   * Get free/busy information for a list of users
+   */
+  async getFreeBusy(params: {
+    emails: string[]
+    timeMin: Date
+    timeMax: Date
+  }): Promise<Record<string, Array<{ start: Date; end: Date }>>> {
+    const calendar = await this.getCalendarClient()
+
+    const response = await calendar.freebusy.query({
+      requestBody: {
+        timeMin: params.timeMin.toISOString(),
+        timeMax: params.timeMax.toISOString(),
+        items: params.emails.map(email => ({ id: email })),
+      },
+    })
+
+    const result: Record<string, Array<{ start: Date; end: Date }>> = {}
+
+    for (const email of params.emails) {
+      const calendarData = response.data.calendars?.[email]
+      result[email] = (calendarData?.busy || []).map(slot => ({
+        start: new Date(slot.start || ''),
+        end: new Date(slot.end || ''),
+      }))
+    }
+
+    return result
+  }
+
+  /**
+   * Find available time slots when all attendees are free
+   */
+  async findAvailableSlots(params: {
+    requiredAttendees: string[]
+    optionalAttendees?: string[]
+    duration: number // minutes
+    dateRange: { start: Date; end: Date }
+    workingHours?: { start: number; end: number } // e.g., 9-17 for 9am-5pm
+  }): Promise<Array<{ start: Date; end: Date; allAvailable: boolean }>> {
+    const { requiredAttendees, optionalAttendees = [], duration, dateRange, workingHours } = params
+    const allAttendees = [...requiredAttendees, ...optionalAttendees]
+
+    // Get free/busy info for all attendees
+    const busyTimes = await this.getFreeBusy({
+      emails: allAttendees,
+      timeMin: dateRange.start,
+      timeMax: dateRange.end,
+    })
+
+    // Find available slots
+    const slots: Array<{ start: Date; end: Date; allAvailable: boolean }> = []
+    const slotDuration = duration * 60 * 1000 // Convert to milliseconds
+
+    // Iterate through days in range
+    const currentDate = new Date(dateRange.start)
+    currentDate.setHours(0, 0, 0, 0)
+
+    while (currentDate < dateRange.end) {
+      // Set working hours for this day
+      const dayStart = new Date(currentDate)
+      dayStart.setHours(workingHours?.start || 9, 0, 0, 0)
+
+      const dayEnd = new Date(currentDate)
+      dayEnd.setHours(workingHours?.end || 17, 0, 0, 0)
+
+      // Check each potential slot
+      let slotStart = dayStart.getTime()
+      while (slotStart + slotDuration <= dayEnd.getTime()) {
+        const slotEnd = slotStart + slotDuration
+
+        // Check if all required attendees are available
+        let requiredAvailable = true
+        for (const email of requiredAttendees) {
+          const busy = busyTimes[email] || []
+          for (const busySlot of busy) {
+            if (
+              (slotStart >= busySlot.start.getTime() && slotStart < busySlot.end.getTime()) ||
+              (slotEnd > busySlot.start.getTime() && slotEnd <= busySlot.end.getTime()) ||
+              (slotStart <= busySlot.start.getTime() && slotEnd >= busySlot.end.getTime())
+            ) {
+              requiredAvailable = false
+              break
+            }
+          }
+          if (!requiredAvailable) break
+        }
+
+        if (requiredAvailable) {
+          // Check optional attendees
+          let allAvailable = true
+          for (const email of optionalAttendees) {
+            const busy = busyTimes[email] || []
+            for (const busySlot of busy) {
+              if (
+                (slotStart >= busySlot.start.getTime() && slotStart < busySlot.end.getTime()) ||
+                (slotEnd > busySlot.start.getTime() && slotEnd <= busySlot.end.getTime())
+              ) {
+                allAvailable = false
+                break
+              }
+            }
+          }
+
+          slots.push({
+            start: new Date(slotStart),
+            end: new Date(slotEnd),
+            allAvailable,
+          })
+        }
+
+        // Move to next 30-minute slot
+        slotStart += 30 * 60 * 1000
+      }
+
+      // Move to next day
+      currentDate.setDate(currentDate.getDate() + 1)
+    }
+
+    return slots
+  }
+
+  /**
+   * Create a calendar event with optional Google Meet
+   */
+  async createCalendarEvent(event: {
+    summary: string
+    description?: string
+    start: Date
+    end: Date
+    attendees: string[]
+    createMeet?: boolean
+    location?: string
+  }): Promise<{ eventId: string; meetLink?: string; htmlLink?: string }> {
+    const calendar = await this.getCalendarClient()
+
+    const requestBody: calendar_v3.Schema$Event = {
+      summary: event.summary,
+      description: event.description,
+      start: {
+        dateTime: event.start.toISOString(),
+        timeZone: 'UTC',
+      },
+      end: {
+        dateTime: event.end.toISOString(),
+        timeZone: 'UTC',
+      },
+      attendees: event.attendees.map(email => ({ email })),
+      location: event.location,
+    }
+
+    // Add Google Meet if requested
+    if (event.createMeet) {
+      requestBody.conferenceData = {
+        createRequest: {
+          requestId: `interview-${Date.now()}`,
+          conferenceSolutionKey: { type: 'hangoutsMeet' },
+        },
+      }
+    }
+
+    const response = await calendar.events.insert({
+      calendarId: 'primary',
+      requestBody,
+      conferenceDataVersion: event.createMeet ? 1 : 0,
+      sendUpdates: 'all', // Send email invites to attendees
+    })
+
+    return {
+      eventId: response.data.id || '',
+      meetLink: response.data.hangoutLink || response.data.conferenceData?.entryPoints?.[0]?.uri,
+      htmlLink: response.data.htmlLink || undefined,
+    }
+  }
+
+  /**
+   * Update an existing calendar event
+   */
+  async updateCalendarEvent(
+    eventId: string,
+    updates: {
+      summary?: string
+      description?: string
+      start?: Date
+      end?: Date
+      attendees?: string[]
+      location?: string
+    }
+  ): Promise<void> {
+    const calendar = await this.getCalendarClient()
+
+    const requestBody: calendar_v3.Schema$Event = {}
+
+    if (updates.summary !== undefined) {
+      requestBody.summary = updates.summary
+    }
+    if (updates.description !== undefined) {
+      requestBody.description = updates.description
+    }
+    if (updates.start !== undefined) {
+      requestBody.start = {
+        dateTime: updates.start.toISOString(),
+        timeZone: 'UTC',
+      }
+    }
+    if (updates.end !== undefined) {
+      requestBody.end = {
+        dateTime: updates.end.toISOString(),
+        timeZone: 'UTC',
+      }
+    }
+    if (updates.attendees !== undefined) {
+      requestBody.attendees = updates.attendees.map(email => ({ email }))
+    }
+    if (updates.location !== undefined) {
+      requestBody.location = updates.location
+    }
+
+    await calendar.events.patch({
+      calendarId: 'primary',
+      eventId,
+      requestBody,
+      sendUpdates: 'all',
+    })
+  }
+
+  /**
+   * Delete a calendar event
+   */
+  async deleteCalendarEvent(eventId: string): Promise<void> {
+    const calendar = await this.getCalendarClient()
+
+    await calendar.events.delete({
+      calendarId: 'primary',
+      eventId,
+      sendUpdates: 'all',
+    })
+  }
+
+  /**
+   * Get a calendar event by ID
+   */
+  async getCalendarEvent(eventId: string): Promise<{
+    id: string
+    summary: string
+    start: Date
+    end: Date
+    attendees: string[]
+    meetLink?: string
+    htmlLink?: string
+  } | null> {
+    const calendar = await this.getCalendarClient()
+
+    try {
+      const response = await calendar.events.get({
+        calendarId: 'primary',
+        eventId,
+      })
+
+      return {
+        id: response.data.id || '',
+        summary: response.data.summary || '',
+        start: new Date(response.data.start?.dateTime || response.data.start?.date || ''),
+        end: new Date(response.data.end?.dateTime || response.data.end?.date || ''),
+        attendees: (response.data.attendees || []).map(a => a.email || '').filter(Boolean),
+        meetLink: response.data.hangoutLink || response.data.conferenceData?.entryPoints?.[0]?.uri,
+        htmlLink: response.data.htmlLink || undefined,
+      }
+    } catch {
+      return null
+    }
   }
 }
 
