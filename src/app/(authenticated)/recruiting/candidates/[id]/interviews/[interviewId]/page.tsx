@@ -343,7 +343,7 @@ export default function InterviewDetailPage() {
     )
   }
 
-  const scheduledDate = new Date(interview.scheduledAt)
+  const scheduledDate = interview.scheduledAt ? new Date(interview.scheduledAt) : new Date()
   const isUpcoming = scheduledDate > new Date() && interview.status === 'SCHEDULED'
   const isPast = scheduledDate < new Date()
 
@@ -820,12 +820,12 @@ export default function InterviewDetailPage() {
                         {evaluation ? (
                           <>
                             {/* Notes */}
-                            {evaluation.notes && (
+                            {evaluation.overallNotes && (
                               <div className="mb-6">
                                 <h4 className="text-sm font-medium text-muted-foreground mb-2">
                                   Notes
                                 </h4>
-                                <p className="text-sm">{evaluation.notes}</p>
+                                <p className="text-sm">{evaluation.overallNotes}</p>
                               </div>
                             )}
 
@@ -914,8 +914,8 @@ export default function InterviewDetailPage() {
         open={rescheduleDialogOpen}
         onOpenChange={setRescheduleDialogOpen}
         interviewId={interviewId}
-        currentScheduledAt={interview.scheduledAt}
-        currentDuration={interview.duration}
+        currentScheduledAt={interview.scheduledAt ?? undefined}
+        currentDuration={interview.duration ?? undefined}
       />
 
       {/* Cancel Confirmation Dialog */}
