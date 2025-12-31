@@ -4,10 +4,9 @@ import { router, protectedProcedure, adminProcedure } from '@/lib/trpc'
 import { randomUUID } from 'crypto'
 
 const assessmentTypeEnum = z.enum([
+  'COMPETENCY_TEST',
   'CODING_TEST',
-  'KANDI_IO',
-  'PERSONALITY_MBTI',
-  'PERSONALITY_BIG5',
+  'PERSONALITY_TEST',
   'WORK_TRIAL',
   'CUSTOM',
 ])
@@ -19,6 +18,18 @@ const assessmentStatusEnum = z.enum([
   'COMPLETED',
   'EXPIRED',
   'CANCELLED',
+])
+
+const assessmentInputMethodEnum = z.enum([
+  'CANDIDATE',
+  'ADMIN',
+  'WEBHOOK',
+])
+
+const candidateSubmissionTypeEnum = z.enum([
+  'FILE',
+  'TEXT',
+  'URL',
 ])
 
 const recommendationEnum = z.enum([
@@ -202,6 +213,8 @@ export const assessmentRouter = router({
         name: z.string().min(2).max(200),
         description: z.string().max(2000).optional(),
         type: assessmentTypeEnum,
+        inputMethod: assessmentInputMethodEnum.default('CANDIDATE'),
+        candidateSubmissionTypes: z.array(candidateSubmissionTypeEnum).optional(),
         organizationId: z.string().optional(), // Will be set from context if not provided
         teamId: z.string().optional(),
         durationMinutes: z.number().optional(),
@@ -242,6 +255,8 @@ export const assessmentRouter = router({
           name: templateData.name.trim(),
           description: templateData.description?.trim(),
           type: templateData.type,
+          inputMethod: templateData.inputMethod,
+          candidateSubmissionTypes: templateData.candidateSubmissionTypes,
           organizationId: orgId,
           teamId: templateData.teamId,
           durationMinutes: templateData.durationMinutes,
@@ -289,6 +304,8 @@ export const assessmentRouter = router({
         id: z.string(),
         name: z.string().min(2).max(200).optional(),
         description: z.string().max(2000).optional().nullable(),
+        inputMethod: assessmentInputMethodEnum.optional(),
+        candidateSubmissionTypes: z.array(candidateSubmissionTypeEnum).optional(),
         teamId: z.string().optional().nullable(),
         durationMinutes: z.number().optional().nullable(),
         passingScore: z.number().min(0).max(100).optional().nullable(),
@@ -370,6 +387,8 @@ export const assessmentRouter = router({
         data: {
           ...(data.name && { name: data.name.trim() }),
           ...(data.description !== undefined && { description: data.description?.trim() || null }),
+          ...(data.inputMethod !== undefined && { inputMethod: data.inputMethod }),
+          ...(data.candidateSubmissionTypes !== undefined && { candidateSubmissionTypes: data.candidateSubmissionTypes }),
           ...(data.teamId !== undefined && { teamId: data.teamId }),
           ...(data.durationMinutes !== undefined && { durationMinutes: data.durationMinutes }),
           ...(data.passingScore !== undefined && { passingScore: data.passingScore }),
