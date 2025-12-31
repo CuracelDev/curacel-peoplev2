@@ -43,10 +43,9 @@ import { cn } from '@/lib/utils'
 import {
   CalendarIcon,
   Check,
-  ChevronsUpDown,
   Clock,
   Loader2,
-  User,
+  Search,
   Users,
   X,
   Video,
@@ -97,7 +96,6 @@ export function ScheduleInterviewDialog({
   const [dateRangeEnd, setDateRangeEnd] = useState<Date>(() => endOfDay(addDays(new Date(), 7)))
 
   // Popover states
-  const [candidateOpen, setCandidateOpen] = useState(false)
   const [interviewerOpen, setInterviewerOpen] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [candidateSearch, setCandidateSearch] = useState('')
@@ -180,11 +178,6 @@ export function ScheduleInterviewDialog({
 
   // Sync to calendar mutation
   const syncCalendarMutation = trpc.interview.syncInterviewToCalendar.useMutation()
-
-  // Get selected candidate info
-  const selectedCandidate = useMemo(() => {
-    return candidatesData?.candidates?.find(c => c.id === selectedCandidateId)
-  }, [candidatesData, selectedCandidateId])
 
   // Get selected interview type info
   const selectedType = useMemo(() => {
@@ -309,79 +302,47 @@ export function ScheduleInterviewDialog({
           {/* Candidate Selection */}
           <div className="grid gap-2">
             <Label htmlFor="candidate">Candidate *</Label>
-            <Popover open={candidateOpen} onOpenChange={setCandidateOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  role="combobox"
-                  aria-expanded={candidateOpen}
-                  className="justify-between"
-                  disabled={!!preselectedCandidateId}
-                >
-                  {selectedCandidate ? (
-                    <span className="flex items-center gap-2">
-                      <User className="h-4 w-4" />
-                      {selectedCandidate.name} - {selectedCandidate.job?.title}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">Select candidate...</span>
-                  )}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-[400px] p-0" align="start">
-                <Command>
-                  <CommandInput
-                    placeholder="Search candidates..."
-                    value={candidateSearch}
-                    onValueChange={setCandidateSearch}
-                  />
-                  <CommandList>
-                    {candidatesLoading ? (
-                      <div className="flex items-center justify-center py-6">
-                        <Loader2 className="h-4 w-4 animate-spin" />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="candidateSearch"
+                placeholder="Search candidates..."
+                className="pl-9"
+                value={candidateSearch}
+                onChange={(e) => setCandidateSearch(e.target.value)}
+                disabled={!!preselectedCandidateId}
+              />
+            </div>
+            <Select
+              value={selectedCandidateId}
+              onValueChange={setSelectedCandidateId}
+              disabled={!!preselectedCandidateId}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={candidatesLoading ? 'Loading candidates...' : 'Select candidate...'} />
+              </SelectTrigger>
+              <SelectContent>
+                {candidatesLoading ? (
+                  <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading candidates...
+                  </div>
+                ) : (
+                  <>
+                    {candidatesData?.candidates?.map((candidate) => (
+                      <SelectItem key={candidate.id} value={candidate.id}>
+                        {candidate.name} — {candidate.job?.title || 'No position'}
+                      </SelectItem>
+                    ))}
+                    {(!candidatesData?.candidates || candidatesData.candidates.length === 0) && (
+                      <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                        {candidateSearch ? 'No candidates found' : 'No candidates available'}
                       </div>
-                    ) : (
-                      <>
-                        <CommandEmpty>No candidates found.</CommandEmpty>
-                        <CommandGroup>
-                          {candidatesData?.candidates?.map((candidate) => (
-                            <CommandItem
-                              key={candidate.id}
-                              value={candidate.id}
-                              keywords={[
-                                candidate.name,
-                                candidate.email ?? '',
-                                candidate.job?.title ?? '',
-                                candidate.stageDisplayName ?? '',
-                              ]}
-                              className="cursor-pointer"
-                              onSelect={(value) => {
-                                setSelectedCandidateId(value)
-                                setCandidateOpen(false)
-                              }}
-                            >
-                              <Check
-                                className={cn(
-                                  "mr-2 h-4 w-4",
-                                  selectedCandidateId === candidate.id ? "opacity-100" : "opacity-0"
-                                )}
-                              />
-                              <div className="flex flex-col">
-                                <span>{candidate.name}</span>
-                                <span className="text-xs text-muted-foreground">
-                                  {candidate.job?.title} • {candidate.stageDisplayName}
-                                </span>
-                              </div>
-                            </CommandItem>
-                          ))}
-                        </CommandGroup>
-                      </>
                     )}
-                  </CommandList>
-                </Command>
-              </PopoverContent>
-            </Popover>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Interview Type */}

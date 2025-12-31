@@ -137,10 +137,10 @@ export default function AssessmentSettingsPage() {
       setIsCreateDialogOpen(false)
       resetForm()
       refetch()
-      toast.success('Assessment template created')
+      toast.success('Assessment created')
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to create template')
+      toast.error(error.message || 'Failed to create assessment')
     },
   })
 
@@ -150,20 +150,20 @@ export default function AssessmentSettingsPage() {
       setIsCreateDialogOpen(false)
       resetForm()
       refetch()
-      toast.success('Assessment template updated')
+      toast.success('Assessment updated')
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to update template')
+      toast.error(error.message || 'Failed to update assessment')
     },
   })
 
   const deleteTemplate = trpc.assessment.deleteTemplate.useMutation({
     onSuccess: () => {
       refetch()
-      toast.success('Template deleted')
+      toast.success('Assessment deleted')
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to delete template')
+      toast.error(error.message || 'Failed to delete assessment')
     },
   })
 
@@ -284,13 +284,13 @@ export default function AssessmentSettingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Templates Card */}
+      {/* Assessments Card */}
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
           <div>
-            <CardTitle>Assessment Templates</CardTitle>
+            <CardTitle>Assessments</CardTitle>
             <CardDescription>
-              Configure assessment templates for candidate evaluations
+              Configure assessments for candidate evaluations
             </CardDescription>
           </div>
           <Button onClick={() => {
@@ -298,7 +298,7 @@ export default function AssessmentSettingsPage() {
             setIsCreateDialogOpen(true)
           }}>
             <Plus className="h-4 w-4 mr-2" />
-            Add Template
+            Add Assessment
           </Button>
         </CardHeader>
         <CardContent>
@@ -307,7 +307,7 @@ export default function AssessmentSettingsPage() {
             <div className="relative flex-1 max-w-sm">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search templates..."
+                placeholder="Search assessments..."
                 className="pl-9"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -335,11 +335,11 @@ export default function AssessmentSettingsPage() {
             </div>
           ) : !filteredTemplates?.length ? (
             <div className="text-center py-8 text-muted-foreground">
-              <p>No templates found</p>
+              <p>No assessments found</p>
               <p className="text-sm">
                 {searchQuery || typeFilter !== 'all'
                   ? 'Try adjusting your filters'
-                  : 'Create your first template to get started'}
+                  : 'Create your first assessment to get started'}
               </p>
             </div>
           ) : (
@@ -437,10 +437,10 @@ export default function AssessmentSettingsPage() {
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
-              {editingTemplate ? 'Edit' : 'Create'} Assessment Template
+              {editingTemplate ? 'Edit' : 'Create'} Assessment
             </DialogTitle>
             <DialogDescription>
-              Configure the assessment template settings
+              Configure the assessment settings
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -477,7 +477,7 @@ export default function AssessmentSettingsPage() {
 
             {/* Basic Info */}
             <div className="grid gap-2">
-              <Label htmlFor="name">Template Name *</Label>
+              <Label htmlFor="name">Assessment Name *</Label>
               <Input
                 id="name"
                 placeholder="e.g., Backend Coding Challenge"
@@ -637,7 +637,7 @@ export default function AssessmentSettingsPage() {
               {(createTemplate.isPending || updateTemplate.isPending) && (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
-              {editingTemplate ? 'Update' : 'Create'} Template
+              {editingTemplate ? 'Update' : 'Create'} Assessment
             </Button>
           </DialogFooter>
         </DialogContent>
