@@ -32,8 +32,6 @@ import {
   Building2,
   Layers,
   Video,
-  Calendar,
-  Mic,
   Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -70,7 +68,6 @@ const settingsNav = [
   { id: 'interviewTypes', name: 'Interview Types', icon: Video },
   { id: 'interestForms', name: 'Interest Forms', icon: FileQuestion },
   { id: 'rubrics', name: 'Interview Rubrics', icon: ClipboardCheck },
-  { id: 'integrations', name: 'Integrations', icon: Calendar },
   { id: 'webhooks', name: 'Webhooks', icon: Webhook },
   { id: 'recruiters', name: 'External Recruiters', icon: UserCircle2 },
   { id: 'sources', name: 'Source Channels', icon: Layers },
@@ -131,7 +128,6 @@ const sectionMap: Record<string, string> = {
   interviewTypes: 'interviewTypes',
   forms: 'interestForms',
   rubrics: 'rubrics',
-  integrations: 'integrations',
 }
 
 export default function SettingsPage() {
@@ -1209,11 +1205,6 @@ export default function SettingsPage() {
             <InterviewTypesSection />
           )}
 
-          {/* Integrations Section */}
-          {activeSection === 'integrations' && (
-            <IntegrationsSection />
-          )}
-
           {/* Webhooks Section */}
           {activeSection === 'webhooks' && (
             <Card id="webhooks">
@@ -2146,103 +2137,3 @@ function InterviewTypesSection() {
   )
 }
 
-// Integrations Section Component
-function IntegrationsSection() {
-  const firefliesConfigQuery = trpc.interview.isFirefliesConfigured.useQuery()
-  const calendarConfigQuery = trpc.interview.isCalendarConfigured.useQuery()
-
-  return (
-    <Card id="integrations">
-      <CardHeader className="p-5 border-b">
-        <h2 className="text-lg font-semibold">Interview Integrations</h2>
-        <p className="text-sm text-muted-foreground">
-          Connect external services for interview scheduling and recording.
-        </p>
-      </CardHeader>
-      <CardContent className="p-5 space-y-6">
-        {/* Fireflies Integration */}
-        <div className="flex items-start justify-between p-4 border rounded-lg">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-lg bg-orange-100 flex items-center justify-center">
-              <Mic className="h-6 w-6 text-orange-600" />
-            </div>
-            <div>
-              <h3 className="font-medium">Fireflies.ai</h3>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Automatically attach meeting transcripts to interviews.
-              </p>
-              {firefliesConfigQuery.data?.configured ? (
-                <Badge className="mt-2 bg-green-100 text-green-800">Connected</Badge>
-              ) : (
-                <Badge variant="secondary" className="mt-2">Not configured</Badge>
-              )}
-            </div>
-          </div>
-          <div className="text-right">
-            {firefliesConfigQuery.data?.configured ? (
-              <p className="text-xs text-muted-foreground">API key configured via environment</p>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">Add to your environment:</p>
-                <code className="text-xs bg-muted px-2 py-1 rounded">FIREFLIES_API_KEY=your_key</code>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Google Calendar Integration */}
-        <div className="flex items-start justify-between p-4 border rounded-lg">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-blue-600" />
-            </div>
-            <div>
-              <h3 className="font-medium">Google Calendar</h3>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Check interviewer availability and create calendar events with Google Meet.
-              </p>
-              {calendarConfigQuery.data?.configured ? (
-                <Badge className="mt-2 bg-green-100 text-green-800">Connected</Badge>
-              ) : (
-                <Badge variant="secondary" className="mt-2">Not configured</Badge>
-              )}
-            </div>
-          </div>
-          <div className="text-right">
-            {calendarConfigQuery.data?.configured ? (
-              <p className="text-xs text-muted-foreground">Google Workspace connected</p>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground">Requires Google Workspace integration</p>
-                <Link href="/settings/applications" className="text-xs text-indigo-600 hover:underline">
-                  Configure in Integrations →
-                </Link>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* AI Configuration */}
-        <div className="flex items-start justify-between p-4 border rounded-lg">
-          <div className="flex items-start gap-4">
-            <div className="w-12 h-12 rounded-lg bg-purple-100 flex items-center justify-center">
-              <Star className="h-6 w-6 text-purple-600" />
-            </div>
-            <div>
-              <h3 className="font-medium">BlueAI Analysis</h3>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                AI-powered candidate analysis, question generation, and transcript scoring.
-              </p>
-              <Badge variant="secondary" className="mt-2">Configure in Settings</Badge>
-            </div>
-          </div>
-          <div className="text-right">
-            <Link href="/settings/ai-agent" className="text-xs text-indigo-600 hover:underline">
-              Configure AI Settings →
-            </Link>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
