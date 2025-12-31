@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useState } from 'react'
+import { trpc } from '@/lib/trpc-client'
 import {
   Save,
   Download,
@@ -14,11 +15,18 @@ import {
   Copy,
   RefreshCw,
   Check,
+  Plus,
+  Loader2,
+  Trash2,
+  Edit2,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Select,
   SelectContent,
@@ -26,142 +34,172 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
-import { useHiringFlows } from '@/lib/recruiting/hiring-flows'
+import { toast } from 'sonner'
 
-const categories = [
-  {
-    id: 'situational',
+const categoryConfig: Record<string, {
+  name: string
+  description: string
+  icon: typeof Box
+  color: string
+  badgeColor: string
+}> = {
+  situational: {
     name: 'Situational',
     description: '"What would you do if..."',
     icon: Box,
     color: 'bg-indigo-50 text-indigo-600',
     badgeColor: 'bg-indigo-100 text-indigo-700',
   },
-  {
-    id: 'behavioral',
+  behavioral: {
     name: 'Behavioral',
     description: '"Tell me about a time..."',
     icon: Clock,
     color: 'bg-green-50 text-green-600',
     badgeColor: 'bg-green-100 text-green-700',
   },
-  {
-    id: 'motivational',
+  motivational: {
     name: 'Motivational',
     description: '"Why do you want..."',
     icon: Heart,
     color: 'bg-amber-50 text-amber-600',
     badgeColor: 'bg-amber-100 text-amber-700',
   },
-  {
-    id: 'technical',
+  technical: {
     name: 'Technical',
     description: 'Role-specific questions',
     icon: Code,
     color: 'bg-pink-50 text-pink-600',
     badgeColor: 'bg-pink-100 text-pink-700',
   },
-  {
-    id: 'culture',
+  culture: {
     name: 'Culture/Values',
     description: 'PRESS alignment',
     icon: Users,
     color: 'bg-cyan-50 text-cyan-600',
     badgeColor: 'bg-cyan-100 text-cyan-700',
   },
-]
-
-const sampleQuestions = {
-  situational: [
-    {
-      id: 1,
-      text: "Imagine you're leading a critical migration of our claims processing system from a monolith to microservices, and halfway through, the team discovers a fundamental data consistency issue that wasn't caught in planning. How would you handle this situation?",
-      followUp: 'How would you communicate this to stakeholders?',
-      tags: ['Problem Solving', 'Leadership', 'Communication'],
-      favorited: true,
-    },
-    {
-      id: 2,
-      text: 'You\'re tasked with reducing our API response time by 50% for a major insurance partner integration. The current architecture uses synchronous database calls. What approach would you take, and how would you validate your solution?',
-      followUp: 'What metrics would you monitor post-deployment?',
-      tags: ['System Design', 'Performance'],
-      favorited: false,
-    },
-    {
-      id: 3,
-      text: 'Based on your experience at Paystack, how would you approach building a real-time fraud detection system for insurance claims? What architecture patterns would you consider?',
-      followUp: 'How did your payment reconciliation work translate to this problem?',
-      tags: ['Domain Experience', 'Personalized'],
-      favorited: false,
-    },
-  ],
-  behavioral: [
-    {
-      id: 1,
-      text: 'Tell me about a time when you had to make a significant technical decision with incomplete information. What was your approach, and what was the outcome?',
-      followUp: 'What would you do differently now?',
-      tags: ['Must Validate', 'Decision Making'],
-      favorited: true,
-    },
-    {
-      id: 2,
-      text: 'Describe a situation where you had to work in a smaller, fast-paced team compared to your previous roles. How did you adapt?',
-      followUp: 'What challenges did you face with fewer resources?',
-      tags: ['Must Validate', 'Startup Fit'],
-      favorited: false,
-    },
-    {
-      id: 3,
-      text: 'You mentioned leading a team of 4 engineers on the Kafka project at Paystack. Tell me about a time when a team member was underperforming. How did you handle it?',
-      followUp: 'What was the outcome for the individual and the project?',
-      tags: ['Leadership', 'Personalized'],
-      favorited: false,
-    },
-  ],
-  technical: [
-    {
-      id: 1,
-      text: 'You mentioned using the saga pattern with compensating transactions. Can you walk me through how you would implement this for a multi-step insurance claim approval workflow?',
-      followUp: 'How would you handle partial failures?',
-      tags: ['Distributed Systems', 'Deep Dive'],
-      favorited: false,
-    },
-    {
-      id: 2,
-      text: 'How would you design an idempotency mechanism for a claims processing API that needs to handle duplicate submissions gracefully?',
-      followUp: 'What storage strategy would you use for idempotency keys?',
-      tags: ['API Design', 'Reliability'],
-      favorited: false,
-    },
-  ],
 }
 
+const categoryOrder = ['situational', 'behavioral', 'motivational', 'technical', 'culture']
+
+type CategoryKey = keyof typeof categoryConfig
+
 export default function QuestionsPage() {
-  const [selectedJob, setSelectedJob] = useState('backend')
-  const [selectedCandidate, setSelectedCandidate] = useState('james')
-  const [selectedStage, setSelectedStage] = useState('')
-  const [selectedCategories, setSelectedCategories] = useState(['situational', 'behavioral', 'technical'])
-  const [favorites, setFavorites] = useState<Record<string, boolean>>({
-    'situational-1': true,
-    'behavioral-1': true,
+  const [selectedJob, setSelectedJob] = useState<string>('')
+  const [selectedInterviewType, setSelectedInterviewType] = useState<string>('')
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([
+    'situational',
+    'behavioral',
+    'technical',
+  ])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+
+  // Dialog states
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [editingQuestion, setEditingQuestion] = useState<{
+    id: string
+    text: string
+    followUp: string
+    category: string
+    tags: string[]
+  } | null>(null)
+
+  // New question form state
+  const [newQuestion, setNewQuestion] = useState({
+    text: '',
+    followUp: '',
+    category: 'behavioral' as CategoryKey,
+    tags: '',
   })
-  const { flows } = useHiringFlows()
 
-  const stageOptions = useMemo(() => {
-    const stageSet = new Set<string>()
-    flows.forEach((flow) => {
-      flow.stages.forEach((stage) => stageSet.add(stage))
-    })
-    return Array.from(stageSet)
-  }, [flows])
+  // Fetch data
+  const { data: jobs } = trpc.job.list.useQuery({ status: 'ACTIVE' })
+  const { data: interviewTypes } = trpc.interviewType.list.useQuery()
+  const { data: categoriesData } = trpc.question.getCategories.useQuery()
 
-  useEffect(() => {
-    if (!stageOptions.length) return
-    if (!stageOptions.includes(selectedStage)) {
-      setSelectedStage(stageOptions[0])
-    }
-  }, [stageOptions, selectedStage])
+  // Determine category filter
+  const categoryFilter = selectedCategories.length === 1
+    ? (selectedCategories[0] as 'situational' | 'behavioral' | 'technical' | 'motivational' | 'culture')
+    : undefined
+
+  // Fetch questions with filters
+  const {
+    data: questionsData,
+    isLoading: questionsLoading,
+    refetch: refetchQuestions,
+  } = trpc.question.list.useQuery({
+    category: categoryFilter,
+    jobId: selectedJob || undefined,
+    interviewTypeId: selectedInterviewType || undefined,
+    search: searchQuery || undefined,
+    onlyFavorites: showFavoritesOnly || undefined,
+    limit: 100,
+  })
+
+  // Mutations
+  const utils = trpc.useUtils()
+
+  const createMutation = trpc.question.create.useMutation({
+    onSuccess: () => {
+      utils.question.list.invalidate()
+      utils.question.getCategories.invalidate()
+      toast.success('Question added to bank')
+      setCreateDialogOpen(false)
+      setNewQuestion({ text: '', followUp: '', category: 'behavioral', tags: '' })
+    },
+    onError: (err) => {
+      toast.error('Failed to create question', { description: err.message })
+    },
+  })
+
+  const updateMutation = trpc.question.update.useMutation({
+    onSuccess: () => {
+      utils.question.list.invalidate()
+      toast.success('Question updated')
+      setEditingQuestion(null)
+    },
+    onError: (err) => {
+      toast.error('Failed to update question', { description: err.message })
+    },
+  })
+
+  const toggleFavoriteMutation = trpc.question.toggleFavorite.useMutation({
+    onSuccess: () => {
+      utils.question.list.invalidate()
+    },
+  })
+
+  const deleteMutation = trpc.question.delete.useMutation({
+    onSuccess: () => {
+      utils.question.list.invalidate()
+      utils.question.getCategories.invalidate()
+      toast.success('Question removed')
+    },
+    onError: (err) => {
+      toast.error('Failed to delete question', { description: err.message })
+    },
+  })
+
+  const seedDefaultsMutation = trpc.question.seedDefaults.useMutation({
+    onSuccess: (result) => {
+      utils.question.list.invalidate()
+      utils.question.getCategories.invalidate()
+      toast.success(result.message, { description: `${result.count} questions` })
+    },
+    onError: (err) => {
+      toast.error('Failed to seed defaults', { description: err.message })
+    },
+  })
 
   const toggleCategory = (categoryId: string) => {
     setSelectedCategories((prev) =>
@@ -171,74 +209,116 @@ export default function QuestionsPage() {
     )
   }
 
-  const toggleFavorite = (categoryId: string, questionId: number) => {
-    const key = `${categoryId}-${questionId}`
-    setFavorites((prev) => ({ ...prev, [key]: !prev[key] }))
+  const handleCreateQuestion = () => {
+    if (!newQuestion.text.trim()) return
+
+    createMutation.mutate({
+      text: newQuestion.text.trim(),
+      followUp: newQuestion.followUp.trim() || undefined,
+      category: newQuestion.category as 'situational' | 'behavioral' | 'technical' | 'motivational' | 'culture',
+      tags: newQuestion.tags.split(',').map((t) => t.trim()).filter(Boolean),
+      jobId: selectedJob || undefined,
+      interviewTypeId: selectedInterviewType || undefined,
+    })
   }
+
+  const handleUpdateQuestion = () => {
+    if (!editingQuestion || !editingQuestion.text.trim()) return
+
+    updateMutation.mutate({
+      id: editingQuestion.id,
+      text: editingQuestion.text.trim(),
+      followUp: editingQuestion.followUp.trim() || undefined,
+      category: editingQuestion.category as 'situational' | 'behavioral' | 'technical' | 'motivational' | 'culture',
+      tags: editingQuestion.tags,
+    })
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+    toast.success('Copied to clipboard')
+  }
+
+  // Group questions by category
+  const questionsByCategory = questionsData?.questions.reduce((acc, q) => {
+    if (!selectedCategories.includes(q.category)) return acc
+    if (!acc[q.category]) acc[q.category] = []
+    acc[q.category].push(q)
+    return acc
+  }, {} as Record<string, typeof questionsData.questions>) ?? {}
+
+  const totalQuestions = questionsData?.total ?? 0
+  const isEmpty = totalQuestions === 0 && !questionsLoading
 
   return (
     <div className="p-6">
       {/* Action Bar */}
-      <div className="flex justify-end gap-3 mb-6">
-        <Button variant="outline">
-          <Save className="h-4 w-4 mr-2" />
-          Save to Bank
-        </Button>
-        <Button variant="outline">
-          <Download className="h-4 w-4 mr-2" />
-          Export PDF
-        </Button>
+      <div className="flex justify-between items-center gap-3 mb-6">
+        <div className="flex items-center gap-3">
+          <Input
+            placeholder="Search questions..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-64"
+          />
+          <Button
+            variant={showFavoritesOnly ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          >
+            <Star className={cn('h-4 w-4 mr-2', showFavoritesOnly && 'fill-current')} />
+            Favorites
+          </Button>
+        </div>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Question
+          </Button>
+          <Button variant="outline">
+            <Download className="h-4 w-4 mr-2" />
+            Export PDF
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-[320px_1fr] gap-6">
-        {/* Sidebar - Configuration */}
+        {/* Sidebar - Filters */}
         <div className="space-y-5">
           <Card className="sticky top-20">
             <CardContent className="p-5">
-              <h3 className="font-semibold mb-4">Generation Settings</h3>
+              <h3 className="font-semibold mb-4">Filters</h3>
 
               {/* Job Selection */}
               <div className="mb-4">
                 <Label className="mb-2 block">Job Position</Label>
                 <Select value={selectedJob} onValueChange={setSelectedJob}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select job" />
+                    <SelectValue placeholder="All jobs" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="backend">Senior Backend Engineer</SelectItem>
-                    <SelectItem value="designer">Product Designer</SelectItem>
-                    <SelectItem value="growth">Growth Lead</SelectItem>
+                    <SelectItem value="">All jobs</SelectItem>
+                    {jobs?.map((job) => (
+                      <SelectItem key={job.id} value={job.id}>
+                        {job.title}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              {/* Candidate Selection */}
+              {/* Interview Type */}
               <div className="mb-4">
-                <Label className="mb-2 block">Candidate (Optional)</Label>
-                <Select value={selectedCandidate} onValueChange={setSelectedCandidate}>
+                <Label className="mb-2 block">Interview Type</Label>
+                <Select value={selectedInterviewType} onValueChange={setSelectedInterviewType}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select candidate" />
+                    <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="james">James Okafor</SelectItem>
-                    <SelectItem value="sarah">Sarah Chen</SelectItem>
-                    <SelectItem value="adaeze">Adaeze Nwosu</SelectItem>
-                    <SelectItem value="generic">-- Generic (no candidate) --</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Interview Stage */}
-              <div className="mb-4">
-                <Label className="mb-2 block">Interview Stage</Label>
-                <Select value={selectedStage} onValueChange={setSelectedStage}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select stage" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {stageOptions.map((stage) => (
-                      <SelectItem key={stage} value={stage}>
-                        {stage}
+                    <SelectItem value="">All types</SelectItem>
+                    {interviewTypes?.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -249,242 +329,419 @@ export default function QuestionsPage() {
               <div className="mb-5">
                 <Label className="mb-2 block">Question Categories</Label>
                 <div className="space-y-2">
-                  {categories.map((category) => (
-                    <button
-                      key={category.id}
-                      onClick={() => toggleCategory(category.id)}
-                      className={cn(
-                        'w-full flex items-center gap-3 p-3 border rounded-lg transition-all text-left',
-                        selectedCategories.includes(category.id)
-                          ? 'border-indigo-500 bg-indigo-50/50'
-                          : 'border-border hover:border-border'
-                      )}
-                    >
-                      <div className={cn(
-                        'w-5 h-5 rounded flex items-center justify-center flex-shrink-0',
-                        selectedCategories.includes(category.id)
-                          ? 'bg-indigo-600 text-white'
-                          : 'border-2 border-border'
-                      )}>
-                        {selectedCategories.includes(category.id) && <Check className="h-3 w-3" />}
-                      </div>
-                      <div className={cn('w-8 h-8 rounded flex items-center justify-center', category.color)}>
-                        <category.icon className="h-4 w-4" />
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-medium text-sm">{category.name}</div>
-                        <div className="text-xs text-muted-foreground">{category.description}</div>
-                      </div>
-                    </button>
-                  ))}
+                  {categoryOrder.map((catId) => {
+                    const category = categoryConfig[catId]
+                    const count = categoriesData?.find((c) => c.value === catId)?.count ?? 0
+                    const Icon = category.icon
+                    return (
+                      <button
+                        key={catId}
+                        onClick={() => toggleCategory(catId)}
+                        className={cn(
+                          'w-full flex items-center gap-3 p-3 border rounded-lg transition-all text-left',
+                          selectedCategories.includes(catId)
+                            ? 'border-indigo-500 bg-indigo-50/50'
+                            : 'border-border hover:border-border'
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            'w-5 h-5 rounded flex items-center justify-center flex-shrink-0',
+                            selectedCategories.includes(catId)
+                              ? 'bg-indigo-600 text-white'
+                              : 'border-2 border-border'
+                          )}
+                        >
+                          {selectedCategories.includes(catId) && <Check className="h-3 w-3" />}
+                        </div>
+                        <div className={cn('w-8 h-8 rounded flex items-center justify-center', category.color)}>
+                          <Icon className="h-4 w-4" />
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-sm">{category.name}</div>
+                          <div className="text-xs text-muted-foreground">{category.description}</div>
+                        </div>
+                        <Badge variant="secondary" className="text-xs">
+                          {count}
+                        </Badge>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
 
-              <Button className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700">
-                <Zap className="h-4 w-4 mr-2" />
-                Generate Questions
+              <Button
+                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                onClick={() => refetchQuestions()}
+                disabled={questionsLoading}
+              >
+                {questionsLoading ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Zap className="h-4 w-4 mr-2" />
+                )}
+                {questionsLoading ? 'Loading...' : 'Refresh Questions'}
               </Button>
 
-              {/* Context Preview */}
+              {/* Stats */}
               <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">Context Used</div>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+                  Question Bank Stats
+                </div>
                 <div className="space-y-1 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Job Description</span>
-                    <span className="font-medium">Loaded</span>
+                    <span className="text-muted-foreground">Total Questions</span>
+                    <span className="font-medium">{totalQuestions}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-muted-foreground">Candidate CV</span>
-                    <span className="font-medium">Loaded</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Previous Stages</span>
-                    <span className="font-medium">4 analyzed</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Must Validate</span>
-                    <span className="font-medium">3 points</span>
+                    <span className="text-muted-foreground">Showing</span>
+                    <span className="font-medium">{questionsData?.questions.length ?? 0}</span>
                   </div>
                 </div>
               </div>
+
+              {isEmpty && (
+                <Button
+                  variant="outline"
+                  className="w-full mt-3"
+                  onClick={() => seedDefaultsMutation.mutate()}
+                  disabled={seedDefaultsMutation.isPending}
+                >
+                  {seedDefaultsMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-2" />
+                  )}
+                  Seed Default Questions
+                </Button>
+              )}
             </CardContent>
           </Card>
         </div>
 
-        {/* Main Content - Generated Questions */}
+        {/* Main Content - Questions */}
         <div className="space-y-5">
-          {/* Situational Questions */}
-          {selectedCategories.includes('situational') && (
+          {questionsLoading && (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          )}
+
+          {!questionsLoading && isEmpty && (
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between py-4 px-5">
-                <div className="flex items-center gap-2">
-                  <Badge className={categories.find((c) => c.id === 'situational')?.badgeColor}>
-                    Situational
-                  </Badge>
-                  <span className="font-semibold text-sm">5 questions</span>
-                </div>
-                <Button variant="ghost" size="sm">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Regenerate
-                </Button>
-              </CardHeader>
-              <CardContent className="px-5 pb-5 space-y-3">
-                {sampleQuestions.situational.map((question) => (
-                  <div
-                    key={question.id}
-                    className="flex gap-4 p-4 border border-border rounded-xl hover:border-border hover:shadow-sm transition-all"
+              <CardContent className="py-12 text-center">
+                <div className="text-muted-foreground mb-4">No questions in the bank yet.</div>
+                <div className="flex justify-center gap-3">
+                  <Button onClick={() => setCreateDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add First Question
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => seedDefaultsMutation.mutate()}
+                    disabled={seedDefaultsMutation.isPending}
                   >
-                    <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center font-semibold text-sm text-foreground/80 flex-shrink-0">
-                      {question.id}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[15px] text-foreground mb-2 leading-relaxed">{question.text}</p>
-                      <p className="text-sm text-muted-foreground italic">{question.followUp}</p>
-                      <div className="flex gap-2 mt-2">
-                        {question.tags.map((tag, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={() => toggleFavorite('situational', question.id)}
-                        className={cn(
-                          'w-8 h-8 rounded border flex items-center justify-center transition-all',
-                          favorites[`situational-${question.id}`]
-                            ? 'bg-amber-50 border-amber-300 text-amber-500'
-                            : 'border-border text-muted-foreground hover:bg-muted'
-                        )}
-                      >
-                        <Star className={cn('h-4 w-4', favorites[`situational-${question.id}`] && 'fill-current')} />
-                      </button>
-                      <button className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted">
-                        <Copy className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                    Seed Defaults
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           )}
 
-          {/* Behavioral Questions */}
-          {selectedCategories.includes('behavioral') && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between py-4 px-5">
-                <div className="flex items-center gap-2">
-                  <Badge className={categories.find((c) => c.id === 'behavioral')?.badgeColor}>
-                    Behavioral
-                  </Badge>
-                  <span className="font-semibold text-sm">5 questions</span>
-                </div>
-                <Button variant="ghost" size="sm">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Regenerate
-                </Button>
-              </CardHeader>
-              <CardContent className="px-5 pb-5 space-y-3">
-                {sampleQuestions.behavioral.map((question) => (
-                  <div
-                    key={question.id}
-                    className="flex gap-4 p-4 border border-border rounded-xl hover:border-border hover:shadow-sm transition-all"
-                  >
-                    <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center font-semibold text-sm text-foreground/80 flex-shrink-0">
-                      {question.id}
-                    </div>
-                    <div className="flex-1">
-                      <p className="text-[15px] text-foreground mb-2 leading-relaxed">{question.text}</p>
-                      <p className="text-sm text-muted-foreground italic">{question.followUp}</p>
-                      <div className="flex gap-2 mt-2">
-                        {question.tags.map((tag, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={() => toggleFavorite('behavioral', question.id)}
-                        className={cn(
-                          'w-8 h-8 rounded border flex items-center justify-center transition-all',
-                          favorites[`behavioral-${question.id}`]
-                            ? 'bg-amber-50 border-amber-300 text-amber-500'
-                            : 'border-border text-muted-foreground hover:bg-muted'
-                        )}
-                      >
-                        <Star className={cn('h-4 w-4', favorites[`behavioral-${question.id}`] && 'fill-current')} />
-                      </button>
-                      <button className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted">
-                        <Copy className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+          {!questionsLoading &&
+            categoryOrder.map((catId) => {
+              const questions = questionsByCategory[catId]
+              if (!questions?.length) return null
+              const category = categoryConfig[catId]
+              const Icon = category.icon
 
-          {/* Technical Questions */}
-          {selectedCategories.includes('technical') && (
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between py-4 px-5">
-                <div className="flex items-center gap-2">
-                  <Badge className={categories.find((c) => c.id === 'technical')?.badgeColor}>
-                    Technical
-                  </Badge>
-                  <span className="font-semibold text-sm">5 questions</span>
-                </div>
-                <Button variant="ghost" size="sm">
-                  <RefreshCw className="h-4 w-4 mr-2" />
-                  Regenerate
-                </Button>
-              </CardHeader>
-              <CardContent className="px-5 pb-5 space-y-3">
-                {sampleQuestions.technical.map((question) => (
-                  <div
-                    key={question.id}
-                    className="flex gap-4 p-4 border border-border rounded-xl hover:border-border hover:shadow-sm transition-all"
-                  >
-                    <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center font-semibold text-sm text-foreground/80 flex-shrink-0">
-                      {question.id}
+              return (
+                <Card key={catId}>
+                  <CardHeader className="flex flex-row items-center justify-between py-4 px-5">
+                    <div className="flex items-center gap-2">
+                      <Badge className={category.badgeColor}>
+                        <Icon className="h-3 w-3 mr-1" />
+                        {category.name}
+                      </Badge>
+                      <span className="font-semibold text-sm">{questions.length} questions</span>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-[15px] text-foreground mb-2 leading-relaxed">{question.text}</p>
-                      <p className="text-sm text-muted-foreground italic">{question.followUp}</p>
-                      <div className="flex gap-2 mt-2">
-                        {question.tags.map((tag, i) => (
-                          <Badge key={i} variant="secondary" className="text-xs">
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <button
-                        onClick={() => toggleFavorite('technical', question.id)}
-                        className={cn(
-                          'w-8 h-8 rounded border flex items-center justify-center transition-all',
-                          favorites[`technical-${question.id}`]
-                            ? 'bg-amber-50 border-amber-300 text-amber-500'
-                            : 'border-border text-muted-foreground hover:bg-muted'
-                        )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setNewQuestion((prev) => ({ ...prev, category: catId as CategoryKey }))
+                        setCreateDialogOpen(true)
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add
+                    </Button>
+                  </CardHeader>
+                  <CardContent className="px-5 pb-5 space-y-3">
+                    {questions.map((question, index) => (
+                      <div
+                        key={question.id}
+                        className="flex gap-4 p-4 border border-border rounded-xl hover:border-border hover:shadow-sm transition-all"
                       >
-                        <Star className={cn('h-4 w-4', favorites[`technical-${question.id}`] && 'fill-current')} />
-                      </button>
-                      <button className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted">
-                        <Copy className="h-4 w-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          )}
+                        <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center font-semibold text-sm text-foreground/80 flex-shrink-0">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-[15px] text-foreground mb-2 leading-relaxed">
+                            {question.text}
+                          </p>
+                          {question.followUp && (
+                            <p className="text-sm text-muted-foreground italic mb-2">
+                              {question.followUp}
+                            </p>
+                          )}
+                          <div className="flex flex-wrap gap-2">
+                            {question.tags.map((tag, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                            {question.job && (
+                              <Badge variant="outline" className="text-xs">
+                                {question.job.title}
+                              </Badge>
+                            )}
+                            {question.interviewType && (
+                              <Badge variant="outline" className="text-xs">
+                                {question.interviewType.name}
+                              </Badge>
+                            )}
+                            {question.usageCount > 0 && (
+                              <Badge variant="secondary" className="text-xs text-muted-foreground">
+                                Used {question.usageCount}x
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-2">
+                          <button
+                            onClick={() => toggleFavoriteMutation.mutate({ id: question.id })}
+                            className={cn(
+                              'w-8 h-8 rounded border flex items-center justify-center transition-all',
+                              question.isFavorite
+                                ? 'bg-amber-50 border-amber-300 text-amber-500'
+                                : 'border-border text-muted-foreground hover:bg-muted'
+                            )}
+                          >
+                            <Star className={cn('h-4 w-4', question.isFavorite && 'fill-current')} />
+                          </button>
+                          <button
+                            onClick={() => copyToClipboard(question.text)}
+                            className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted"
+                          >
+                            <Copy className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() =>
+                              setEditingQuestion({
+                                id: question.id,
+                                text: question.text,
+                                followUp: question.followUp ?? '',
+                                category: question.category,
+                                tags: question.tags,
+                              })
+                            }
+                            className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted"
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm('Delete this question?')) {
+                                deleteMutation.mutate({ id: question.id })
+                              }
+                            }}
+                            className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-red-50 hover:text-red-500 hover:border-red-300"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )
+            })}
         </div>
       </div>
+
+      {/* Create Question Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Add Question to Bank</DialogTitle>
+            <DialogDescription>
+              Create a new interview question that can be reused across interviews.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="category">Category *</Label>
+              <Select
+                value={newQuestion.category}
+                onValueChange={(v) => setNewQuestion((prev) => ({ ...prev, category: v as CategoryKey }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOrder.map((catId) => (
+                    <SelectItem key={catId} value={catId}>
+                      {categoryConfig[catId].name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="text">Question *</Label>
+              <Textarea
+                id="text"
+                placeholder="Enter the interview question..."
+                value={newQuestion.text}
+                onChange={(e) => setNewQuestion((prev) => ({ ...prev, text: e.target.value }))}
+                rows={3}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="followUp">Follow-up Question (optional)</Label>
+              <Input
+                id="followUp"
+                placeholder="What would you do differently?"
+                value={newQuestion.followUp}
+                onChange={(e) => setNewQuestion((prev) => ({ ...prev, followUp: e.target.value }))}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="tags">Tags (comma-separated)</Label>
+              <Input
+                id="tags"
+                placeholder="Leadership, Problem Solving, Communication"
+                value={newQuestion.tags}
+                onChange={(e) => setNewQuestion((prev) => ({ ...prev, tags: e.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateQuestion}
+              disabled={!newQuestion.text.trim() || createMutation.isPending}
+            >
+              {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Add Question
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Question Dialog */}
+      <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Edit Question</DialogTitle>
+          </DialogHeader>
+          {editingQuestion && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-category">Category *</Label>
+                <Select
+                  value={editingQuestion.category}
+                  onValueChange={(v) =>
+                    setEditingQuestion((prev) => prev && { ...prev, category: v })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOrder.map((catId) => (
+                      <SelectItem key={catId} value={catId}>
+                        {categoryConfig[catId].name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-text">Question *</Label>
+                <Textarea
+                  id="edit-text"
+                  value={editingQuestion.text}
+                  onChange={(e) =>
+                    setEditingQuestion((prev) => prev && { ...prev, text: e.target.value })
+                  }
+                  rows={3}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="edit-followUp">Follow-up Question</Label>
+                <Input
+                  id="edit-followUp"
+                  value={editingQuestion.followUp}
+                  onChange={(e) =>
+                    setEditingQuestion((prev) => prev && { ...prev, followUp: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label>Tags</Label>
+                <div className="flex flex-wrap gap-2">
+                  {editingQuestion.tags.map((tag, i) => (
+                    <Badge key={i} variant="secondary" className="gap-1">
+                      {tag}
+                      <button
+                        onClick={() =>
+                          setEditingQuestion((prev) =>
+                            prev && { ...prev, tags: prev.tags.filter((_, idx) => idx !== i) }
+                          )
+                        }
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                  <Input
+                    placeholder="Add tag..."
+                    className="w-32 h-6 text-xs"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const value = (e.target as HTMLInputElement).value.trim()
+                        if (value) {
+                          setEditingQuestion((prev) =>
+                            prev && { ...prev, tags: [...prev.tags, value] }
+                          )
+                          ;(e.target as HTMLInputElement).value = ''
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingQuestion(null)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUpdateQuestion}
+              disabled={!editingQuestion?.text.trim() || updateMutation.isPending}
+            >
+              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

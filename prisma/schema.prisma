@@ -242,6 +242,7 @@ model Employee {
   managedJobs     Job[]           @relation("JobHiringManager")
   followedJobs    JobFollower[]   @relation("JobFollowers")
   addedCandidates JobCandidate[]  @relation("CandidatesAddedBy")
+  interviewQuestions InterviewQuestion[]
 
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -1198,6 +1199,8 @@ model Job {
   candidates          JobCandidate[]
   interviewStages     InterviewStageTemplate[] @relation("JobInterviewStages")
   recruiterAccess     RecruiterJob[]
+  interviewQuestions  InterviewQuestion[]
+  emailTemplates      EmailTemplate[] @relation("JobEmailTemplates")
 
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
@@ -1354,6 +1357,12 @@ model JobCandidate {
   // Assessment tracking
   assessments CandidateAssessment[]
 
+  // Email threads with candidate
+  emailThreads CandidateEmailThread[]
+
+  // AI analysis versions
+  aiAnalyses   CandidateAIAnalysis[]
+
   @@unique([jobId, email])
   @@index([jobId, stage])
   @@index([email])
@@ -1393,6 +1402,9 @@ model CandidateInterview {
 
   // Public interview links for interviewers
   interviewerTokens InterviewerToken[]
+
+  // Questions used in this interview
+  questionUsages InterviewQuestionUsage[]
 
   // Fireflies integration
   firefliesMeetingId   String?   // Fireflies meeting ID
@@ -1647,6 +1659,10 @@ model InterestFormResponse {
   // Public submission token
   submissionToken String?           @unique
 
+  // AI analysis of responses
+  aiAnalysis      Json?             // { summary, keyInsights, concerns, scores }
+  aiAnalyzedAt    DateTime?
+
   submittedAt  DateTime             @default(now())
 
   @@index([templateId])
@@ -1682,6 +1698,9 @@ model InterviewType {
 
   // Interviews of this type
   interviews         CandidateInterview[]
+
+  // Questions specific to this interview type
+  questions          InterviewQuestion[]
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
@@ -1807,6 +1826,35 @@ enum AssessmentStatus {
   COMPLETED
   EXPIRED
   CANCELLED
+}
+
+// ============================================
+// EMAIL & COMMUNICATION ENUMS
+// ============================================
+
+enum EmailDirection {
+  OUTBOUND  // Sent by recruiter to candidate
+  INBOUND   // Received from candidate
+}
+
+enum EmailStatus {
+  DRAFT
+  QUEUED
+  SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
+  FAILED
+}
+
+enum AnalysisType {
+  APPLICATION_REVIEW     // Initial application analysis
+  STAGE_SUMMARY          // After completing a stage
+  INTERVIEW_ANALYSIS     // Post-interview insights
+  ASSESSMENT_REVIEW      // After assessment completion
+  COMPREHENSIVE          // Full candidate analysis
+  SENTIMENT_CHANGE       // When AI detects significant changes
 }
 
 // Assessment Template - configurable per organization/team
@@ -1937,4 +1985,387 @@ model WorkTrialTemplate {
 
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
+}
+
+// ============================================
+// RECRUITING - QUESTION BANK
+// ============================================
+
+// Interview Question - reusable questions for interviews
+model InterviewQuestion {
+  id              String   @id @default(uuid())
+  text            String   @db.Text
+  followUp        String?  @db.Text  // Suggested follow-up question
+
+  // Categorization
+  category        String   // "situational", "behavioral", "technical", "motivational", "culture"
+  tags            String[] // ["Problem Solving", "Leadership", "Communication", etc.]
+
+  // Context - can be global or specific
+  jobId           String?  // Job-specific question (null = global)
+  job             Job?     @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  interviewTypeId String?  // Type-specific (null = all types)
+  interviewType   InterviewType? @relation(fields: [interviewTypeId], references: [id], onDelete: SetNull)
+
+  // Usage tracking
+  timesUsed       Int      @default(0)
+  avgRating       Float?   // How helpful was this question? (1-5)
+
+  // Metadata
+  createdById     String?
+  createdBy       Employee? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+  isActive        Boolean  @default(true)
+  isFavorite      Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  usages          InterviewQuestionUsage[]
+
+  @@index([category])
+  @@index([jobId])
+  @@index([interviewTypeId])
+  @@index([isActive])
+}
+
+// Track which questions were used in interviews
+model InterviewQuestionUsage {
+  id              String   @id @default(uuid())
+  questionId      String
+  question        InterviewQuestion @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  interviewId     String
+  interview       CandidateInterview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  // Who asked this question
+  askedById       String?
+  askedByName     String?
+
+  // Effectiveness rating
+  rating          Int?     // 1-5 how helpful was this question
+  notes           String?  @db.Text
+
+  wasAsked        Boolean  @default(true)  // Track if actually asked vs just suggested
+
+  createdAt       DateTime @default(now())
+
+  @@unique([questionId, interviewId])
+  @@index([interviewId])
+  @@index([questionId])
+}
+
+// ============================================
+// EMAIL & COMMUNICATION SYSTEM
+// ============================================
+
+// Email Thread - groups all emails for a candidate
+model CandidateEmailThread {
+  id              String   @id @default(uuid())
+  candidateId     String
+  candidate       JobCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // Gmail thread tracking
+  gmailThreadId   String?  @unique  // Gmail thread ID for threading
+  subject         String   // Thread subject line
+
+  // Participants
+  recruiterEmail  String   // Sending as this email
+  recruiterId     String?  // Employee ID of recruiter
+  ccEmails        String[] @default([])
+
+  // Status
+  lastMessageAt   DateTime @default(now())
+  messageCount    Int      @default(0)
+  unreadCount     Int      @default(0)
+
+  messages        CandidateEmail[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([candidateId])
+  @@index([recruiterId])
+  @@index([lastMessageAt])
+}
+
+// Individual Email Message
+model CandidateEmail {
+  id              String   @id @default(uuid())
+  threadId        String
+  thread          CandidateEmailThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+
+  // Gmail message tracking
+  gmailMessageId  String?  @unique
+  messageIdHeader String?  // RFC 5322 Message-ID for In-Reply-To
+  inReplyTo       String?  // Parent message ID header
+  references      String?  @db.Text // Full References header chain
+
+  // Email content
+  direction       EmailDirection
+  fromEmail       String
+  fromName        String?
+  toEmails        String[]
+  ccEmails        String[]
+  subject         String
+  htmlBody        String   @db.Text
+  textBody        String?  @db.Text
+
+  // Attachments
+  attachments     Json?    // Array of { id, name, mimeType, size, gmailAttachmentId, url }
+
+  // Status and tracking
+  status          EmailStatus @default(DRAFT)
+  sentAt          DateTime?
+  deliveredAt     DateTime?
+
+  // Tracking events
+  openedAt        DateTime?
+  openCount       Int      @default(0)
+  clickedAt       DateTime?
+  clickCount      Int      @default(0)
+  totalReadTime   Int      @default(0)  // Seconds estimated
+
+  // Error handling
+  errorMessage    String?
+  retryCount      Int      @default(0)
+
+  // Template reference
+  templateId      String?
+  template        EmailTemplate? @relation(fields: [templateId], references: [id])
+
+  // Reminders for this email
+  reminders       EmailReminder[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([threadId])
+  @@index([status])
+  @@index([sentAt])
+}
+
+// Email Template with hierarchical overrides
+model EmailTemplate {
+  id              String   @id @default(uuid())
+
+  // Template identification
+  name            String
+  slug            String   // e.g., "stage-advance", "rejection", "assessment-invite"
+  description     String?
+  category        String   // "stage_notification", "rejection", "assessment", "offer", "reminder", "general"
+
+  // Hierarchical: jobId null = global default, jobId set = per-job override
+  jobId           String?
+  job             Job?     @relation("JobEmailTemplates", fields: [jobId], references: [id], onDelete: Cascade)
+
+  // Which stage this template applies to (optional)
+  stage           String?  // e.g., "HR_SCREEN", "TECHNICAL", etc.
+
+  // Content
+  subject         String
+  htmlBody        String   @db.Text
+  textBody        String?  @db.Text
+
+  // AI enhancement settings
+  aiEnhancementEnabled Boolean @default(false)
+  aiEnhancementPrompt  String? @db.Text  // Custom AI instructions
+
+  // Metadata
+  isActive        Boolean  @default(true)
+  isDefault       Boolean  @default(false)  // Default for category/stage
+  usageCount      Int      @default(0)
+
+  emails          CandidateEmail[]
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([slug, jobId])  // Slug unique per job (null = global)
+  @@index([category])
+  @@index([stage])
+  @@index([isActive])
+}
+
+// Email Reminder Configuration
+model EmailReminder {
+  id              String   @id @default(uuid())
+  emailId         String
+  email           CandidateEmail @relation(fields: [emailId], references: [id], onDelete: Cascade)
+
+  // Reminder config
+  reminderType    String   // "candidate_no_response", "recruiter_followup"
+  triggerAfterHours Int    @default(72)  // Hours after email sent
+
+  // Status
+  scheduledFor    DateTime
+  sentAt          DateTime?
+  escalatedAt     DateTime?  // When recruiter was alerted
+
+  // Escalation
+  escalateAfterHours Int?   // Hours to wait before alerting recruiter
+  escalatedToId   String?   // Employee ID notified
+
+  isCancelled     Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+
+  @@index([scheduledFor])
+  @@index([emailId])
+  @@index([isCancelled])
+}
+
+// Email Tracking Events (for detailed analytics)
+model EmailTrackingEvent {
+  id              String   @id @default(uuid())
+  emailId         String
+
+  eventType       String   // "open", "click", "unsubscribe"
+  eventData       Json?    // { linkUrl, userAgent, ipAddress, etc. }
+
+  occurredAt      DateTime @default(now())
+
+  @@index([emailId])
+  @@index([eventType])
+  @@index([occurredAt])
+}
+
+// ============================================
+// BLUEAI VERSIONED ANALYSIS
+// ============================================
+
+// Versioned AI Analysis for candidates
+model CandidateAIAnalysis {
+  id              String   @id @default(uuid())
+  candidateId     String
+  candidate       JobCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // Version tracking
+  version         Int      @default(1)
+  analysisType    AnalysisType
+
+  // Context: what triggered this analysis
+  triggerStage    String?  // Stage when analysis was generated
+  triggerEvent    String?  // "stage_complete", "interview_complete", "assessment_complete", "manual"
+  interviewId     String?  // If triggered by specific interview
+  assessmentId    String?  // If triggered by specific assessment
+
+  // Analysis content
+  summary         String   @db.Text    // Main summary paragraph
+  strengths       Json     // Array of strings
+  concerns        Json     // Array of { title, description, severity }
+  recommendations Json     // Array of strings
+
+  // Scores at this point in time
+  overallScore    Int?     // 0-100
+  scoreBreakdown  Json?    // { experience: 85, skills: 82, culture: 78, ... }
+
+  // Sentiment tracking
+  sentimentScore  Int?     // -100 to 100 (negative to positive)
+  sentimentChange Int?     // Change from previous version
+  sentimentReason String?  // Why sentiment changed
+
+  // Tab-specific summaries
+  tabSummaries    Json?    // { overview: "...", application: "...", interviews: "...", values: "..." }
+
+  // PRESS Values assessment at this stage
+  pressValues     Json?    // { passionate: 4.2, relentless: 3.8, ... }
+
+  // Hiring recommendation
+  recommendation  String?  // "STRONG_HIRE", "HIRE", "HOLD", "NO_HIRE"
+  confidence      Int?     // 0-100
+
+  // AI model info
+  aiProvider      String?  // "ANTHROPIC", "OPENAI", "GEMINI"
+  aiModel         String?  // Specific model used
+
+  // Metadata
+  generatedBy     String?  // "system" or user ID if manually triggered
+  isLatest        Boolean  @default(true)
+
+  createdAt       DateTime @default(now())
+
+  @@unique([candidateId, version])
+  @@index([candidateId, isLatest])
+  @@index([candidateId, analysisType])
+  @@index([triggerStage])
+}
+
+// ============================================
+// COMMUNICATION SETTINGS
+// ============================================
+
+model EmailSettings {
+  id                      String   @id @default(uuid())
+  organizationId          String   @unique
+
+  // Gmail connection
+  gmailConnected          Boolean  @default(false)
+  gmailDomain             String?
+  gmailServiceAccountKey  String?  @db.Text  // Encrypted
+
+  // Sender settings
+  defaultFromName         String?  // Template: "{{recruiter.name}} from Curacel"
+  defaultCcEmail          String?  // peopleops@curacel.ai
+  defaultReplyTo          String?
+
+  // Tracking
+  trackOpens              Boolean  @default(true)
+  trackClicks             Boolean  @default(true)
+
+  // Auto-send per stage (JSON: { "APPLIED": true, "HR_SCREEN": true, ... })
+  autoSendStages          Json?
+  autoSendOnApplication   Boolean  @default(true)
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model ReminderSettings {
+  id                      String   @id @default(uuid())
+  organizationId          String   @unique
+
+  // Candidate reminders
+  daysBeforeFirstReminder Int      @default(3)
+  daysBetweenReminders    Int      @default(3)
+  maxReminders            Int      @default(3)
+  reminderTemplateId      String?
+
+  // Recruiter escalation
+  daysBeforeEscalation    Int      @default(7)
+  escalationMethod        String   @default("both")  // "email", "in_app", "both"
+  escalateTo              String   @default("assigned")  // "assigned", "followers", "all"
+
+  // Per-stage overrides (JSON)
+  stageOverrides          Json?
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+}
+
+model BlueAIInterviewsSettings {
+  id                      String   @id @default(uuid())
+  organizationId          String   @unique
+
+  // Auto-analysis triggers
+  analyzeOnApplication    Boolean  @default(true)
+  analyzeOnStageComplete  Boolean  @default(true)
+  analyzeOnInterview      Boolean  @default(true)
+  analyzeOnAssessment     Boolean  @default(true)
+
+  // Analysis depth: "basic", "standard", "comprehensive"
+  analysisDepth           String   @default("standard")
+
+  // Sentiment tracking
+  trackSentiment          Boolean  @default(true)
+  sentimentAlertThreshold Int      @default(20)  // Points drop to trigger alert
+
+  // Custom prompts
+  customAnalysisPrompt    String?  @db.Text
+
+  // Tab summaries
+  enableTabSummaries      Boolean  @default(true)
+  tabSummaryRefresh       String   @default("on_view")  // "manual", "on_view", "daily"
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }
