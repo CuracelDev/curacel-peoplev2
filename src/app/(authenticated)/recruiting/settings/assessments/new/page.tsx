@@ -418,10 +418,10 @@ export default function NewAssessmentPage() {
 
         {/* Webhook Configuration (for Webhook/API input method) */}
         {formData.inputMethod === 'WEBHOOK' && (
-          <Card className="border-indigo-200 bg-indigo-50/30">
+          <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Webhook className="h-5 w-5 text-indigo-600" />
+                <Webhook className="h-5 w-5" />
                 Webhook Configuration
               </CardTitle>
               <CardDescription>
@@ -469,13 +469,13 @@ export default function NewAssessmentPage() {
 
               {/* Webhook Endpoint - shows after platform is selected */}
               {formData.externalPlatform && (
-                <div className="space-y-2 p-4 bg-white rounded-lg border">
+                <div className="space-y-2 p-4 bg-muted/50 rounded-lg border">
                   <Label className="text-sm font-medium">Your Webhook Endpoint</Label>
                   <div className="flex items-center gap-2">
                     <Input
                       readOnly
                       value={typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/assessments/${formData.externalPlatform}` : `/api/webhooks/assessments/${formData.externalPlatform}`}
-                      className="font-mono text-sm"
+                      className="font-mono text-sm bg-background"
                     />
                     <Button
                       type="button"
@@ -497,13 +497,13 @@ export default function NewAssessmentPage() {
               )}
 
               {/* How it works */}
-              <div className="p-4 bg-white rounded-lg border space-y-3">
+              <div className="p-4 bg-muted/50 rounded-lg border space-y-3">
                 <div className="flex items-center gap-2 font-medium text-sm">
-                  <Info className="h-4 w-4 text-indigo-600" />
+                  <Info className="h-4 w-4 text-primary" />
                   How Webhook Integration Works
                 </div>
                 <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
-                  <li>First, set up your platform credentials in <Link href="/settings" className="text-indigo-600 hover:underline inline-flex items-center gap-1">Settings &gt; Integrations <ExternalLink className="h-3 w-3" /></Link></li>
+                  <li>First, set up your platform credentials in <Link href="/settings" className="text-primary hover:underline inline-flex items-center gap-1">Settings &gt; Integrations <ExternalLink className="h-3 w-3" /></Link></li>
                   <li>Configure the webhook URL above in your external platform</li>
                   <li>When assigning this assessment to a candidate, the external ID will link results</li>
                   <li>Results are automatically received and matched to the candidate</li>
