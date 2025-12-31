@@ -1819,10 +1819,9 @@ model InterviewCriteriaScore {
 // ============================================
 
 enum AssessmentType {
+  COMPETENCY_TEST
   CODING_TEST
-  KANDI_IO
-  PERSONALITY_MBTI
-  PERSONALITY_BIG5
+  PERSONALITY_TEST
   WORK_TRIAL
   CUSTOM
 }
