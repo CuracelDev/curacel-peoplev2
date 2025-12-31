@@ -180,7 +180,7 @@ export default function AIAgentSettingsPage() {
   return (
     <div className="space-y-6">
       <SettingsPageHeader
-        title="Blue AI"
+        title="BlueAI"
         actions={
           <Button
             onClick={() => testConnection.mutate()}
@@ -204,7 +204,7 @@ export default function AIAgentSettingsPage() {
           <CardContent className="flex items-center gap-3 py-4">
             <XCircle className="h-5 w-5 text-red-600" />
             <span className="text-red-800">
-              {settingsError?.message || updateSettings.error?.message || 'Failed to load AI settings.'}
+              {settingsError?.message || updateSettings.error?.message || 'Failed to load BlueAI settings.'}
             </span>
           </CardContent>
         </Card>
@@ -229,9 +229,9 @@ export default function AIAgentSettingsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Enable Blue AI</CardTitle>
+              <CardTitle>Enable BlueAI</CardTitle>
               <CardDescription>
-                Allow the AI assistant to help with contracts, onboarding, and employee management.
+                Allow BlueAI to help with contracts, onboarding, and employee management.
               </CardDescription>
             </div>
             <Switch
@@ -245,9 +245,9 @@ export default function AIAgentSettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>AI Provider</CardTitle>
+          <CardTitle>BlueAI Provider</CardTitle>
           <CardDescription>
-            Choose which AI provider to use for the assistant.
+            Choose which provider BlueAI uses for assistance.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -510,7 +510,7 @@ export default function AIAgentSettingsPage() {
         <CardHeader>
           <CardTitle>Capabilities</CardTitle>
           <CardDescription>
-            Blue AI can help with the following tasks:
+            BlueAI can help with the following tasks:
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -149,7 +149,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
           <Sparkles className="h-12 w-12 text-indigo-300 mb-4" />
           <h3 className="font-medium text-lg mb-2">No Analysis Yet</h3>
           <p className="text-sm text-muted-foreground text-center mb-4 max-w-md">
-            Generate an AI-powered analysis of {candidateName}'s candidacy to get insights,
+            Generate a BlueAI analysis of {candidateName}'s candidacy to get insights,
             recommendations, and scoring.
           </p>
           <div className="flex gap-2">
@@ -560,7 +560,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
                 </div>
                 {displayAnalysis.aiProvider && (
                   <div className="flex justify-between">
-                    <span>AI Provider</span>
+                  <span>BlueAI Provider</span>
                     <span className="font-medium">{displayAnalysis.aiProvider}</span>
                   </div>
                 )}

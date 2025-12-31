@@ -120,8 +120,8 @@ const settingsSections = [
         href: '/settings/api',
       },
       {
-        title: 'Blue AI',
-        description: 'Configure AI API keys.',
+        title: 'BlueAI',
+        description: 'Configure BlueAI API keys.',
         icon: Bot,
         href: '/settings/ai-agent',
       },

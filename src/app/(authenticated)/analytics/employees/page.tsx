@@ -6,11 +6,6 @@ import { Users, TrendingUp, UserPlus, UserMinus } from 'lucide-react'
 export default function EmployeesAnalyticsPage() {
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Employee Analytics</h1>
-        <p className="text-muted-foreground">Track and analyze workforce metrics and trends</p>
-      </div>
-
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">

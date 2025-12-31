@@ -277,12 +277,12 @@ Areas to probe in next stage:
             </div>
           </div>
 
-          {/* AI Analysis */}
+          {/* BlueAI Analysis */}
           <Card className="bg-gradient-to-br from-indigo-50/50 to-purple-50/50 border-indigo-200">
             <CardContent className="p-5">
               <Badge className="bg-indigo-600 mb-3">
                 <Star className="h-3 w-3 mr-1" />
-                AI Analysis
+                BlueAI Analysis
               </Badge>
               <h4 className="font-semibold mb-3">Key Insights</h4>
               <p className="text-sm text-foreground/80 mb-4">

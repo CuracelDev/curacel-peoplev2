@@ -216,8 +216,9 @@ export function Sidebar({
               {(!section.collapsible || !isSectionCollapsed) && (
                 <ul className="space-y-0.5">
                   {section.items.map((item) => {
+                    // For /analytics route, only match exact path to avoid both Hiring and Employees appearing selected
                     const isActive = pathname === item.href ||
-                      (item.href !== '/dashboard' && pathname.startsWith(item.href))
+                      (item.href !== '/dashboard' && item.href !== '/analytics' && pathname.startsWith(item.href))
                     return (
                       <li key={item.name}>
                         <Link
@@ -256,7 +257,7 @@ export function Sidebar({
           )
         })}
 
-        {/* Blue AI - Special styling */}
+        {/* BlueAI - Special styling */}
         <div className="mt-6">
           <div className="mx-2 mb-2 border-t border-border" />
           <Link
@@ -268,10 +269,10 @@ export function Sidebar({
                 : 'bg-primary/10 text-primary hover:bg-primary hover:text-white',
               collapsed && !mobileOpen && 'justify-center px-2'
             )}
-            title="Open Blue AI"
+            title="Open BlueAI"
           >
             <Bot className="h-5 w-5 flex-shrink-0" />
-            {(!collapsed || mobileOpen) && <span>Blue AI</span>}
+            {(!collapsed || mobileOpen) && <span>BlueAI</span>}
           </Link>
         </div>
       </nav>
