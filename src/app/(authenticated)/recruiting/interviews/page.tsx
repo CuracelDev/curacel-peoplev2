@@ -25,8 +25,19 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   Search,
   Calendar,
@@ -38,11 +49,14 @@ import {
   CheckCircle,
   XCircle,
   AlertCircle,
+  Plus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format, isPast, isToday, isTomorrow, addDays, addHours, subDays } from 'date-fns'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { ScheduleInterviewDialog } from '@/components/recruiting/schedule-interview-dialog'
+import { toast } from 'sonner'
 
 // Helper to generate mock interview data - consistent with detail page
 const generateMockInterviews = () => [
@@ -159,6 +173,11 @@ export default function InterviewsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
+  // Dialog states
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(null)
+
   // Fetch interviews
   const { data: dbInterviews, isLoading } = trpc.interview.list.useQuery({
     stage: activeFilter !== 'all' ? activeFilter : undefined,
@@ -168,6 +187,51 @@ export default function InterviewsPage() {
 
   // Fetch counts
   const { data: dbCounts } = trpc.interview.getCounts.useQuery()
+
+  // Mutations
+  const utils = trpc.useUtils()
+  const updateStatusMutation = trpc.interview.updateStatus.useMutation({
+    onSuccess: () => {
+      utils.interview.list.invalidate()
+      utils.interview.getCounts.invalidate()
+      toast.success('Interview status updated')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to update interview status')
+    },
+  })
+
+  const cancelMutation = trpc.interview.cancel.useMutation({
+    onSuccess: () => {
+      utils.interview.list.invalidate()
+      utils.interview.getCounts.invalidate()
+      setCancelDialogOpen(false)
+      setSelectedInterviewId(null)
+      toast.success('Interview cancelled')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to cancel interview')
+    },
+  })
+
+  // Action handlers
+  const handleMarkComplete = (interviewId: string) => {
+    updateStatusMutation.mutate({ id: interviewId, status: 'COMPLETED' })
+  }
+
+  const handleJoinMeeting = (meetingLink: string | null) => {
+    if (meetingLink) {
+      window.open(meetingLink, '_blank')
+    } else {
+      toast.error('No meeting link available')
+    }
+  }
+
+  const handleCancelInterview = () => {
+    if (selectedInterviewId) {
+      cancelMutation.mutate({ id: selectedInterviewId, reason: 'Cancelled by user' })
+    }
+  }
 
   // State for mock data (only populated on client to avoid hydration mismatch)
   const [mockData, setMockData] = useState<ReturnType<typeof generateMockInterviews>>([])
@@ -254,8 +318,8 @@ export default function InterviewsPage() {
             </button>
           ))}
         </div>
-        <Button size="sm">
-          <Calendar className="h-4 w-4 mr-2" />
+        <Button size="sm" onClick={() => setScheduleDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
           Schedule Interview
         </Button>
       </div>
@@ -403,28 +467,69 @@ export default function InterviewsPage() {
                       </TableCell>
                       <TableCell>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
+                          <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                             <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                               <MoreHorizontal className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Video className="h-4 w-4 mr-2" />
-                              Join Meeting
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Calendar className="h-4 w-4 mr-2" />
-                              Reschedule
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <CheckCircle className="h-4 w-4 mr-2" />
-                              Mark Complete
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              <XCircle className="h-4 w-4 mr-2" />
-                              Cancel
-                            </DropdownMenuItem>
+                            {interview.status === 'SCHEDULED' && interview.meetingLink && (
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleJoinMeeting(interview.meetingLink as string | null)
+                                }}
+                              >
+                                <Video className="h-4 w-4 mr-2" />
+                                Join Meeting
+                              </DropdownMenuItem>
+                            )}
+                            {interview.status === 'SCHEDULED' && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    router.push(`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}?reschedule=true`)
+                                  }}
+                                >
+                                  <Calendar className="h-4 w-4 mr-2" />
+                                  Reschedule
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleMarkComplete(interview.id)
+                                  }}
+                                  disabled={updateStatusMutation.isPending}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  Mark Complete
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-red-600"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setSelectedInterviewId(interview.id)
+                                    setCancelDialogOpen(true)
+                                  }}
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Cancel
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {interview.status === 'COMPLETED' && (
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  router.push(`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}`)
+                                }}
+                              >
+                                <CheckCircle className="h-4 w-4 mr-2" />
+                                View Feedback
+                              </DropdownMenuItem>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -436,6 +541,43 @@ export default function InterviewsPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Schedule Interview Dialog */}
+      <ScheduleInterviewDialog
+        open={scheduleDialogOpen}
+        onOpenChange={setScheduleDialogOpen}
+        onSuccess={() => toast.success('Interview scheduled successfully')}
+      />
+
+      {/* Cancel Interview Confirmation Dialog */}
+      <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Cancel Interview</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to cancel this interview? This action cannot be undone.
+              The candidate and interviewers will be notified.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Interview</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelInterview}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={cancelMutation.isPending}
+            >
+              {cancelMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Cancelling...
+                </>
+              ) : (
+                'Cancel Interview'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
