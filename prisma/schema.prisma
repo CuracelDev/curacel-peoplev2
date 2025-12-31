@@ -1835,6 +1835,18 @@ enum AssessmentStatus {
   CANCELLED
 }
 
+enum AssessmentInputMethod {
+  CANDIDATE    // Candidate submits directly (file, text, or URL)
+  ADMIN        // Admin enters the result manually
+  WEBHOOK      // External platform sends via webhook/API
+}
+
+enum CandidateSubmissionType {
+  FILE         // File upload (PDF, image, etc.)
+  TEXT         // Text response
+  URL          // URL link to their work
+}
+
 // ============================================
 // EMAIL & COMMUNICATION ENUMS
 // ============================================
@@ -1873,6 +1885,10 @@ model AssessmentTemplate {
   name            String           // e.g., "Backend Coding Challenge"
   description     String?
   type            AssessmentType
+
+  // How results are submitted
+  inputMethod             AssessmentInputMethod @default(CANDIDATE)
+  candidateSubmissionTypes CandidateSubmissionType[] // What candidate can submit: FILE, TEXT, URL
 
   // Configuration
   durationMinutes Int?
@@ -1963,7 +1979,17 @@ model CandidateAssessment {
   predictedPerformance Float?      // AI predicted job performance (0-100)
   predictedTenure Int?             // Predicted months at company
 
-  // File uploads (PDF/image results)
+  // Submission tracking
+  submissionMethod  AssessmentInputMethod?  // How result was submitted
+  submittedById     String?                 // Admin ID if submitted by admin
+  submittedAt       DateTime?               // When submission was received
+
+  // Candidate submissions (when inputMethod is CANDIDATE)
+  submissionText    String?          @db.Text  // Text submission
+  submissionUrl     String?                    // URL submission
+  submissionFiles   Json?                      // Array of { url, name, type, size }
+
+  // File uploads (legacy - keep for backwards compat)
   fileUrl         String?
   fileName        String?
   extractedData   Json?            // AI-extracted data from file

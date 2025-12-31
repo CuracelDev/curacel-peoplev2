@@ -28,10 +28,30 @@ import {
   Clock,
   Target,
   FileText,
+  Upload,
+  Type,
+  Link2,
+  User,
+  UserCog,
+  Check,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
 type AssessmentType = 'COMPETENCY_TEST' | 'CODING_TEST' | 'PERSONALITY_TEST' | 'WORK_TRIAL' | 'CUSTOM'
+type InputMethod = 'CANDIDATE' | 'ADMIN' | 'WEBHOOK'
+type SubmissionType = 'FILE' | 'TEXT' | 'URL'
+
+const inputMethodConfig: Record<InputMethod, { label: string; icon: React.ComponentType<{ className?: string }>; description: string }> = {
+  CANDIDATE: { label: 'From Candidate', icon: User, description: 'Candidate submits their work directly' },
+  ADMIN: { label: 'From Admin', icon: UserCog, description: 'Admin manually enters the result' },
+  WEBHOOK: { label: 'Via Webhook/API', icon: Webhook, description: 'External platform sends results automatically' },
+}
+
+const submissionTypeConfig: Record<SubmissionType, { label: string; icon: React.ComponentType<{ className?: string }>; description: string }> = {
+  FILE: { label: 'File Upload', icon: Upload, description: 'PDF, image, or document' },
+  TEXT: { label: 'Text Response', icon: Type, description: 'Written answer or essay' },
+  URL: { label: 'URL Link', icon: Link2, description: 'Link to their work' },
+}
 
 const typeConfig: Record<AssessmentType, { label: string; icon: React.ComponentType<{ className?: string }>; color: string; description: string }> = {
   COMPETENCY_TEST: { label: 'Competency Test', icon: Target, color: 'bg-purple-100 text-purple-800', description: 'Skills and competency-based assessments' },
@@ -48,6 +68,8 @@ export default function NewAssessmentPage() {
     name: '',
     description: '',
     type: 'COMPETENCY_TEST' as AssessmentType,
+    inputMethod: 'CANDIDATE' as InputMethod,
+    candidateSubmissionTypes: ['FILE'] as SubmissionType[],
     externalUrl: '',
     externalPlatform: '',
     durationMinutes: '',
@@ -58,6 +80,17 @@ export default function NewAssessmentPage() {
     webhookUrl: '',
     teamId: '',
   })
+
+  const toggleSubmissionType = (type: SubmissionType) => {
+    const current = formData.candidateSubmissionTypes
+    if (current.includes(type)) {
+      if (current.length > 1) {
+        setFormData({ ...formData, candidateSubmissionTypes: current.filter(t => t !== type) })
+      }
+    } else {
+      setFormData({ ...formData, candidateSubmissionTypes: [...current, type] })
+    }
+  }
 
   // Fetch teams for dropdown
   const { data: teams } = trpc.team.listForSelect.useQuery()
@@ -78,6 +111,8 @@ export default function NewAssessmentPage() {
       name: formData.name,
       description: formData.description || undefined,
       type: formData.type,
+      inputMethod: formData.inputMethod,
+      candidateSubmissionTypes: formData.inputMethod === 'CANDIDATE' ? formData.candidateSubmissionTypes : undefined,
       externalUrl: formData.externalUrl || undefined,
       externalPlatform: formData.externalPlatform || undefined,
       durationMinutes: formData.durationMinutes ? parseInt(formData.durationMinutes) : undefined,
@@ -143,6 +178,76 @@ export default function NewAssessmentPage() {
             <p className="text-sm text-muted-foreground mt-3">
               {selectedTypeConfig.description}
             </p>
+          </CardContent>
+        </Card>
+
+        {/* Result Input Method */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Result Input Method</CardTitle>
+            <CardDescription>How will the assessment results be submitted?</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-3 gap-3">
+              {Object.entries(inputMethodConfig).map(([key, config]) => {
+                const Icon = config.icon
+                const isSelected = formData.inputMethod === key
+                return (
+                  <button
+                    key={key}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, inputMethod: key as InputMethod })}
+                    className={`p-4 rounded-lg border-2 text-left transition-all ${
+                      isSelected
+                        ? 'border-indigo-600 bg-indigo-50'
+                        : 'border-border hover:border-indigo-300 hover:bg-muted/50'
+                    }`}
+                  >
+                    <div className={`w-10 h-10 rounded-lg ${isSelected ? 'bg-indigo-600 text-white' : 'bg-muted text-muted-foreground'} flex items-center justify-center mb-2`}>
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <p className="text-sm font-medium">{config.label}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{config.description}</p>
+                  </button>
+                )
+              })}
+            </div>
+
+            {/* Candidate Submission Types - only show when CANDIDATE is selected */}
+            {formData.inputMethod === 'CANDIDATE' && (
+              <div className="pt-4 border-t">
+                <Label className="mb-3 block">What can candidates submit?</Label>
+                <div className="grid grid-cols-3 gap-3">
+                  {Object.entries(submissionTypeConfig).map(([key, config]) => {
+                    const Icon = config.icon
+                    const isSelected = formData.candidateSubmissionTypes.includes(key as SubmissionType)
+                    return (
+                      <button
+                        key={key}
+                        type="button"
+                        onClick={() => toggleSubmissionType(key as SubmissionType)}
+                        className={`p-3 rounded-lg border-2 text-left transition-all ${
+                          isSelected
+                            ? 'border-indigo-600 bg-indigo-50'
+                            : 'border-border hover:border-indigo-300 hover:bg-muted/50'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg ${isSelected ? 'bg-indigo-600 text-white' : 'bg-muted text-muted-foreground'} flex items-center justify-center flex-shrink-0`}>
+                            {isSelected ? <Check className="h-4 w-4" /> : <Icon className="h-4 w-4" />}
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium">{config.label}</p>
+                            <p className="text-xs text-muted-foreground">{config.description}</p>
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">Select all submission types you want to accept</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
