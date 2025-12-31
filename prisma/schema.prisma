@@ -1702,11 +1702,11 @@ model InterviewEvaluation {
   id           String                 @id @default(uuid())
   interviewId  String
   interview    CandidateInterview     @relation(fields: [interviewId], references: [id], onDelete: Cascade)
-  stageTemplateId String
-  stageTemplate InterviewStageTemplate @relation(fields: [stageTemplateId], references: [id])
+  stageTemplateId String?             // Optional - may not have rubric configured
+  stageTemplate InterviewStageTemplate? @relation(fields: [stageTemplateId], references: [id])
 
   // Evaluator info
-  evaluatorId   String                // Employee ID
+  evaluatorId   String?               // Employee ID (null for external interviewers)
   evaluatorName String
   evaluatorEmail String?
 
@@ -1722,7 +1722,7 @@ model InterviewEvaluation {
   createdAt    DateTime               @default(now())
   updatedAt    DateTime               @updatedAt
 
-  @@unique([interviewId, evaluatorId])
+  @@unique([interviewId, evaluatorEmail])  // Use email for uniqueness
   @@index([interviewId])
   @@index([evaluatorId])
   @@index([stageTemplateId])

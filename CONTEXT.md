@@ -39,7 +39,49 @@ This file is the quick-reference context for Curacel People V1 and V2. Keep it s
 - Assessments: Kand.io, TestGorilla, Testify, Big Five (OCEAN/MBTI).
 - Fireflies: manual upload now; search/attach via API later.
 
+## Email & Communication System (Dec 2024)
+
+### Core Architecture
+- **In-app email system** replacing n8n workflow completely
+- **Gmail API** with service account (domain-wide delegation)
+- Sends as assigned recruiter, CC's peopleops@curacel.ai
+- Thread continuity per candidate (In-Reply-To headers)
+- Full attachment support (send and receive)
+
+### Email Triggers
+- **Automatic**: Stage advancement triggers templated emails
+- **Manual**: Ad-hoc emails from candidate profile
+- **Reminders**: Auto-remind if no response in X days, then alert recruiter
+- **Rejection**: Draft for HR review, bulk trigger option
+
+### Email Features
+- Hierarchical templates (global defaults + per-job overrides)
+- AI-enhanced personalization (template variables + AI rewrites)
+- Full tracking: opens, link clicks, read time
+- Dedicated Email tab + activity feed integration on candidate profile
+- Reply sync: poll Gmail API to show candidate replies in-app
+
+### Standard Hiring Flow (varies per role)
+Interest → People Chat → Assessment → Team Chat (Panel) → Trial → CEO Chat → Offer
+
+### Interest Form (Replaces Google Forms)
+- Standard template with custom questions per job
+- Core fields: name, email, MBTI, salary, skills, tools, achievements, motivations
+- Public form URL per job position
+- Responses displayed in candidate profile tab
+- AI analysis on form submission
+
+### BlueAI Analysis System
+- **Per-tab summaries**: AI analysis at bottom of each candidate profile tab
+- **Versioned commentary**: After each stage/interview, new AI section appended
+- **Sentiment tracking**: Track how AI assessment changes as candidate progresses
+- **Dedicated BlueAI Analysis tab**: Comprehensive analysis with all versioned insights
+
+### External Integrations (to be internalized long-term)
+- Scheduling: Calendly / Google Calendar
+- Assessments: TestGorilla, Kand.io, Testlify
+- Interviews: Google Meet
+- Interest forms: now internal (was Google Forms)
+
 ## Open Questions / Inputs Needed
-- AE/commercial interest form fields and hiring rubric criteria for data mapping.
-- Access to hiring sheets (columns for stage dates, sources, salary expectations, etc.).
 - Fireflies API key and expected search behavior for transcript attachment.

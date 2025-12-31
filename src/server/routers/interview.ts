@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { router, protectedProcedure, adminProcedure } from '@/lib/trpc'
+import { router, protectedProcedure, adminProcedure, publicProcedure } from '@/lib/trpc'
 
 const interviewStageEnum = z.enum([
   'HR_SCREEN',      // People Chat
@@ -673,6 +673,368 @@ export const interviewRouter = router({
       return {
         success: true,
         message: `Reminder would be sent to ${token.interviewerEmail}`,
+      }
+    }),
+
+  // ============================================
+  // Phase 3: Public Evaluation Form
+  // ============================================
+
+  // Get interview data by token (public)
+  getInterviewByToken: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const tokenRecord = await ctx.prisma.interviewerToken.findUnique({
+        where: { token: input.token },
+        include: {
+          interview: {
+            include: {
+              candidate: {
+                include: {
+                  job: true,
+                },
+              },
+              evaluations: {
+                select: {
+                  id: true,
+                  evaluatorName: true,
+                  evaluatorEmail: true,
+                  overallScore: true,
+                  recommendation: true,
+                  submittedAt: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      if (!tokenRecord) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Invalid or expired interview link',
+        })
+      }
+
+      if (tokenRecord.isRevoked) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This interview link has been revoked',
+        })
+      }
+
+      if (tokenRecord.expiresAt < new Date()) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This interview link has expired',
+        })
+      }
+
+      // Update access timestamps
+      const now = new Date()
+      await ctx.prisma.interviewerToken.update({
+        where: { id: tokenRecord.id },
+        data: {
+          accessedAt: tokenRecord.accessedAt || now,
+          lastAccessAt: now,
+        },
+      })
+
+      // Get all interviewers for this interview
+      const interviewers = (tokenRecord.interview.interviewers as Array<{
+        employeeId?: string
+        name: string
+        email: string
+        role?: string
+      }>) || []
+
+      // Get other tokens (panel members) status
+      const allTokens = await ctx.prisma.interviewerToken.findMany({
+        where: {
+          interviewId: tokenRecord.interviewId,
+          id: { not: tokenRecord.id },
+        },
+        select: {
+          interviewerName: true,
+          interviewerRole: true,
+          evaluationStatus: true,
+        },
+      })
+
+      // Get rubric template if linked
+      let rubricCriteria: Array<{
+        id: string
+        name: string
+        description: string | null
+        weight: number
+        guideNotes: string | null
+      }> = []
+
+      if (tokenRecord.interview.stageTemplateId) {
+        const template = await ctx.prisma.interviewStageTemplate.findUnique({
+          where: { id: tokenRecord.interview.stageTemplateId },
+          include: {
+            criteria: {
+              orderBy: { order: 'asc' },
+            },
+          },
+        })
+        if (template) {
+          rubricCriteria = template.criteria.map(c => ({
+            id: c.id,
+            name: c.name,
+            description: c.description,
+            weight: c.weight,
+            guideNotes: c.guideNotes,
+          }))
+        }
+      }
+
+      return {
+        tokenId: tokenRecord.id,
+        interviewer: {
+          name: tokenRecord.interviewerName,
+          email: tokenRecord.interviewerEmail,
+          role: tokenRecord.interviewerRole,
+        },
+        interview: {
+          id: tokenRecord.interview.id,
+          stage: tokenRecord.interview.stage,
+          stageName: stageDisplayNames[tokenRecord.interview.stage] || tokenRecord.interview.stageName || tokenRecord.interview.stage,
+          scheduledAt: tokenRecord.interview.scheduledAt,
+          duration: tokenRecord.interview.duration,
+          meetingLink: tokenRecord.interview.meetingLink,
+        },
+        candidate: {
+          id: tokenRecord.interview.candidate.id,
+          name: tokenRecord.interview.candidate.name,
+          email: tokenRecord.interview.candidate.email,
+          phone: tokenRecord.interview.candidate.phone,
+          linkedinUrl: tokenRecord.interview.candidate.linkedinUrl,
+          resumeUrl: tokenRecord.interview.candidate.resumeUrl,
+        },
+        job: tokenRecord.interview.candidate.job ? {
+          id: tokenRecord.interview.candidate.job.id,
+          title: tokenRecord.interview.candidate.job.title,
+          department: tokenRecord.interview.candidate.job.department,
+        } : null,
+        rubricCriteria,
+        panelMembers: allTokens.map(t => ({
+          name: t.interviewerName,
+          role: t.interviewerRole,
+          status: t.evaluationStatus,
+        })),
+        previousEvaluations: tokenRecord.interview.evaluations.map(e => ({
+          evaluatorName: e.evaluatorName,
+          score: e.overallScore,
+          recommendation: e.recommendation,
+        })),
+        evaluationStatus: tokenRecord.evaluationStatus,
+        savedDraft: tokenRecord.evaluationNotes ? {
+          overallRating: tokenRecord.overallRating,
+          recommendation: tokenRecord.recommendation,
+          notes: tokenRecord.evaluationNotes,
+          customQuestions: tokenRecord.customQuestions,
+        } : null,
+      }
+    }),
+
+  // Save evaluation draft (public)
+  saveInterviewerDraft: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        scores: z.record(z.string(), z.number().min(1).max(5)).optional(),
+        notes: z.record(z.string(), z.string()).optional(),
+        overallRating: z.number().min(1).max(5).optional(),
+        recommendation: z.string().optional(),
+        overallNotes: z.string().optional(),
+        customQuestions: z.array(
+          z.object({
+            id: z.string(),
+            question: z.string(),
+            answer: z.string(),
+            score: z.number().min(1).max(5).nullable(),
+          })
+        ).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const tokenRecord = await ctx.prisma.interviewerToken.findUnique({
+        where: { token: input.token },
+      })
+
+      if (!tokenRecord) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Invalid interview link',
+        })
+      }
+
+      if (tokenRecord.isRevoked) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This interview link has been revoked',
+        })
+      }
+
+      if (tokenRecord.evaluationStatus === 'SUBMITTED') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Evaluation has already been submitted',
+        })
+      }
+
+      // Save draft data to the token record
+      await ctx.prisma.interviewerToken.update({
+        where: { id: tokenRecord.id },
+        data: {
+          overallRating: input.overallRating,
+          recommendation: input.recommendation,
+          evaluationNotes: JSON.stringify({
+            scores: input.scores,
+            notes: input.notes,
+            overallNotes: input.overallNotes,
+          }),
+          customQuestions: input.customQuestions,
+          evaluationStatus: 'IN_PROGRESS',
+        },
+      })
+
+      return { success: true, savedAt: new Date() }
+    }),
+
+  // Submit evaluation (public)
+  submitInterviewerFeedback: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        scores: z.record(z.string(), z.number().min(1).max(5)),
+        notes: z.record(z.string(), z.string()),
+        overallRating: z.number().min(1).max(5),
+        recommendation: z.enum(['STRONG_HIRE', 'HIRE', 'MAYBE', 'NO_HIRE', 'STRONG_NO_HIRE']),
+        overallNotes: z.string(),
+        customQuestions: z.array(
+          z.object({
+            id: z.string(),
+            question: z.string(),
+            answer: z.string(),
+            score: z.number().min(1).max(5).nullable(),
+          })
+        ).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const tokenRecord = await ctx.prisma.interviewerToken.findUnique({
+        where: { token: input.token },
+        include: {
+          interview: true,
+        },
+      })
+
+      if (!tokenRecord) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Invalid interview link',
+        })
+      }
+
+      if (tokenRecord.isRevoked) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This interview link has been revoked',
+        })
+      }
+
+      if (tokenRecord.expiresAt < new Date()) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'This interview link has expired',
+        })
+      }
+
+      if (tokenRecord.evaluationStatus === 'SUBMITTED') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Evaluation has already been submitted',
+        })
+      }
+
+      const now = new Date()
+
+      // Create the InterviewEvaluation record
+      const evaluation = await ctx.prisma.interviewEvaluation.create({
+        data: {
+          interviewId: tokenRecord.interviewId,
+          stageTemplateId: tokenRecord.interview.stageTemplateId,
+          evaluatorName: tokenRecord.interviewerName,
+          evaluatorEmail: tokenRecord.interviewerEmail,
+          overallScore: input.overallRating,
+          recommendation: input.recommendation,
+          overallNotes: input.overallNotes,
+          submittedAt: now,
+        },
+      })
+
+      // Create criteria scores if we have rubric criteria
+      if (tokenRecord.interview.stageTemplateId) {
+        const template = await ctx.prisma.interviewStageTemplate.findUnique({
+          where: { id: tokenRecord.interview.stageTemplateId },
+          include: { criteria: true },
+        })
+
+        if (template) {
+          for (const criteria of template.criteria) {
+            const score = input.scores[criteria.id]
+            const noteText = input.notes[criteria.id]
+
+            if (score !== undefined) {
+              await ctx.prisma.interviewCriteriaScore.create({
+                data: {
+                  evaluationId: evaluation.id,
+                  criteriaId: criteria.id,
+                  score,
+                  notes: noteText,
+                },
+              })
+            }
+          }
+        }
+      }
+
+      // Update the token as submitted
+      await ctx.prisma.interviewerToken.update({
+        where: { id: tokenRecord.id },
+        data: {
+          evaluationStatus: 'SUBMITTED',
+          submittedAt: now,
+          overallRating: input.overallRating,
+          recommendation: input.recommendation,
+          evaluationNotes: input.overallNotes,
+          customQuestions: input.customQuestions,
+        },
+      })
+
+      // Recalculate interview aggregate score
+      const allEvaluations = await ctx.prisma.interviewEvaluation.findMany({
+        where: { interviewId: tokenRecord.interviewId },
+        select: { overallScore: true },
+      })
+
+      if (allEvaluations.length > 0) {
+        const avgScore = allEvaluations.reduce((sum, e) => sum + (e.overallScore || 0), 0) / allEvaluations.length
+        await ctx.prisma.candidateInterview.update({
+          where: { id: tokenRecord.interviewId },
+          data: {
+            overallScore: Math.round(avgScore * 20), // Convert 1-5 to 0-100
+          },
+        })
+      }
+
+      return {
+        success: true,
+        evaluationId: evaluation.id,
+        message: 'Thank you for submitting your evaluation',
       }
     }),
 })
