@@ -1059,4 +1059,242 @@ export const interviewRouter = router({
         message: 'Thank you for submitting your evaluation',
       }
     }),
+
+  // ============================================
+  // Phase 6: Fireflies Integration
+  // ============================================
+
+  // Check if Fireflies is configured
+  isFirefliesConfigured: protectedProcedure.query(() => {
+    return { configured: !!process.env.FIREFLIES_API_KEY }
+  }),
+
+  // Search Fireflies meetings
+  searchFirefliesMeetings: protectedProcedure
+    .input(
+      z.object({
+        title: z.string().optional(),
+        participantEmail: z.string().optional(),
+        fromDate: z.string().optional(),
+        toDate: z.string().optional(),
+        candidateName: z.string().optional(),
+        candidateEmail: z.string().optional(),
+        limit: z.number().optional().default(10),
+      })
+    )
+    .query(async ({ input }) => {
+      const { getFirefliesConnector } = await import('@/lib/integrations/fireflies')
+      const connector = await getFirefliesConnector()
+
+      if (!connector) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'Fireflies integration is not configured. Add FIREFLIES_API_KEY to environment.',
+        })
+      }
+
+      // If searching by candidate, use special method
+      if (input.candidateName || input.candidateEmail) {
+        const meetings = await connector.searchMeetingsByCandidate(
+          input.candidateName || '',
+          input.candidateEmail
+        )
+        return meetings.slice(0, input.limit)
+      }
+
+      // Otherwise, use general search
+      const meetings = await connector.searchMeetings({
+        title: input.title,
+        participant_email: input.participantEmail,
+        from_date: input.fromDate,
+        to_date: input.toDate,
+        limit: input.limit,
+      })
+
+      return meetings
+    }),
+
+  // Get Fireflies meeting details
+  getFirefliesMeeting: protectedProcedure
+    .input(z.object({ meetingId: z.string() }))
+    .query(async ({ input }) => {
+      const { getFirefliesConnector } = await import('@/lib/integrations/fireflies')
+      const connector = await getFirefliesConnector()
+
+      if (!connector) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'Fireflies integration is not configured',
+        })
+      }
+
+      const meeting = await connector.getMeetingWithSummary(input.meetingId)
+
+      if (!meeting) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Meeting not found in Fireflies',
+        })
+      }
+
+      return meeting
+    }),
+
+  // Attach Fireflies recording to interview
+  attachFirefliesRecording: protectedProcedure
+    .input(
+      z.object({
+        interviewId: z.string(),
+        firefliesMeetingId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { getFirefliesConnector } = await import('@/lib/integrations/fireflies')
+      const connector = await getFirefliesConnector()
+
+      if (!connector) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'Fireflies integration is not configured',
+        })
+      }
+
+      // Check interview exists
+      const interview = await ctx.prisma.candidateInterview.findUnique({
+        where: { id: input.interviewId },
+      })
+
+      if (!interview) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Interview not found',
+        })
+      }
+
+      // Get meeting data from Fireflies
+      const meeting = await connector.getMeetingWithSummary(input.firefliesMeetingId)
+
+      if (!meeting) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Meeting not found in Fireflies',
+        })
+      }
+
+      // Get full transcript
+      const transcriptText = await connector.getTranscriptText(input.firefliesMeetingId)
+
+      // Get highlights
+      const highlights = await connector.extractHighlights(input.firefliesMeetingId)
+
+      // Update interview with Fireflies data
+      const updatedInterview = await ctx.prisma.candidateInterview.update({
+        where: { id: input.interviewId },
+        data: {
+          firefliesMeetingId: input.firefliesMeetingId,
+          firefliesTranscript: transcriptText,
+          firefliesSummary: meeting.summary?.overview || null,
+          firefliesActionItems: meeting.summary?.action_items || [],
+          firefliesHighlights: highlights,
+          transcriptUrl: meeting.transcript_url || null,
+          recordingUrl: meeting.video_url || meeting.audio_url || null,
+        },
+        include: {
+          candidate: {
+            include: {
+              job: true,
+            },
+          },
+        },
+      })
+
+      return {
+        ...updatedInterview,
+        stageDisplayName: stageDisplayNames[updatedInterview.stage] || updatedInterview.stageName || updatedInterview.stage,
+      }
+    }),
+
+  // Detach Fireflies recording from interview
+  detachFirefliesRecording: protectedProcedure
+    .input(z.object({ interviewId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const interview = await ctx.prisma.candidateInterview.findUnique({
+        where: { id: input.interviewId },
+      })
+
+      if (!interview) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Interview not found',
+        })
+      }
+
+      const updatedInterview = await ctx.prisma.candidateInterview.update({
+        where: { id: input.interviewId },
+        data: {
+          firefliesMeetingId: null,
+          firefliesTranscript: null,
+          firefliesSummary: null,
+          firefliesActionItems: null,
+          firefliesHighlights: null,
+          transcriptUrl: null,
+          recordingUrl: null,
+        },
+        include: {
+          candidate: {
+            include: {
+              job: true,
+            },
+          },
+        },
+      })
+
+      return {
+        ...updatedInterview,
+        stageDisplayName: stageDisplayNames[updatedInterview.stage] || updatedInterview.stageName || updatedInterview.stage,
+      }
+    }),
+
+  // Get transcript for an interview
+  getTranscript: protectedProcedure
+    .input(z.object({ interviewId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const interview = await ctx.prisma.candidateInterview.findUnique({
+        where: { id: input.interviewId },
+        select: {
+          firefliesMeetingId: true,
+          firefliesTranscript: true,
+          firefliesSummary: true,
+          firefliesActionItems: true,
+          firefliesHighlights: true,
+          transcriptUrl: true,
+          recordingUrl: true,
+        },
+      })
+
+      if (!interview) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Interview not found',
+        })
+      }
+
+      if (!interview.firefliesMeetingId) {
+        return null
+      }
+
+      return {
+        meetingId: interview.firefliesMeetingId,
+        transcript: interview.firefliesTranscript,
+        summary: interview.firefliesSummary,
+        actionItems: interview.firefliesActionItems as string[] | null,
+        highlights: interview.firefliesHighlights as Array<{
+          timestamp: string
+          text: string
+          speaker: string
+        }> | null,
+        transcriptUrl: interview.transcriptUrl,
+        recordingUrl: interview.recordingUrl,
+      }
+    }),
 })
