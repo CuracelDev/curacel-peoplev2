@@ -6,17 +6,7 @@ import { trpc } from '@/lib/trpc-client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -50,8 +40,6 @@ import {
   Loader2,
   Webhook,
   Target,
-  Wand2,
-  Sparkles,
   Copy,
   Check,
   Search,
@@ -79,19 +67,9 @@ const assessmentTypes: { key: AssessmentType; label: string }[] = [
 ]
 
 export default function AssessmentSettingsPage() {
-  const [showAIDialog, setShowAIDialog] = useState(false)
-  const [selectedTemplateForAI, setSelectedTemplateForAI] = useState<string | null>(null)
-  const [generatedQuestions, setGeneratedQuestions] = useState<any[]>([])
   const [copiedWebhook, setCopiedWebhook] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [typeFilter, setTypeFilter] = useState<string>('all')
-
-  // AI Generation settings
-  const [aiSettings, setAISettings] = useState({
-    type: 'technical' as 'technical' | 'behavioral' | 'cognitive' | 'role_specific',
-    count: 10,
-    difficulty: 'mixed' as 'easy' | 'medium' | 'hard' | 'mixed',
-  })
 
   // Fetch ALL templates
   const { data: templates, isLoading, refetch } = trpc.assessment.listTemplates.useQuery({})
@@ -115,53 +93,6 @@ export default function AssessmentSettingsPage() {
       toast.error(error.message || 'Failed to delete assessment')
     },
   })
-
-  const generateQuestions = trpc.assessment.generateQuestions.useMutation({
-    onSuccess: (data) => {
-      setGeneratedQuestions(data.questions || [])
-      toast.success(`Generated ${data.questions?.length || 0} questions`)
-    },
-    onError: (error) => {
-      toast.error('Failed to generate questions: ' + error.message)
-    },
-  })
-
-  const saveQuestions = trpc.assessment.saveGeneratedQuestions.useMutation({
-    onSuccess: () => {
-      setShowAIDialog(false)
-      setGeneratedQuestions([])
-      setSelectedTemplateForAI(null)
-      refetch()
-      toast.success('Questions saved to assessment')
-    },
-    onError: (error) => {
-      toast.error('Failed to save questions: ' + error.message)
-    },
-  })
-
-  const handleGenerateQuestions = () => {
-    if (!selectedTemplateForAI) return
-    generateQuestions.mutate({
-      templateId: selectedTemplateForAI,
-      type: aiSettings.type,
-      count: aiSettings.count,
-      difficulty: aiSettings.difficulty,
-    })
-  }
-
-  const handleSaveQuestions = () => {
-    if (!selectedTemplateForAI || generatedQuestions.length === 0) return
-    saveQuestions.mutate({
-      templateId: selectedTemplateForAI,
-      questions: generatedQuestions,
-    })
-  }
-
-  const openAIDialog = (templateId: string) => {
-    setSelectedTemplateForAI(templateId)
-    setGeneratedQuestions([])
-    setShowAIDialog(true)
-  }
 
   const copyWebhookUrl = () => {
     const webhookUrl = `${window.location.origin}/api/webhooks/assessments/webhook`
@@ -295,10 +226,6 @@ export default function AssessmentSettingsPage() {
                                 Edit
                               </Link>
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => openAIDialog(template.id)}>
-                              <Wand2 className="h-4 w-4 mr-2" />
-                              Generate Questions with AI
-                            </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem
                               className="text-red-600"
@@ -318,157 +245,6 @@ export default function AssessmentSettingsPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* AI Question Generation Dialog */}
-      <Dialog open={showAIDialog} onOpenChange={setShowAIDialog}>
-        <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Wand2 className="h-5 w-5 text-purple-500" />
-              AI Question Generator
-            </DialogTitle>
-            <DialogDescription>
-              Use AI to generate assessment questions based on your requirements
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="grid grid-cols-3 gap-4 py-4">
-            <div className="space-y-2">
-              <Label>Question Type</Label>
-              <Select
-                value={aiSettings.type}
-                onValueChange={(v) => setAISettings({ ...aiSettings, type: v as typeof aiSettings.type })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="technical">Technical</SelectItem>
-                  <SelectItem value="behavioral">Behavioral</SelectItem>
-                  <SelectItem value="cognitive">Cognitive</SelectItem>
-                  <SelectItem value="role_specific">Role Specific</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Number of Questions</Label>
-              <Select
-                value={aiSettings.count.toString()}
-                onValueChange={(v) => setAISettings({ ...aiSettings, count: parseInt(v) })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="5">5 questions</SelectItem>
-                  <SelectItem value="10">10 questions</SelectItem>
-                  <SelectItem value="15">15 questions</SelectItem>
-                  <SelectItem value="20">20 questions</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Difficulty</Label>
-              <Select
-                value={aiSettings.difficulty}
-                onValueChange={(v) => setAISettings({ ...aiSettings, difficulty: v as typeof aiSettings.difficulty })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="easy">Easy</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="hard">Hard</SelectItem>
-                  <SelectItem value="mixed">Mixed</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <Button
-            onClick={handleGenerateQuestions}
-            disabled={generateQuestions.isPending}
-            className="w-full"
-          >
-            {generateQuestions.isPending ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Generating Questions...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4 mr-2" />
-                Generate Questions
-              </>
-            )}
-          </Button>
-
-          {generatedQuestions.length > 0 && (
-            <ScrollArea className="flex-1 mt-4 border rounded-lg p-4">
-              <div className="space-y-4">
-                <h4 className="font-medium text-sm text-muted-foreground">
-                  Generated {generatedQuestions.length} questions
-                </h4>
-                {generatedQuestions.map((q, index) => (
-                  <div key={q.id || index} className="border rounded-lg p-4 space-y-2">
-                    <div className="flex items-start justify-between">
-                      <span className="font-medium">Q{index + 1}.</span>
-                      <Badge variant="outline" className="text-xs">
-                        {q.type || 'text'}
-                      </Badge>
-                    </div>
-                    <p className="text-sm">{q.text}</p>
-                    {q.options && q.options.length > 0 && (
-                      <div className="pl-4 space-y-1">
-                        {q.options.map((opt: any, optIndex: number) => (
-                          <p key={optIndex} className="text-sm text-muted-foreground">
-                            {String.fromCharCode(65 + optIndex)}. {opt.text}
-                          </p>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      {q.difficulty && (
-                        <Badge variant="secondary" className="text-xs">
-                          {q.difficulty}
-                        </Badge>
-                      )}
-                      {q.maxScore && (
-                        <span>{q.maxScore} points</span>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-          )}
-
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setShowAIDialog(false)}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSaveQuestions}
-              disabled={generatedQuestions.length === 0 || saveQuestions.isPending}
-            >
-              {saveQuestions.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Save Questions
-                </>
-              )}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Webhook URL Card */}
       <Card>
