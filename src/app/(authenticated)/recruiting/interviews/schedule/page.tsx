@@ -461,8 +461,15 @@ export default function ScheduleInterviewPage() {
                               <CommandItem
                                 key={candidate.id}
                                 value={candidate.id}
-                                onSelect={() => {
-                                  setSelectedCandidateId(candidate.id)
+                                keywords={[
+                                  candidate.name,
+                                  candidate.email ?? '',
+                                  candidate.job?.title ?? '',
+                                  candidate.stageDisplayName ?? '',
+                                ]}
+                                className="cursor-pointer"
+                                onSelect={(value) => {
+                                  setSelectedCandidateId(value)
                                   setCandidateOpen(false)
                                 }}
                               >
