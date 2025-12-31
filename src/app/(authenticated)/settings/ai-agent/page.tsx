@@ -172,7 +172,7 @@ export default function AIAgentSettingsPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -271,7 +271,7 @@ export default function AIAgentSettingsPage() {
               </option>
             </select>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs text-gray-600">
+          <div className="flex flex-wrap gap-2 text-xs text-foreground/80">
             <span>OpenAI</span>
             {settings?.hasOpenaiKey ? (
               <Badge variant="secondary" className="text-xs">Configured</Badge>
@@ -316,7 +316,7 @@ export default function AIAgentSettingsPage() {
                 <button
                   type="button"
                   onClick={() => setShowOpenAIKey(!showOpenAIKey)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground/80"
                 >
                   {showOpenAIKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -386,7 +386,7 @@ export default function AIAgentSettingsPage() {
                 <button
                   type="button"
                   onClick={() => setShowAnthropicKey(!showAnthropicKey)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground/80"
                 >
                   {showAnthropicKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -458,7 +458,7 @@ export default function AIAgentSettingsPage() {
                 <button
                   type="button"
                   onClick={() => setShowGeminiKey(!showGeminiKey)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground/80"
                 >
                   {showGeminiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                 </button>
@@ -514,7 +514,7 @@ export default function AIAgentSettingsPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ul className="space-y-2 text-sm text-gray-600">
+          <ul className="space-y-2 text-sm text-foreground/80">
             <li className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-green-500" />
               Search and find contracts by candidate name or status

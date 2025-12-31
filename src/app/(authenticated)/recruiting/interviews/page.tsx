@@ -149,7 +149,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.C
   SCHEDULED: { label: 'Scheduled', color: 'bg-blue-100 text-blue-800', icon: Calendar },
   IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
   COMPLETED: { label: 'Completed', color: 'bg-green-100 text-green-800', icon: CheckCircle },
-  CANCELLED: { label: 'Cancelled', color: 'bg-gray-100 text-gray-800', icon: XCircle },
+  CANCELLED: { label: 'Cancelled', color: 'bg-muted text-foreground', icon: XCircle },
   NO_SHOW: { label: 'No Show', color: 'bg-red-100 text-red-800', icon: AlertCircle },
 }
 
@@ -236,7 +236,7 @@ export default function InterviewsPage() {
                 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap',
                 activeFilter === stage.key
                   ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-muted text-foreground/80 hover:bg-muted'
               )}
               onClick={() => setActiveFilter(stage.key)}
             >
@@ -244,8 +244,8 @@ export default function InterviewsPage() {
               <span className={cn(
                 'ml-1.5 px-1 py-0.5 rounded text-[10px]',
                 activeFilter === stage.key
-                  ? 'bg-white/20'
-                  : 'bg-gray-200'
+                  ? 'bg-card/20'
+                  : 'bg-muted'
               )}>
                 {stage.key === 'all'
                   ? counts?.all || 0
@@ -263,7 +263,7 @@ export default function InterviewsPage() {
       {/* Search and Filters */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by candidate or team..."
             className="pl-9"
@@ -291,13 +291,13 @@ export default function InterviewsPage() {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : !interviews?.length ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <Calendar className="h-12 w-12 text-gray-300 mb-4" />
-              <h3 className="font-medium text-gray-900">No interviews found</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <Calendar className="h-12 w-12 text-muted-foreground/60 mb-4" />
+              <h3 className="font-medium text-foreground">No interviews found</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 {searchQuery || activeFilter !== 'all'
                   ? 'Try adjusting your filters'
                   : 'Schedule your first interview to get started'}
@@ -318,26 +318,26 @@ export default function InterviewsPage() {
               </TableHeader>
               <TableBody>
                 {interviews.map((interview) => {
-                  const stage = stageConfig[interview.stage] || { label: interview.stage, color: 'bg-gray-100 text-gray-800' }
+                  const stage = stageConfig[interview.stage] || { label: interview.stage, color: 'bg-muted text-foreground' }
                   const status = statusConfig[interview.status] || statusConfig.SCHEDULED
                   const StatusIcon = status.icon
 
                   return (
                     <TableRow
                       key={interview.id}
-                      className="cursor-pointer hover:bg-gray-50"
+                      className="cursor-pointer hover:bg-muted"
                       onClick={() => router.push(`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}`)}
                     >
                       <TableCell>
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
-                            <User className="h-4 w-4 text-gray-500" />
+                          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                            <User className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div>
-                            <div className="font-medium text-gray-900">
+                            <div className="font-medium text-foreground">
                               {interview.candidate?.name || 'Unknown'}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-muted-foreground">
                               {interview.candidate?.email}
                             </div>
                           </div>
@@ -346,7 +346,7 @@ export default function InterviewsPage() {
                       <TableCell>
                         <div className="text-sm">
                           <div className="font-medium">{interview.candidate?.job?.title || '-'}</div>
-                          <div className="text-gray-500">{interview.candidate?.job?.department || ''}</div>
+                          <div className="text-muted-foreground">{interview.candidate?.job?.department || ''}</div>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -356,7 +356,7 @@ export default function InterviewsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5 text-gray-400 flex-shrink-0" />
+                          <Calendar className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                           <div className="text-xs whitespace-nowrap">
                             <div className={cn(
                               interview.scheduledAt && isPast(new Date(interview.scheduledAt)) && interview.status === 'SCHEDULED'
@@ -366,7 +366,7 @@ export default function InterviewsPage() {
                               {formatInterviewDate(interview.scheduledAt)}
                             </div>
                             {interview.duration && (
-                              <div className="text-gray-500 text-[10px]">
+                              <div className="text-muted-foreground text-[10px]">
                                 {interview.duration} min
                               </div>
                             )}
@@ -379,20 +379,20 @@ export default function InterviewsPage() {
                             {(interview.interviewers as Array<{ name: string; email?: string }>).slice(0, 3).map((interviewer, i) => (
                               <div
                                 key={i}
-                                className="h-7 w-7 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-xs font-medium"
+                                className="h-7 w-7 rounded-full bg-muted border-2 border-white flex items-center justify-center text-xs font-medium"
                                 title={interviewer.name}
                               >
                                 {interviewer.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
                               </div>
                             ))}
                             {(interview.interviewers as unknown[]).length > 3 && (
-                              <div className="h-7 w-7 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center text-xs text-gray-500">
+                              <div className="h-7 w-7 rounded-full bg-muted border-2 border-white flex items-center justify-center text-xs text-muted-foreground">
                                 +{(interview.interviewers as unknown[]).length - 3}
                               </div>
                             )}
                           </div>
                         ) : (
-                          <span className="text-gray-400 text-sm">-</span>
+                          <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
                       <TableCell>

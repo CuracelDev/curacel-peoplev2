@@ -193,15 +193,15 @@ export default function TeamsPage() {
     return (
       <div key={team.id}>
         <div
-          className={`flex items-center justify-between p-4 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors ${
-            isSubTeam ? 'ml-8 bg-gray-50/50' : ''
+          className={`flex items-center justify-between p-4 rounded-lg border border-border hover:bg-muted transition-colors ${
+            isSubTeam ? 'ml-8 bg-muted/50/50' : ''
           }`}
         >
           <div className="flex items-center gap-4">
             {hasSubTeams && (
               <button
                 onClick={() => toggleExpanded(team.id)}
-                className="p-1 hover:bg-gray-200 rounded"
+                className="p-1 hover:bg-muted rounded"
               >
                 <ChevronRight
                   className={`h-4 w-4 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
@@ -216,16 +216,16 @@ export default function TeamsPage() {
               {team.name.charAt(0).toUpperCase()}
             </div>
             <div>
-              <h3 className="font-medium text-gray-900">
+              <h3 className="font-medium text-foreground">
                 {team.name}
                 {isSubTeam && parentTeam && (
-                  <span className="text-gray-500 text-sm ml-2">
+                  <span className="text-muted-foreground text-sm ml-2">
                     (under {parentTeam.name})
                   </span>
                 )}
               </h3>
               {team.description && (
-                <p className="text-sm text-gray-500 line-clamp-1">{team.description}</p>
+                <p className="text-sm text-muted-foreground line-clamp-1">{team.description}</p>
               )}
             </div>
           </div>
@@ -397,9 +397,9 @@ export default function TeamsPage() {
             </div>
           ) : (
             <div className="text-center py-12">
-              <Users className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No teams yet</h3>
-              <p className="text-gray-500 mb-4">
+              <Users className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No teams yet</h3>
+              <p className="text-muted-foreground mb-4">
                 Create your first team to organize your employees.
               </p>
               <Button onClick={() => { resetForm(); setCreateDialogOpen(true) }}>

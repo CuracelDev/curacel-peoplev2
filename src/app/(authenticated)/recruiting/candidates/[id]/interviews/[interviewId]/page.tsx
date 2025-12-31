@@ -298,7 +298,7 @@ function RatingScale({
             'w-10 h-10 rounded-lg flex items-center justify-center text-sm font-semibold transition-all',
             value === rating.value
               ? `${rating.color} text-white shadow-md`
-              : 'bg-gray-100 text-gray-500 hover:bg-gray-200',
+              : 'bg-muted text-muted-foreground hover:bg-muted',
             disabled && 'cursor-default'
           )}
           title={rating.label}
@@ -347,7 +347,7 @@ export default function InterviewDetailPage() {
       <div className="mb-6">
         <Link
           href={`/recruiting/candidates/${candidateId}`}
-          className="inline-flex items-center text-sm text-gray-500 hover:text-gray-700 mb-4"
+          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
           Back to Candidate
@@ -374,10 +374,10 @@ export default function InterviewDetailPage() {
                   {interviewData.status}
                 </Badge>
               </h1>
-              <div className="text-sm text-gray-500 mt-1 truncate">
+              <div className="text-sm text-muted-foreground mt-1 truncate">
                 {interviewData.candidate.name} &bull; {interviewData.candidate.position}
               </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-gray-500 mt-2">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-2">
                 <span className="flex items-center gap-1">
                   <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   {new Date(interviewData.scheduledAt).toLocaleDateString('en-US', {
@@ -398,7 +398,7 @@ export default function InterviewDetailPage() {
             {interviewData.overallScore && (
               <div className="text-center px-3 sm:px-4 py-2 bg-green-50 rounded-lg border border-green-200">
                 <div className="text-xl sm:text-2xl font-bold text-green-600">{interviewData.overallScore}</div>
-                <div className="text-[10px] sm:text-xs text-gray-500">Score</div>
+                <div className="text-[10px] sm:text-xs text-muted-foreground">Score</div>
               </div>
             )}
             <DropdownMenu>
@@ -438,7 +438,7 @@ export default function InterviewDetailPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 overflow-hidden">
-              <div className="px-2 sm:px-3 py-1.5 bg-white rounded-lg text-xs sm:text-sm font-mono text-gray-600 border flex-1 sm:flex-none sm:max-w-xs truncate">
+              <div className="px-2 sm:px-3 py-1.5 bg-card rounded-lg text-xs sm:text-sm font-mono text-foreground/80 border flex-1 sm:flex-none sm:max-w-xs truncate">
                 {interviewData.publicLink}
               </div>
               <Button
@@ -458,7 +458,7 @@ export default function InterviewDetailPage() {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-64">
                   <div className="p-2">
-                    <div className="text-xs font-medium text-gray-500 mb-2">Send to interviewers:</div>
+                    <div className="text-xs font-medium text-muted-foreground mb-2">Send to interviewers:</div>
                     {interviewData.interviewers.map((interviewer) => (
                       <DropdownMenuItem
                         key={interviewer.id}
@@ -518,7 +518,7 @@ export default function InterviewDetailPage() {
                       <div key={q.id} className="flex items-center gap-4">
                         <div className="w-40 text-sm font-medium">{q.category}</div>
                         <div className="flex-1">
-                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
                             <div
                               className={cn(
                                 'h-full rounded-full',
@@ -552,7 +552,7 @@ export default function InterviewDetailPage() {
                       </Avatar>
                       <div>
                         <div className="text-sm font-medium">{interviewer.name}</div>
-                        <div className="text-xs text-gray-500">{interviewer.role}</div>
+                        <div className="text-xs text-muted-foreground">{interviewer.role}</div>
                       </div>
                     </div>
                     <Badge
@@ -580,7 +580,7 @@ export default function InterviewDetailPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-gray-600 mb-4">{interviewData.fireflies.summary}</p>
+                  <p className="text-sm text-foreground/80 mb-4">{interviewData.fireflies.summary}</p>
                   <div className="flex gap-4">
                     <Button variant="outline" size="sm" asChild>
                       <a href={interviewData.fireflies.transcriptUrl} target="_blank">
@@ -611,7 +611,7 @@ export default function InterviewDetailPage() {
                         {question.category}
                       </Badge>
                       <h3 className="font-semibold text-lg">{question.question}</h3>
-                      <p className="text-sm text-gray-500 mt-1">{question.guideNotes}</p>
+                      <p className="text-sm text-muted-foreground mt-1">{question.guideNotes}</p>
                     </div>
                     {question.weight > 1 && (
                       <Badge className="bg-indigo-100 text-indigo-700">
@@ -625,7 +625,7 @@ export default function InterviewDetailPage() {
                     {interviewData.interviewers.map((interviewer) => {
                       const score = interviewer.scores.find((s) => s.questionId === question.id)
                       return (
-                        <div key={interviewer.id} className="flex items-start gap-4 p-3 bg-gray-50 rounded-lg">
+                        <div key={interviewer.id} className="flex items-start gap-4 p-3 bg-muted/50 rounded-lg">
                           <Avatar className="h-8 w-8">
                             <AvatarFallback className={cn(interviewer.avatar, 'text-white text-xs')}>
                               {getInitials(interviewer.name)}
@@ -637,7 +637,7 @@ export default function InterviewDetailPage() {
                               <RatingScale value={score?.score || null} disabled />
                             </div>
                             {score?.notes && (
-                              <p className="text-sm text-gray-600">{score.notes}</p>
+                              <p className="text-sm text-foreground/80">{score.notes}</p>
                             )}
                           </div>
                         </div>
@@ -652,9 +652,9 @@ export default function InterviewDetailPage() {
             {interviewData.interviewers.some((i) => i.customQuestions.length > 0) && (
               <>
                 <div className="flex items-center gap-2 mt-8 mb-4">
-                  <div className="h-px flex-1 bg-gray-200" />
-                  <span className="text-sm font-medium text-gray-500">Custom Questions</span>
-                  <div className="h-px flex-1 bg-gray-200" />
+                  <div className="h-px flex-1 bg-muted" />
+                  <span className="text-sm font-medium text-muted-foreground">Custom Questions</span>
+                  <div className="h-px flex-1 bg-muted" />
                 </div>
 
                 {interviewData.interviewers.map((interviewer) =>
@@ -669,11 +669,11 @@ export default function InterviewDetailPage() {
                           </Avatar>
                           <div className="flex-1">
                             <div className="flex items-center justify-between mb-2">
-                              <span className="text-sm text-gray-500">Added by {interviewer.name}</span>
+                              <span className="text-sm text-muted-foreground">Added by {interviewer.name}</span>
                               <RatingScale value={cq.score} disabled />
                             </div>
                             <h3 className="font-semibold">{cq.question}</h3>
-                            <p className="text-sm text-gray-600 mt-2">{cq.answer}</p>
+                            <p className="text-sm text-foreground/80 mt-2">{cq.answer}</p>
                           </div>
                         </div>
                       </CardContent>
@@ -703,14 +703,14 @@ export default function InterviewDetailPage() {
                 <CardContent>
                   <div className="bg-gray-900 rounded-lg p-6 text-white">
                     <div className="flex items-center justify-center gap-4 mb-4">
-                      <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                      <Button variant="ghost" size="icon" className="text-white hover:bg-card/10">
                         <Play className="h-8 w-8" />
                       </Button>
                     </div>
                     <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
                       <div className="h-full w-1/3 bg-indigo-500 rounded-full" />
                     </div>
-                    <div className="flex justify-between mt-2 text-xs text-gray-400">
+                    <div className="flex justify-between mt-2 text-xs text-muted-foreground">
                       <span>14:05</span>
                       <span>{interviewData.fireflies.duration}</span>
                     </div>
@@ -723,7 +723,7 @@ export default function InterviewDetailPage() {
                       {interviewData.fireflies.highlights.map((highlight, idx) => (
                         <button
                           key={idx}
-                          className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-gray-50 text-left transition-colors"
+                          className="w-full flex items-start gap-3 p-3 rounded-lg hover:bg-muted text-left transition-colors"
                         >
                           <Badge variant="outline" className="font-mono text-xs shrink-0">
                             {highlight.timestamp}
@@ -746,7 +746,7 @@ export default function InterviewDetailPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-gray-600">{interviewData.fireflies.summary}</p>
+                    <p className="text-sm text-foreground/80">{interviewData.fireflies.summary}</p>
                   </CardContent>
                 </Card>
 
@@ -777,9 +777,9 @@ export default function InterviewDetailPage() {
           ) : (
             <Card className="text-center py-12">
               <CardContent>
-                <Mic className="h-12 w-12 mx-auto text-gray-300 mb-4" />
+                <Mic className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No Recording Available</h3>
-                <p className="text-gray-500 mb-4">
+                <p className="text-muted-foreground mb-4">
                   Connect Fireflies to automatically record and transcribe interviews.
                 </p>
                 <Button variant="outline">
@@ -831,7 +831,7 @@ export default function InterviewDetailPage() {
                             </Badge>
                           )}
                         </div>
-                        <div className="text-sm text-gray-500">{interviewer.role}</div>
+                        <div className="text-sm text-muted-foreground">{interviewer.role}</div>
                       </div>
                     </div>
                     <div className="flex items-center gap-4">
@@ -844,12 +844,12 @@ export default function InterviewDetailPage() {
                                 'h-4 w-4',
                                 star <= interviewer.overallRating
                                   ? 'fill-amber-400 text-amber-400'
-                                  : 'text-gray-200'
+                                  : 'text-muted-foreground/40'
                               )}
                             />
                           ))}
                         </div>
-                        <div className="text-xs text-gray-500">Overall Rating</div>
+                        <div className="text-xs text-muted-foreground">Overall Rating</div>
                       </div>
                       <Badge
                         className={cn(
@@ -862,9 +862,9 @@ export default function InterviewDetailPage() {
                         {interviewer.recommendation}
                       </Badge>
                       {expandedInterviewer === interviewer.id ? (
-                        <ChevronUp className="h-5 w-5 text-gray-400" />
+                        <ChevronUp className="h-5 w-5 text-muted-foreground" />
                       ) : (
-                        <ChevronDown className="h-5 w-5 text-gray-400" />
+                        <ChevronDown className="h-5 w-5 text-muted-foreground" />
                       )}
                     </div>
                   </div>
@@ -874,28 +874,28 @@ export default function InterviewDetailPage() {
                   <CardContent className="border-t pt-4">
                     {/* Notes */}
                     <div className="mb-6">
-                      <h4 className="text-sm font-medium text-gray-500 mb-2">Notes</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-2">Notes</h4>
                       <p className="text-sm">{interviewer.notes}</p>
                     </div>
 
                     {/* Scores */}
                     <div className="mb-6">
-                      <h4 className="text-sm font-medium text-gray-500 mb-3">Question Scores</h4>
+                      <h4 className="text-sm font-medium text-muted-foreground mb-3">Question Scores</h4>
                       <div className="space-y-3">
                         {interviewer.scores.map((score) => {
                           const question = interviewData.rubricQuestions.find(
                             (q) => q.id === score.questionId
                           )
                           return (
-                            <div key={score.questionId} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg">
+                            <div key={score.questionId} className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
                               <div className="flex-1">
                                 <div className="flex items-center justify-between mb-1">
                                   <span className="font-medium text-sm">{question?.category}</span>
                                   <RatingScale value={score.score} disabled />
                                 </div>
-                                <p className="text-sm text-gray-500">{question?.question}</p>
+                                <p className="text-sm text-muted-foreground">{question?.question}</p>
                                 {score.notes && (
-                                  <p className="text-sm text-gray-600 mt-2 italic">"{score.notes}"</p>
+                                  <p className="text-sm text-foreground/80 mt-2 italic">"{score.notes}"</p>
                                 )}
                               </div>
                             </div>
@@ -907,7 +907,7 @@ export default function InterviewDetailPage() {
                     {/* Custom Questions */}
                     {interviewer.customQuestions.length > 0 && (
                       <div>
-                        <h4 className="text-sm font-medium text-gray-500 mb-3">Custom Questions Added</h4>
+                        <h4 className="text-sm font-medium text-muted-foreground mb-3">Custom Questions Added</h4>
                         <div className="space-y-3">
                           {interviewer.customQuestions.map((cq) => (
                             <div key={cq.id} className="p-3 bg-indigo-50 rounded-lg">
@@ -915,7 +915,7 @@ export default function InterviewDetailPage() {
                                 <span className="font-medium text-sm">{cq.question}</span>
                                 <RatingScale value={cq.score} disabled />
                               </div>
-                              <p className="text-sm text-gray-600">{cq.answer}</p>
+                              <p className="text-sm text-foreground/80">{cq.answer}</p>
                             </div>
                           ))}
                         </div>

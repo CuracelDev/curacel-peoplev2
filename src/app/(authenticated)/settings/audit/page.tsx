@@ -43,7 +43,7 @@ export default function AuditLogPage() {
     if (action.includes('UPDATED')) return 'bg-blue-100 text-blue-800'
     if (action.includes('DELETED') || action.includes('TERMINATED')) return 'bg-red-100 text-red-800'
     if (action.includes('SIGNED')) return 'bg-purple-100 text-purple-800'
-    return 'bg-gray-100 text-gray-800'
+    return 'bg-muted text-foreground'
   }
 
   const clearFilters = () => {
@@ -142,7 +142,7 @@ export default function AuditLogPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Activity Log</CardTitle>
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-muted-foreground">
               {data?.total || 0} total entries
             </div>
           </div>
@@ -157,7 +157,7 @@ export default function AuditLogPage() {
               Error loading audit log: {error.message}
             </div>
           ) : data?.logs.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               No audit log entries found
             </div>
           ) : (
@@ -166,17 +166,17 @@ export default function AuditLogPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b">
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">Timestamp</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">Actor</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">Action</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">Resource</th>
-                      <th className="text-left py-3 px-4 font-medium text-gray-500">Details</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Timestamp</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Actor</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Action</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Resource</th>
+                      <th className="text-left py-3 px-4 font-medium text-muted-foreground">Details</th>
                     </tr>
                   </thead>
                   <tbody>
                     {data?.logs.map((log) => (
-                      <tr key={log.id} className="border-b hover:bg-gray-50">
-                        <td className="py-3 px-4 text-sm text-gray-500">
+                      <tr key={log.id} className="border-b hover:bg-muted">
+                        <td className="py-3 px-4 text-sm text-muted-foreground">
                           {formatDateTime(log.createdAt)}
                         </td>
                         <td className="py-3 px-4">
@@ -185,7 +185,7 @@ export default function AuditLogPage() {
                               {log.actor?.name || log.actorEmail || 'System'}
                             </p>
                             {log.actor?.email && (
-                              <p className="text-xs text-gray-500">{log.actor.email}</p>
+                              <p className="text-xs text-muted-foreground">{log.actor.email}</p>
                             )}
                           </div>
                         </td>
@@ -198,22 +198,22 @@ export default function AuditLogPage() {
                           <div>
                             <p className="text-sm font-medium">{log.resourceType}</p>
                             {log.resourceId && (
-                              <p className="text-xs text-gray-500 font-mono">{log.resourceId.slice(0, 8)}...</p>
+                              <p className="text-xs text-muted-foreground font-mono">{log.resourceId.slice(0, 8)}...</p>
                             )}
                           </div>
                         </td>
                         <td className="py-3 px-4">
                           {log.metadata && typeof log.metadata === 'object' ? (
                             <details className="cursor-pointer">
-                              <summary className="text-sm text-gray-600 hover:text-gray-900">
+                              <summary className="text-sm text-foreground/80 hover:text-foreground">
                                 View details
                               </summary>
-                              <pre className="mt-2 text-xs bg-gray-50 p-2 rounded overflow-auto max-w-md">
+                              <pre className="mt-2 text-xs bg-muted/50 p-2 rounded overflow-auto max-w-md">
                                 {JSON.stringify(log.metadata, null, 2)}
                               </pre>
                             </details>
                           ) : (
-                            <span className="text-sm text-gray-500">-</span>
+                            <span className="text-sm text-muted-foreground">-</span>
                           )}
                         </td>
                       </tr>
@@ -225,7 +225,7 @@ export default function AuditLogPage() {
               {/* Pagination */}
               {data && data.pages > 1 && (
                 <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                  <p className="text-sm text-gray-500">
+                  <p className="text-sm text-muted-foreground">
                     Page {page} of {data.pages} ({data.total} total entries)
                   </p>
                   <div className="flex gap-2">

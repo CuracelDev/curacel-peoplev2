@@ -85,7 +85,7 @@ export default function IntegrationsPage() {
         if (iconUrl) {
           return <Image src={iconUrl} alt={type} {...commonProps} />
         }
-        return <Plug className={commonProps.className + ' text-gray-500'} />
+        return <Plug className={commonProps.className + ' text-muted-foreground'} />
     }
   }
 
@@ -97,7 +97,7 @@ export default function IntegrationsPage() {
     const isFailed = lastTestStatus === 'FAILED'
 
     if (!hasConnection) {
-      return { icon: XCircle, text: 'Not connected', color: 'text-gray-400', bg: 'bg-gray-100' }
+      return { icon: XCircle, text: 'Not connected', color: 'text-muted-foreground', bg: 'bg-muted' }
     }
     if (isVerified) {
       return { icon: CheckCircle2, text: 'Connected', color: 'text-green-600', bg: 'bg-green-50' }
@@ -105,7 +105,7 @@ export default function IntegrationsPage() {
     if (isFailed) {
       return { icon: XCircle, text: 'Disconnected', color: 'text-red-500', bg: 'bg-red-50' }
     }
-    return { icon: CheckCircle2, text: 'Configured', color: 'text-gray-400', bg: 'bg-gray-100' }
+    return { icon: CheckCircle2, text: 'Configured', color: 'text-muted-foreground', bg: 'bg-muted' }
   }
 
   if (isLoading) {
@@ -160,26 +160,26 @@ export default function IntegrationsPage() {
               return (
                 <div
                   key={app.id}
-                  className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-gray-50/50 transition-colors"
+                  className="flex items-center justify-between gap-4 px-6 py-4 hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-4 min-w-0 flex-1">
-                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center">
+                    <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center">
                       {getAppIcon(app.type, app.iconUrl)}
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">
-                        <p className="font-medium text-gray-900 truncate">{app.name}</p>
+                        <p className="font-medium text-foreground truncate">{app.name}</p>
                         <div className={cn('flex items-center gap-1 px-2 py-0.5 rounded-full text-xs', status.bg)}>
                           <StatusIcon className={cn('h-3 w-3', status.color)} />
                           <span className={status.color}>{status.text}</span>
                         </div>
                       </div>
-                      <p className="text-sm text-gray-500 truncate">{app.description}</p>
+                      <p className="text-sm text-muted-foreground truncate">{app.description}</p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-6">
-                    <div className="hidden md:flex items-center gap-6 text-sm text-gray-500">
+                    <div className="hidden md:flex items-center gap-6 text-sm text-muted-foreground">
                       <div className="flex items-center gap-1.5">
                         <Users className="h-4 w-4" />
                         <span>{app._count.accounts}</span>
@@ -200,7 +200,7 @@ export default function IntegrationsPage() {
                             testConnection.mutate(app.id)
                           }}
                           disabled={testConnection.isPending}
-                          className="text-gray-500 hover:text-gray-700"
+                          className="text-muted-foreground hover:text-foreground"
                         >
                           {isTestingThis ? 'Testing...' : 'Test'}
                         </Button>
@@ -233,10 +233,10 @@ export default function IntegrationsPage() {
       {(enabledApps.length === 0) && (
         <Card>
           <CardContent className="py-12 text-center space-y-4">
-            <Plug className="h-12 w-12 text-gray-400 mx-auto mb-2" />
+            <Plug className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
             <div>
               <h3 className="text-lg font-medium mb-1">No enabled applications</h3>
-              <p className="text-gray-500">Enable or add applications in Settings.</p>
+              <p className="text-muted-foreground">Enable or add applications in Settings.</p>
             </div>
             {(!apps || apps.length === 0) ? (
               <Button

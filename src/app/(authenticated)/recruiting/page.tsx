@@ -59,7 +59,7 @@ function getActivityColor(type: string) {
     case 'reject':
       return 'bg-red-50 text-red-600'
     default:
-      return 'bg-gray-50 text-gray-600'
+      return 'bg-muted/50 text-foreground/80'
   }
 }
 
@@ -71,9 +71,9 @@ function getScoreColor(score: number) {
 
 function getRankStyle(rank: number) {
   if (rank === 1) return 'bg-amber-100 text-amber-700'
-  if (rank === 2) return 'bg-gray-200 text-gray-600'
+  if (rank === 2) return 'bg-muted text-foreground/80'
   if (rank === 3) return 'bg-orange-100 text-orange-700'
-  return 'bg-gray-100 text-gray-600'
+  return 'bg-muted text-foreground/80'
 }
 
 function getInitials(name: string) {
@@ -157,7 +157,7 @@ export default function RecruitingDashboard() {
   if (statsLoading || pipelineLoading || topLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -169,8 +169,8 @@ export default function RecruitingDashboard() {
         {stats.map((stat, i) => (
           <Card key={i}>
             <CardContent className="p-5">
-              <div className="text-sm text-gray-500 mb-1">{stat.label}</div>
-              <div className="text-3xl font-semibold text-gray-900">{stat.value}</div>
+              <div className="text-sm text-muted-foreground mb-1">{stat.label}</div>
+              <div className="text-3xl font-semibold text-foreground">{stat.value}</div>
               <div className={`text-sm mt-2 flex items-center gap-1 ${stat.positive ? 'text-green-600' : 'text-red-600'}`}>
                 {stat.positive ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
                 {stat.change}
@@ -203,18 +203,18 @@ export default function RecruitingDashboard() {
               {pipelineStages.map((stage, i) => (
                 <div key={i} className="flex items-center">
                   <div className="text-center px-4">
-                    <div className="text-2xl font-bold text-gray-900">{stage.count}</div>
-                    <div className="text-xs text-gray-500 mt-1">{stage.label}</div>
+                    <div className="text-2xl font-bold text-foreground">{stage.count}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{stage.label}</div>
                   </div>
                   {i < pipelineStages.length - 1 && (
-                    <ChevronRight className="h-5 w-5 text-gray-300" />
+                    <ChevronRight className="h-5 w-5 text-muted-foreground/60" />
                   )}
                 </div>
               ))}
             </div>
 
             <div className="mt-6">
-              <div className="flex justify-between text-sm text-gray-500 mb-2">
+              <div className="flex justify-between text-sm text-muted-foreground mb-2">
                 <span>Conversion Rate (30d)</span>
                 <span>{conversionRate}%</span>
               </div>
@@ -234,15 +234,15 @@ export default function RecruitingDashboard() {
           <CardContent className="px-5 pb-5">
             <div className="space-y-1">
               {recentActivity.map((activity, i) => (
-                <div key={i} className="flex gap-3 py-3 border-b border-gray-100 last:border-0">
+                <div key={i} className="flex gap-3 py-3 border-b border-border last:border-0">
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${getActivityColor(activity.type)}`}>
                     {getActivityIcon(activity.type)}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm">{activity.title}</div>
-                    <div className="text-sm text-gray-500 truncate">{activity.description}</div>
+                    <div className="text-sm text-muted-foreground truncate">{activity.description}</div>
                   </div>
-                  <div className="text-xs text-gray-400">{activity.time}</div>
+                  <div className="text-xs text-muted-foreground">{activity.time}</div>
                 </div>
               ))}
             </div>
@@ -267,7 +267,7 @@ export default function RecruitingDashboard() {
                   <Link
                     key={candidate.id}
                     href={`/recruiting/candidates/${candidate.id}`}
-                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted"
                   >
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${getRankStyle(i + 1)}`}>
                       {i + 1}
@@ -279,7 +279,7 @@ export default function RecruitingDashboard() {
                     </Avatar>
                     <div className="flex-1">
                       <div className="font-medium text-sm">{candidate.name}</div>
-                      <div className="text-xs text-gray-500">{candidate.job?.title || 'No position'}</div>
+                      <div className="text-xs text-muted-foreground">{candidate.job?.title || 'No position'}</div>
                     </div>
                     <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-semibold text-sm ${getScoreColor(candidate.score || 0)}`}>
                       {candidate.score || '-'}
@@ -287,7 +287,7 @@ export default function RecruitingDashboard() {
                   </Link>
                 ))
               ) : (
-                <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-muted-foreground py-8">
                   No candidates with scores yet
                 </div>
               )}
@@ -301,43 +301,43 @@ export default function RecruitingDashboard() {
             <CardTitle className="text-base font-semibold">Quick Actions</CardTitle>
           </CardHeader>
           <CardContent className="px-5 pb-5 space-y-3">
-            <Link href="/recruiting/positions/new" className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+            <Link href="/recruiting/positions/new" className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
               <div className="w-10 h-10 rounded-lg bg-indigo-600 text-white flex items-center justify-center">
                 <Plus className="h-5 w-5" />
               </div>
               <div>
                 <div className="font-medium text-sm">Create New Job</div>
-                <div className="text-xs text-gray-500">Set up a new hiring position</div>
+                <div className="text-xs text-muted-foreground">Set up a new hiring position</div>
               </div>
             </Link>
 
-            <Link href="/recruiting/candidates/new" className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+            <Link href="/recruiting/candidates/new" className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
               <div className="w-10 h-10 rounded-lg bg-sky-500 text-white flex items-center justify-center">
                 <UserPlus className="h-5 w-5" />
               </div>
               <div>
                 <div className="font-medium text-sm">Add Candidate</div>
-                <div className="text-xs text-gray-500">Manually add a new candidate</div>
+                <div className="text-xs text-muted-foreground">Manually add a new candidate</div>
               </div>
             </Link>
 
-            <Link href="/recruiting/questions" className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+            <Link href="/recruiting/questions" className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
               <div className="w-10 h-10 rounded-lg bg-green-500 text-white flex items-center justify-center">
                 <HelpCircle className="h-5 w-5" />
               </div>
               <div>
                 <div className="font-medium text-sm">Generate Questions</div>
-                <div className="text-xs text-gray-500">AI-powered interview questions</div>
+                <div className="text-xs text-muted-foreground">AI-powered interview questions</div>
               </div>
             </Link>
 
-            <button className="w-full flex items-center gap-3 p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors text-left">
+            <button className="w-full flex items-center gap-3 p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors text-left">
               <div className="w-10 h-10 rounded-lg bg-amber-500 text-white flex items-center justify-center">
                 <Upload className="h-5 w-5" />
               </div>
               <div>
                 <div className="font-medium text-sm">Upload Transcript</div>
-                <div className="text-xs text-gray-500">Import from Fireflies</div>
+                <div className="text-xs text-muted-foreground">Import from Fireflies</div>
               </div>
             </button>
           </CardContent>
@@ -356,19 +356,19 @@ export default function RecruitingDashboard() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Candidate</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Position</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Stage</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Date & Time</th>
-                <th className="text-left py-3 px-4 text-xs font-medium text-gray-500 uppercase tracking-wider">Interviewers</th>
+              <tr className="border-b border-border bg-muted/50">
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Candidate</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Position</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Stage</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Date & Time</th>
+                <th className="text-left py-3 px-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">Interviewers</th>
                 <th className="py-3 px-4"></th>
               </tr>
             </thead>
             <tbody>
               {upcomingInterviews.length > 0 ? (
                 upcomingInterviews.map((interview, i) => (
-                  <tr key={interview.id || i} className="border-b border-gray-100 hover:bg-gray-50">
+                  <tr key={interview.id || i} className="border-b border-border hover:bg-muted">
                     <td className="py-4 px-4">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
@@ -378,7 +378,7 @@ export default function RecruitingDashboard() {
                         </Avatar>
                         <div>
                           <div className="font-medium text-sm">{interview.candidate}</div>
-                          <div className="text-xs text-gray-500">{interview.email}</div>
+                          <div className="text-xs text-muted-foreground">{interview.email}</div>
                         </div>
                       </div>
                     </td>
@@ -390,7 +390,7 @@ export default function RecruitingDashboard() {
                     </td>
                     <td className="py-4 px-4">
                       <div className="font-medium text-sm">{interview.date}</div>
-                      <div className="text-xs text-gray-500">{interview.dateSubtext}</div>
+                      <div className="text-xs text-muted-foreground">{interview.dateSubtext}</div>
                     </td>
                     <td className="py-4 px-4">
                       <div className="flex -space-x-2">
@@ -408,7 +408,7 @@ export default function RecruitingDashboard() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-500">
+                  <td colSpan={6} className="py-8 text-center text-muted-foreground">
                     No upcoming interviews scheduled
                   </td>
                 </tr>

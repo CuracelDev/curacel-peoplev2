@@ -84,7 +84,7 @@ function getScoreClass(score: number) {
 function getStageBadge(stage: string) {
   switch (stage) {
     case 'APPLIED':
-      return <Badge variant="secondary" className="bg-gray-100 text-gray-600">Applied</Badge>
+      return <Badge variant="secondary" className="bg-muted text-foreground/80">Applied</Badge>
     case 'HR_SCREEN':
       return <Badge className="bg-indigo-100 text-indigo-600 hover:bg-indigo-100">HR Screen</Badge>
     case 'TECHNICAL':
@@ -98,7 +98,7 @@ function getStageBadge(stage: string) {
     case 'REJECTED':
       return <Badge className="bg-red-100 text-red-600 hover:bg-red-100">Rejected</Badge>
     case 'WITHDRAWN':
-      return <Badge className="bg-gray-100 text-gray-500 hover:bg-gray-100">Withdrawn</Badge>
+      return <Badge className="bg-muted text-muted-foreground hover:bg-muted">Withdrawn</Badge>
     default:
       return <Badge variant="secondary">{stage}</Badge>
   }
@@ -107,7 +107,7 @@ function getStageBadge(stage: string) {
 const STATUS_BADGES: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-700',
   DRAFT: 'bg-yellow-100 text-yellow-700',
-  CLOSED: 'bg-gray-100 text-gray-700',
+  CLOSED: 'bg-muted text-foreground',
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -267,8 +267,8 @@ export default function CandidatesListPage() {
   if (!job) {
     return (
       <div className="p-6 text-center">
-        <h2 className="text-xl font-semibold text-gray-900">Job not found</h2>
-        <p className="text-gray-500 mt-2">The job you&apos;re looking for doesn&apos;t exist.</p>
+        <h2 className="text-xl font-semibold text-foreground">Job not found</h2>
+        <p className="text-muted-foreground mt-2">The job you&apos;re looking for doesn&apos;t exist.</p>
         <Link href="/recruiting/positions">
           <Button className="mt-4">Back to Jobs</Button>
         </Link>
@@ -282,7 +282,7 @@ export default function CandidatesListPage() {
       <div className="flex items-start justify-between mb-6">
         <div>
           <div className="flex items-center gap-3 mb-2">
-            <h1 className="text-2xl font-semibold text-gray-900">
+            <h1 className="text-2xl font-semibold text-foreground">
               {job.title}
               {job.hiresCount > 1 ? ` (${job.hiresCount})` : ''}
             </h1>
@@ -290,7 +290,7 @@ export default function CandidatesListPage() {
               {STATUS_LABELS[job.status]}
             </Badge>
           </div>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             {job.department || 'No Department'} &middot; {getLocationSummary(job.locations)}
             {job.createdAt && <> &middot; Posted {formatDate(job.createdAt)}</>}
             {job.deadline && <> &middot; Deadline {formatDate(job.deadline)}</>}
@@ -311,11 +311,11 @@ export default function CandidatesListPage() {
                 />
               ))}
             </div>
-            <div className="text-[11px] text-gray-500 mt-1">Score Distribution</div>
+            <div className="text-[11px] text-muted-foreground mt-1">Score Distribution</div>
           </div>
-          <div className="text-center pl-4 border-l border-gray-200">
-            <div className="text-3xl font-bold text-gray-900">{avgScore}</div>
-            <div className="text-xs text-gray-500">Avg Score</div>
+          <div className="text-center pl-4 border-l border-border">
+            <div className="text-3xl font-bold text-foreground">{avgScore}</div>
+            <div className="text-xs text-muted-foreground">Avg Score</div>
           </div>
         </div>
       </div>
@@ -354,8 +354,8 @@ export default function CandidatesListPage() {
 
       {/* Hiring Flow Info */}
       {job.hiringFlowSnapshot?.flow && (
-        <div className="mb-4 text-sm text-gray-500">
-          <span className="font-medium text-gray-700">{job.hiringFlowSnapshot.flow.name}</span>
+        <div className="mb-4 text-sm text-muted-foreground">
+          <span className="font-medium text-foreground">{job.hiringFlowSnapshot.flow.name}</span>
           {' '}flow • {hiringFlowStages.length} stages
           {!job.flowOutdated && (
             <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
@@ -376,8 +376,8 @@ export default function CandidatesListPage() {
             )}
             onClick={() => handleStageChange(stage.id)}
           >
-            <div className="text-xs text-gray-500 mb-1 truncate">{stage.label}</div>
-            <div className="text-xl font-bold text-gray-900">{stage.count}</div>
+            <div className="text-xs text-muted-foreground mb-1 truncate">{stage.label}</div>
+            <div className="text-xl font-bold text-foreground">{stage.count}</div>
           </Card>
         ))}
       </div>
@@ -416,28 +416,28 @@ export default function CandidatesListPage() {
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
+              <tr className="border-b border-border bg-muted/50">
                 <th className="py-3 px-4 text-center w-10">
                   <input
                     type="checkbox"
                     checked={selectedCandidates.length === filteredCandidates.length && filteredCandidates.length > 0}
                     onChange={toggleAll}
-                    className="rounded border-gray-300"
+                    className="rounded border-border"
                   />
                 </th>
-                <th className="py-3 px-4 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                <th className="py-3 px-4 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-16">
                   Score
                 </th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Candidate
                 </th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Stage
                 </th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Applied
                 </th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Last Updated
                 </th>
                 <th className="py-3 px-4 w-24"></th>
@@ -448,7 +448,7 @@ export default function CandidatesListPage() {
                 <tr
                   key={candidate.id}
                   className={cn(
-                    'border-b border-gray-100 hover:bg-gray-50 cursor-pointer',
+                    'border-b border-border hover:bg-muted cursor-pointer',
                     selectedCandidates.includes(candidate.id) && 'bg-indigo-50/50'
                   )}
                 >
@@ -460,7 +460,7 @@ export default function CandidatesListPage() {
                         e.stopPropagation()
                         toggleCandidate(candidate.id)
                       }}
-                      className="rounded border-gray-300"
+                      className="rounded border-border"
                     />
                   </td>
                   <td className={cn('py-4 px-4 text-center font-bold text-base', getScoreClass(candidate.score || 0))}>
@@ -475,15 +475,15 @@ export default function CandidatesListPage() {
                       </Avatar>
                       <div>
                         <div className="font-medium text-sm">{candidate.name}</div>
-                        <div className="text-xs text-gray-500">{candidate.email}</div>
+                        <div className="text-xs text-muted-foreground">{candidate.email}</div>
                       </div>
                     </Link>
                   </td>
                   <td className="py-4 px-4">{getStageBadge(candidate.stage)}</td>
-                  <td className="py-4 px-4 text-sm text-gray-600">
+                  <td className="py-4 px-4 text-sm text-foreground/80">
                     {formatDate(candidate.appliedAt)}
                   </td>
-                  <td className="py-4 px-4 text-sm text-gray-600">
+                  <td className="py-4 px-4 text-sm text-foreground/80">
                     {getRelativeTime(candidate.updatedAt)}
                   </td>
                   <td className="py-4 px-4">
@@ -498,13 +498,13 @@ export default function CandidatesListPage() {
         </div>
 
         {/* Pagination */}
-        <div className="p-4 border-t border-gray-200 flex items-center justify-between">
+        <div className="p-4 border-t border-border flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <div className="text-sm text-gray-500">
+            <div className="text-sm text-muted-foreground">
               Showing {totalCandidates === 0 ? 0 : startIndex + 1}-{endIndex} of {totalCandidates} candidates
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-500">Show</span>
+              <span className="text-sm text-muted-foreground">Show</span>
               <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
                 <SelectTrigger className="w-[80px] h-8">
                   <SelectValue />
@@ -515,11 +515,11 @@ export default function CandidatesListPage() {
                   <SelectItem value="100">100</SelectItem>
                 </SelectContent>
               </Select>
-              <span className="text-sm text-gray-500">per page</span>
+              <span className="text-sm text-muted-foreground">per page</span>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-500">
+            <span className="text-sm text-muted-foreground">
               Page {currentPage} of {totalPages || 1}
             </span>
             <Button
@@ -551,13 +551,13 @@ export default function CandidatesListPage() {
           <Button size="sm" className="bg-green-500 hover:bg-green-600">
             Advance to Next Stage
           </Button>
-          <Button variant="outline" size="sm" className="text-gray-300 border-gray-600 hover:bg-gray-800">
+          <Button variant="outline" size="sm" className="text-muted-foreground/60 border-gray-600 hover:bg-gray-800">
             Reject
           </Button>
           <Button
             variant="ghost"
             size="sm"
-            className="text-gray-400 hover:text-white"
+            className="text-muted-foreground hover:text-white"
             onClick={() => setSelectedCandidates([])}
           >
             Clear

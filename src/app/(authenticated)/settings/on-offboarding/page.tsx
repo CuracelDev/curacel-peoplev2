@@ -54,8 +54,8 @@ export default function OnOffboardingSettingsPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">On/Offboarding Settings</h1>
-          <p className="text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-foreground">On/Offboarding Settings</h1>
+          <p className="text-sm text-foreground/80">
             Manage onboarding and offboarding workflows in one place.
           </p>
         </div>
@@ -63,27 +63,27 @@ export default function OnOffboardingSettingsPage() {
 
       <Card>
         <CardContent className="p-0">
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-border">
             {flowOptions.map((option, index) => {
               const Icon = option.icon
               return (
                 <Link
                   key={index}
                   href={option.href}
-                  className="flex items-center gap-4 p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="flex items-center gap-4 p-6 hover:bg-muted transition-colors cursor-pointer"
                 >
                   <div className={`${option.iconBg} p-3 rounded-lg flex-shrink-0`}>
                     <Icon className="h-6 w-6 text-indigo-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-semibold text-gray-900 mb-1">
+                    <h3 className="text-base font-semibold text-foreground mb-1">
                       {option.title}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-foreground/80">
                       {option.description}
                     </p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                  <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                 </Link>
               )
             })}
@@ -95,12 +95,12 @@ export default function OnOffboardingSettingsPage() {
       <Card>
         <CardHeader className="p-5 border-b">
           <div className="flex items-center gap-3">
-            <div className="bg-gray-100 p-2 rounded-lg">
-              <Settings className="h-5 w-5 text-gray-600" />
+            <div className="bg-muted p-2 rounded-lg">
+              <Settings className="h-5 w-5 text-foreground/80" />
             </div>
             <div>
               <h2 className="text-lg font-semibold">General Settings</h2>
-              <p className="text-sm text-gray-500">Configure general offboarding settings</p>
+              <p className="text-sm text-muted-foreground">Configure general offboarding settings</p>
             </div>
           </div>
         </CardHeader>
@@ -126,7 +126,7 @@ export default function OnOffboardingSettingsPage() {
                   {updateOrganization.isPending ? 'Saving...' : 'Save'}
                 </Button>
               </div>
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Used when transferring Google Drive ownership during employee offboarding.
               </p>
             </div>

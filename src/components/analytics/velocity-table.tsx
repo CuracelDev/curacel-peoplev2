@@ -42,11 +42,11 @@ export function VelocityTable({ perHire = [], byRole = [], title = 'Hiring Veloc
       <CardContent className="space-y-6">
         {showPerHire && perHire.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Per Hire</h4>
+            <h4 className="text-sm font-medium text-foreground mb-3">Per Hire</h4>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="text-left text-xs text-gray-500 uppercase tracking-wider border-b">
+                  <tr className="text-left text-xs text-muted-foreground uppercase tracking-wider border-b">
                     <th className="pb-3 font-medium">Role</th>
                     <th className="pb-3 font-medium">Name</th>
                     <th className="pb-3 font-medium">Start</th>
@@ -54,20 +54,20 @@ export function VelocityTable({ perHire = [], byRole = [], title = 'Hiring Veloc
                     <th className="pb-3 font-medium text-right">Velocity (days)</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {perHire.slice(0, 20).map((hire) => (
-                    <tr key={hire.id} className="hover:bg-gray-50">
+                    <tr key={hire.id} className="hover:bg-muted/50">
                       <td className="py-2">
-                        <span className="text-sm font-medium text-gray-900">{hire.role}</span>
+                        <span className="text-sm font-medium text-foreground">{hire.role}</span>
                       </td>
                       <td className="py-2">
-                        <span className="text-sm text-gray-600">{hire.name}</span>
+                        <span className="text-sm text-foreground/80">{hire.name}</span>
                       </td>
                       <td className="py-2">
-                        <span className="text-sm text-gray-500">{formatDate(hire.startDate)}</span>
+                        <span className="text-sm text-muted-foreground">{formatDate(hire.startDate)}</span>
                       </td>
                       <td className="py-2">
-                        <span className="text-sm text-gray-500">{formatDate(hire.endDate)}</span>
+                        <span className="text-sm text-muted-foreground">{formatDate(hire.endDate)}</span>
                       </td>
                       <td className="py-2 text-right">
                         <Badge variant={hire.velocityDays <= 30 ? 'default' : hire.velocityDays <= 60 ? 'secondary' : 'outline'}>
@@ -84,27 +84,27 @@ export function VelocityTable({ perHire = [], byRole = [], title = 'Hiring Veloc
 
         {byRole.length > 0 && (
           <div>
-            <h4 className="text-sm font-medium text-gray-700 mb-3">Average by Role</h4>
+            <h4 className="text-sm font-medium text-foreground mb-3">Average by Role</h4>
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="text-left text-xs text-gray-500 uppercase tracking-wider border-b">
+                  <tr className="text-left text-xs text-muted-foreground uppercase tracking-wider border-b">
                     <th className="pb-3 font-medium">Role</th>
                     <th className="pb-3 font-medium text-right">Avg Velocity</th>
                     <th className="pb-3 font-medium text-right">Hires</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-border">
                   {byRole.map((role) => (
-                    <tr key={role.role} className="hover:bg-gray-50">
+                    <tr key={role.role} className="hover:bg-muted/50">
                       <td className="py-2">
-                        <span className="text-sm font-medium text-gray-900">{role.role}</span>
+                        <span className="text-sm font-medium text-foreground">{role.role}</span>
                       </td>
                       <td className="py-2 text-right">
                         <span className="text-sm font-semibold">{role.avgVelocity} days</span>
                       </td>
                       <td className="py-2 text-right">
-                        <span className="text-sm text-gray-500">{role.count}</span>
+                        <span className="text-sm text-muted-foreground">{role.count}</span>
                       </td>
                     </tr>
                   ))}
@@ -115,7 +115,7 @@ export function VelocityTable({ perHire = [], byRole = [], title = 'Hiring Veloc
         )}
 
         {perHire.length === 0 && byRole.length === 0 && (
-          <div className="text-center py-8 text-gray-500">
+          <div className="text-center py-8 text-muted-foreground">
             No velocity data available
           </div>
         )}

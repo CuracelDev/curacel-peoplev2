@@ -146,7 +146,7 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {settingsSections.map((section) => (
         <div key={section.title}>
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-500 mb-3 px-1">
+          <h2 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-3 px-1">
             {section.title}
           </h2>
           <Card>
@@ -167,10 +167,10 @@ export default function SettingsPage() {
                         <Icon className="h-6 w-6 text-indigo-600 group-hover:text-white transition-colors" />
                       </div>
                       <div>
-                        <h3 className="text-sm font-medium text-gray-900 leading-tight">
+                        <h3 className="text-sm font-medium text-foreground leading-tight">
                           {option.title}
                         </h3>
-                        <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
                           {option.description}
                         </p>
                       </div>

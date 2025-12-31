@@ -230,9 +230,9 @@ export default function OnboardingFlowSettingsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {peopleOpsTasksExpanded ? (
-                <ChevronDown className="h-5 w-5 text-gray-500" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <ChevronRight className="h-5 w-5 text-gray-500" />
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               )}
               <CardTitle>PeopleOps Tasks</CardTitle>
               <Badge variant="secondary">{templates?.length ?? 0} tasks</Badge>
@@ -274,15 +274,15 @@ export default function OnboardingFlowSettingsPage() {
                     ? allApps.find((a) => a.type === t.appType)?.name || t.appType
                     : null
                 return (
-                  <div key={t.id} className="px-3 py-2 flex items-center justify-between text-sm hover:bg-gray-50 whitespace-nowrap">
+                  <div key={t.id} className="px-3 py-2 flex items-center justify-between text-sm hover:bg-muted whitespace-nowrap">
                     <div className="flex items-center gap-3 flex-1 min-w-0">
-                      <span className="text-gray-400 w-6">{idx + 1}</span>
+                      <span className="text-muted-foreground w-6">{idx + 1}</span>
                       <div className="min-w-0 flex-1">
-                        <span className={`font-medium ${t.isActive ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
+                        <span className={`font-medium ${t.isActive ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
                           {t.name}
                         </span>
                         {t.description && (
-                          <span className="text-gray-500 text-xs ml-2">{t.description}</span>
+                          <span className="text-muted-foreground text-xs ml-2">{t.description}</span>
                         )}
                       </div>
                       <Badge
@@ -290,7 +290,7 @@ export default function OnboardingFlowSettingsPage() {
                         className={
                           stepKind === 'INTEGRATION'
                             ? 'bg-blue-50 text-blue-700 border-blue-200'
-                            : 'bg-gray-50 text-gray-700 border-gray-200'
+                            : 'bg-muted/50 text-foreground border-border'
                         }
                       >
                         {stepKind === 'INTEGRATION'
@@ -356,7 +356,7 @@ export default function OnboardingFlowSettingsPage() {
                 )
               })}
               {(!templates || templates.length === 0) && (
-                <div className="p-6 text-center text-gray-500">
+                <div className="p-6 text-center text-muted-foreground">
                   No onboarding steps yet. Click + to create one.
                 </div>
               )}
@@ -372,9 +372,9 @@ export default function OnboardingFlowSettingsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {employeeTasksExpanded ? (
-                <ChevronDown className="h-5 w-5 text-gray-500" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <ChevronRight className="h-5 w-5 text-gray-500" />
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               )}
               <FileSpreadsheet className="h-5 w-5 text-green-600" />
               <CardTitle>Employee Tasks</CardTitle>
@@ -415,7 +415,7 @@ export default function OnboardingFlowSettingsPage() {
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 The ID from the Google Sheet URL (between /d/ and /edit)
               </p>
             </div>
@@ -444,9 +444,9 @@ export default function OnboardingFlowSettingsPage() {
             >
               <div className="flex items-center gap-2">
                 {employeeTasksExpanded ? (
-                  <ChevronDown className="h-5 w-5 text-gray-500" />
+                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
                 ) : (
-                  <ChevronRight className="h-5 w-5 text-gray-500" />
+                  <ChevronRight className="h-5 w-5 text-muted-foreground" />
                 )}
                 <span className="font-medium">Employee Tasks Catalog</span>
                 <Badge variant="secondary">{employeeTasks.length} tasks</Badge>
@@ -455,7 +455,7 @@ export default function OnboardingFlowSettingsPage() {
 
             {employeeTasksExpanded && (
               <div className="mt-4 space-y-4">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-muted-foreground">
                   Tasks that employees complete during their onboarding. Task completion is tracked via Google Sheet.
                 </p>
 
@@ -625,7 +625,7 @@ export default function OnboardingFlowSettingsPage() {
               <div>
                 <Label className="text-sm font-medium">App</Label>
                 {allApps.length === 0 ? (
-                  <div className="mt-2 text-sm text-gray-600">
+                  <div className="mt-2 text-sm text-foreground/80">
                     No apps found. Initialize apps in{' '}
                     <Link className="text-blue-600 hover:underline" href="/integrations">
                       Applications
@@ -670,7 +670,7 @@ export default function OnboardingFlowSettingsPage() {
                   <p className="text-sm text-red-500 mt-1">Select an integration app.</p>
                 )}
                 {selectedApp && selectedApp.connections.length === 0 ? (
-                  <div className="mt-2 text-xs text-gray-500">
+                  <div className="mt-2 text-xs text-muted-foreground">
                     This app is not connected yet; the step will fail until it’s connected in{' '}
                     <Link className="text-blue-600 hover:underline" href="/integrations">
                       Applications

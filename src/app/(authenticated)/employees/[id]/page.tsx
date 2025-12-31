@@ -254,7 +254,7 @@ export default function EmployeeDetailPage() {
   if (!employee) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Employee not found</p>
+        <p className="text-muted-foreground">Employee not found</p>
         <Button variant="outline" className="mt-4" onClick={() => router.back()}>
           Go Back
         </Button>
@@ -269,7 +269,7 @@ export default function EmployeeDetailPage() {
       case 'OFFBOARDING':
         return 'bg-yellow-100 text-yellow-800'
       case 'EXITED':
-        return 'bg-gray-100 text-gray-800'
+        return 'bg-muted text-foreground'
       default:
         return 'bg-blue-100 text-blue-800'
     }
@@ -324,7 +324,7 @@ export default function EmployeeDetailPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-semibold text-gray-900">{employee.fullName}</h1>
+        <h1 className="text-xl font-semibold text-foreground">{employee.fullName}</h1>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-4">
@@ -344,8 +344,8 @@ export default function EmployeeDetailPage() {
                       {getInitials(employee.fullName)}
                     </AvatarFallback>
                   </Avatar>
-                  <h2 className="mt-4 text-xl font-semibold text-gray-900">{employee.fullName}</h2>
-                  <p className="text-sm text-gray-500 mt-1">
+                  <h2 className="mt-4 text-xl font-semibold text-foreground">{employee.fullName}</h2>
+                  <p className="text-sm text-muted-foreground mt-1">
                     {employee.jobTitle || 'Job title not specified'}
                   </p>
                   <Badge className={`mt-2 ${getStatusColor(employee.status)}`}>
@@ -358,17 +358,17 @@ export default function EmployeeDetailPage() {
                 {/* Contact Info */}
                 <div className="space-y-3">
                   <div>
-                    <p className="text-sm text-gray-500">Email</p>
+                    <p className="text-sm text-muted-foreground">Email</p>
                     <p className="text-sm font-medium">{employee.personalEmail}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Phone number</p>
+                    <p className="text-sm text-muted-foreground">Phone number</p>
                     <p className="text-sm font-medium">
                       {employee.phone || 'phone number not specified'}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Joined</p>
+                    <p className="text-sm text-muted-foreground">Joined</p>
                     <p className="text-sm font-medium">
                       {employee.startDate ? formatDate(employee.startDate) : 'date not specified'}
                     </p>
@@ -424,7 +424,7 @@ export default function EmployeeDetailPage() {
                     </Button>
                   )}
                   {employee.status === 'EXITED' ? (
-                    <p className="text-xs text-gray-500">This employee has already exited.</p>
+                    <p className="text-xs text-muted-foreground">This employee has already exited.</p>
                   ) : null}
                 </div>
               </div>
@@ -446,7 +446,7 @@ export default function EmployeeDetailPage() {
             {/* Personal Tab */}
             <TabsContent value="personal" className="space-y-4">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Personal Information</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-4">Personal Information</h2>
               </div>
 
               {/* Personal Details */}
@@ -458,36 +458,36 @@ export default function EmployeeDetailPage() {
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                      <p className="text-sm text-gray-500">Full Name</p>
+                      <p className="text-sm text-muted-foreground">Full Name</p>
                       <p className="text-sm font-medium">{employee.fullName}</p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Gender</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Gender</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.gender || 'Gender not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Marital Status</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Marital Status</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.maritalStatus || 'Marital status not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Date of Birth</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Date of Birth</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.dateOfBirth ? formatDate(employee.dateOfBirth) : 'Date of birth not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Nationality</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Nationality</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.nationality || 'Nationality not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Tax ID</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Tax ID</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.taxId || 'Tax ID not specified'}
                       </p>
                     </div>
@@ -504,8 +504,8 @@ export default function EmployeeDetailPage() {
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                      <p className="text-sm text-gray-500">Home Address</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Home Address</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {[
                           employee.addressStreet,
                           employee.addressCity,
@@ -518,14 +518,14 @@ export default function EmployeeDetailPage() {
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Personal Email</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Personal Email</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.personalEmail || 'personal email not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Mobile Phone</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Mobile Phone</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.phone || 'phone number not specified'}
                       </p>
                     </div>
@@ -533,26 +533,26 @@ export default function EmployeeDetailPage() {
                       <p className="text-sm font-semibold mb-2">Emergency Contact</p>
                       <div className="grid gap-4 md:grid-cols-2">
                         <div>
-                          <p className="text-sm text-gray-500">Name</p>
-                          <p className="text-sm font-medium text-gray-400">
+                          <p className="text-sm text-muted-foreground">Name</p>
+                          <p className="text-sm font-medium text-muted-foreground">
                             {employee.emergencyContactName || 'contact name not specified'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Phone</p>
-                          <p className="text-sm font-medium text-gray-400">
+                          <p className="text-sm text-muted-foreground">Phone</p>
+                          <p className="text-sm font-medium text-muted-foreground">
                             {employee.emergencyContactPhone || 'contact phone number not specified'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Relationship</p>
-                          <p className="text-sm font-medium text-gray-400">
+                          <p className="text-sm text-muted-foreground">Relationship</p>
+                          <p className="text-sm font-medium text-muted-foreground">
                             {employee.emergencyContactRelation || 'relationship not specified'}
                           </p>
                         </div>
                         <div>
-                          <p className="text-sm text-gray-500">Email</p>
-                          <p className="text-sm font-medium text-gray-400">
+                          <p className="text-sm text-muted-foreground">Email</p>
+                          <p className="text-sm font-medium text-muted-foreground">
                             {employee.emergencyContactEmail || 'contact email not specified'}
                           </p>
                         </div>
@@ -571,26 +571,26 @@ export default function EmployeeDetailPage() {
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                      <p className="text-sm text-gray-500">Bank Name</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Bank Name</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.bankName || 'Bank name not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Account name</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Account name</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.accountName || 'Account name not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Account number</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Account number</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.accountNumber || 'Account number not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Account sort code</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Account sort code</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.accountSortCode || 'Sort code not specified'}
                       </p>
                     </div>
@@ -610,43 +610,43 @@ export default function EmployeeDetailPage() {
                 <CardContent>
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
-                      <p className="text-sm text-gray-500">Job Title</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Job Title</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.jobTitle || 'job title not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Manager</p>
+                      <p className="text-sm text-muted-foreground">Manager</p>
                       <p className="text-sm font-medium">
                         {employee.manager?.fullName || 'Manager not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Start date</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Start date</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.startDate ? formatDate(employee.startDate) : 'start date not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Contract end date</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Contract end date</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.endDate ? formatDate(employee.endDate) : 'end date not specified'}
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Probation end</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Probation end</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         probation date not specified
                       </p>
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500">Employment Type</p>
-                      <p className="text-sm font-medium text-gray-400">
+                      <p className="text-sm text-muted-foreground">Employment Type</p>
+                      <p className="text-sm font-medium text-muted-foreground">
                         {employee.employmentType || 'employment type not specified'}
                       </p>
                     </div>
                     <div className="md:col-span-2">
-                      <p className="text-sm text-gray-500">Status</p>
+                      <p className="text-sm text-muted-foreground">Status</p>
                       <Badge className={getStatusColor(employee.status)}>
                         {employeeStatusLabels[employee.status] || employee.status}
                       </Badge>
@@ -662,7 +662,7 @@ export default function EmployeeDetailPage() {
                   <CardDescription>Employment contract details and terms</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-center text-gray-500 py-4">No contract offer found</p>
+                  <p className="text-center text-muted-foreground py-4">No contract offer found</p>
                 </CardContent>
               </Card>
 
@@ -687,11 +687,11 @@ export default function EmployeeDetailPage() {
                                   href={employee.formerOfferLetterUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                                  className="flex items-center gap-2 p-3 border rounded-lg hover:bg-muted transition-colors"
                                 >
                                   <FileText className="h-4 w-4 text-blue-600" />
                                   <span className="text-sm flex-1">Offer Letter</span>
-                                  <ExternalLink className="h-3 w-3 text-gray-400" />
+                                  <ExternalLink className="h-3 w-3 text-muted-foreground" />
                                 </a>
                               )}
                               {employee.formerLastPayslipUrl && (
@@ -699,11 +699,11 @@ export default function EmployeeDetailPage() {
                                   href={employee.formerLastPayslipUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                                  className="flex items-center gap-2 p-3 border rounded-lg hover:bg-muted transition-colors"
                                 >
                                   <FileText className="h-4 w-4 text-green-600" />
                                   <span className="text-sm flex-1">Last Payslip</span>
-                                  <ExternalLink className="h-3 w-3 text-gray-400" />
+                                  <ExternalLink className="h-3 w-3 text-muted-foreground" />
                                 </a>
                               )}
                               {employee.formerResignationLetterUrl && (
@@ -711,11 +711,11 @@ export default function EmployeeDetailPage() {
                                   href={employee.formerResignationLetterUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                                  className="flex items-center gap-2 p-3 border rounded-lg hover:bg-muted transition-colors"
                                 >
                                   <FileText className="h-4 w-4 text-amber-600" />
                                   <span className="text-sm flex-1">Resignation Letter</span>
-                                  <ExternalLink className="h-3 w-3 text-gray-400" />
+                                  <ExternalLink className="h-3 w-3 text-muted-foreground" />
                                 </a>
                               )}
                               {employee.formerResignationConfirmUrl && (
@@ -723,11 +723,11 @@ export default function EmployeeDetailPage() {
                                   href={employee.formerResignationConfirmUrl}
                                   target="_blank"
                                   rel="noopener noreferrer"
-                                  className="flex items-center gap-2 p-3 border rounded-lg hover:bg-gray-50 transition-colors"
+                                  className="flex items-center gap-2 p-3 border rounded-lg hover:bg-muted transition-colors"
                                 >
                                   <FileText className="h-4 w-4 text-purple-600" />
                                   <span className="text-sm flex-1">Resignation Confirmation</span>
-                                  <ExternalLink className="h-3 w-3 text-gray-400" />
+                                  <ExternalLink className="h-3 w-3 text-muted-foreground" />
                                 </a>
                               )}
                             </div>
@@ -742,25 +742,25 @@ export default function EmployeeDetailPage() {
                             <div className="grid gap-3 md:grid-cols-2">
                               {employee.formerHrContactName && (
                                 <div>
-                                  <p className="text-xs text-gray-500">Contact Name</p>
+                                  <p className="text-xs text-muted-foreground">Contact Name</p>
                                   <p className="text-sm font-medium">{employee.formerHrContactName}</p>
                                 </div>
                               )}
                               {employee.formerHrContactPhone && (
                                 <div>
-                                  <p className="text-xs text-gray-500">Phone Number</p>
+                                  <p className="text-xs text-muted-foreground">Phone Number</p>
                                   <p className="text-sm font-medium">{employee.formerHrContactPhone}</p>
                                 </div>
                               )}
                               {employee.formerHrContactEmail && (
                                 <div>
-                                  <p className="text-xs text-gray-500">Email Address</p>
+                                  <p className="text-xs text-muted-foreground">Email Address</p>
                                   <p className="text-sm font-medium">{employee.formerHrContactEmail}</p>
                                 </div>
                               )}
                               {employee.formerCompanyAddress && (
                                 <div className="md:col-span-2">
-                                  <p className="text-xs text-gray-500">Company Address</p>
+                                  <p className="text-xs text-muted-foreground">Company Address</p>
                                   <p className="text-sm font-medium whitespace-pre-wrap">{employee.formerCompanyAddress}</p>
                                 </div>
                               )}
@@ -773,11 +773,11 @@ export default function EmployeeDetailPage() {
                           !employee.formerResignationLetterUrl && !employee.formerResignationConfirmUrl &&
                           !employee.formerHrContactName && !employee.formerHrContactPhone &&
                           !employee.formerHrContactEmail && !employee.formerCompanyAddress && (
-                          <p className="text-center text-gray-500 py-4">No former employment documents or contacts provided</p>
+                          <p className="text-center text-muted-foreground py-4">No former employment documents or contacts provided</p>
                         )}
                       </>
                     ) : (
-                      <p className="text-center text-gray-500 py-4">No former employment data submitted yet</p>
+                      <p className="text-center text-muted-foreground py-4">No former employment data submitted yet</p>
                     )}
                   </CardContent>
                 </Card>
@@ -787,7 +787,7 @@ export default function EmployeeDetailPage() {
             {/* Personality Tab */}
             <TabsContent value="personality" className="space-y-4">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Personality & Values</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-4">Personality & Values</h2>
               </div>
 
               {/* MBTI */}
@@ -801,13 +801,13 @@ export default function EmployeeDetailPage() {
                     <div className="space-y-4">
                       {employee.mbtiType && (
                         <div>
-                          <p className="text-sm text-gray-500">MBTI Type</p>
+                          <p className="text-sm text-muted-foreground">MBTI Type</p>
                           <p className="text-2xl font-bold text-primary">{employee.mbtiType}</p>
                         </div>
                       )}
                       {employee.mbtiImageUrl && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-2">Test Result</p>
+                          <p className="text-sm text-muted-foreground mb-2">Test Result</p>
                           <a
                             href={employee.mbtiImageUrl}
                             target="_blank"
@@ -824,7 +824,7 @@ export default function EmployeeDetailPage() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-center text-gray-500 py-4">No MBTI data recorded yet</p>
+                    <p className="text-center text-muted-foreground py-4">No MBTI data recorded yet</p>
                   )}
                 </CardContent>
               </Card>
@@ -840,7 +840,7 @@ export default function EmployeeDetailPage() {
                     <div className="space-y-4">
                       {employee.bigFiveUrl && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-2">Test Results</p>
+                          <p className="text-sm text-muted-foreground mb-2">Test Results</p>
                           <a
                             href={employee.bigFiveUrl}
                             target="_blank"
@@ -854,7 +854,7 @@ export default function EmployeeDetailPage() {
                       )}
                       {employee.bigFiveImageUrl && (
                         <div>
-                          <p className="text-sm text-gray-500 mb-2">Result Screenshot</p>
+                          <p className="text-sm text-muted-foreground mb-2">Result Screenshot</p>
                           <a
                             href={employee.bigFiveImageUrl}
                             target="_blank"
@@ -871,7 +871,7 @@ export default function EmployeeDetailPage() {
                       )}
                     </div>
                   ) : (
-                    <p className="text-center text-gray-500 py-4">No Big Five data recorded yet</p>
+                    <p className="text-center text-muted-foreground py-4">No Big Five data recorded yet</p>
                   )}
                 </CardContent>
               </Card>
@@ -911,14 +911,14 @@ export default function EmployeeDetailPage() {
 
                       {/* Not Important */}
                       {((employee.lifeValues as any).notImportant || '').trim() && (
-                        <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50">
-                          <h4 className="font-semibold text-sm mb-2 text-gray-600">Not Important (highly negotiable/doesn't matter)</h4>
+                        <div className="border-2 border-border rounded-lg p-4 bg-muted/50">
+                          <h4 className="font-semibold text-sm mb-2 text-foreground/80">Not Important (highly negotiable/doesn't matter)</h4>
                           <p className="text-sm whitespace-pre-wrap">{(employee.lifeValues as any).notImportant}</p>
                         </div>
                       )}
                     </div>
                   ) : (
-                    <p className="text-center text-gray-500 py-4">No priority hierarchy recorded yet</p>
+                    <p className="text-center text-muted-foreground py-4">No priority hierarchy recorded yet</p>
                   )}
                 </CardContent>
               </Card>
@@ -934,19 +934,19 @@ export default function EmployeeDetailPage() {
                     <div className="space-y-4">
                       {(employee.knowAboutMe as Array<{ question: string; answer: string }>).map((item, index) => (
                         <div key={index} className="border-b last:border-0 pb-4 last:pb-0">
-                          <p className="text-sm font-medium text-gray-700">{item.question}</p>
-                          <p className="text-sm text-gray-600 mt-1">{item.answer}</p>
+                          <p className="text-sm font-medium text-foreground">{item.question}</p>
+                          <p className="text-sm text-foreground/80 mt-1">{item.answer}</p>
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-center text-gray-500 py-4">No work style preferences recorded yet</p>
+                    <p className="text-center text-muted-foreground py-4">No work style preferences recorded yet</p>
                   )}
                 </CardContent>
               </Card>
 
               {!employee.personalityCompleted && (
-                <div className="text-center text-sm text-gray-500 py-4">
+                <div className="text-center text-sm text-muted-foreground py-4">
                   This employee has not completed their personality profile during onboarding.
                 </div>
               )}
@@ -960,7 +960,7 @@ export default function EmployeeDetailPage() {
                   <CardDescription>Employment contract details and terms</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-center text-gray-500 py-4">No contract offer found</p>
+                  <p className="text-center text-muted-foreground py-4">No contract offer found</p>
                 </CardContent>
               </Card>
             </TabsContent>
@@ -968,7 +968,7 @@ export default function EmployeeDetailPage() {
             {/* Applications Tab */}
             <TabsContent value="applications" className="space-y-4">
               <div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">Applications</h2>
+                <h2 className="text-2xl font-bold text-foreground mb-4">Applications</h2>
               </div>
 
               <Card>
@@ -987,11 +987,11 @@ export default function EmployeeDetailPage() {
                             ) : account.app.type === 'SLACK' ? (
                               <MessageSquare className="h-8 w-8 text-purple-500" />
                             ) : (
-                              <Cloud className="h-8 w-8 text-gray-500" />
+                              <Cloud className="h-8 w-8 text-muted-foreground" />
                             )}
                             <div className="flex-1">
                               <p className="font-medium">{account.app.name}</p>
-                              <div className="flex gap-4 text-sm text-gray-500 mt-1">
+                              <div className="flex gap-4 text-sm text-muted-foreground mt-1">
                                 {account.provisionedAt && (
                                   <span>Created: {formatDate(account.provisionedAt)}</span>
                                 )}
@@ -1005,14 +1005,14 @@ export default function EmployeeDetailPage() {
                           </div>
                           {account.deprovisionedAt && (
                             <Button variant="ghost" size="icon">
-                              <Trash2 className="h-4 w-4 text-gray-400" />
+                              <Trash2 className="h-4 w-4 text-muted-foreground" />
                             </Button>
                           )}
                         </div>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-center text-gray-500 py-4">No provisioned applications</p>
+                    <p className="text-center text-muted-foreground py-4">No provisioned applications</p>
                   )}
                 </CardContent>
               </Card>
@@ -1036,7 +1036,7 @@ export default function EmployeeDetailPage() {
             ) : null}
             <div className="max-h-[70vh] overflow-y-auto pr-1 space-y-6 py-4">
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-700">Basic details</h3>
+                <h3 className="text-sm font-semibold text-foreground">Basic details</h3>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
                     <Label htmlFor="fullName">Full name *</Label>
@@ -1082,7 +1082,7 @@ export default function EmployeeDetailPage() {
                         {profileUploadError ? (
                           <p className="text-xs text-red-600">{profileUploadError}</p>
                         ) : (
-                          <p className="text-xs text-gray-500">Max file size 2MB.</p>
+                          <p className="text-xs text-muted-foreground">Max file size 2MB.</p>
                         )}
                         {profileImagePreview ? (
                           <Button
@@ -1103,7 +1103,7 @@ export default function EmployeeDetailPage() {
               <Separator />
 
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-700">Employment</h3>
+                <h3 className="text-sm font-semibold text-foreground">Employment</h3>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
                     <Label htmlFor="jobTitle">Job title</Label>
@@ -1189,7 +1189,7 @@ export default function EmployeeDetailPage() {
               <Separator />
 
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-700">Contact</h3>
+                <h3 className="text-sm font-semibold text-foreground">Contact</h3>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="md:col-span-2 grid gap-2">
                     <Label htmlFor="addressStreet">Street address</Label>
@@ -1221,7 +1221,7 @@ export default function EmployeeDetailPage() {
               <Separator />
 
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-700">Bank details</h3>
+                <h3 className="text-sm font-semibold text-foreground">Bank details</h3>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="grid gap-2">
                     <Label htmlFor="bankName">Bank name</Label>
@@ -1245,7 +1245,7 @@ export default function EmployeeDetailPage() {
               <Separator />
 
               <div className="space-y-3">
-                <h3 className="text-sm font-semibold text-gray-700">Emergency contact</h3>
+                <h3 className="text-sm font-semibold text-foreground">Emergency contact</h3>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="grid gap-2 md:col-span-2">
                     <Label htmlFor="emergencyContactName">Contact name</Label>
@@ -1291,7 +1291,7 @@ export default function EmployeeDetailPage() {
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <Label className="text-sm font-medium">Immediate offboarding</Label>
-                    <p className="text-xs text-gray-500">Run automated tasks immediately.</p>
+                    <p className="text-xs text-muted-foreground">Run automated tasks immediately.</p>
                   </div>
                   <Switch checked={isImmediate} onCheckedChange={setIsImmediate} />
                 </div>
@@ -1333,7 +1333,7 @@ export default function EmployeeDetailPage() {
                 <div className="rounded-lg border p-4 space-y-4">
                   <div>
                     <Label className="text-sm font-medium">Google Workspace offboarding</Label>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Delete the account, transfer Drive ownership, and optionally map the email as an alias.
                     </p>
                   </div>
@@ -1341,7 +1341,7 @@ export default function EmployeeDetailPage() {
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <Label className="text-sm font-medium">Delete Google account</Label>
-                      <p className="text-xs text-gray-500">Deletes the user after transfer (instead of suspending).</p>
+                      <p className="text-xs text-muted-foreground">Deletes the user after transfer (instead of suspending).</p>
                     </div>
                     <Switch checked={googleDeleteAccount} onCheckedChange={setGoogleDeleteAccount} />
                   </div>
@@ -1360,10 +1360,10 @@ export default function EmployeeDetailPage() {
                         placeholder="Search and select Google user"
                       />
                       {aliasDropdownOpen && (
-                        <div className="absolute z-20 mt-2 w-full rounded-md border bg-white shadow-sm max-h-64 overflow-auto">
+                        <div className="absolute z-20 mt-2 w-full rounded-md border bg-card shadow-sm max-h-64 overflow-auto">
                           <button
                             type="button"
-                            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50"
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
                             onClick={() => {
                               setGoogleAliasToEmail('')
                               setGoogleAliasSearch('')
@@ -1373,17 +1373,17 @@ export default function EmployeeDetailPage() {
                             No alias mapping
                           </button>
                           {googleUsersQuery.isLoading ? (
-                            <div className="px-3 py-2 text-sm text-gray-500">Loading Google Workspace users...</div>
+                            <div className="px-3 py-2 text-sm text-muted-foreground">Loading Google Workspace users...</div>
                           ) : googleUsersQuery.data?.error ? (
                             <div className="px-3 py-2 text-sm text-red-600">{googleUsersQuery.data.error}</div>
                           ) : filteredGoogleUsers.length === 0 ? (
-                            <div className="px-3 py-2 text-sm text-gray-500">No matching users</div>
+                            <div className="px-3 py-2 text-sm text-muted-foreground">No matching users</div>
                           ) : (
                             filteredGoogleUsers.map((user) => (
                               <button
                                 key={user.email}
                                 type="button"
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50"
+                                className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
                                 onClick={() => {
                                   setGoogleAliasToEmail(user.email)
                                   setGoogleAliasSearch(`${user.name} (${user.email})`)
@@ -1398,7 +1398,7 @@ export default function EmployeeDetailPage() {
                       )}
                     </div>
                     {!googleUsersQuery.isLoading && !googleUsersQuery.data?.error ? (
-                      <p className="mt-2 text-xs text-gray-500">
+                      <p className="mt-2 text-xs text-muted-foreground">
                         {filteredGoogleUsers.length} user{filteredGoogleUsers.length === 1 ? '' : 's'} found
                       </p>
                     ) : null}
@@ -1417,14 +1417,14 @@ export default function EmployeeDetailPage() {
                   <div className="flex items-center gap-2">
                     <button
                       type="button"
-                      className={`rounded-full border px-3 py-1 text-xs font-medium ${transferEnabled ? 'border-blue-600 text-blue-600' : 'border-gray-300 text-gray-500'}`}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium ${transferEnabled ? 'border-blue-600 text-blue-600' : 'border-border text-muted-foreground'}`}
                       onClick={() => setTransferEnabled(true)}
                     >
                       Transfer
                     </button>
                     <button
                       type="button"
-                      className={`rounded-full border px-3 py-1 text-xs font-medium ${!transferEnabled ? 'border-blue-600 text-blue-600' : 'border-gray-300 text-gray-500'}`}
+                      className={`rounded-full border px-3 py-1 text-xs font-medium ${!transferEnabled ? 'border-blue-600 text-blue-600' : 'border-border text-muted-foreground'}`}
                       onClick={() => {
                         setTransferEnabled(false)
                         setGoogleTransferToEmail('')
@@ -1438,7 +1438,7 @@ export default function EmployeeDetailPage() {
 
                 {transferEnabled && (
                   <>
-                    <p className="text-xs text-gray-500">
+                    <p className="text-xs text-muted-foreground">
                       Select the user who should receive the offboarded employee’s data.
                     </p>
                     <div className="relative">
@@ -1453,19 +1453,19 @@ export default function EmployeeDetailPage() {
                         placeholder="Search for a user"
                       />
                       {transferDropdownOpen && (
-                        <div className="absolute z-20 mt-2 w-full rounded-md border bg-white shadow-sm max-h-64 overflow-auto">
+                        <div className="absolute z-20 mt-2 w-full rounded-md border bg-card shadow-sm max-h-64 overflow-auto">
                           {googleUsersQuery.isLoading ? (
-                            <div className="px-3 py-2 text-sm text-gray-500">Loading Google Workspace users...</div>
+                            <div className="px-3 py-2 text-sm text-muted-foreground">Loading Google Workspace users...</div>
                           ) : googleUsersQuery.data?.error ? (
                             <div className="px-3 py-2 text-sm text-red-600">{googleUsersQuery.data.error}</div>
                           ) : filteredTransferUsers.length === 0 ? (
-                            <div className="px-3 py-2 text-sm text-gray-500">No matching users</div>
+                            <div className="px-3 py-2 text-sm text-muted-foreground">No matching users</div>
                           ) : (
                             filteredTransferUsers.map((user) => (
                               <button
                                 key={user.email}
                                 type="button"
-                                className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50"
+                                className="w-full px-3 py-2 text-left text-sm hover:bg-muted"
                                 onClick={() => {
                                   setGoogleTransferToEmail(user.email)
                                   setTransferSearch(`${user.name} (${user.email})`)
@@ -1480,7 +1480,7 @@ export default function EmployeeDetailPage() {
                       )}
                     </div>
                     {!googleUsersQuery.isLoading && !googleUsersQuery.data?.error ? (
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-muted-foreground">
                         {filteredTransferUsers.length} user{filteredTransferUsers.length === 1 ? '' : 's'} found
                       </p>
                     ) : null}

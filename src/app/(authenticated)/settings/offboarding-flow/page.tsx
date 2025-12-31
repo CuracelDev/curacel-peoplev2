@@ -182,9 +182,9 @@ export default function OffboardingFlowSettingsPage() {
     ? Math.round((activeTemplates / templates.length) * 100)
     : 0
   const peopleOpsProgressClass =
-    peopleOpsProgress === 100 ? 'text-green-600' : peopleOpsProgress > 0 ? 'text-blue-600' : 'text-gray-500'
+    peopleOpsProgress === 100 ? 'text-green-600' : peopleOpsProgress > 0 ? 'text-blue-600' : 'text-muted-foreground'
   const employeeTasksProgressClass =
-    employeeTasksProgress === 100 ? 'text-green-600' : employeeTasksProgress > 0 ? 'text-blue-600' : 'text-gray-500'
+    employeeTasksProgress === 100 ? 'text-green-600' : employeeTasksProgress > 0 ? 'text-blue-600' : 'text-muted-foreground'
 
   const openNew = () => {
     setEditingId(null)
@@ -305,9 +305,9 @@ export default function OffboardingFlowSettingsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {peopleOpsTasksExpanded ? (
-                <ChevronDown className="h-5 w-5 text-gray-500" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <ChevronRight className="h-5 w-5 text-gray-500" />
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               )}
               <ClipboardList className="h-5 w-5 text-orange-500" />
               <CardTitle>PeopleOps Tasks</CardTitle>
@@ -352,15 +352,15 @@ export default function OffboardingFlowSettingsPage() {
                       : null
                   const typeLabel = stepKind === 'INTEGRATION' ? appName || t.appType || 'App' : 'Manual'
                   return (
-                    <div key={t.id} className="px-3 py-2 flex items-center justify-between text-sm hover:bg-gray-50 whitespace-nowrap">
+                    <div key={t.id} className="px-3 py-2 flex items-center justify-between text-sm hover:bg-muted whitespace-nowrap">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <span className="text-gray-400 w-6">{idx + 1}</span>
+                        <span className="text-muted-foreground w-6">{idx + 1}</span>
                         <div className="min-w-0 flex-1">
-                          <span className={`font-medium ${t.isActive ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
+                          <span className={`font-medium ${t.isActive ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
                             {t.name}
                           </span>
                           {t.description && (
-                            <span className="text-gray-500 text-xs ml-2">{t.description}</span>
+                            <span className="text-muted-foreground text-xs ml-2">{t.description}</span>
                           )}
                         </div>
                         <Badge
@@ -368,7 +368,7 @@ export default function OffboardingFlowSettingsPage() {
                           className={
                             stepKind === 'INTEGRATION'
                               ? 'bg-blue-50 text-blue-700 border-blue-200'
-                              : 'bg-gray-50 text-gray-700 border-gray-200'
+                              : 'bg-muted/50 text-foreground border-border'
                           }
                         >
                           {typeLabel}
@@ -432,7 +432,7 @@ export default function OffboardingFlowSettingsPage() {
                   )
                 })}
                 {(!templates || templates.length === 0) && (
-                  <div className="p-6 text-center text-gray-500">
+                  <div className="p-6 text-center text-muted-foreground">
                     No offboarding steps yet. Click + to create one.
                   </div>
                 )}
@@ -447,9 +447,9 @@ export default function OffboardingFlowSettingsPage() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {employeeTasksExpanded ? (
-                <ChevronDown className="h-5 w-5 text-gray-500" />
+                <ChevronDown className="h-5 w-5 text-muted-foreground" />
               ) : (
-                <ChevronRight className="h-5 w-5 text-gray-500" />
+                <ChevronRight className="h-5 w-5 text-muted-foreground" />
               )}
               <User className="h-5 w-5 text-blue-600" />
               <CardTitle>Employee Tasks</CardTitle>
@@ -478,15 +478,15 @@ export default function OffboardingFlowSettingsPage() {
                   const isFirst = idx === 0
                   const isLast = idx === employeeTasks.length - 1
                   return (
-                    <div key={task.id} className="px-3 py-2 flex items-center justify-between text-sm hover:bg-gray-50 whitespace-nowrap">
+                    <div key={task.id} className="px-3 py-2 flex items-center justify-between text-sm hover:bg-muted whitespace-nowrap">
                       <div className="flex items-center gap-3 flex-1 min-w-0">
-                        <span className="text-gray-400 w-6">{idx + 1}</span>
+                        <span className="text-muted-foreground w-6">{idx + 1}</span>
                         <div className="min-w-0 flex-1">
-                          <span className={`font-medium ${task.isActive ? 'text-gray-900' : 'text-gray-400 line-through'}`}>
+                          <span className={`font-medium ${task.isActive ? 'text-foreground' : 'text-muted-foreground line-through'}`}>
                             {task.name}
                           </span>
                           {task.description && (
-                            <span className="text-gray-500 text-xs ml-2 truncate">{task.description}</span>
+                            <span className="text-muted-foreground text-xs ml-2 truncate">{task.description}</span>
                           )}
                         </div>
                       </div>
@@ -548,7 +548,7 @@ export default function OffboardingFlowSettingsPage() {
                   )
                 })}
                 {employeeTasks.length === 0 && (
-                  <div className="p-6 text-center text-gray-500">
+                  <div className="p-6 text-center text-muted-foreground">
                     No employee tasks yet. Click + to add one.
                   </div>
                 )}
@@ -598,7 +598,7 @@ export default function OffboardingFlowSettingsPage() {
               <div>
                 <Label className="text-sm font-medium">App</Label>
                 {allApps.length === 0 ? (
-                  <div className="mt-2 text-sm text-gray-600">
+                  <div className="mt-2 text-sm text-foreground/80">
                     No apps found. Initialize apps in{' '}
                     <Link className="text-blue-600 hover:underline" href="/integrations">
                       Applications
@@ -641,7 +641,7 @@ export default function OffboardingFlowSettingsPage() {
                 )}
                 {errors.integrationAppId && <p className="text-sm text-red-500 mt-1">Select an integration app.</p>}
                 {selectedApp && selectedApp.connections.length === 0 ? (
-                  <div className="mt-2 text-xs text-gray-500">
+                  <div className="mt-2 text-xs text-muted-foreground">
                     This app is not connected yet; the step may not fully deprovision access until it’s connected in{' '}
                     <Link className="text-blue-600 hover:underline" href="/integrations">
                       Applications

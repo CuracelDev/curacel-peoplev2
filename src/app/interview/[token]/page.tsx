@@ -243,18 +243,18 @@ export default function PublicInterviewPage() {
 
   if (isSubmitted) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-10 pb-10">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <CheckCircle className="h-8 w-8 text-green-600" />
             </div>
             <h1 className="text-2xl font-bold mb-2">Evaluation Submitted!</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-foreground/80 mb-6">
               Thank you for completing your interview evaluation for {interviewData.candidate.name}.
               Your feedback has been recorded.
             </p>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               You can close this window now.
             </p>
           </CardContent>
@@ -264,24 +264,24 @@ export default function PublicInterviewPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/50">
       {/* Header */}
-      <div className="bg-white border-b sticky top-0 z-10">
+      <div className="bg-card border-b sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-3 sm:px-4 py-3 sm:py-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mb-1">
+              <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-1">
                 <Building2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 {interviewData.company}
               </div>
               <h1 className="text-lg sm:text-xl font-bold">{interviewData.name}</h1>
-              <div className="text-xs sm:text-sm text-gray-500">
+              <div className="text-xs sm:text-sm text-muted-foreground">
                 Interviewer: {interviewData.interviewer.name}
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
               {lastSaved && (
-                <span className="text-[10px] sm:text-xs text-gray-500 hidden sm:inline">
+                <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">
                   Saved: {lastSaved.toLocaleTimeString()}
                 </span>
               )}
@@ -322,10 +322,10 @@ export default function PublicInterviewPage() {
                   </Avatar>
                   <div className="flex-1">
                     <h2 className="text-xl font-bold">{interviewData.candidate.name}</h2>
-                    <div className="text-gray-600">
+                    <div className="text-foreground/80">
                       {interviewData.candidate.currentRole} at {interviewData.candidate.currentCompany}
                     </div>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+                    <div className="flex items-center gap-4 mt-2 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <MapPin className="h-4 w-4" />
                         {interviewData.candidate.location}
@@ -364,7 +364,7 @@ export default function PublicInterviewPage() {
                 <CardContent>
                   <div className="flex gap-4">
                     {interviewData.previousInterviews.map((interview, idx) => (
-                      <div key={idx} className="flex-1 p-3 bg-gray-50 rounded-lg">
+                      <div key={idx} className="flex-1 p-3 bg-muted/50 rounded-lg">
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-medium text-sm">{interview.stage}</span>
                           <Badge
@@ -375,7 +375,7 @@ export default function PublicInterviewPage() {
                             {interview.score}
                           </Badge>
                         </div>
-                        <p className="text-xs text-gray-500">{interview.summary}</p>
+                        <p className="text-xs text-muted-foreground">{interview.summary}</p>
                       </div>
                     ))}
                   </div>
@@ -401,7 +401,7 @@ export default function PublicInterviewPage() {
                         {rating.value}
                       </div>
                       <div className="text-[10px] sm:text-xs font-medium">{rating.label}</div>
-                      <div className="text-[9px] sm:text-xs text-gray-500 hidden sm:block">{rating.description}</div>
+                      <div className="text-[9px] sm:text-xs text-muted-foreground hidden sm:block">{rating.description}</div>
                     </div>
                   ))}
                 </div>
@@ -427,7 +427,7 @@ export default function PublicInterviewPage() {
                             'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
                             scores[question.id]
                               ? 'bg-green-500 text-white'
-                              : 'bg-gray-200 text-gray-600'
+                              : 'bg-muted text-foreground/80'
                           )}
                         >
                           {scores[question.id] ? <Check className="h-4 w-4" /> : qIdx + 1}
@@ -454,9 +454,9 @@ export default function PublicInterviewPage() {
                           </Badge>
                         )}
                         {expandedQuestion === question.id ? (
-                          <ChevronUp className="h-5 w-5 text-gray-400" />
+                          <ChevronUp className="h-5 w-5 text-muted-foreground" />
                         ) : (
-                          <ChevronDown className="h-5 w-5 text-gray-400" />
+                          <ChevronDown className="h-5 w-5 text-muted-foreground" />
                         )}
                       </div>
                     </div>
@@ -477,11 +477,11 @@ export default function PublicInterviewPage() {
 
                       {/* Suggested Questions */}
                       <div className="mb-4">
-                        <div className="text-sm font-medium text-gray-500 mb-2">Suggested Questions to Ask:</div>
+                        <div className="text-sm font-medium text-muted-foreground mb-2">Suggested Questions to Ask:</div>
                         <ul className="space-y-1">
                           {question.suggestedQuestions.map((sq, sqIdx) => (
                             <li key={sqIdx} className="flex items-start gap-2 text-sm">
-                              <MessageSquare className="h-4 w-4 text-gray-400 mt-0.5" />
+                              <MessageSquare className="h-4 w-4 text-muted-foreground mt-0.5" />
                               {sq}
                             </li>
                           ))}
@@ -501,7 +501,7 @@ export default function PublicInterviewPage() {
                                 'flex-1 h-12 rounded-lg font-bold text-lg transition-all',
                                 scores[question.id] === score
                                   ? ratingDescriptions[score - 1].color + ' text-white shadow-md'
-                                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                  : 'bg-muted text-muted-foreground hover:bg-muted'
                               )}
                             >
                               {score}
@@ -571,7 +571,7 @@ export default function PublicInterviewPage() {
                                 'w-10 h-10 rounded-lg font-bold transition-all',
                                 cq.score === score
                                   ? ratingDescriptions[score - 1].color + ' text-white shadow-md'
-                                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                  : 'bg-muted text-muted-foreground hover:bg-muted'
                               )}
                             >
                               {score}
@@ -626,7 +626,7 @@ export default function PublicInterviewPage() {
                             'p-2 sm:p-4 rounded-lg border-2 transition-all text-center',
                             overallRating === rating
                               ? 'border-indigo-500 bg-indigo-50'
-                              : 'border-gray-200 hover:border-gray-300'
+                              : 'border-border hover:border-border'
                           )}
                         >
                           <div className="flex justify-center mb-1 sm:mb-2">
@@ -635,7 +635,7 @@ export default function PublicInterviewPage() {
                                 key={star}
                                 className={cn(
                                   'h-3 w-3 sm:h-5 sm:w-5',
-                                  star <= rating ? 'fill-amber-400 text-amber-400' : 'text-gray-200'
+                                  star <= rating ? 'fill-amber-400 text-amber-400' : 'text-muted-foreground/40'
                                 )}
                               />
                             ))}
@@ -662,7 +662,7 @@ export default function PublicInterviewPage() {
                           'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all',
                           recommendation === 'STRONG_HIRE'
                             ? 'border-green-500 bg-green-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            : 'border-border hover:border-border'
                         )}
                       >
                         <RadioGroupItem value="STRONG_HIRE" id="strong-hire" />
@@ -677,7 +677,7 @@ export default function PublicInterviewPage() {
                           'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all',
                           recommendation === 'HIRE'
                             ? 'border-green-400 bg-green-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            : 'border-border hover:border-border'
                         )}
                       >
                         <RadioGroupItem value="HIRE" id="hire" />
@@ -692,7 +692,7 @@ export default function PublicInterviewPage() {
                           'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all',
                           recommendation === 'HOLD'
                             ? 'border-amber-500 bg-amber-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            : 'border-border hover:border-border'
                         )}
                       >
                         <RadioGroupItem value="HOLD" id="hold" />
@@ -707,7 +707,7 @@ export default function PublicInterviewPage() {
                           'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all',
                           recommendation === 'NO_HIRE'
                             ? 'border-red-500 bg-red-50'
-                            : 'border-gray-200 hover:border-gray-300'
+                            : 'border-border hover:border-border'
                         )}
                       >
                         <RadioGroupItem value="NO_HIRE" id="no-hire" />
@@ -745,7 +745,7 @@ export default function PublicInterviewPage() {
               </CardHeader>
               <CardContent className="space-y-3">
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Scheduled</span>
+                  <span className="text-muted-foreground">Scheduled</span>
                   <span className="font-medium">
                     {new Date(interviewData.scheduledAt).toLocaleDateString('en-US', {
                       month: 'short',
@@ -756,11 +756,11 @@ export default function PublicInterviewPage() {
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Duration</span>
+                  <span className="text-muted-foreground">Duration</span>
                   <span className="font-medium">{interviewData.duration} minutes</span>
                 </div>
                 <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Type</span>
+                  <span className="text-muted-foreground">Type</span>
                   <Badge variant="outline">{interviewData.type.replace('_', ' ')}</Badge>
                 </div>
               </CardContent>
@@ -777,20 +777,20 @@ export default function PublicInterviewPage() {
                     <div key={member.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Avatar className="h-8 w-8">
-                          <AvatarFallback className="bg-gray-200 text-gray-600 text-xs">
+                          <AvatarFallback className="bg-muted text-foreground/80 text-xs">
                             {getInitials(member.name)}
                           </AvatarFallback>
                         </Avatar>
                         <div>
                           <div className="text-sm font-medium">{member.name}</div>
-                          <div className="text-xs text-gray-500">{member.role}</div>
+                          <div className="text-xs text-muted-foreground">{member.role}</div>
                         </div>
                       </div>
                       <Badge
                         variant="outline"
                         className={cn(
                           member.status === 'SUBMITTED' && 'text-green-600 border-green-300',
-                          member.status === 'PENDING' && 'text-gray-500'
+                          member.status === 'PENDING' && 'text-muted-foreground'
                         )}
                       >
                         {member.status === 'SUBMITTED' ? (
@@ -822,8 +822,8 @@ export default function PublicInterviewPage() {
                   </Button>
                 ) : (
                   <div className="text-center py-4">
-                    <Mic className="h-8 w-8 mx-auto text-gray-300 mb-2" />
-                    <p className="text-sm text-gray-500 mb-3">
+                    <Mic className="h-8 w-8 mx-auto text-muted-foreground/60 mb-2" />
+                    <p className="text-sm text-muted-foreground mb-3">
                       Recording will be available after the interview
                     </p>
                     <Button variant="outline" className="w-full" asChild>
@@ -845,12 +845,12 @@ export default function PublicInterviewPage() {
               <CardContent>
                 <div className="space-y-3">
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Questions Scored</span>
+                    <span className="text-muted-foreground">Questions Scored</span>
                     <span className="font-medium">
                       {Object.keys(scores).length} / {interviewData.rubricQuestions.length}
                     </span>
                   </div>
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-indigo-500 rounded-full transition-all"
                       style={{

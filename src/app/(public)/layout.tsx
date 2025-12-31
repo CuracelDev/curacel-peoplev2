@@ -7,7 +7,7 @@ export default function PublicLayout({
 }) {
   return (
     <TRPCProvider>
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-muted/50">
         {children}
       </div>
     </TRPCProvider>

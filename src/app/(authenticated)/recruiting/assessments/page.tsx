@@ -55,16 +55,16 @@ const typeConfig: Record<string, { label: string; color: string; icon: React.Com
   PERSONALITY_MBTI: { label: 'MBTI', color: 'bg-blue-100 text-blue-800', icon: Brain },
   PERSONALITY_BIG5: { label: 'Big 5', color: 'bg-indigo-100 text-indigo-800', icon: Brain },
   WORK_TRIAL: { label: 'Work Trial', color: 'bg-green-100 text-green-800', icon: Briefcase },
-  CUSTOM: { label: 'Custom', color: 'bg-gray-100 text-gray-800', icon: FileText },
+  CUSTOM: { label: 'Custom', color: 'bg-muted text-foreground', icon: FileText },
 }
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  NOT_STARTED: { label: 'Not Started', color: 'bg-gray-100 text-gray-600' },
+  NOT_STARTED: { label: 'Not Started', color: 'bg-muted text-foreground/80' },
   INVITED: { label: 'Invited', color: 'bg-blue-100 text-blue-800' },
   IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' },
   COMPLETED: { label: 'Completed', color: 'bg-green-100 text-green-800' },
   EXPIRED: { label: 'Expired', color: 'bg-red-100 text-red-800' },
-  CANCELLED: { label: 'Cancelled', color: 'bg-gray-100 text-gray-500' },
+  CANCELLED: { label: 'Cancelled', color: 'bg-muted text-muted-foreground' },
 }
 
 const recommendationConfig: Record<string, { label: string; color: string }> = {
@@ -100,7 +100,7 @@ export default function AssessmentsPage() {
 
   // Score color based on value
   const getScoreColor = (score: number | null) => {
-    if (score === null) return 'text-gray-400'
+    if (score === null) return 'text-muted-foreground'
     if (score >= 80) return 'text-green-600'
     if (score >= 60) return 'text-amber-600'
     return 'text-red-600'
@@ -118,7 +118,7 @@ export default function AssessmentsPage() {
                 'px-4 py-2 rounded-lg text-sm font-medium transition-all',
                 activeFilter === type.key
                   ? 'bg-primary text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  : 'bg-muted text-foreground/80 hover:bg-muted'
               )}
               onClick={() => setActiveFilter(type.key)}
             >
@@ -126,8 +126,8 @@ export default function AssessmentsPage() {
               <span className={cn(
                 'ml-2 px-1.5 py-0.5 rounded text-xs',
                 activeFilter === type.key
-                  ? 'bg-white/20'
-                  : 'bg-gray-200'
+                  ? 'bg-card/20'
+                  : 'bg-muted'
               )}>
                 {type.key === 'all'
                   ? counts?.all || 0
@@ -145,7 +145,7 @@ export default function AssessmentsPage() {
       {/* Search and Filters */}
       <div className="flex items-center gap-3">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             placeholder="Search by candidate name..."
             className="pl-9"
@@ -174,13 +174,13 @@ export default function AssessmentsPage() {
         <CardContent className="p-0">
           {isLoading ? (
             <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
           ) : !assessments?.length ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <ClipboardCheck className="h-12 w-12 text-gray-300 mb-4" />
-              <h3 className="font-medium text-gray-900">No assessments found</h3>
-              <p className="text-sm text-gray-500 mt-1">
+              <ClipboardCheck className="h-12 w-12 text-muted-foreground/60 mb-4" />
+              <h3 className="font-medium text-foreground">No assessments found</h3>
+              <p className="text-sm text-muted-foreground mt-1">
                 {searchQuery || activeFilter !== 'all'
                   ? 'Try adjusting your filters'
                   : 'Send your first assessment to get started'}
@@ -211,20 +211,20 @@ export default function AssessmentsPage() {
                   const TypeIcon = type.icon
 
                   return (
-                    <TableRow key={assessment.id} className="cursor-pointer hover:bg-gray-50">
+                    <TableRow key={assessment.id} className="cursor-pointer hover:bg-muted">
                       <TableCell>
                         <Link
                           href={`/recruiting/candidates/${assessment.candidateId}`}
                           className="flex items-center gap-3"
                         >
-                          <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
-                            <User className="h-4 w-4 text-gray-500" />
+                          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                            <User className="h-4 w-4 text-muted-foreground" />
                           </div>
                           <div>
-                            <div className="font-medium text-gray-900">
+                            <div className="font-medium text-foreground">
                               {assessment.candidate?.name || 'Unknown'}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-muted-foreground">
                               {assessment.candidate?.job?.title || '-'}
                             </div>
                           </div>
@@ -257,18 +257,18 @@ export default function AssessmentsPage() {
                             {recommendation.label}
                           </Badge>
                         ) : (
-                          <span className="text-gray-400 text-sm">-</span>
+                          <span className="text-muted-foreground text-sm">-</span>
                         )}
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-muted-foreground">
                           {assessment.inviteSentAt
                             ? format(new Date(assessment.inviteSentAt), 'MMM d, yyyy')
                             : '-'}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="text-sm text-gray-500">
+                        <span className="text-sm text-muted-foreground">
                           {assessment.completedAt
                             ? format(new Date(assessment.completedAt), 'MMM d, yyyy')
                             : '-'}

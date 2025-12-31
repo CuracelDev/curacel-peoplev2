@@ -136,7 +136,7 @@ Areas to probe in next stage:
                   Stage {stageInfo.stageNumber} of {stageInfo.totalStages}
                 </Badge>
               </div>
-              <p className="text-gray-500">
+              <p className="text-muted-foreground">
                 Candidate:{' '}
                 <Link href={`/recruiting/candidates/${candidateId}`} className="text-indigo-600 font-medium hover:underline">
                   {stageInfo.candidateName}
@@ -147,22 +147,22 @@ Areas to probe in next stage:
               <Button variant="outline" size="icon">
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              <span className="text-sm text-gray-500 px-2">Previous / Next Stage</span>
+              <span className="text-sm text-muted-foreground px-2">Previous / Next Stage</span>
               <Button variant="outline" size="icon" disabled>
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>
           </div>
           <div className="flex gap-6">
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-foreground/80">
               <Calendar className="h-4 w-4" />
               {stageInfo.date}
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-foreground/80">
               <Clock className="h-4 w-4" />
               {stageInfo.duration}
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-sm text-foreground/80">
               <Users className="h-4 w-4" />
               Interviewers: {stageInfo.interviewers.join(', ')}
             </div>
@@ -200,8 +200,8 @@ Areas to probe in next stage:
                   )}>
                     {entry.speaker} ({entry.role})
                   </div>
-                  <div className="text-sm text-gray-700 leading-relaxed">{entry.text}</div>
-                  <div className="text-xs text-gray-400 mt-1">{entry.timestamp}</div>
+                  <div className="text-sm text-foreground leading-relaxed">{entry.text}</div>
+                  <div className="text-xs text-muted-foreground mt-1">{entry.timestamp}</div>
                 </div>
               ))}
             </CardContent>
@@ -235,7 +235,7 @@ Areas to probe in next stage:
                               : score === 3
                               ? 'bg-amber-500 border-amber-500 text-white'
                               : 'bg-red-500 border-red-500 text-white'
-                            : 'border-gray-200 hover:border-indigo-500'
+                            : 'border-border hover:border-indigo-500'
                         )}
                       >
                         {score}
@@ -285,12 +285,12 @@ Areas to probe in next stage:
                 AI Analysis
               </Badge>
               <h4 className="font-semibold mb-3">Key Insights</h4>
-              <p className="text-sm text-gray-600 mb-4">
+              <p className="text-sm text-foreground/80 mb-4">
                 James demonstrated exceptional technical depth in discussing distributed systems architecture. His experience leading the payment reconciliation redesign at Paystack directly translates to our infrastructure needs.
               </p>
 
               <h4 className="font-semibold mb-2 text-green-600">Strengths Observed</h4>
-              <ul className="text-sm text-gray-600 mb-4 list-disc pl-4 space-y-1">
+              <ul className="text-sm text-foreground/80 mb-4 list-disc pl-4 space-y-1">
                 <li>Deep expertise in event-driven architecture and Kafka</li>
                 <li>Strong decision-making framework for technology choices</li>
                 <li>Experience with exactly-once semantics and data consistency</li>
@@ -298,7 +298,7 @@ Areas to probe in next stage:
               </ul>
 
               <h4 className="font-semibold mb-2 text-amber-600">Areas to Note</h4>
-              <ul className="text-sm text-gray-600 list-disc pl-4 space-y-1">
+              <ul className="text-sm text-foreground/80 list-disc pl-4 space-y-1">
                 <li>Limited discussion of testing strategies</li>
                 <li>Could explore more about people management style</li>
               </ul>
@@ -315,11 +315,11 @@ Areas to probe in next stage:
             </CardHeader>
             <CardContent className="px-5 pb-5 space-y-2">
               {suggestedQuestions.map((question, i) => (
-                <div key={i} className="flex gap-3 p-3 bg-gray-50 rounded-lg">
+                <div key={i} className="flex gap-3 p-3 bg-muted/50 rounded-lg">
                   <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
                     {i + 1}
                   </div>
-                  <div className="text-sm text-gray-700">{question}</div>
+                  <div className="text-sm text-foreground">{question}</div>
                 </div>
               ))}
               <Link href="/recruiting/questions" className="block text-center text-indigo-600 text-sm mt-3 hover:underline">

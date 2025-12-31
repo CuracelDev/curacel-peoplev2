@@ -53,8 +53,8 @@ export default function JobSettingsPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Job Settings</h1>
-          <p className="text-sm text-gray-600">
+          <h1 className="text-2xl font-bold text-foreground">Job Settings</h1>
+          <p className="text-sm text-foreground/80">
             Manage job descriptions, interview flows, and hiring configurations
           </p>
         </div>
@@ -62,27 +62,27 @@ export default function JobSettingsPage() {
 
       <Card>
         <CardContent className="p-0">
-          <div className="divide-y divide-gray-200">
+          <div className="divide-y divide-border">
             {jobSettingsOptions.map((option, index) => {
               const Icon = option.icon
               return (
                 <Link
                   key={index}
                   href={option.href}
-                  className="flex items-center gap-4 p-6 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="flex items-center gap-4 p-6 hover:bg-muted transition-colors cursor-pointer"
                 >
                   <div className={`${option.iconBg} p-3 rounded-lg flex-shrink-0`}>
                     <Icon className="h-6 w-6 text-indigo-600" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-base font-semibold text-gray-900 mb-1">
+                    <h3 className="text-base font-semibold text-foreground mb-1">
                       {option.title}
                     </h3>
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-foreground/80">
                       {option.description}
                     </p>
                   </div>
-                  <ChevronRight className="h-5 w-5 text-gray-400 flex-shrink-0" />
+                  <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                 </Link>
               )
             })}

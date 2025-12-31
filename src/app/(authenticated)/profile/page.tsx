@@ -59,15 +59,15 @@ export default function ProfilePage() {
         <CardContent className="space-y-3">
           <div className="grid gap-2">
             <Label>Name</Label>
-            <div className="text-sm text-gray-900">{me?.name || '—'}</div>
+            <div className="text-sm text-foreground">{me?.name || '—'}</div>
           </div>
           <div className="grid gap-2">
             <Label>Email</Label>
-            <div className="text-sm text-gray-900">{me?.email}</div>
+            <div className="text-sm text-foreground">{me?.email}</div>
           </div>
           <div className="grid gap-2">
             <Label>Role</Label>
-            <div className="text-sm text-gray-900">{me?.role}</div>
+            <div className="text-sm text-foreground">{me?.role}</div>
           </div>
           {me?.employee?.id ? (
             <div className="pt-2">

@@ -42,7 +42,7 @@ export function RoleBreakdownTable({ data, title = 'Weekly by Role' }: RoleBreak
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="text-left text-xs text-gray-500 uppercase tracking-wider border-b">
+              <tr className="text-left text-xs text-muted-foreground uppercase tracking-wider border-b">
                 <th className="pb-3 font-medium">Role</th>
                 <th className="pb-3 font-medium text-center">Qualified CVs</th>
                 <th className="pb-3 font-medium text-center">Interviews</th>
@@ -56,19 +56,19 @@ export function RoleBreakdownTable({ data, title = 'Weekly by Role' }: RoleBreak
                 <th className="pb-3 font-medium">CV to Interview</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {data.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-8 text-center text-gray-500">
+                  <td colSpan={11} className="py-8 text-center text-muted-foreground">
                     No data available for this period
                   </td>
                 </tr>
               ) : (
                 data.map((role) => (
-                  <tr key={role.jobId} className="hover:bg-gray-50">
+                  <tr key={role.jobId} className="hover:bg-muted/50">
                     <td className="py-3">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{role.jobTitle}</p>
+                        <p className="text-sm font-medium text-foreground">{role.jobTitle}</p>
                         {role.department && (
                           <Badge variant="secondary" className="mt-1 text-xs">
                             {role.department}
@@ -106,7 +106,7 @@ export function RoleBreakdownTable({ data, title = 'Weekly by Role' }: RoleBreak
                     <td className="py-3">
                       <div className="flex items-center gap-2">
                         <Progress value={role.conversionRates.cvToInterview} className="h-2 w-16" />
-                        <span className="text-xs text-gray-500">
+                        <span className="text-xs text-muted-foreground">
                           {role.conversionRates.cvToInterview.toFixed(0)}%
                         </span>
                       </div>

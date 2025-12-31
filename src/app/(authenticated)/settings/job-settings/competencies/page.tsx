@@ -226,7 +226,7 @@ export default function CompetenciesPage() {
       {/* Actions */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             placeholder="Search competencies..."
             value={searchQuery}
@@ -279,7 +279,7 @@ export default function CompetenciesPage() {
       {isLoading ? (
         <Card>
           <CardContent className="py-12">
-            <div className="text-center text-gray-500">Loading competencies...</div>
+            <div className="text-center text-muted-foreground">Loading competencies...</div>
           </CardContent>
         </Card>
       ) : Object.keys(groupedCompetencies).length > 0 ? (
@@ -295,7 +295,7 @@ export default function CompetenciesPage() {
                   {comps.map((comp) => (
                     <div
                       key={comp.id}
-                      className="p-4 border rounded-lg hover:bg-gray-50 transition-colors group"
+                      className="p-4 border rounded-lg hover:bg-muted transition-colors group"
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex items-center gap-2">
@@ -330,7 +330,7 @@ export default function CompetenciesPage() {
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
-                      <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
                         {comp.description}
                       </p>
                     </div>
@@ -344,9 +344,9 @@ export default function CompetenciesPage() {
         <Card>
           <CardContent className="py-12">
             <div className="text-center">
-              <Target className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No competencies found</h3>
-              <p className="text-gray-500 mb-4">
+              <Target className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+              <h3 className="text-lg font-medium text-foreground mb-2">No competencies found</h3>
+              <p className="text-muted-foreground mb-4">
                 {searchQuery || categoryFilter !== 'all'
                   ? 'Try adjusting your search or filter.'
                   : 'Create your first competency to get started.'}

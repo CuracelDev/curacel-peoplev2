@@ -98,7 +98,7 @@ export default function ResetPasswordPage() {
         <Card className="w-full max-w-md">
           <CardContent className="flex flex-col items-center py-12">
             <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
-            <p className="mt-4 text-gray-600">Verifying reset link...</p>
+            <p className="mt-4 text-foreground/80">Verifying reset link...</p>
           </CardContent>
         </Card>
       </div>
@@ -190,7 +190,7 @@ export default function ResetPasswordPage() {
                 required
                 minLength={8}
               />
-              <p className="text-xs text-gray-500">Must be at least 8 characters</p>
+              <p className="text-xs text-muted-foreground">Must be at least 8 characters</p>
             </div>
 
             <Input

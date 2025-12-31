@@ -33,7 +33,7 @@ export default function OnboardingPage() {
       case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800'
       case 'PENDING': return 'bg-yellow-100 text-yellow-800'
       case 'FAILED': return 'bg-red-100 text-red-800'
-      default: return 'bg-gray-100 text-gray-800'
+      default: return 'bg-muted text-foreground'
     }
   }
 
@@ -86,7 +86,7 @@ export default function OnboardingPage() {
                 <p className="text-2xl font-bold">
                   {data?.workflows.filter(w => w.status === 'PENDING').length || 0}
                 </p>
-                <p className="text-sm text-gray-500">Pending</p>
+                <p className="text-sm text-muted-foreground">Pending</p>
               </div>
             </div>
           </CardContent>
@@ -101,7 +101,7 @@ export default function OnboardingPage() {
                 <p className="text-2xl font-bold">
                   {data?.workflows.filter(w => w.status === 'IN_PROGRESS').length || 0}
                 </p>
-                <p className="text-sm text-gray-500">In Progress</p>
+                <p className="text-sm text-muted-foreground">In Progress</p>
               </div>
             </div>
           </CardContent>
@@ -116,7 +116,7 @@ export default function OnboardingPage() {
                 <p className="text-2xl font-bold">
                   {data?.workflows.filter(w => w.status === 'COMPLETED').length || 0}
                 </p>
-                <p className="text-sm text-gray-500">Completed</p>
+                <p className="text-sm text-muted-foreground">Completed</p>
               </div>
             </div>
           </CardContent>
@@ -131,7 +131,7 @@ export default function OnboardingPage() {
                 <p className="text-2xl font-bold">
                   {data?.workflows.filter(w => w.status === 'FAILED').length || 0}
                 </p>
-                <p className="text-sm text-gray-500">Failed</p>
+                <p className="text-sm text-muted-foreground">Failed</p>
               </div>
             </div>
           </CardContent>
@@ -152,7 +152,7 @@ export default function OnboardingPage() {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
             </div>
           ) : data?.workflows.length === 0 ? (
-            <div className="text-center py-8 text-gray-500">
+            <div className="text-center py-8 text-muted-foreground">
               No onboarding workflows found
             </div>
           ) : (
@@ -161,7 +161,7 @@ export default function OnboardingPage() {
                 const progress = getProgress(workflow.tasks)
                 return (
                   <Link key={workflow.id} href={`/onboarding/${workflow.id}`}>
-                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4 p-3 sm:p-4 border rounded-lg hover:bg-muted transition-colors">
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                           <p className="font-medium truncate">{workflow.employee.fullName}</p>
@@ -169,20 +169,20 @@ export default function OnboardingPage() {
                             {workflow.status.replace('_', ' ')}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {workflow.employee.jobTitle} • {workflow.employee.department}
                         </p>
-                        <p className="text-sm text-gray-400">
+                        <p className="text-sm text-muted-foreground">
                           Start: {workflow.employee.startDate ? formatDate(workflow.employee.startDate) : 'TBD'}
                         </p>
                       </div>
                       <div className="w-full sm:w-48">
                         <div className="flex items-center justify-between text-sm mb-1">
-                          <span className="text-gray-500">Progress</span>
+                          <span className="text-muted-foreground">Progress</span>
                           <span className="font-medium">{progress}%</span>
                         </div>
                         <Progress value={progress} className="h-2" />
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {workflow.tasks.filter(t => t.status === 'SUCCESS').length} of {workflow.tasks.length} tasks
                         </p>
                       </div>
@@ -196,7 +196,7 @@ export default function OnboardingPage() {
           {/* Pagination */}
           {data && data.pages > 1 && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Page {page} of {data.pages}
               </p>
               <div className="flex gap-2">

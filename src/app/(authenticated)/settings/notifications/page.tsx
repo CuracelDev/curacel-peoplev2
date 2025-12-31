@@ -199,7 +199,7 @@ export default function NotificationSettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <Label className="text-sm font-medium">Send email alerts</Label>
-              <p className="text-xs text-gray-500">In-app notifications are always visible to admins.</p>
+              <p className="text-xs text-muted-foreground">In-app notifications are always visible to admins.</p>
             </div>
             <Switch checked={emailEnabled} onCheckedChange={setEmailEnabled} />
           </div>
@@ -236,14 +236,14 @@ export default function NotificationSettingsPage() {
                 </Button>
               </div>
               {adminList.length === 0 ? (
-                <p className="text-sm text-gray-500">No admin users found.</p>
+                <p className="text-sm text-muted-foreground">No admin users found.</p>
               ) : (
                 <div className="space-y-3">
                   {adminList.map((user) => (
                     <div key={user.id} className="flex items-center justify-between">
                       <div>
-                        <p className="text-sm font-medium text-gray-900">{user.name || user.email}</p>
-                        <p className="text-xs text-gray-500">{user.email}</p>
+                        <p className="text-sm font-medium text-foreground">{user.name || user.email}</p>
+                        <p className="text-xs text-muted-foreground">{user.email}</p>
                       </div>
                       <Switch checked={selectedAdmins.has(user.id)} onCheckedChange={() => toggleAdmin(user.id)} />
                     </div>
@@ -270,17 +270,17 @@ export default function NotificationSettingsPage() {
             <Button type="button" variant="ghost" size="sm" onClick={handleClearActions}>
               Clear
             </Button>
-            <span className="text-xs text-gray-500">{actionSummary}</span>
+            <span className="text-xs text-muted-foreground">{actionSummary}</span>
           </div>
 
           <div className="space-y-6">
             {NOTIFICATION_ACTION_GROUPS.map((group) => (
               <div key={group.title} className="space-y-3">
-                <p className="text-sm font-semibold text-gray-900">{group.title}</p>
+                <p className="text-sm font-semibold text-foreground">{group.title}</p>
                 <div className="grid gap-3 md:grid-cols-2">
                   {group.actions.map((action) => (
-                    <div key={action} className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2">
-                      <span className="text-sm text-gray-700">{formatAuditAction(action)}</span>
+                    <div key={action} className="flex items-center justify-between rounded-md border border-border px-3 py-2">
+                      <span className="text-sm text-foreground">{formatAuditAction(action)}</span>
                       <Switch checked={selectedActions.has(action)} onCheckedChange={() => toggleAction(action)} />
                     </div>
                   ))}
@@ -304,8 +304,8 @@ export default function NotificationSettingsPage() {
         </div>
       </div>
 
-      <div className="border-t border-gray-200 pt-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Sidebar Badges</h2>
+      <div className="border-t border-border pt-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Sidebar Badges</h2>
       </div>
 
       <Card>
@@ -316,7 +316,7 @@ export default function NotificationSettingsPage() {
           <div className="flex items-center justify-between">
             <div>
               <Label className="text-sm font-medium">Show sidebar badges</Label>
-              <p className="text-xs text-gray-500">Display count badges next to sidebar navigation items.</p>
+              <p className="text-xs text-muted-foreground">Display count badges next to sidebar navigation items.</p>
             </div>
             <Switch checked={badgesEnabled} onCheckedChange={setBadgesEnabled} />
           </div>
@@ -329,13 +329,13 @@ export default function NotificationSettingsPage() {
             <CardTitle>Badge metrics</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-sm text-gray-500">Select which metrics to display as badges in the sidebar.</p>
+            <p className="text-sm text-muted-foreground">Select which metrics to display as badges in the sidebar.</p>
             <div className="space-y-3">
               {BADGE_OPTIONS.map((option) => (
-                <div key={option.key} className="flex items-center justify-between rounded-md border border-gray-200 px-3 py-2">
+                <div key={option.key} className="flex items-center justify-between rounded-md border border-border px-3 py-2">
                   <div>
-                    <p className="text-sm font-medium text-gray-900">{option.label}</p>
-                    <p className="text-xs text-gray-500">{option.description}</p>
+                    <p className="text-sm font-medium text-foreground">{option.label}</p>
+                    <p className="text-xs text-muted-foreground">{option.description}</p>
                   </div>
                   <Switch
                     checked={badgeToggles[option.key] ?? true}

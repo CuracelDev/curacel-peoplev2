@@ -85,8 +85,8 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Hiring Analytics</h1>
-        <p className="text-gray-500">Track and analyze your hiring performance metrics</p>
+        <h1 className="text-2xl font-bold text-foreground">Hiring Analytics</h1>
+        <p className="text-muted-foreground">Track and analyze your hiring performance metrics</p>
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
@@ -104,7 +104,7 @@ export default function AnalyticsPage() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="text-sm border rounded-lg px-3 py-2 bg-white"
+              className="text-sm border rounded-lg px-3 py-2 bg-card"
             >
               {years.map((year) => (
                 <option key={year} value={year}>
@@ -203,7 +203,7 @@ export default function AnalyticsPage() {
               )}
             </>
           ) : (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-muted-foreground">
               No data available for this period
             </div>
           )}
@@ -215,7 +215,7 @@ export default function AnalyticsPage() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="text-sm border rounded-lg px-3 py-2 bg-white"
+              className="text-sm border rounded-lg px-3 py-2 bg-card"
             >
               {years.map((year) => (
                 <option key={year} value={year}>
@@ -235,7 +235,7 @@ export default function AnalyticsPage() {
               keyMetrics={monthlyTableData.keyMetrics}
             />
           ) : (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-muted-foreground">
               No data available for this year
             </div>
           )}
@@ -260,7 +260,7 @@ export default function AnalyticsPage() {
             <select
               value={funnelYear}
               onChange={(e) => setFunnelYear(Number(e.target.value))}
-              className="text-sm border rounded-lg px-3 py-2 bg-white"
+              className="text-sm border rounded-lg px-3 py-2 bg-card"
             >
               {years.map((year) => (
                 <option key={year} value={year}>
@@ -271,7 +271,7 @@ export default function AnalyticsPage() {
             <select
               value={funnelRole || ''}
               onChange={(e) => setFunnelRole(e.target.value || undefined)}
-              className="text-sm border rounded-lg px-3 py-2 bg-white"
+              className="text-sm border rounded-lg px-3 py-2 bg-card"
             >
               <option value="">All Roles</option>
               {uniqueRoles.map((role) => (
@@ -320,28 +320,28 @@ export default function AnalyticsPage() {
                   </CardHeader>
                   <CardContent>
                     <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500 mb-1">Qual - First</p>
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Qual - First</p>
                         <p className="text-lg font-bold text-blue-600">{funnelSummary.conversionRates.qualToFirst.toFixed(1)}%</p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500 mb-1">First - Second</p>
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">First - Second</p>
                         <p className="text-lg font-bold text-blue-600">{funnelSummary.conversionRates.firstToSecond.toFixed(1)}%</p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500 mb-1">Second - Third</p>
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Second - Third</p>
                         <p className="text-lg font-bold text-blue-600">{funnelSummary.conversionRates.secondToThird.toFixed(1)}%</p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500 mb-1">Third - Trial</p>
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Third - Trial</p>
                         <p className="text-lg font-bold text-blue-600">{funnelSummary.conversionRates.thirdToTrial.toFixed(1)}%</p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500 mb-1">Trial - Hired</p>
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Trial - Hired</p>
                         <p className="text-lg font-bold text-blue-600">{funnelSummary.conversionRates.trialToHired.toFixed(1)}%</p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-xs text-gray-500 mb-1">Overall</p>
+                      <div className="text-center p-3 bg-muted/50 rounded-lg">
+                        <p className="text-xs text-muted-foreground mb-1">Overall</p>
                         <p className="text-lg font-bold text-green-600">{funnelSummary.conversionRates.qualToHired.toFixed(1)}%</p>
                       </div>
                     </div>
@@ -362,7 +362,7 @@ export default function AnalyticsPage() {
                           {funnelSummary.topRoles.map((role: { role: string; hires: number }, idx: number) => (
                             <div key={role.role} className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-gray-500">{idx + 1}.</span>
+                                <span className="text-sm font-medium text-muted-foreground">{idx + 1}.</span>
                                 <span className="text-sm font-medium">{role.role}</span>
                               </div>
                               <span className="text-sm font-bold text-green-600">{role.hires} hired</span>
@@ -370,7 +370,7 @@ export default function AnalyticsPage() {
                           ))}
                         </div>
                       ) : (
-                        <p className="text-sm text-gray-500">No hire data available</p>
+                        <p className="text-sm text-muted-foreground">No hire data available</p>
                       )}
                     </CardContent>
                   </Card>
@@ -385,14 +385,14 @@ export default function AnalyticsPage() {
                           <BarChart3 className="h-4 w-4 text-blue-500 mt-0.5" />
                           <div>
                             <p className="text-sm font-medium">Total Candidates</p>
-                            <p className="text-sm text-gray-600">{funnelSummary.totals.qualifiedCVs.toLocaleString()} qualified CVs processed</p>
+                            <p className="text-sm text-foreground/80">{funnelSummary.totals.qualifiedCVs.toLocaleString()} qualified CVs processed</p>
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
                           <UserCheck className="h-4 w-4 text-green-500 mt-0.5" />
                           <div>
                             <p className="text-sm font-medium">Hires Made</p>
-                            <p className="text-sm text-gray-600">{funnelSummary.totals.hired} candidates successfully hired</p>
+                            <p className="text-sm text-foreground/80">{funnelSummary.totals.hired} candidates successfully hired</p>
                           </div>
                         </div>
                         {funnelSummary.biggestLoss && (
@@ -400,7 +400,7 @@ export default function AnalyticsPage() {
                             <Target className="h-4 w-4 text-red-500 mt-0.5" />
                             <div>
                               <p className="text-sm font-medium">Biggest Loss Stage</p>
-                              <p className="text-sm text-gray-600">{funnelSummary.biggestLoss.stage} ({funnelSummary.biggestLoss.lossCount} candidates)</p>
+                              <p className="text-sm text-foreground/80">{funnelSummary.biggestLoss.stage} ({funnelSummary.biggestLoss.lossCount} candidates)</p>
                             </div>
                           </div>
                         )}
@@ -420,7 +420,7 @@ export default function AnalyticsPage() {
                     <div className="overflow-x-auto">
                       <table className="w-full">
                         <thead>
-                          <tr className="text-left text-xs text-gray-500 uppercase tracking-wider border-b">
+                          <tr className="text-left text-xs text-muted-foreground uppercase tracking-wider border-b">
                             <th className="pb-3 font-medium">Role</th>
                             <th className="pb-3 font-medium text-right">Qualified</th>
                             <th className="pb-3 font-medium text-right">1st Stage</th>
@@ -432,12 +432,12 @@ export default function AnalyticsPage() {
                             <th className="pb-3 font-medium text-right">Conv %</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-border">
                           {funnelData.funnelData.map((row) => {
                             const yearData = row.years.find((y) => y.year === funnelYear)
                             if (!yearData) return null
                             return (
-                              <tr key={row.role} className="hover:bg-gray-50">
+                              <tr key={row.role} className="hover:bg-muted">
                                 <td className="py-2 text-sm font-medium">{row.role}</td>
                                 <td className="py-2 text-sm text-right">{yearData.qualifiedCVs}</td>
                                 <td className="py-2 text-sm text-right">{yearData.firstStage}</td>
@@ -466,7 +466,7 @@ export default function AnalyticsPage() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="text-sm border rounded-lg px-3 py-2 bg-white"
+              className="text-sm border rounded-lg px-3 py-2 bg-card"
             >
               {years.map((year) => (
                 <option key={year} value={year}>
@@ -515,7 +515,7 @@ export default function AnalyticsPage() {
               />
             </>
           ) : (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-muted-foreground">
               No velocity data available
             </div>
           )}
@@ -527,7 +527,7 @@ export default function AnalyticsPage() {
             <select
               value={selectedYear}
               onChange={(e) => setSelectedYear(Number(e.target.value))}
-              className="text-sm border rounded-lg px-3 py-2 bg-white"
+              className="text-sm border rounded-lg px-3 py-2 bg-card"
             >
               {years.map((year) => (
                 <option key={year} value={year}>
@@ -583,7 +583,7 @@ export default function AnalyticsPage() {
               />
             </>
           ) : (
-            <div className="text-center py-12 text-gray-500">
+            <div className="text-center py-12 text-muted-foreground">
               No source data available
             </div>
           )}

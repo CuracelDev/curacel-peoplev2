@@ -120,7 +120,7 @@ const FLOW_TYPES = [
 ]
 
 function getDepartmentInfo(department: string) {
-  return DEPARTMENTS.find(d => d.value === department) || { icon: Briefcase, color: 'text-gray-500 bg-gray-50' }
+  return DEPARTMENTS.find(d => d.value === department) || { icon: Briefcase, color: 'text-muted-foreground bg-muted/50' }
 }
 
 export default function EditJDPage() {
@@ -201,7 +201,7 @@ export default function EditJDPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
   }
@@ -222,19 +222,19 @@ export default function EditJDPage() {
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h1 className="text-2xl font-semibold text-gray-900">{formData.name}</h1>
+                <h1 className="text-2xl font-semibold text-foreground">{formData.name}</h1>
                 <Badge variant="outline" className="gap-1">
                   <GitBranch className="h-3 w-3" />
                   v{formData.version}
                 </Badge>
                 {isArchived && (
-                  <Badge variant="outline" className="text-gray-500">
+                  <Badge variant="outline" className="text-muted-foreground">
                     <History className="h-3 w-3 mr-1" />
                     Archived
                   </Badge>
                 )}
               </div>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-muted-foreground">
                 Last updated {formData.updatedAt}
               </p>
             </div>
@@ -262,7 +262,7 @@ export default function EditJDPage() {
 
       {/* Archived notice */}
       {isArchived && (
-        <div className="flex items-center gap-2 p-3 bg-gray-100 text-gray-700 rounded-lg">
+        <div className="flex items-center gap-2 p-3 bg-muted text-foreground rounded-lg">
           <History className="h-5 w-5" />
           <span className="text-sm">
             This is an archived version. You can view the details but cannot edit.
@@ -332,7 +332,7 @@ export default function EditJDPage() {
                     <SelectItem key={flow.value} value={flow.value}>
                       <div>
                         <div className="font-medium">{flow.label}</div>
-                        <div className="text-xs text-gray-500">{flow.description}</div>
+                        <div className="text-xs text-muted-foreground">{flow.description}</div>
                       </div>
                     </SelectItem>
                   ))}
@@ -342,8 +342,8 @@ export default function EditJDPage() {
             <div className="space-y-2">
               <Label>Status</Label>
               {isArchived ? (
-                <div className="flex items-center rounded-md border border-input px-3 py-2 h-10 bg-gray-50">
-                  <span className="text-sm text-gray-500">Archived</span>
+                <div className="flex items-center rounded-md border border-input px-3 py-2 h-10 bg-muted/50">
+                  <span className="text-sm text-muted-foreground">Archived</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-between rounded-md border border-input px-3 py-2 h-10">
@@ -406,7 +406,7 @@ export default function EditJDPage() {
           </div>
 
           {/* Meta info */}
-          <div className="flex items-center gap-6 text-sm text-gray-500 pt-4 border-t">
+          <div className="flex items-center gap-6 text-sm text-muted-foreground pt-4 border-t">
             <span>Created: {formData.createdAt}</span>
             <span>Updated: {formData.updatedAt}</span>
             <span>Version: {formData.version}</span>

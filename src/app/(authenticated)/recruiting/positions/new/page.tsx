@@ -45,7 +45,7 @@ const PRIORITIES = [
   { value: '4', label: 'High', color: 'bg-orange-100 text-orange-700' },
   { value: '3', label: 'Medium', color: 'bg-yellow-100 text-yellow-700' },
   { value: '2', label: 'Low', color: 'bg-blue-100 text-blue-700' },
-  { value: '1', label: 'Not Urgent', color: 'bg-gray-100 text-gray-700' },
+  { value: '1', label: 'Not Urgent', color: 'bg-muted text-foreground' },
 ]
 
 const CURRENCIES = ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'AUD']
@@ -354,8 +354,8 @@ export default function CreateJobPage() {
         {/* Form Column */}
         <div className="space-y-4">
           {/* Basic Information */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                 1
               </div>
@@ -416,7 +416,7 @@ export default function CreateJobPage() {
                     value={formData.deadline}
                     onChange={(e) => setFormData({ ...formData, deadline: e.target.value })}
                   />
-                  <p className="text-xs text-gray-500">Target date to fill this role.</p>
+                  <p className="text-xs text-muted-foreground">Target date to fill this role.</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Priority</Label>
@@ -450,7 +450,7 @@ export default function CreateJobPage() {
                     value={formData.hiresCount}
                     onChange={(e) => setFormData({ ...formData, hiresCount: e.target.value })}
                   />
-                  <p className="text-xs text-gray-500">How many people should we hire?</p>
+                  <p className="text-xs text-muted-foreground">How many people should we hire?</p>
                 </div>
               </div>
 
@@ -489,13 +489,13 @@ export default function CreateJobPage() {
                     }}
                   />
                   {locationDropdownOpen && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                    <div className="absolute z-10 w-full mt-1 bg-card border rounded-lg shadow-lg max-h-48 overflow-y-auto">
                       {filteredLocations.map((loc) => (
                         <button
                           key={loc.value}
                           type="button"
                           className={cn(
-                            'w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between',
+                            'w-full text-left px-3 py-2 hover:bg-muted flex items-center justify-between',
                             officeLocations.some((selected) => selected.toLowerCase() === loc.value.toLowerCase()) && 'bg-indigo-50'
                           )}
                           onMouseDown={(event) => event.preventDefault()}
@@ -512,13 +512,13 @@ export default function CreateJobPage() {
                         </button>
                       ))}
                       {!filteredLocations.length && (
-                        <div className="px-3 py-2 text-sm text-gray-500">No matches found.</div>
+                        <div className="px-3 py-2 text-sm text-muted-foreground">No matches found.</div>
                       )}
                     </div>
                   )}
                 </div>
                 {!locationSearch && (
-                  <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500">
+                  <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <span>Suggested:</span>
                     {SUGGESTED_LOCATIONS.slice(0, 3).map((loc) => (
                       <button
@@ -532,14 +532,14 @@ export default function CreateJobPage() {
                     ))}
                   </div>
                 )}
-                <p className="text-xs text-gray-500">Add any city or region. You can select multiple locations.</p>
+                <p className="text-xs text-muted-foreground">Add any city or region. You can select multiple locations.</p>
               </div>
             </div>
           </div>
 
           {/* Job Description */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                 2
               </div>
@@ -565,7 +565,7 @@ export default function CreateJobPage() {
                   </SelectContent>
                 </Select>
                 {!formData.jdId && (
-                  <p className="text-sm text-gray-500 flex items-center gap-1">
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
                     <Info className="h-3.5 w-3.5" />
                     Select from your JD library in{' '}
                     <Link href="/settings/jd-templates" className="text-indigo-600 hover:underline">
@@ -575,12 +575,12 @@ export default function CreateJobPage() {
                 )}
               </div>
               {selectedJD && (
-                <div className="p-4 bg-gray-50 rounded-lg border">
+                <div className="p-4 bg-muted/50 rounded-lg border">
                   <div className="flex items-center justify-between mb-2">
                     <span className="font-medium">{selectedJD.name}</span>
                     <Badge variant="secondary">{selectedJD.department}</Badge>
                   </div>
-                  <p className="text-sm text-gray-600">
+                  <p className="text-sm text-foreground/80">
                     Job description content will be loaded here...
                   </p>
                 </div>
@@ -589,22 +589,22 @@ export default function CreateJobPage() {
           </div>
 
           {/* Salary and Equity Ranges */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                 3
               </div>
               <h2 className="font-semibold">Salary and Equity Ranges</h2>
             </div>
             <div className="p-5 space-y-4">
-              <p className="text-sm text-gray-500">This information is visible to candidates on the job directory.</p>
+              <p className="text-sm text-muted-foreground">This information is visible to candidates on the job directory.</p>
 
               {/* Pay Range */}
               <div className="space-y-2">
                 <Label>Pay range</Label>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 w-10">Min.</span>
+                    <span className="text-sm text-muted-foreground w-10">Min.</span>
                     <Input
                       type="number"
                       placeholder="6000"
@@ -614,7 +614,7 @@ export default function CreateJobPage() {
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 w-10">Max.</span>
+                    <span className="text-sm text-muted-foreground w-10">Max.</span>
                     <Input
                       type="number"
                       placeholder="9000"
@@ -657,7 +657,7 @@ export default function CreateJobPage() {
                 <Label>Equity range</Label>
                 <div className="flex items-center gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 w-10">Min.</span>
+                    <span className="text-sm text-muted-foreground w-10">Min.</span>
                     <Input
                       type="number"
                       step="0.01"
@@ -668,7 +668,7 @@ export default function CreateJobPage() {
                     />
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-500 w-10">Max.</span>
+                    <span className="text-sm text-muted-foreground w-10">Max.</span>
                     <Input
                       type="number"
                       step="0.01"
@@ -678,15 +678,15 @@ export default function CreateJobPage() {
                       className="w-28"
                     />
                   </div>
-                  <span className="text-sm text-gray-500 px-3 py-2 bg-gray-100 rounded">%</span>
+                  <span className="text-sm text-muted-foreground px-3 py-2 bg-muted rounded">%</span>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Interview Flow */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                 4
               </div>
@@ -710,7 +710,7 @@ export default function CreateJobPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-sm text-gray-500 flex items-center gap-1">
+                <p className="text-sm text-muted-foreground flex items-center gap-1">
                   <Info className="h-3.5 w-3.5" />
                   Manage flows in{' '}
                   <Link href="/recruiting/settings" className="text-indigo-600 hover:underline">
@@ -720,11 +720,11 @@ export default function CreateJobPage() {
               </div>
 
               {selectedFlowData && (
-                <div className="p-4 bg-gray-50 rounded-lg border">
+                <div className="p-4 bg-muted/50 rounded-lg border">
                   <div className="flex items-center gap-3 mb-3">
                     <div className={cn(
                       'w-10 h-10 rounded-lg flex items-center justify-center',
-                      flowAppearance[selectedFlowData.id as keyof typeof flowAppearance]?.color || 'bg-gray-100 text-gray-600'
+                      flowAppearance[selectedFlowData.id as keyof typeof flowAppearance]?.color || 'bg-muted text-foreground/80'
                     )}>
                       {(() => {
                         const Icon = flowAppearance[selectedFlowData.id as keyof typeof flowAppearance]?.icon || User
@@ -733,17 +733,17 @@ export default function CreateJobPage() {
                     </div>
                     <div>
                       <div className="font-semibold">{selectedFlowData.name}</div>
-                      <div className="text-sm text-gray-500">{selectedFlowData.description}</div>
+                      <div className="text-sm text-muted-foreground">{selectedFlowData.description}</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-2 flex-wrap">
                     {selectedFlowData.stages.map((stage, i) => (
                       <span key={`${selectedFlowData.id}-${stage}-${i}`} className="flex items-center gap-2">
-                        <span className="text-xs bg-white px-3 py-1 rounded-full text-gray-600 border">
+                        <span className="text-xs bg-card px-3 py-1 rounded-full text-foreground/80 border">
                           {stage}
                         </span>
                         {i < selectedFlowData.stages.length - 1 && (
-                          <span className="text-gray-300">&rarr;</span>
+                          <span className="text-muted-foreground/60">&rarr;</span>
                         )}
                       </span>
                     ))}
@@ -754,8 +754,8 @@ export default function CreateJobPage() {
           </div>
 
           {/* Competencies */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                 5
               </div>
@@ -787,7 +787,7 @@ export default function CreateJobPage() {
 
               {/* Search */}
               <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder="Search competencies..."
                   value={competencySearch}
@@ -807,7 +807,7 @@ export default function CreateJobPage() {
                       'flex items-center gap-2 p-3 border rounded-lg transition-all text-left',
                       selectedCompetencies.includes(comp.id)
                         ? 'border-indigo-500 bg-indigo-50/50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        : 'border-border hover:border-border'
                     )}
                   >
                     <div
@@ -815,7 +815,7 @@ export default function CreateJobPage() {
                         'w-[18px] h-[18px] rounded flex items-center justify-center flex-shrink-0',
                         selectedCompetencies.includes(comp.id)
                           ? 'bg-indigo-600 text-white'
-                          : 'border-2 border-gray-300'
+                          : 'border-2 border-border'
                       )}
                     >
                       {selectedCompetencies.includes(comp.id) && (
@@ -824,13 +824,13 @@ export default function CreateJobPage() {
                     </div>
                     <div>
                       <span className="text-sm font-medium">{comp.name}</span>
-                      <span className="text-xs text-gray-500 ml-2">{comp.category}</span>
+                      <span className="text-xs text-muted-foreground ml-2">{comp.category}</span>
                     </div>
                   </button>
                 ))}
               </div>
 
-              <p className="text-sm text-gray-500 flex items-center gap-1 mt-4">
+              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-4">
                 <Info className="h-3.5 w-3.5" />
                 Manage competencies in{' '}
                 <Link href="/settings/job-settings/competencies" className="text-indigo-600 hover:underline">
@@ -841,15 +841,15 @@ export default function CreateJobPage() {
           </div>
 
           {/* Blue AI Actions */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                 6
               </div>
               <h2 className="font-semibold">Blue AI Actions</h2>
             </div>
             <div className="p-5">
-              <p className="text-sm text-gray-500 mb-4">Auto-archive applicants that do not meet your requirements.</p>
+              <p className="text-sm text-muted-foreground mb-4">Auto-archive applicants that do not meet your requirements.</p>
               <label className="flex items-center gap-3 cursor-pointer">
                 <Checkbox
                   checked={formData.autoArchiveLocation}
@@ -861,8 +861,8 @@ export default function CreateJobPage() {
           </div>
 
           {/* Additional Details */}
-          <div className="bg-white border border-gray-200 rounded-xl">
-            <div className="p-5 border-b border-gray-200 flex items-center gap-3">
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                 7
               </div>
@@ -888,7 +888,7 @@ export default function CreateJobPage() {
                     ))}
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-gray-500">The person responsible for filling this role</p>
+                <p className="text-xs text-muted-foreground">The person responsible for filling this role</p>
               </div>
 
               {/* Followers */}
@@ -920,13 +920,13 @@ export default function CreateJobPage() {
                       />
                     </div>
                     {followerSearch && (
-                      <div className="absolute z-10 w-full mt-1 bg-white border rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                      <div className="absolute z-10 w-full mt-1 bg-card border rounded-lg shadow-lg max-h-48 overflow-y-auto">
                         {filteredEmployees.map((emp) => (
                           <button
                             key={emp.id}
                             type="button"
                             className={cn(
-                              'w-full text-left px-3 py-2 hover:bg-gray-50 flex items-center justify-between',
+                              'w-full text-left px-3 py-2 hover:bg-muted flex items-center justify-between',
                               followers.includes(emp.id) && 'bg-indigo-50'
                             )}
                             onClick={() => {
@@ -954,7 +954,7 @@ export default function CreateJobPage() {
                     Add me
                   </Button>
                 </div>
-                <p className="text-xs text-gray-500">Followers receive email notifications of new matching candidates.</p>
+                <p className="text-xs text-muted-foreground">Followers receive email notifications of new matching candidates.</p>
               </div>
             </div>
           </div>
@@ -962,7 +962,7 @@ export default function CreateJobPage() {
 
         {/* Preview Sidebar */}
         <div className="sticky top-20">
-          <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+          <div className="bg-card border border-border rounded-xl overflow-hidden">
             <div className="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-5">
               <div className="text-xs opacity-80 mb-2">Job Preview</div>
               <div className="text-xl font-semibold">{formData.title || 'Job Title'}</div>
@@ -972,30 +972,30 @@ export default function CreateJobPage() {
             </div>
             <div className="p-5 space-y-4">
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Employment</div>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Employment</div>
                 <div className="font-medium capitalize">{formData.employmentType.replace('-', ' ')}</div>
               </div>
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Priority</div>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Priority</div>
                 <Badge className={cn(
-                  PRIORITIES.find(p => p.value === formData.priority)?.color || 'bg-gray-100'
+                  PRIORITIES.find(p => p.value === formData.priority)?.color || 'bg-muted'
                 )}>
                   {PRIORITIES.find(p => p.value === formData.priority)?.label || 'Medium'}
                 </Badge>
               </div>
               {formattedDeadline && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Deadline</div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Deadline</div>
                   <div className="font-medium text-sm">{formattedDeadline}</div>
                 </div>
               )}
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Hires</div>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Hires</div>
                 <div className="font-medium text-sm">{hiresCountDisplay}</div>
               </div>
               {(formData.salaryMin || formData.salaryMax) && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Salary</div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Salary</div>
                   <div className="font-medium text-sm">
                     {formData.salaryMin && formData.salaryMax
                       ? `${formData.salaryCurrency} ${Number(formData.salaryMin).toLocaleString()}-${Number(formData.salaryMax).toLocaleString()} ${formData.salaryFrequency}`
@@ -1008,7 +1008,7 @@ export default function CreateJobPage() {
               )}
               {(formData.equityMin || formData.equityMax) && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Equity</div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Equity</div>
                   <div className="font-medium text-sm">
                     {formData.equityMin && formData.equityMax
                       ? `${formData.equityMin}% - ${formData.equityMax}%`
@@ -1021,7 +1021,7 @@ export default function CreateJobPage() {
               )}
               {officeLocations.length > 0 && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Locations</div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Locations</div>
                   <div className="flex flex-wrap gap-1">
                     {officeLocations.map((loc) => (
                       <Badge key={loc} variant="outline" className="text-xs">
@@ -1034,12 +1034,12 @@ export default function CreateJobPage() {
               )}
               {selectedJD && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Job Description</div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Job Description</div>
                   <div className="font-medium">{selectedJD.name}</div>
                 </div>
               )}
               <div>
-                <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Interview Flow</div>
+                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Interview Flow</div>
                 <div className="font-medium">{selectedFlowData?.name}</div>
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   {selectedFlowData?.stages.map((stage, i) => (
@@ -1048,7 +1048,7 @@ export default function CreateJobPage() {
                         {stage}
                       </Badge>
                       {i < (selectedFlowData?.stages.length || 0) - 1 && (
-                        <span className="text-gray-300">&rarr;</span>
+                        <span className="text-muted-foreground/60">&rarr;</span>
                       )}
                     </span>
                   ))}
@@ -1056,7 +1056,7 @@ export default function CreateJobPage() {
               </div>
               {selectedCompetencyNames.length > 0 && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Key Competencies</div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Key Competencies</div>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {selectedCompetencyNames.map((name) => (
                       <Badge key={name} className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">
@@ -1068,7 +1068,7 @@ export default function CreateJobPage() {
               )}
               {formData.hiringManagerId && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Hiring Manager</div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Hiring Manager</div>
                   <div className="font-medium text-sm">
                     {(employees || []).find(e => e.id === formData.hiringManagerId)?.fullName || 'Selected'}
                   </div>
@@ -1076,15 +1076,15 @@ export default function CreateJobPage() {
               )}
               {followers.length > 0 && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Followers</div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Followers</div>
                   <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4 text-gray-400" />
+                    <Users className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm">{followers.length} people</span>
                   </div>
                 </div>
               )}
               {formData.autoArchiveLocation && (
-                <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-50 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
                   <Check className="h-3.5 w-3.5 text-green-600" />
                   <span>Auto-archive non-matching locations</span>
                 </div>
@@ -1097,7 +1097,7 @@ export default function CreateJobPage() {
               <Info className="h-4 w-4" />
               <span className="font-medium text-sm">AI-Ready</span>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-foreground/80">
               Once created, the AI will use this job profile to score candidates and generate personalized interview questions.
             </p>
           </div>

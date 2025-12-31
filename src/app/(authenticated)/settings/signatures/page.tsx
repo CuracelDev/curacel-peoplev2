@@ -127,19 +127,19 @@ export default function SignaturesPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left p-6 font-semibold text-gray-900">Signatory name</th>
-                  <th className="text-left p-6 font-semibold text-gray-900">Signatory title</th>
-                  <th className="text-left p-6 font-semibold text-gray-900">Date added</th>
-                  <th className="text-right p-6 font-semibold text-gray-900"></th>
+                <tr className="border-b border-border">
+                  <th className="text-left p-6 font-semibold text-foreground">Signatory name</th>
+                  <th className="text-left p-6 font-semibold text-foreground">Signatory title</th>
+                  <th className="text-left p-6 font-semibold text-foreground">Date added</th>
+                  <th className="text-right p-6 font-semibold text-foreground"></th>
                 </tr>
               </thead>
               <tbody>
                 {signatureBlocks?.map((block) => (
-                  <tr key={block.id} className="border-b border-gray-200 hover:bg-gray-50">
-                    <td className="p-6 text-gray-900">{block.signatoryName}</td>
-                    <td className="p-6 text-gray-900">{block.signatoryTitle}</td>
-                    <td className="p-6 text-gray-600">{formatDate(block.createdAt)}</td>
+                  <tr key={block.id} className="border-b border-border hover:bg-muted">
+                    <td className="p-6 text-foreground">{block.signatoryName}</td>
+                    <td className="p-6 text-foreground">{block.signatoryTitle}</td>
+                    <td className="p-6 text-foreground/80">{formatDate(block.createdAt)}</td>
                     <td className="p-6 text-right">
                       <Button
                         variant="ghost"
@@ -147,14 +147,14 @@ export default function SignaturesPage() {
                         onClick={() => handleEdit(block)}
                         className="h-8 w-8"
                       >
-                        <Pencil className="h-4 w-4 text-gray-600" />
+                        <Pencil className="h-4 w-4 text-foreground/80" />
                       </Button>
                     </td>
                   </tr>
                 ))}
                 {(!signatureBlocks || signatureBlocks.length === 0) && (
                   <tr>
-                    <td colSpan={4} className="p-12 text-center text-gray-500">
+                    <td colSpan={4} className="p-12 text-center text-muted-foreground">
                       No signature blocks yet. Click &quot;New signature block&quot; to create one.
                     </td>
                   </tr>
@@ -245,7 +245,7 @@ export default function SignaturesPage() {
                   >
                     Choose File
                   </Button>
-                  <span className="text-sm text-gray-500">
+                  <span className="text-sm text-muted-foreground">
                     {watch('signatureImageUrl') ? 'File chosen' : 'No file chosen'}
                   </span>
                 </div>
@@ -256,7 +256,7 @@ export default function SignaturesPage() {
                       alt="Signature preview"
                       width={320}
                       height={128}
-                      className="h-auto w-auto max-h-32 border border-gray-200 rounded"
+                      className="h-auto w-auto max-h-32 border border-border rounded"
                       unoptimized
                     />
                   </div>
@@ -264,7 +264,7 @@ export default function SignaturesPage() {
               </div>
             </div>
 
-            <div className="text-xs text-gray-600 space-y-2">
+            <div className="text-xs text-foreground/80 space-y-2">
               <p>
                 By clicking the button below: I certify that I consent to conduct all affairs
                 relating to the signature above electronically. I adopt the above electronic

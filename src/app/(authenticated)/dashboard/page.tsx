@@ -71,7 +71,7 @@ const recentActivity = [
 
 const upcomingInterviews = [
   { id: '1', candidate: 'James Okafor', email: 'james.okafor@email.com', position: 'Senior Backend Engineer', stage: 'Panel Interview', stageColor: 'bg-orange-100 text-orange-700', date: 'Today, 2:00 PM', relative: 'In 2 hours', interviewers: ['HK', 'JS'] },
-  { id: '2', candidate: 'Sarah Chen', email: 'sarah.chen@email.com', position: 'Senior Backend Engineer', stage: 'HR Screen', stageColor: 'bg-gray-100 text-gray-700', date: 'Tomorrow, 10:00 AM', relative: 'Dec 29', interviewers: ['TG'] },
+  { id: '2', candidate: 'Sarah Chen', email: 'sarah.chen@email.com', position: 'Senior Backend Engineer', stage: 'HR Screen', stageColor: 'bg-muted text-foreground', date: 'Tomorrow, 10:00 AM', relative: 'Dec 29', interviewers: ['TG'] },
   { id: '3', candidate: 'Michael Adeyemi', email: 'm.adeyemi@email.com', position: 'Growth Lead', stage: 'Technical', stageColor: 'bg-purple-100 text-purple-700', date: 'Dec 30, 3:00 PM', relative: 'In 2 days', interviewers: ['HK', 'OK'] },
 ]
 
@@ -122,7 +122,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              <span className="text-sm text-gray-500">Total Candidates</span>
+              <span className="text-sm text-muted-foreground">Total Candidates</span>
               <span className="text-3xl font-bold mt-1">{hiringStats.totalCandidates}</span>
               <span className="text-xs text-green-600 mt-1 flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" />
@@ -135,7 +135,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              <span className="text-sm text-gray-500">In Interview</span>
+              <span className="text-sm text-muted-foreground">In Interview</span>
               <span className="text-3xl font-bold mt-1">{hiringStats.inInterview}</span>
               <span className="text-xs text-green-600 mt-1 flex items-center gap-1">
                 <TrendingUp className="h-3 w-3" />
@@ -148,7 +148,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              <span className="text-sm text-gray-500">Avg. Score</span>
+              <span className="text-sm text-muted-foreground">Avg. Score</span>
               <span className="text-3xl font-bold mt-1">{hiringStats.avgScore}</span>
               <span className="text-xs text-red-500 mt-1 flex items-center gap-1">
                 <TrendingUp className="h-3 w-3 rotate-180" />
@@ -164,9 +164,9 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              <span className="text-sm text-gray-500">Total Employees</span>
+              <span className="text-sm text-muted-foreground">Total Employees</span>
               <span className="text-3xl font-bold mt-1">{employees.total}</span>
-              <span className="text-xs text-gray-500 mt-1">{employees.active} active</span>
+              <span className="text-xs text-muted-foreground mt-1">{employees.active} active</span>
             </div>
           </CardContent>
         </Card>
@@ -174,9 +174,9 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              <span className="text-sm text-gray-500">Pending Contracts</span>
+              <span className="text-sm text-muted-foreground">Pending Contracts</span>
               <span className="text-3xl font-bold mt-1">{(contracts.sent || 0) + (contracts.viewed || 0)}</span>
-              <span className="text-xs text-gray-500 mt-1">{contracts.signed || 0} signed this month</span>
+              <span className="text-xs text-muted-foreground mt-1">{contracts.signed || 0} signed this month</span>
             </div>
           </CardContent>
         </Card>
@@ -184,9 +184,9 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              <span className="text-sm text-gray-500">Onboarding</span>
+              <span className="text-sm text-muted-foreground">Onboarding</span>
               <span className="text-3xl font-bold mt-1">{workflows.pendingOnboarding}</span>
-              <span className="text-xs text-gray-500 mt-1">in progress</span>
+              <span className="text-xs text-muted-foreground mt-1">in progress</span>
             </div>
           </CardContent>
         </Card>
@@ -194,9 +194,9 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              <span className="text-sm text-gray-500">Offboarding</span>
+              <span className="text-sm text-muted-foreground">Offboarding</span>
               <span className="text-3xl font-bold mt-1">{workflows.pendingOffboarding}</span>
-              <span className="text-xs text-gray-500 mt-1">scheduled</span>
+              <span className="text-xs text-muted-foreground mt-1">scheduled</span>
             </div>
           </CardContent>
         </Card>
@@ -207,7 +207,7 @@ export default function DashboardPage() {
         <Card className="lg:col-span-2 border-0 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-lg font-semibold">Pipeline Overview</CardTitle>
-            <select className="text-sm border rounded-lg px-3 py-1.5 bg-white">
+            <select className="text-sm border rounded-lg px-3 py-1.5 bg-card">
               <option>All Jobs</option>
             </select>
           </CardHeader>
@@ -216,36 +216,36 @@ export default function DashboardPage() {
               <div className="flex items-center gap-2 flex-1">
                 <div className="text-center flex-1">
                   <p className="text-2xl font-bold">{pipelineData.applied}</p>
-                  <p className="text-xs text-gray-500">Applied</p>
+                  <p className="text-xs text-muted-foreground">Applied</p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-gray-300" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground/60" />
                 <div className="text-center flex-1">
                   <p className="text-2xl font-bold">{pipelineData.hrScreen}</p>
-                  <p className="text-xs text-gray-500">HR Screen</p>
+                  <p className="text-xs text-muted-foreground">HR Screen</p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-gray-300" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground/60" />
                 <div className="text-center flex-1">
                   <p className="text-2xl font-bold">{pipelineData.technical}</p>
-                  <p className="text-xs text-gray-500">Technical</p>
+                  <p className="text-xs text-muted-foreground">Technical</p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-gray-300" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground/60" />
                 <div className="text-center flex-1">
                   <p className="text-2xl font-bold">{pipelineData.panel}</p>
-                  <p className="text-xs text-gray-500">Panel</p>
+                  <p className="text-xs text-muted-foreground">Panel</p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-gray-300" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground/60" />
                 <div className="text-center flex-1">
                   <p className="text-2xl font-bold">{pipelineData.offer}</p>
-                  <p className="text-xs text-gray-500">Offer</p>
+                  <p className="text-xs text-muted-foreground">Offer</p>
                 </div>
               </div>
             </div>
             <div className="mt-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm text-gray-500">Conversion Rate</span>
+                <span className="text-sm text-muted-foreground">Conversion Rate</span>
                 <span className="text-sm font-medium">{pipelineData.conversionRate}%</span>
               </div>
-              <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="h-2 bg-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-yellow-400 to-yellow-500 rounded-full"
                   style={{ width: `${pipelineData.conversionRate * 3}%` }}
@@ -275,10 +275,10 @@ export default function DashboardPage() {
                     <activity.icon className="h-4 w-4" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                    <p className="text-xs text-gray-500 truncate">{activity.description}</p>
+                    <p className="text-sm font-medium text-foreground">{activity.title}</p>
+                    <p className="text-xs text-muted-foreground truncate">{activity.description}</p>
                   </div>
-                  <span className="text-xs text-gray-400 whitespace-nowrap">{activity.time}</span>
+                  <span className="text-xs text-muted-foreground whitespace-nowrap">{activity.time}</span>
                 </div>
               ))}
             </div>
@@ -299,8 +299,8 @@ export default function DashboardPage() {
             <div className="space-y-3">
               {topCandidates.map((candidate, index) => (
                 <Link key={candidate.id} href={`/recruiting/candidates/${candidate.id}`}>
-                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-gray-50 transition-colors">
-                    <span className="text-sm text-gray-400 w-4">{index + 1}</span>
+                  <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors">
+                    <span className="text-sm text-muted-foreground w-4">{index + 1}</span>
                     <Avatar className="h-9 w-9">
                       <AvatarFallback className={`text-xs font-medium ${
                         index === 0 ? 'bg-green-100 text-green-700' :
@@ -312,13 +312,13 @@ export default function DashboardPage() {
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900">{candidate.name}</p>
-                      <p className="text-xs text-gray-500">{candidate.position}</p>
+                      <p className="text-sm font-medium text-foreground">{candidate.name}</p>
+                      <p className="text-xs text-muted-foreground">{candidate.position}</p>
                     </div>
                     <span className={`text-sm font-semibold ${
                       candidate.score >= 85 ? 'text-green-600' :
                       candidate.score >= 75 ? 'text-orange-500' :
-                      'text-gray-600'
+                      'text-foreground/80'
                     }`}>
                       {candidate.score}
                     </span>
@@ -336,49 +336,49 @@ export default function DashboardPage() {
           <CardContent>
             <div className="space-y-3">
               <Link href="/recruiting/positions/new">
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-gray-200 hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
                   <div className="p-2 rounded-lg bg-primary/10">
                     <Plus className="h-5 w-5 text-primary" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-primary">Create New Job</p>
-                    <p className="text-xs text-gray-500">Set up a new hiring position</p>
+                    <p className="text-xs text-muted-foreground">Set up a new hiring position</p>
                   </div>
                 </div>
               </Link>
 
               <Link href="/recruiting/candidates/new">
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
-                  <div className="p-2 rounded-lg bg-gray-100">
-                    <UserPlus className="h-5 w-5 text-gray-600" />
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors cursor-pointer">
+                  <div className="p-2 rounded-lg bg-muted">
+                    <UserPlus className="h-5 w-5 text-foreground/80" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Add Candidate</p>
-                    <p className="text-xs text-gray-500">Manually add a new candidate</p>
+                    <p className="text-sm font-medium text-foreground">Add Candidate</p>
+                    <p className="text-xs text-muted-foreground">Manually add a new candidate</p>
                   </div>
                 </div>
               </Link>
 
               <Link href="/recruiting/questions">
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors cursor-pointer">
                   <div className="p-2 rounded-lg bg-green-100">
                     <MessageSquare className="h-5 w-5 text-green-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Generate Questions</p>
-                    <p className="text-xs text-gray-500">AI-powered interview questions</p>
+                    <p className="text-sm font-medium text-foreground">Generate Questions</p>
+                    <p className="text-xs text-muted-foreground">AI-powered interview questions</p>
                   </div>
                 </div>
               </Link>
 
               <Link href="/recruiting/transcripts">
-                <div className="flex items-center gap-3 p-3 rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors cursor-pointer">
+                <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors cursor-pointer">
                   <div className="p-2 rounded-lg bg-purple-100">
                     <Upload className="h-5 w-5 text-purple-600" />
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-gray-900">Upload Transcript</p>
-                    <p className="text-xs text-gray-500">Import from Fireflies</p>
+                    <p className="text-sm font-medium text-foreground">Upload Transcript</p>
+                    <p className="text-xs text-muted-foreground">Import from Fireflies</p>
                   </div>
                 </div>
               </Link>
@@ -400,7 +400,7 @@ export default function DashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="text-left text-xs text-gray-500 uppercase tracking-wider">
+                <tr className="text-left text-xs text-muted-foreground uppercase tracking-wider">
                   <th className="pb-3 font-medium">Candidate</th>
                   <th className="pb-3 font-medium">Position</th>
                   <th className="pb-3 font-medium">Stage</th>
@@ -409,9 +409,9 @@ export default function DashboardPage() {
                   <th className="pb-3 font-medium"></th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {upcomingInterviews.map((interview) => (
-                  <tr key={interview.id} className="hover:bg-gray-50">
+                  <tr key={interview.id} className="hover:bg-muted">
                     <td className="py-3">
                       <div className="flex items-center gap-3">
                         <Avatar className="h-8 w-8">
@@ -420,13 +420,13 @@ export default function DashboardPage() {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{interview.candidate}</p>
-                          <p className="text-xs text-gray-500">{interview.email}</p>
+                          <p className="text-sm font-medium text-foreground">{interview.candidate}</p>
+                          <p className="text-xs text-muted-foreground">{interview.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="py-3">
-                      <span className="text-sm text-gray-900">{interview.position}</span>
+                      <span className="text-sm text-foreground">{interview.position}</span>
                     </td>
                     <td className="py-3">
                       <Badge variant="secondary" className={interview.stageColor}>
@@ -434,14 +434,14 @@ export default function DashboardPage() {
                       </Badge>
                     </td>
                     <td className="py-3">
-                      <p className="text-sm font-medium text-gray-900">{interview.date}</p>
-                      <p className="text-xs text-gray-500">{interview.relative}</p>
+                      <p className="text-sm font-medium text-foreground">{interview.date}</p>
+                      <p className="text-xs text-muted-foreground">{interview.relative}</p>
                     </td>
                     <td className="py-3">
                       <div className="flex -space-x-2">
                         {interview.interviewers.map((initials, i) => (
                           <Avatar key={i} className="h-7 w-7 border-2 border-white">
-                            <AvatarFallback className="bg-gray-200 text-gray-600 text-xs">
+                            <AvatarFallback className="bg-muted text-foreground/80 text-xs">
                               {initials}
                             </AvatarFallback>
                           </Avatar>
@@ -469,9 +469,9 @@ export default function DashboardPage() {
           <CardContent>
             <div className="space-y-4">
               <div className="flex items-center">
-                <div className="w-24 text-sm text-gray-600">Draft</div>
+                <div className="w-24 text-sm text-foreground/80">Draft</div>
                 <div className="flex-1">
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-blue-500 rounded-full"
                       style={{ width: `${contracts.draft ? (contracts.draft / 10) * 100 : 0}%` }}
@@ -481,9 +481,9 @@ export default function DashboardPage() {
                 <div className="w-12 text-right text-sm font-medium">{contracts.draft || 0}</div>
               </div>
               <div className="flex items-center">
-                <div className="w-24 text-sm text-gray-600">Sent</div>
+                <div className="w-24 text-sm text-foreground/80">Sent</div>
                 <div className="flex-1">
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gray-400 rounded-full"
                       style={{ width: `${contracts.sent ? (contracts.sent / 10) * 100 : 0}%` }}
@@ -493,9 +493,9 @@ export default function DashboardPage() {
                 <div className="w-12 text-right text-sm font-medium">{contracts.sent || 0}</div>
               </div>
               <div className="flex items-center">
-                <div className="w-24 text-sm text-gray-600">Viewed</div>
+                <div className="w-24 text-sm text-foreground/80">Viewed</div>
                 <div className="flex-1">
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-gray-400 rounded-full"
                       style={{ width: `${contracts.viewed ? (contracts.viewed / 10) * 100 : 0}%` }}
@@ -505,9 +505,9 @@ export default function DashboardPage() {
                 <div className="w-12 text-right text-sm font-medium">{contracts.viewed || 0}</div>
               </div>
               <div className="flex items-center">
-                <div className="w-24 text-sm text-gray-600">Signed</div>
+                <div className="w-24 text-sm text-foreground/80">Signed</div>
                 <div className="flex-1">
-                  <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div
                       className="h-full bg-green-500 rounded-full"
                       style={{ width: `${contracts.signed ? (contracts.signed / 10) * 100 : 0}%` }}
@@ -530,30 +530,30 @@ export default function DashboardPage() {
               <div className="space-y-4">
                 {onboardingProgress.map((workflow) => (
                   <Link key={workflow.id} href={`/onboarding/${workflow.id}`}>
-                    <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center p-2 rounded-lg hover:bg-muted transition-colors">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900">{workflow.employee.fullName}</p>
-                        <p className="text-sm text-gray-500">
+                        <p className="font-medium text-foreground">{workflow.employee.fullName}</p>
+                        <p className="text-sm text-muted-foreground">
                           Start: {workflow.employee.startDate ? formatDate(workflow.employee.startDate) : 'TBD'}
                         </p>
                       </div>
                       <div className="ml-4 flex items-center gap-3">
                         <div className="w-24">
-                          <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
                             <div
                               className="h-full bg-primary rounded-full"
                               style={{ width: `${workflow.progress}%` }}
                             />
                           </div>
                         </div>
-                        <span className="text-sm font-medium text-gray-600 w-10">{workflow.progress}%</span>
+                        <span className="text-sm font-medium text-foreground/80 w-10">{workflow.progress}%</span>
                       </div>
                     </div>
                   </Link>
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500 py-8">No active onboarding</p>
+              <p className="text-center text-muted-foreground py-8">No active onboarding</p>
             )}
           </CardContent>
         </Card>
@@ -564,7 +564,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-gray-400" />
+              <TrendingUp className="h-5 w-5 text-muted-foreground" />
               Recent Hires
             </CardTitle>
             <CardDescription>Started in the last 30 days</CardDescription>
@@ -574,10 +574,10 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {recentHires.map((employee) => (
                   <Link key={employee.id} href={`/employees/${employee.id}`}>
-                    <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center p-2 rounded-lg hover:bg-muted transition-colors">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900">{employee.fullName}</p>
-                        <p className="text-sm text-gray-500">{employee.jobTitle}</p>
+                        <p className="font-medium text-foreground">{employee.fullName}</p>
+                        <p className="text-sm text-muted-foreground">{employee.jobTitle}</p>
                       </div>
                       <Badge variant="outline">{employee.department}</Badge>
                     </div>
@@ -585,7 +585,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500 py-8">No recent hires</p>
+              <p className="text-center text-muted-foreground py-8">No recent hires</p>
             )}
           </CardContent>
         </Card>
@@ -593,7 +593,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardHeader>
             <CardTitle className="text-lg font-semibold flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-gray-400" />
+              <Calendar className="h-5 w-5 text-muted-foreground" />
               Upcoming Starts
             </CardTitle>
             <CardDescription>Starting in the next 30 days</CardDescription>
@@ -603,13 +603,13 @@ export default function DashboardPage() {
               <div className="space-y-3">
                 {upcomingStarts.map((employee) => (
                   <Link key={employee.id} href={`/employees/${employee.id}`}>
-                    <div className="flex items-center p-2 rounded-lg hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center p-2 rounded-lg hover:bg-muted transition-colors">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-gray-900">{employee.fullName}</p>
-                        <p className="text-sm text-gray-500">{employee.jobTitle}</p>
+                        <p className="font-medium text-foreground">{employee.fullName}</p>
+                        <p className="text-sm text-muted-foreground">{employee.jobTitle}</p>
                       </div>
                       <div className="text-right">
-                        <p className="text-sm font-medium text-gray-900">
+                        <p className="text-sm font-medium text-foreground">
                           {employee.startDate ? formatDate(employee.startDate) : 'TBD'}
                         </p>
                         <Badge variant="outline">{employee.department}</Badge>
@@ -619,7 +619,7 @@ export default function DashboardPage() {
                 ))}
               </div>
             ) : (
-              <p className="text-center text-gray-500 py-8">No upcoming starts</p>
+              <p className="text-center text-muted-foreground py-8">No upcoming starts</p>
             )}
           </CardContent>
         </Card>

@@ -74,7 +74,7 @@ export default function LegalEntitiesPage() {
           ) : data && data.length > 0 ? (
             <ul className="space-y-2">
               {data.map((entity) => (
-                <li key={entity.id} className="flex items-center justify-between rounded-md border border-gray-200 px-4 py-2 text-sm text-gray-700">
+                <li key={entity.id} className="flex items-center justify-between rounded-md border border-border px-4 py-2 text-sm text-foreground">
                   <span>{entity.name}</span>
                   <Button
                     type="button"
@@ -88,7 +88,7 @@ export default function LegalEntitiesPage() {
               ))}
             </ul>
           ) : (
-            <p className="text-sm text-gray-500">No legal entities yet.</p>
+            <p className="text-sm text-muted-foreground">No legal entities yet.</p>
           )}
           <Button variant="outline" asChild>
             <Link href="/contracts/new">Use in contracts</Link>

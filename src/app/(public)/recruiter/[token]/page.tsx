@@ -67,9 +67,9 @@ function getStageBadgeColor(stage: string) {
     OFFER: 'bg-green-100 text-green-800',
     HIRED: 'bg-emerald-100 text-emerald-800',
     REJECTED: 'bg-red-100 text-red-800',
-    WITHDRAWN: 'bg-gray-100 text-gray-800',
+    WITHDRAWN: 'bg-muted text-foreground',
   }
-  return colors[stage] || 'bg-gray-100 text-gray-800'
+  return colors[stage] || 'bg-muted text-foreground'
 }
 
 // Format stage name
@@ -188,7 +188,7 @@ export default function RecruiterPortalPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center">
         <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
       </div>
     )
@@ -197,14 +197,14 @@ export default function RecruiterPortalPage() {
   // Error state
   if (error || !portal) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+      <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-10 pb-10">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertCircle className="h-8 w-8 text-red-600" />
             </div>
             <h1 className="text-2xl font-bold mb-2">Access Denied</h1>
-            <p className="text-gray-600 mb-6">
+            <p className="text-foreground/80 mb-6">
               {error?.message || 'This recruiter portal link is invalid or has expired.'}
             </p>
           </CardContent>
@@ -218,7 +218,7 @@ export default function RecruiterPortalPage() {
   const locations = (job.locations as string[]) || []
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/50">
       {/* Header */}
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white">
         <div className="max-w-5xl mx-auto px-4 py-8">
@@ -290,7 +290,7 @@ export default function RecruiterPortalPage() {
                         dangerouslySetInnerHTML={{ __html: job.jobDescription.content }}
                       />
                     ) : (
-                      <p className="text-gray-500">No description available.</p>
+                      <p className="text-muted-foreground">No description available.</p>
                     )}
                   </CardContent>
                 </Card>
@@ -303,25 +303,25 @@ export default function RecruiterPortalPage() {
                   </CardHeader>
                   <CardContent className="space-y-3 text-sm">
                     {job.department && (
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-foreground/80">
                         <Users className="h-4 w-4" />
                         <span>{job.department}</span>
                       </div>
                     )}
                     {job.employmentType && (
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-foreground/80">
                         <Clock className="h-4 w-4" />
                         <span>{formatEmploymentType(job.employmentType)}</span>
                       </div>
                     )}
                     {locations.length > 0 && (
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-foreground/80">
                         <MapPin className="h-4 w-4" />
                         <span>{locations.join(', ')}</span>
                       </div>
                     )}
                     {salary && (
-                      <div className="flex items-center gap-2 text-gray-600">
+                      <div className="flex items-center gap-2 text-foreground/80">
                         <DollarSign className="h-4 w-4" />
                         <span>{salary}</span>
                       </div>
@@ -350,7 +350,7 @@ export default function RecruiterPortalPage() {
                     <CheckCircle className="h-8 w-8 text-green-600" />
                   </div>
                   <h2 className="text-2xl font-bold mb-2">Candidate Submitted!</h2>
-                  <p className="text-gray-600">
+                  <p className="text-foreground/80">
                     The candidate has been added to the pipeline. Redirecting to your candidates...
                   </p>
                 </CardContent>
@@ -446,12 +446,12 @@ export default function RecruiterPortalPage() {
 
                     <div className="space-y-2">
                       <Label>Resume/CV (Optional)</Label>
-                      <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-purple-400 transition-colors cursor-pointer bg-gray-50">
-                        <Upload className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                        <p className="text-sm text-gray-600">
+                      <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-purple-400 transition-colors cursor-pointer bg-muted/50">
+                        <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-foreground/80">
                           Drag and drop a resume or <span className="text-purple-600">browse</span>
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           PDF, DOC, or DOCX (max 5MB)
                         </p>
                       </div>
@@ -504,9 +504,9 @@ export default function RecruiterPortalPage() {
               <CardContent>
                 {!candidates || candidates.length === 0 ? (
                   <div className="text-center py-12">
-                    <Users className="h-12 w-12 mx-auto text-gray-300 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No candidates yet</h3>
-                    <p className="text-gray-500 mb-4">
+                    <Users className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
+                    <h3 className="text-lg font-medium text-foreground mb-2">No candidates yet</h3>
+                    <p className="text-muted-foreground mb-4">
                       You haven&apos;t submitted any candidates for this position.
                     </p>
                     <Button
@@ -523,7 +523,7 @@ export default function RecruiterPortalPage() {
                     {candidates.map((candidate) => (
                       <div
                         key={candidate.id}
-                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50"
+                        className="flex items-center justify-between p-4 border rounded-lg hover:bg-muted"
                       >
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-3">
@@ -533,15 +533,15 @@ export default function RecruiterPortalPage() {
                               </span>
                             </div>
                             <div>
-                              <h4 className="font-medium text-gray-900">{candidate.name}</h4>
-                              <p className="text-sm text-gray-500">{candidate.email}</p>
+                              <h4 className="font-medium text-foreground">{candidate.name}</h4>
+                              <p className="text-sm text-muted-foreground">{candidate.email}</p>
                             </div>
                           </div>
                         </div>
                         <div className="flex items-center gap-4">
                           {candidate.score !== null && (
                             <div className="text-right hidden sm:block">
-                              <p className="text-xs text-gray-400">Score</p>
+                              <p className="text-xs text-muted-foreground">Score</p>
                               <p className="font-medium">{candidate.score}%</p>
                             </div>
                           )}
@@ -560,7 +560,7 @@ export default function RecruiterPortalPage() {
       </div>
 
       {/* Footer */}
-      <div className="text-center text-sm text-gray-500 py-8">
+      <div className="text-center text-sm text-muted-foreground py-8">
         <p>
           Need help? Contact us at{' '}
           <a href="mailto:recruiting@curacel.co" className="text-purple-600 hover:underline">

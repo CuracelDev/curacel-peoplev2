@@ -213,7 +213,7 @@ export default function ApplicationSettingsDetailPage() {
   if (!appId) {
     return (
       <div className="p-6">
-        <p className="text-sm text-gray-600">No application id provided.</p>
+        <p className="text-sm text-foreground/80">No application id provided.</p>
       </div>
     )
   }
@@ -389,7 +389,7 @@ export default function ApplicationSettingsDetailPage() {
       <SettingsPageHeader
         title={app.name}
         description={app.description || 'Configure connection and provisioning.'}
-        titleClassName="text-2xl font-bold text-gray-900 truncate"
+        titleClassName="text-2xl font-bold text-foreground truncate"
         actions={
           <>
             <Button
@@ -423,7 +423,7 @@ export default function ApplicationSettingsDetailPage() {
       {testConnection.isPending ? (
         <Card>
           <CardContent className="p-4 space-y-2">
-            <p className="text-sm text-gray-600">Testing connection...</p>
+            <p className="text-sm text-foreground/80">Testing connection...</p>
             <Progress value={testProgress} className="h-2" />
           </CardContent>
         </Card>
@@ -524,9 +524,9 @@ export default function ApplicationSettingsDetailPage() {
                   className="min-h-[160px] font-mono text-xs"
                 />
                 {(secrets as any)?.serviceAccountKeySet ? (
-                  <p className="text-xs text-gray-500">Saved.</p>
+                  <p className="text-xs text-muted-foreground">Saved.</p>
                 ) : (
-                  <p className="text-xs text-gray-500">Not set.</p>
+                  <p className="text-xs text-muted-foreground">Not set.</p>
                 )}
               </div>
             </div>
@@ -544,7 +544,7 @@ export default function ApplicationSettingsDetailPage() {
                   placeholder={(secrets as any)?.botTokenSet ? 'Configured (leave blank to keep)' : 'xoxb-…'}
                   disabled={!canEdit || busy}
                 />
-                {(secrets as any)?.botTokenSet ? <p className="text-xs text-gray-500">Saved.</p> : <p className="text-xs text-gray-500">Not set.</p>}
+                {(secrets as any)?.botTokenSet ? <p className="text-xs text-muted-foreground">Saved.</p> : <p className="text-xs text-muted-foreground">Not set.</p>}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="slackAdminToken">Admin token (optional)</Label>
@@ -556,7 +556,7 @@ export default function ApplicationSettingsDetailPage() {
                   placeholder={(secrets as any)?.adminTokenSet ? 'Configured (leave blank to keep)' : 'xoxp-…'}
                   disabled={!canEdit || busy}
                 />
-                {(secrets as any)?.adminTokenSet ? <p className="text-xs text-gray-500">Saved.</p> : <p className="text-xs text-gray-500">Not set.</p>}
+                {(secrets as any)?.adminTokenSet ? <p className="text-xs text-muted-foreground">Saved.</p> : <p className="text-xs text-muted-foreground">Not set.</p>}
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="slackTeamId">Workspace ID (teamId)</Label>
@@ -602,7 +602,7 @@ export default function ApplicationSettingsDetailPage() {
                   placeholder="you@company.com"
                   disabled={!canEdit || busy}
                 />
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   The email associated with the Atlassian account that created the API token.
                 </p>
               </div>
@@ -617,11 +617,11 @@ export default function ApplicationSettingsDetailPage() {
                   disabled={!canEdit || busy}
                 />
                 {(secrets as any)?.apiTokenSet || (secrets as any)?.appPasswordSet ? (
-                  <p className="text-xs text-gray-500">Saved.</p>
+                  <p className="text-xs text-muted-foreground">Saved.</p>
                 ) : (
-                  <p className="text-xs text-gray-500">Not set.</p>
+                  <p className="text-xs text-muted-foreground">Not set.</p>
                 )}
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Create a Bitbucket API token at bitbucket.org (Personal settings → API tokens). Required scopes: account, workspace, repositories, pullrequest (read/write as needed).
                 </p>
               </div>
@@ -662,9 +662,9 @@ export default function ApplicationSettingsDetailPage() {
                     disabled={!canEdit || busy}
                   />
                   {(secrets as any)?.apiTokenSet ? (
-                    <p className="text-xs text-gray-500">Saved.</p>
+                    <p className="text-xs text-muted-foreground">Saved.</p>
                   ) : (
-                    <p className="text-xs text-gray-500">Not set.</p>
+                    <p className="text-xs text-muted-foreground">Not set.</p>
                   )}
                 </div>
               </div>
@@ -682,7 +682,7 @@ export default function ApplicationSettingsDetailPage() {
                   </Button>
                 </div>
                 {!jiraListsEnabled ? (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Save your Jira credentials to load products and groups.
                   </p>
                 ) : null}
@@ -692,16 +692,16 @@ export default function ApplicationSettingsDetailPage() {
                 {jiraListsEnabled ? (
                   <div className="grid gap-2 md:grid-cols-2">
                     {jiraProductsOptions.length === 0 ? (
-                      <p className="text-sm text-gray-500">No products found.</p>
+                      <p className="text-sm text-muted-foreground">No products found.</p>
                     ) : (
                       jiraProductsOptions.map((product) => (
                         <div
                           key={product.key}
-                          className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2"
+                          className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
                         >
                           <div>
-                            <p className="text-sm font-medium text-gray-900">{product.name}</p>
-                            <p className="text-xs text-gray-500">{product.key}</p>
+                            <p className="text-sm font-medium text-foreground">{product.name}</p>
+                            <p className="text-xs text-muted-foreground">{product.key}</p>
                           </div>
                           <Switch
                             checked={selectedJiraProductSet.has(product.key)}
@@ -741,7 +741,7 @@ export default function ApplicationSettingsDetailPage() {
                     </Button>
                   </div>
                 ) : null}
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Selected products are assigned when creating Jira users. If none are selected, Jira defaults apply.
                 </p>
               </div>
@@ -759,7 +759,7 @@ export default function ApplicationSettingsDetailPage() {
                   </Button>
                 </div>
                 {!jiraListsEnabled ? (
-                  <p className="text-xs text-gray-500">
+                  <p className="text-xs text-muted-foreground">
                     Save your Jira credentials to load products and groups.
                   </p>
                 ) : null}
@@ -776,14 +776,14 @@ export default function ApplicationSettingsDetailPage() {
                     ) : null}
                     <div className="grid gap-2 md:grid-cols-2">
                       {filteredJiraGroups.length === 0 ? (
-                        <p className="text-sm text-gray-500">No groups found.</p>
+                        <p className="text-sm text-muted-foreground">No groups found.</p>
                       ) : (
                         filteredJiraGroups.map((group) => (
                           <div
                             key={group.name}
-                            className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 px-3 py-2"
+                            className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2"
                           >
-                            <p className="text-sm text-gray-700">{group.name}</p>
+                            <p className="text-sm text-foreground">{group.name}</p>
                             <Switch
                               checked={selectedJiraGroupSet.has(group.name)}
                               onCheckedChange={(checked) => {
@@ -821,11 +821,11 @@ export default function ApplicationSettingsDetailPage() {
                 disabled={!canEdit || busy}
               />
               {(secrets as any)?.scimTokenSet ? (
-                <p className="text-xs text-gray-500">Saved.</p>
+                <p className="text-xs text-muted-foreground">Saved.</p>
               ) : (
-                <p className="text-xs text-gray-500">Not set.</p>
+                <p className="text-xs text-muted-foreground">Not set.</p>
               )}
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Use a HubSpot private app access token with settings.users.read and settings.users.write scopes.
               </p>
             </div>
@@ -844,7 +844,7 @@ export default function ApplicationSettingsDetailPage() {
                     <SelectItem value="CLI">CLI (self-hosted server)</SelectItem>
                   </SelectContent>
                 </Select>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-muted-foreground">
                   Use API mode if your Passbolt instance exposes JWT/API authentication. Use CLI if Curacel runs on the same server as Passbolt.
                 </p>
               </div>
@@ -872,9 +872,9 @@ export default function ApplicationSettingsDetailPage() {
                       disabled={!canEdit || busy}
                     />
                     {(secrets as any)?.apiTokenSet ? (
-                      <p className="text-xs text-gray-500">Saved.</p>
+                      <p className="text-xs text-muted-foreground">Saved.</p>
                     ) : (
-                      <p className="text-xs text-gray-500">Not set.</p>
+                      <p className="text-xs text-muted-foreground">Not set.</p>
                     )}
                   </div>
                 </div>
@@ -919,14 +919,14 @@ export default function ApplicationSettingsDetailPage() {
                 </Select>
               </div>
 
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-muted-foreground">
                 Webhook provisioning remains available as a fallback from the View app screen.
               </p>
             </div>
           ) : null}
 
           {type && !['SLACK', 'BITBUCKET', 'JIRA', 'HUBSPOT', 'PASSBOLT'].includes(type) ? (
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-foreground/80">
               This application currently supports webhook-based provisioning via the “View app” page.
             </p>
           ) : null}

@@ -283,7 +283,7 @@ export default function NewOnboardingPage() {
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <h1 className="text-xl font-semibold text-gray-900">Onboard new employee</h1>
+        <h1 className="text-xl font-semibold text-foreground">Onboard new employee</h1>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -320,7 +320,7 @@ export default function NewOnboardingPage() {
               {errors.employeeId && (
                 <p className="text-sm text-red-500 mt-1">{errors.employeeId.message}</p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 You can add a new candidate <Link href="/employees?action=create" className="text-blue-600 hover:underline">here</Link>.
               </p>
             </div>
@@ -383,7 +383,7 @@ export default function NewOnboardingPage() {
                   <option key={department} value={department} />
                 ))}
               </datalist>
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Auto-suggested from job title. You can adjust this if needed.
               </p>
             </div>
@@ -427,7 +427,7 @@ export default function NewOnboardingPage() {
               {errors.emailProvider && (
                 <p className="text-sm text-red-500 mt-1">{errors.emailProvider.message}</p>
               )}
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Personal uses the candidate&apos;s existing email. Google Workspace creates a company mailbox.
                 Custom lets you edit the address.
               </p>
@@ -450,7 +450,7 @@ export default function NewOnboardingPage() {
                 placeholder={suggestedWorkEmail || `name@${companyDomain}`}
                 disabled={selectedProvider === 'PERSONAL'}
               />
-              <p className="text-xs text-gray-500 mt-1">
+              <p className="text-xs text-muted-foreground mt-1">
                 Suggested format: first name + last initial (e.g. {suggestedWorkEmail || `jane.d@${companyDomain}`}).
               </p>
             </div>
@@ -466,25 +466,25 @@ export default function NewOnboardingPage() {
           </CardHeader>
           <CardContent className="space-y-5">
             {!selectedCandidate ? (
-              <p className="text-sm text-gray-500">Select a candidate to preview provisioning.</p>
+              <p className="text-sm text-muted-foreground">Select a candidate to preview provisioning.</p>
             ) : appsWithRules.length === 0 ? (
-              <p className="text-sm text-gray-500">No provisioning rules have been configured yet.</p>
+              <p className="text-sm text-muted-foreground">No provisioning rules have been configured yet.</p>
             ) : !hasDepartmentSelection ? (
-              <p className="text-sm text-gray-500">Select a department to see which apps will be provisioned.</p>
+              <p className="text-sm text-muted-foreground">Select a department to see which apps will be provisioned.</p>
             ) : (
               <>
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold text-gray-500">WILL PROVISION</p>
+                  <p className="text-xs font-semibold text-muted-foreground">WILL PROVISION</p>
                   {matchedApps.length === 0 ? (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       No matched apps yet. Select a department to match provisioning rules.
                     </p>
                   ) : (
                     matchedApps.map((app) => (
-                      <div key={app.id} className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
+                      <div key={app.id} className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{app.name}</p>
-                          <p className="text-xs text-gray-500">Matches provisioning rules</p>
+                          <p className="text-sm font-medium text-foreground">{app.name}</p>
+                          <p className="text-xs text-muted-foreground">Matches provisioning rules</p>
                         </div>
                         <Badge variant="info">Will provision</Badge>
                       </div>
@@ -493,17 +493,17 @@ export default function NewOnboardingPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <p className="text-xs font-semibold text-gray-500">NOT MATCHED</p>
+                  <p className="text-xs font-semibold text-muted-foreground">NOT MATCHED</p>
                   {unmatchedApps.length === 0 ? (
-                    <p className="text-sm text-gray-500">All rule-based apps match this candidate.</p>
+                    <p className="text-sm text-muted-foreground">All rule-based apps match this candidate.</p>
                   ) : (
                     unmatchedApps.map((app) => (
-                      <div key={app.id} className="flex items-center justify-between rounded-lg border border-gray-200 px-4 py-3">
+                      <div key={app.id} className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
                         <div>
-                          <p className="text-sm font-medium text-gray-900">{app.name}</p>
-                          <p className="text-xs text-gray-500">No matching rule for this candidate</p>
+                          <p className="text-sm font-medium text-foreground">{app.name}</p>
+                          <p className="text-xs text-muted-foreground">No matching rule for this candidate</p>
                         </div>
-                        <Badge variant="outline" className="text-gray-600">Not provisioned</Badge>
+                        <Badge variant="outline" className="text-foreground/80">Not provisioned</Badge>
                       </div>
                     ))
                   )}
@@ -523,7 +523,7 @@ export default function NewOnboardingPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               {!jiraApp ? (
-                <p className="text-sm text-gray-500">Connect Jira in Settings to enable board selection.</p>
+                <p className="text-sm text-muted-foreground">Connect Jira in Settings to enable board selection.</p>
               ) : jiraNeedsBoard && jiraBoardsQuery.data?.error ? (
                 <p className="text-sm text-red-600">{jiraBoardsQuery.data.error}</p>
               ) : (
@@ -553,17 +553,17 @@ export default function NewOnboardingPage() {
                           </Select>
                         )}
                       />
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-muted-foreground mt-1">
                         Board selection is used by Jira provisioning rules to grant access.
                       </p>
                     </div>
                   )}
 
                   {jiraNeedsManager && (
-                    <div className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 p-3">
+                    <div className="flex items-center justify-between gap-4 rounded-lg border border-border p-3">
                       <div>
                         <Label className="text-sm font-medium">Manager access</Label>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-muted-foreground">
                           Adds managers to all boards based on Jira rules.
                         </p>
                       </div>
