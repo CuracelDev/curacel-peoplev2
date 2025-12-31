@@ -270,8 +270,11 @@ export default function NewAssessmentPage() {
             <CardTitle className="flex items-center gap-2">
               <Mail className="h-5 w-5" />
               Email Template
+              <span className="text-muted-foreground font-normal text-xs">(optional)</span>
             </CardTitle>
-            <CardDescription>Customize the invitation email sent to candidates</CardDescription>
+            <CardDescription>
+              Customize the invitation email sent to candidates. Leave empty if you prefer to contact candidates via call or other means.
+            </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-2">
