@@ -1,12 +1,12 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { trpc } from '@/lib/trpc-client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
@@ -48,10 +48,7 @@ import {
   Pencil,
   Trash2,
   Loader2,
-  Link as LinkIcon,
-  Mail,
   Webhook,
-  Clock,
   Target,
   Wand2,
   Sparkles,
@@ -73,17 +70,15 @@ const typeConfig: Record<AssessmentType, { label: string; icon: React.ComponentT
   CUSTOM: { label: 'Custom', icon: FileText, color: 'bg-gray-100 text-gray-800' },
 }
 
-const assessmentTypes: { key: AssessmentType; label: string; description: string }[] = [
-  { key: 'COMPETENCY_TEST', label: 'Competency Test', description: 'Skills and competency-based assessments' },
-  { key: 'CODING_TEST', label: 'Coding Test', description: 'Technical coding challenges and assessments' },
-  { key: 'PERSONALITY_TEST', label: 'Personality Test', description: 'Personality and behavioral assessments' },
-  { key: 'WORK_TRIAL', label: 'Work Trial', description: 'Paid or unpaid work trial period' },
-  { key: 'CUSTOM', label: 'Custom', description: 'Custom assessment or evaluation' },
+const assessmentTypes: { key: AssessmentType; label: string }[] = [
+  { key: 'COMPETENCY_TEST', label: 'Competency Test' },
+  { key: 'CODING_TEST', label: 'Coding Test' },
+  { key: 'PERSONALITY_TEST', label: 'Personality Test' },
+  { key: 'WORK_TRIAL', label: 'Work Trial' },
+  { key: 'CUSTOM', label: 'Custom' },
 ]
 
 export default function AssessmentSettingsPage() {
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
-  const [editingTemplate, setEditingTemplate] = useState<string | null>(null)
   const [showAIDialog, setShowAIDialog] = useState(false)
   const [selectedTemplateForAI, setSelectedTemplateForAI] = useState<string | null>(null)
   const [generatedQuestions, setGeneratedQuestions] = useState<any[]>([])
@@ -98,27 +93,8 @@ export default function AssessmentSettingsPage() {
     difficulty: 'mixed' as 'easy' | 'medium' | 'hard' | 'mixed',
   })
 
-  // Form state
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    type: 'COMPETENCY_TEST' as AssessmentType,
-    externalUrl: '',
-    externalPlatform: '',
-    durationMinutes: '',
-    passingScore: '',
-    instructions: '',
-    emailSubject: '',
-    emailBody: '',
-    webhookUrl: '',
-    teamId: '',
-  })
-
-  // Fetch ALL templates (no type filter in query)
+  // Fetch ALL templates
   const { data: templates, isLoading, refetch } = trpc.assessment.listTemplates.useQuery({})
-
-  // Fetch teams for dropdown
-  const { data: teams } = trpc.team.listForSelect.useQuery()
 
   // Filter templates locally
   const filteredTemplates = templates?.filter((template) => {
@@ -130,31 +106,6 @@ export default function AssessmentSettingsPage() {
   })
 
   // Mutations
-  const createTemplate = trpc.assessment.createTemplate.useMutation({
-    onSuccess: () => {
-      setIsCreateDialogOpen(false)
-      resetForm()
-      refetch()
-      toast.success('Assessment created')
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to create assessment')
-    },
-  })
-
-  const updateTemplate = trpc.assessment.updateTemplate.useMutation({
-    onSuccess: () => {
-      setEditingTemplate(null)
-      setIsCreateDialogOpen(false)
-      resetForm()
-      refetch()
-      toast.success('Assessment updated')
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to update assessment')
-    },
-  })
-
   const deleteTemplate = trpc.assessment.deleteTemplate.useMutation({
     onSuccess: () => {
       refetch()
@@ -181,72 +132,12 @@ export default function AssessmentSettingsPage() {
       setGeneratedQuestions([])
       setSelectedTemplateForAI(null)
       refetch()
-      toast.success('Questions saved to template')
+      toast.success('Questions saved to assessment')
     },
     onError: (error) => {
       toast.error('Failed to save questions: ' + error.message)
     },
   })
-
-  const resetForm = () => {
-    setFormData({
-      name: '',
-      description: '',
-      type: 'COMPETENCY_TEST',
-      externalUrl: '',
-      externalPlatform: '',
-      durationMinutes: '',
-      passingScore: '',
-      instructions: '',
-      emailSubject: '',
-      emailBody: '',
-      webhookUrl: '',
-      teamId: '',
-    })
-    setEditingTemplate(null)
-  }
-
-  const handleSubmit = () => {
-    const data = {
-      name: formData.name,
-      description: formData.description || undefined,
-      type: formData.type,
-      externalUrl: formData.externalUrl || undefined,
-      externalPlatform: formData.externalPlatform || undefined,
-      durationMinutes: formData.durationMinutes ? parseInt(formData.durationMinutes) : undefined,
-      passingScore: formData.passingScore ? parseInt(formData.passingScore) : undefined,
-      instructions: formData.instructions || undefined,
-      emailSubject: formData.emailSubject || undefined,
-      emailBody: formData.emailBody || undefined,
-      webhookUrl: formData.webhookUrl || undefined,
-      teamId: formData.teamId || undefined,
-    }
-
-    if (editingTemplate) {
-      updateTemplate.mutate({ id: editingTemplate, ...data })
-    } else {
-      createTemplate.mutate(data)
-    }
-  }
-
-  const startEdit = (template: any) => {
-    setFormData({
-      name: template.name,
-      description: template.description || '',
-      type: template.type,
-      externalUrl: template.externalUrl || '',
-      externalPlatform: template.externalPlatform || '',
-      durationMinutes: template.durationMinutes?.toString() || '',
-      passingScore: template.passingScore?.toString() || '',
-      instructions: template.instructions || '',
-      emailSubject: template.emailSubject || '',
-      emailBody: template.emailBody || '',
-      webhookUrl: template.webhookUrl || '',
-      teamId: template.teamId || '',
-    })
-    setEditingTemplate(template.id)
-    setIsCreateDialogOpen(true)
-  }
 
   const handleGenerateQuestions = () => {
     if (!selectedTemplateForAI) return
@@ -291,13 +182,12 @@ export default function AssessmentSettingsPage() {
               Configure assessments for candidate evaluations
             </CardDescription>
           </div>
-          <Button onClick={() => {
-            resetForm()
-            setIsCreateDialogOpen(true)
-          }}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Assessment
-          </Button>
+          <Link href="/recruiting/settings/assessments/new">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Assessment
+            </Button>
+          </Link>
         </CardHeader>
         <CardContent>
           {/* Search and Filter */}
@@ -399,9 +289,11 @@ export default function AssessmentSettingsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => startEdit(template)}>
-                              <Pencil className="h-4 w-4 mr-2" />
-                              Edit
+                            <DropdownMenuItem asChild>
+                              <Link href={`/recruiting/settings/assessments/${template.id}`}>
+                                <Pencil className="h-4 w-4 mr-2" />
+                                Edit
+                              </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => openAIDialog(template.id)}>
                               <Wand2 className="h-4 w-4 mr-2" />
@@ -426,220 +318,6 @@ export default function AssessmentSettingsPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Create/Edit Dialog */}
-      <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
-        setIsCreateDialogOpen(open)
-        if (!open) resetForm()
-      }}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
-              {editingTemplate ? 'Edit' : 'Create'} Assessment
-            </DialogTitle>
-            <DialogDescription>
-              Configure the assessment settings
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            {/* Assessment Type */}
-            <div className="grid gap-2">
-              <Label htmlFor="type">Assessment Type *</Label>
-              <Select
-                value={formData.type}
-                onValueChange={(v) => setFormData({ ...formData, type: v as AssessmentType })}
-                disabled={!!editingTemplate}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select assessment type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {assessmentTypes.map((type) => {
-                    const config = typeConfig[type.key]
-                    const TypeIcon = config.icon
-                    return (
-                      <SelectItem key={type.key} value={type.key}>
-                        <div className="flex items-center gap-2">
-                          <TypeIcon className="h-4 w-4" />
-                          <span>{type.label}</span>
-                        </div>
-                      </SelectItem>
-                    )
-                  })}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                {assessmentTypes.find(t => t.key === formData.type)?.description}
-              </p>
-            </div>
-
-            {/* Basic Info */}
-            <div className="grid gap-2">
-              <Label htmlFor="name">Assessment Name *</Label>
-              <Input
-                id="name"
-                placeholder="e.g., Backend Coding Challenge"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              />
-            </div>
-            <div className="grid gap-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea
-                id="description"
-                placeholder="Brief description of this assessment"
-                value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              />
-            </div>
-
-            {/* Team Assignment */}
-            <div className="grid gap-2">
-              <Label htmlFor="team">Team Assignment</Label>
-              <Select
-                value={formData.teamId || 'global'}
-                onValueChange={(v) => setFormData({ ...formData, teamId: v === 'global' ? '' : v })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select team (or leave global)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="global">Global (All Teams)</SelectItem>
-                  {teams?.map((team) => (
-                    <SelectItem key={team.id} value={team.id}>
-                      {team.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* External URL */}
-            <div className="grid gap-2">
-              <Label htmlFor="externalUrl" className="flex items-center gap-2">
-                <LinkIcon className="h-4 w-4" />
-                Assessment URL
-              </Label>
-              <Input
-                id="externalUrl"
-                placeholder="https://..."
-                value={formData.externalUrl}
-                onChange={(e) => setFormData({ ...formData, externalUrl: e.target.value })}
-              />
-            </div>
-
-            {/* Duration & Passing Score */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="duration" className="flex items-center gap-2">
-                  <Clock className="h-4 w-4" />
-                  Duration (minutes)
-                </Label>
-                <Input
-                  id="duration"
-                  type="number"
-                  placeholder="60"
-                  value={formData.durationMinutes}
-                  onChange={(e) => setFormData({ ...formData, durationMinutes: e.target.value })}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="passingScore" className="flex items-center gap-2">
-                  <Target className="h-4 w-4" />
-                  Passing Score (%)
-                </Label>
-                <Input
-                  id="passingScore"
-                  type="number"
-                  placeholder="70"
-                  value={formData.passingScore}
-                  onChange={(e) => setFormData({ ...formData, passingScore: e.target.value })}
-                />
-              </div>
-            </div>
-
-            {/* Instructions */}
-            <div className="grid gap-2">
-              <Label htmlFor="instructions">Instructions</Label>
-              <Textarea
-                id="instructions"
-                placeholder="Instructions for candidates..."
-                rows={3}
-                value={formData.instructions}
-                onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
-              />
-            </div>
-
-            {/* Email Template */}
-            <div className="border-t pt-4 mt-2">
-              <h4 className="font-medium flex items-center gap-2 mb-3">
-                <Mail className="h-4 w-4" />
-                Email Template
-              </h4>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <Label htmlFor="emailSubject">Subject</Label>
-                  <Input
-                    id="emailSubject"
-                    placeholder="You're invited to complete an assessment"
-                    value={formData.emailSubject}
-                    onChange={(e) => setFormData({ ...formData, emailSubject: e.target.value })}
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="emailBody">Body</Label>
-                  <Textarea
-                    id="emailBody"
-                    placeholder="Email body template..."
-                    rows={4}
-                    value={formData.emailBody}
-                    onChange={(e) => setFormData({ ...formData, emailBody: e.target.value })}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Webhook (for Coding Tests) */}
-            {formData.type === 'CODING_TEST' && (
-              <div className="border-t pt-4 mt-2">
-                <h4 className="font-medium flex items-center gap-2 mb-3">
-                  <Webhook className="h-4 w-4" />
-                  Webhook Configuration
-                </h4>
-                <div className="grid gap-2">
-                  <Label htmlFor="webhookUrl">Webhook URL (for receiving results)</Label>
-                  <Input
-                    id="webhookUrl"
-                    placeholder="https://your-app.com/api/webhooks/assessment"
-                    value={formData.webhookUrl}
-                    onChange={(e) => setFormData({ ...formData, webhookUrl: e.target.value })}
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Results from external assessment tools will be sent to this URL
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => {
-              setIsCreateDialogOpen(false)
-              resetForm()
-            }}>
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              disabled={!formData.name || createTemplate.isPending || updateTemplate.isPending}
-            >
-              {(createTemplate.isPending || updateTemplate.isPending) && (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              )}
-              {editingTemplate ? 'Update' : 'Create'} Assessment
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* AI Question Generation Dialog */}
       <Dialog open={showAIDialog} onOpenChange={setShowAIDialog}>
@@ -784,7 +462,7 @@ export default function AssessmentSettingsPage() {
               ) : (
                 <>
                   <Check className="h-4 w-4 mr-2" />
-                  Save Questions to Template
+                  Save Questions
                 </>
               )}
             </Button>
