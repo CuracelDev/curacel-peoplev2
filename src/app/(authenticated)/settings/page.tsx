@@ -85,6 +85,12 @@ const settingsSections = [
         href: '/recruiting/settings?section=flows',
       },
       {
+        title: 'Interview Types',
+        description: 'Configure interview types and durations.',
+        icon: Users,
+        href: '/recruiting/settings?section=interviewTypes',
+      },
+      {
         title: 'Interest Forms',
         description: 'Create application forms for candidates.',
         icon: FileQuestion,
