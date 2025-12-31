@@ -1,3 +1,5 @@
+'use client'
+
 import { TRPCProvider } from '@/lib/trpc-client'
 
 export default function PublicLayout({
