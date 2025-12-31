@@ -16,6 +16,7 @@ import {
   ChevronRight,
   Star,
   UserMinus,
+  Loader2,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,96 +30,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-
-// Mock data
-const stats = [
-  { label: 'Active Jobs', value: 3, change: '+1 this week', positive: true },
-  { label: 'Total Candidates', value: 47, change: '+12 this week', positive: true },
-  { label: 'In Interview', value: 18, change: '+5 this week', positive: true },
-  { label: 'Avg. Score', value: 72, change: '-3 from last week', positive: false },
-]
-
-const pipelineStages = [
-  { label: 'Applied', count: 23 },
-  { label: 'HR Screen', count: 15 },
-  { label: 'Technical', count: 8 },
-  { label: 'Panel', count: 5 },
-  { label: 'Offer', count: 2 },
-]
-
-const recentActivity = [
-  {
-    type: 'new',
-    title: 'New application received',
-    description: 'Sarah Chen applied for Senior Backend Engineer',
-    time: '2m ago',
-  },
-  {
-    type: 'score',
-    title: 'Score updated',
-    description: 'James Okafor scored 87/100 after HR screen',
-    time: '15m ago',
-  },
-  {
-    type: 'interview',
-    title: 'Interview completed',
-    description: 'Technical interview with Michael Adeyemi',
-    time: '1h ago',
-  },
-  {
-    type: 'reject',
-    title: 'Candidate rejected',
-    description: 'David Kim did not proceed - culture fit',
-    time: '2h ago',
-  },
-]
-
-const topCandidates = [
-  { name: 'James Okafor', position: 'Senior Backend Engineer', score: 87, initials: 'JO', color: 'bg-green-500' },
-  { name: 'Emily Okonkwo', position: 'Product Designer', score: 85, initials: 'EO', color: 'bg-indigo-500' },
-  { name: 'Sarah Chen', position: 'Senior Backend Engineer', score: 82, initials: 'SC', color: 'bg-sky-500' },
-  { name: 'Michael Adeyemi', position: 'Growth Lead', score: 78, initials: 'MA', color: 'bg-amber-500' },
-  { name: 'Amaka Abubakar', position: 'Senior Backend Engineer', score: 76, initials: 'AA', color: 'bg-pink-500' },
-]
-
-const upcomingInterviews = [
-  {
-    candidate: 'James Okafor',
-    email: 'james.okafor@email.com',
-    initials: 'JO',
-    color: 'bg-green-500',
-    position: 'Senior Backend Engineer',
-    stage: 'Panel Interview',
-    stageBadge: 'primary',
-    date: 'Today, 2:00 PM',
-    dateSubtext: 'In 2 hours',
-    interviewers: ['HM', 'FA', '+2'],
-  },
-  {
-    candidate: 'Sarah Chen',
-    email: 'sarah.chen@email.com',
-    initials: 'SC',
-    color: 'bg-sky-500',
-    position: 'Senior Backend Engineer',
-    stage: 'HR Screen',
-    stageBadge: 'secondary',
-    date: 'Tomorrow, 10:00 AM',
-    dateSubtext: 'Dec 29',
-    interviewers: ['TO'],
-  },
-  {
-    candidate: 'Michael Adeyemi',
-    email: 'm.adeyemi@email.com',
-    initials: 'MA',
-    color: 'bg-amber-500',
-    position: 'Growth Lead',
-    stage: 'Technical',
-    stageBadge: 'warning',
-    date: 'Dec 30, 3:00 PM',
-    dateSubtext: 'In 2 days',
-    interviewers: ['HM', 'CK'],
-  },
-]
+import { trpc } from '@/lib/trpc-client'
+import { format, formatDistanceToNow } from 'date-fns'
 
 function getActivityIcon(type: string) {
   switch (type) {
@@ -163,8 +76,91 @@ function getRankStyle(rank: number) {
   return 'bg-gray-100 text-gray-600'
 }
 
+function getInitials(name: string) {
+  return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2)
+}
+
+function getAvatarColor(name: string) {
+  const colors = ['bg-green-500', 'bg-indigo-500', 'bg-sky-500', 'bg-amber-500', 'bg-pink-500', 'bg-purple-500', 'bg-teal-500']
+  const index = name.length % colors.length
+  return colors[index]
+}
+
 export default function RecruitingDashboard() {
   const [selectedJob, setSelectedJob] = useState('all')
+
+  // Fetch dashboard data from database
+  const { data: dashboardStats, isLoading: statsLoading } = trpc.analytics.getDashboardStats.useQuery()
+  const { data: pipelineData, isLoading: pipelineLoading } = trpc.analytics.getPipelineData.useQuery()
+  const { data: topCandidates, isLoading: topLoading } = trpc.analytics.getTopCandidates.useQuery({ limit: 5 })
+
+  // Build stats from dashboard data
+  const stats = dashboardStats ? [
+    { label: 'Active Jobs', value: dashboardStats.totalActiveJobs, change: 'this week', positive: true },
+    { label: 'Total Candidates', value: dashboardStats.totalCandidates, change: 'in pipeline', positive: true },
+    {
+      label: 'In Interview',
+      value: dashboardStats.candidatesByStage
+        .filter(s => ['HR_SCREEN', 'TECHNICAL', 'TEAM_CHAT', 'PANEL'].includes(s.stage))
+        .reduce((sum, s) => sum + s.count, 0),
+      change: 'active interviews',
+      positive: true,
+    },
+    {
+      label: 'Pending Offer',
+      value: dashboardStats.candidatesByStage.find(s => s.stage === 'OFFER')?.count || 0,
+      change: 'awaiting decision',
+      positive: true,
+    },
+  ] : []
+
+  // Build pipeline stages from database
+  const pipelineStages = pipelineData ? [
+    { label: 'Applied', count: pipelineData.stages.find(s => s.stage === 'APPLIED')?.count || 0 },
+    { label: 'People Chat', count: pipelineData.stages.find(s => s.stage === 'HR_SCREEN')?.count || 0 },
+    { label: 'Coding Test', count: pipelineData.stages.find(s => s.stage === 'TECHNICAL')?.count || 0 },
+    { label: 'Team Chat', count: pipelineData.stages.find(s => s.stage === 'TEAM_CHAT')?.count || 0 },
+    { label: 'Offer', count: pipelineData.stages.find(s => s.stage === 'OFFER')?.count || 0 },
+  ] : []
+
+  // Build recent activity from database
+  const recentActivity = dashboardStats?.recentActivity.map(activity => ({
+    type: 'new',
+    title: activity.name,
+    description: `Stage: ${activity.stageDisplayName}${activity.job ? ` • ${activity.job.title}` : ''}`,
+    time: formatDistanceToNow(new Date(activity.updatedAt), { addSuffix: true }),
+  })) || []
+
+  // Build upcoming interviews from database
+  const upcomingInterviews = dashboardStats?.upcomingInterviews.map(interview => {
+    const scheduledDate = interview.scheduledAt instanceof Date
+      ? interview.scheduledAt
+      : new Date(interview.scheduledAt)
+    return {
+      id: interview.id,
+      candidate: interview.candidate.name,
+      email: '',
+      initials: getInitials(interview.candidate.name),
+      color: getAvatarColor(interview.candidate.name),
+      position: interview.candidate.job?.title || 'Unknown Position',
+      stage: interview.stageName || interview.stage,
+      stageBadge: 'secondary' as const,
+      date: format(scheduledDate, 'MMM d, h:mm a'),
+      dateSubtext: formatDistanceToNow(scheduledDate, { addSuffix: true }),
+    }
+  }) || []
+
+  const conversionRate = pipelineData
+    ? (pipelineData.hiresLast30Days / Math.max(pipelineData.applicationsLast30Days, 1) * 100).toFixed(1)
+    : '0'
+
+  if (statsLoading || pipelineLoading || topLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    )
+  }
 
   return (
     <div className="p-3 sm:p-6">
@@ -219,10 +215,10 @@ export default function RecruitingDashboard() {
 
             <div className="mt-6">
               <div className="flex justify-between text-sm text-gray-500 mb-2">
-                <span>Conversion Rate</span>
-                <span>8.7%</span>
+                <span>Conversion Rate (30d)</span>
+                <span>{conversionRate}%</span>
               </div>
-              <Progress value={8.7} className="h-2" />
+              <Progress value={parseFloat(conversionRate)} className="h-2" />
             </div>
           </CardContent>
         </Card>
@@ -266,25 +262,35 @@ export default function RecruitingDashboard() {
           </CardHeader>
           <CardContent className="px-5 pb-5">
             <div className="space-y-1">
-              {topCandidates.map((candidate, i) => (
-                <div key={i} className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50">
-                  <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${getRankStyle(i + 1)}`}>
-                    {i + 1}
-                  </div>
-                  <Avatar className="h-9 w-9">
-                    <AvatarFallback className={candidate.color + ' text-white text-xs'}>
-                      {candidate.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="font-medium text-sm">{candidate.name}</div>
-                    <div className="text-xs text-gray-500">{candidate.position}</div>
-                  </div>
-                  <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-semibold text-sm ${getScoreColor(candidate.score)}`}>
-                    {candidate.score}
-                  </div>
+              {topCandidates && topCandidates.length > 0 ? (
+                topCandidates.map((candidate, i) => (
+                  <Link
+                    key={candidate.id}
+                    href={`/recruiting/candidates/${candidate.id}`}
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50"
+                  >
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${getRankStyle(i + 1)}`}>
+                      {i + 1}
+                    </div>
+                    <Avatar className="h-9 w-9">
+                      <AvatarFallback className={getAvatarColor(candidate.name) + ' text-white text-xs'}>
+                        {getInitials(candidate.name)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{candidate.name}</div>
+                      <div className="text-xs text-gray-500">{candidate.job?.title || 'No position'}</div>
+                    </div>
+                    <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-semibold text-sm ${getScoreColor(candidate.score || 0)}`}>
+                      {candidate.score || '-'}
+                    </div>
+                  </Link>
+                ))
+              ) : (
+                <div className="text-center text-gray-500 py-8">
+                  No candidates with scores yet
                 </div>
-              ))}
+              )}
             </div>
           </CardContent>
         </Card>
@@ -360,47 +366,53 @@ export default function RecruitingDashboard() {
               </tr>
             </thead>
             <tbody>
-              {upcomingInterviews.map((interview, i) => (
-                <tr key={i} className="border-b border-gray-100 hover:bg-gray-50">
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className={interview.color + ' text-white text-xs'}>
-                          {interview.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium text-sm">{interview.candidate}</div>
-                        <div className="text-xs text-gray-500">{interview.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4 text-sm">{interview.position}</td>
-                  <td className="py-4 px-4">
-                    <Badge variant={interview.stageBadge as 'default' | 'secondary' | 'destructive' | 'outline'}>
-                      {interview.stage}
-                    </Badge>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="font-medium text-sm">{interview.date}</div>
-                    <div className="text-xs text-gray-500">{interview.dateSubtext}</div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex -space-x-2">
-                      {interview.interviewers.map((interviewer, j) => (
-                        <Avatar key={j} className="h-7 w-7 border-2 border-white">
-                          <AvatarFallback className={`text-xs ${j === 0 ? 'bg-indigo-600' : j === 1 ? 'bg-sky-500' : 'bg-green-500'} text-white`}>
-                            {interviewer}
+              {upcomingInterviews.length > 0 ? (
+                upcomingInterviews.map((interview, i) => (
+                  <tr key={interview.id || i} className="border-b border-gray-100 hover:bg-gray-50">
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className={interview.color + ' text-white text-xs'}>
+                            {interview.initials}
                           </AvatarFallback>
                         </Avatar>
-                      ))}
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">
-                    <Button variant="outline" size="sm">Prepare</Button>
+                        <div>
+                          <div className="font-medium text-sm">{interview.candidate}</div>
+                          <div className="text-xs text-gray-500">{interview.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4 text-sm">{interview.position}</td>
+                    <td className="py-4 px-4">
+                      <Badge variant={interview.stageBadge}>
+                        {interview.stage}
+                      </Badge>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="font-medium text-sm">{interview.date}</div>
+                      <div className="text-xs text-gray-500">{interview.dateSubtext}</div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <div className="flex -space-x-2">
+                        <Avatar className="h-7 w-7 border-2 border-white">
+                          <AvatarFallback className="text-xs bg-indigo-600 text-white">
+                            {interview.initials}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                    </td>
+                    <td className="py-4 px-4">
+                      <Button variant="outline" size="sm">Prepare</Button>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={6} className="py-8 text-center text-gray-500">
+                    No upcoming interviews scheduled
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>

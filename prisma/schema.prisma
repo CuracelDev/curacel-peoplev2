@@ -1333,6 +1333,10 @@ model JobCandidate {
   // Notes (internal)
   notes       String?           @db.Text
 
+  // Candidate documents (resumes, cover letters, portfolios, certificates)
+  documents   Json?             // Array of { id, name, type, url, uploadedAt }
+                                // Types: 'resume', 'cover_letter', 'portfolio', 'certificate', 'other'
+
   // Processing status for AI analysis
   processingStatus String?      // "pending", "processing", "completed", "failed"
   processedAt      DateTime?
@@ -1425,6 +1429,11 @@ model InterviewerToken {
   // Evaluation status
   evaluationStatus String   @default("PENDING") // PENDING, IN_PROGRESS, SUBMITTED
   submittedAt      DateTime?
+
+  // Evaluation data (for external interviewers submitting feedback)
+  overallRating    Int?              // 1-5 scale
+  recommendation   String?           // 'STRONG_YES', 'YES', 'MAYBE', 'NO', 'STRONG_NO'
+  evaluationNotes  String?  @db.Text // General feedback/notes from interviewer
 
   // Custom questions added by this interviewer
   customQuestions Json?    // Array of { question, answer, score }

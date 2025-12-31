@@ -12,7 +12,7 @@ const jamesOkaforFullProfile = {
   currentCompany: 'Paystack',
   yearsOfExperience: 6,
   location: 'Lagos, Nigeria',
-  stage: 'PANEL' as const,
+  stage: 'TEAM_CHAT' as const,
   score: 87,
   experienceMatchScore: 85,
   skillsMatchScore: 82,
@@ -142,89 +142,90 @@ const jamesOkaforFullProfile = {
     { risk: 'Lower extraversion', mitigation: 'Ensure comfortable channels for cross-team comms' },
   ],
   decisionStatus: 'PENDING',
-  source: 'linkedin',
+  source: 'OUTBOUND' as const,
   processingStatus: 'completed',
 }
 
 // Senior Backend Engineer - 24 candidates matching mockup
+// Using valid CandidateSource enum values: INBOUND, OUTBOUND, RECRUITER, EXCELLER
 const seniorBackendCandidates = [
-  // Panel Interview (3)
-  { name: 'James Okafor', email: 'james.okafor@email.com', score: 87, stage: 'PANEL' as const, source: 'linkedin' },
-  { name: 'Amaka Abubakar', email: 'amaka.abubakar@email.com', score: 76, stage: 'PANEL' as const, source: 'linkedin' },
-  { name: 'Olusegun Adeyemi', email: 'olusegun.a@email.com', score: 79, stage: 'PANEL' as const, source: 'referral' },
+  // Panel Interview (3) - Team Chat stage
+  { name: 'James Okafor', email: 'james.okafor@email.com', score: 87, stage: 'TEAM_CHAT' as const, source: 'OUTBOUND' as const },
+  { name: 'Amaka Abubakar', email: 'amaka.abubakar@email.com', score: 76, stage: 'TEAM_CHAT' as const, source: 'OUTBOUND' as const },
+  { name: 'Olusegun Adeyemi', email: 'olusegun.a@email.com', score: 79, stage: 'TEAM_CHAT' as const, source: 'EXCELLER' as const },
 
-  // Technical (5)
-  { name: 'Adaeze Nwosu', email: 'adaeze.nwosu@email.com', score: 80, stage: 'TECHNICAL' as const, source: 'referral' },
-  { name: 'Kelechi Okonkwo', email: 'kelechi.o@email.com', score: 74, stage: 'TECHNICAL' as const, source: 'linkedin' },
-  { name: 'Grace Obi', email: 'grace.obi@email.com', score: 78, stage: 'TECHNICAL' as const, source: 'referral' },
-  { name: 'Emmanuel Nnamdi', email: 'emmanuel.n@email.com', score: 73, stage: 'TECHNICAL' as const, source: 'careers-page' },
-  { name: 'Chinedu Okeke', email: 'chinedu.o@email.com', score: 75, stage: 'TECHNICAL' as const, source: 'linkedin' },
+  // Technical (5) - Coding Test
+  { name: 'Adaeze Nwosu', email: 'adaeze.nwosu@email.com', score: 80, stage: 'TECHNICAL' as const, source: 'EXCELLER' as const },
+  { name: 'Kelechi Okonkwo', email: 'kelechi.o@email.com', score: 74, stage: 'TECHNICAL' as const, source: 'OUTBOUND' as const },
+  { name: 'Grace Obi', email: 'grace.obi@email.com', score: 78, stage: 'TECHNICAL' as const, source: 'EXCELLER' as const },
+  { name: 'Emmanuel Nnamdi', email: 'emmanuel.n@email.com', score: 73, stage: 'TECHNICAL' as const, source: 'INBOUND' as const },
+  { name: 'Chinedu Okeke', email: 'chinedu.o@email.com', score: 75, stage: 'TECHNICAL' as const, source: 'OUTBOUND' as const },
 
-  // HR Screen (6)
-  { name: 'Sarah Chen', email: 'sarah.chen@email.com', score: 82, stage: 'HR_SCREEN' as const, source: 'careers-page' },
-  { name: 'Tunde Olawale', email: 'tunde.o@email.com', score: 71, stage: 'HR_SCREEN' as const, source: 'careers-page' },
-  { name: 'Ngozi Eze', email: 'ngozi.eze@email.com', score: 69, stage: 'HR_SCREEN' as const, source: 'linkedin' },
-  { name: 'Fatima Bello', email: 'fatima.b@email.com', score: 70, stage: 'HR_SCREEN' as const, source: 'referral' },
-  { name: 'Oluwaseun Dada', email: 'oluwaseun.d@email.com', score: 66, stage: 'HR_SCREEN' as const, source: 'linkedin' },
-  { name: 'Aisha Mohammed', email: 'aisha.m@email.com', score: 72, stage: 'HR_SCREEN' as const, source: 'careers-page' },
+  // HR Screen (6) - People Chat
+  { name: 'Sarah Chen', email: 'sarah.chen@email.com', score: 82, stage: 'HR_SCREEN' as const, source: 'INBOUND' as const },
+  { name: 'Tunde Olawale', email: 'tunde.o@email.com', score: 71, stage: 'HR_SCREEN' as const, source: 'INBOUND' as const },
+  { name: 'Ngozi Eze', email: 'ngozi.eze@email.com', score: 69, stage: 'HR_SCREEN' as const, source: 'OUTBOUND' as const },
+  { name: 'Fatima Bello', email: 'fatima.b@email.com', score: 70, stage: 'HR_SCREEN' as const, source: 'EXCELLER' as const },
+  { name: 'Oluwaseun Dada', email: 'oluwaseun.d@email.com', score: 66, stage: 'HR_SCREEN' as const, source: 'OUTBOUND' as const },
+  { name: 'Aisha Mohammed', email: 'aisha.m@email.com', score: 72, stage: 'HR_SCREEN' as const, source: 'INBOUND' as const },
 
   // Applied (10)
-  { name: 'Blessing Musa', email: 'blessing.m@email.com', score: 68, stage: 'APPLIED' as const, source: 'linkedin' },
-  { name: 'David Peters', email: 'david.p@email.com', score: 55, stage: 'APPLIED' as const, source: 'careers-page' },
-  { name: 'John Adams', email: 'john.adams@email.com', score: 48, stage: 'APPLIED' as const, source: 'referral' },
-  { name: 'Michael Brown', email: 'michael.b@email.com', score: 52, stage: 'APPLIED' as const, source: 'careers-page' },
-  { name: 'Chisom Ike', email: 'chisom.i@email.com', score: 61, stage: 'APPLIED' as const, source: 'linkedin' },
-  { name: 'Obinna Uche', email: 'obinna.u@email.com', score: 58, stage: 'APPLIED' as const, source: 'linkedin' },
-  { name: 'Precious Ogbonna', email: 'precious.o@email.com', score: 45, stage: 'APPLIED' as const, source: 'careers-page' },
-  { name: 'Victor Onyekachi', email: 'victor.o@email.com', score: 50, stage: 'APPLIED' as const, source: 'referral' },
-  { name: 'Esther Adewale', email: 'esther.a@email.com', score: 63, stage: 'APPLIED' as const, source: 'linkedin' },
-  { name: 'Daniel Okonkwo', email: 'daniel.o@email.com', score: 59, stage: 'APPLIED' as const, source: 'careers-page' },
+  { name: 'Blessing Musa', email: 'blessing.m@email.com', score: 68, stage: 'APPLIED' as const, source: 'OUTBOUND' as const },
+  { name: 'David Peters', email: 'david.p@email.com', score: 55, stage: 'APPLIED' as const, source: 'INBOUND' as const },
+  { name: 'John Adams', email: 'john.adams@email.com', score: 48, stage: 'APPLIED' as const, source: 'EXCELLER' as const },
+  { name: 'Michael Brown', email: 'michael.b@email.com', score: 52, stage: 'APPLIED' as const, source: 'INBOUND' as const },
+  { name: 'Chisom Ike', email: 'chisom.i@email.com', score: 61, stage: 'APPLIED' as const, source: 'OUTBOUND' as const },
+  { name: 'Obinna Uche', email: 'obinna.u@email.com', score: 58, stage: 'APPLIED' as const, source: 'OUTBOUND' as const },
+  { name: 'Precious Ogbonna', email: 'precious.o@email.com', score: 45, stage: 'APPLIED' as const, source: 'INBOUND' as const },
+  { name: 'Victor Onyekachi', email: 'victor.o@email.com', score: 50, stage: 'APPLIED' as const, source: 'EXCELLER' as const },
+  { name: 'Esther Adewale', email: 'esther.a@email.com', score: 63, stage: 'APPLIED' as const, source: 'OUTBOUND' as const },
+  { name: 'Daniel Okonkwo', email: 'daniel.o@email.com', score: 59, stage: 'APPLIED' as const, source: 'INBOUND' as const },
 ]
 
 // Product Designer - 12 candidates
 const designerCandidates = [
-  // Panel (2)
-  { name: 'Chika Adeola', email: 'chika.adeola@email.com', score: 89, stage: 'PANEL' as const, source: 'dribbble' },
-  { name: 'Femi Adeleke', email: 'femi.a@email.com', score: 84, stage: 'PANEL' as const, source: 'behance' },
+  // Panel (2) - Team Chat
+  { name: 'Chika Adeola', email: 'chika.adeola@email.com', score: 89, stage: 'TEAM_CHAT' as const, source: 'OUTBOUND' as const },
+  { name: 'Femi Adeleke', email: 'femi.a@email.com', score: 84, stage: 'TEAM_CHAT' as const, source: 'OUTBOUND' as const },
 
-  // Technical (3)
-  { name: 'Emma Watson', email: 'emma.w@email.com', score: 85, stage: 'TECHNICAL' as const, source: 'linkedin' },
-  { name: 'Nkechi Osagie', email: 'nkechi.o@email.com', score: 81, stage: 'TECHNICAL' as const, source: 'dribbble' },
-  { name: 'Taiwo Bankole', email: 'taiwo.b@email.com', score: 77, stage: 'TECHNICAL' as const, source: 'referral' },
+  // Technical (3) - Coding Test
+  { name: 'Emma Watson', email: 'emma.w@email.com', score: 85, stage: 'TECHNICAL' as const, source: 'OUTBOUND' as const },
+  { name: 'Nkechi Osagie', email: 'nkechi.o@email.com', score: 81, stage: 'TECHNICAL' as const, source: 'OUTBOUND' as const },
+  { name: 'Taiwo Bankole', email: 'taiwo.b@email.com', score: 77, stage: 'TECHNICAL' as const, source: 'EXCELLER' as const },
 
-  // HR Screen (3)
-  { name: 'Yusuf Ahmed', email: 'yusuf.a@email.com', score: 72, stage: 'HR_SCREEN' as const, source: 'careers-page' },
-  { name: 'Chidinma Okafor', email: 'chidinma.o@email.com', score: 75, stage: 'HR_SCREEN' as const, source: 'linkedin' },
-  { name: 'Kunle Solanke', email: 'kunle.s@email.com', score: 70, stage: 'HR_SCREEN' as const, source: 'behance' },
+  // HR Screen (3) - People Chat
+  { name: 'Yusuf Ahmed', email: 'yusuf.a@email.com', score: 72, stage: 'HR_SCREEN' as const, source: 'INBOUND' as const },
+  { name: 'Chidinma Okafor', email: 'chidinma.o@email.com', score: 75, stage: 'HR_SCREEN' as const, source: 'OUTBOUND' as const },
+  { name: 'Kunle Solanke', email: 'kunle.s@email.com', score: 70, stage: 'HR_SCREEN' as const, source: 'OUTBOUND' as const },
 
   // Applied (3)
-  { name: 'Linda Johnson', email: 'linda.j@email.com', score: 68, stage: 'APPLIED' as const, source: 'linkedin' },
-  { name: 'Olumide Balogun', email: 'olumide.b@email.com', score: 62, stage: 'APPLIED' as const, source: 'dribbble' },
-  { name: 'Sandra Eze', email: 'sandra.e@email.com', score: 58, stage: 'APPLIED' as const, source: 'careers-page' },
+  { name: 'Linda Johnson', email: 'linda.j@email.com', score: 68, stage: 'APPLIED' as const, source: 'OUTBOUND' as const },
+  { name: 'Olumide Balogun', email: 'olumide.b@email.com', score: 62, stage: 'APPLIED' as const, source: 'OUTBOUND' as const },
+  { name: 'Sandra Eze', email: 'sandra.e@email.com', score: 58, stage: 'APPLIED' as const, source: 'INBOUND' as const },
 
   // Hired (1)
-  { name: 'Peter Okoro', email: 'peter.o@email.com', score: 95, stage: 'HIRED' as const, source: 'referral' },
+  { name: 'Peter Okoro', email: 'peter.o@email.com', score: 95, stage: 'HIRED' as const, source: 'EXCELLER' as const },
 ]
 
 // Growth Lead - 8 candidates
 const growthCandidates = [
-  // Panel (1)
-  { name: 'Segun Ayodeji', email: 'segun.a@email.com', score: 86, stage: 'PANEL' as const, source: 'linkedin' },
+  // Panel (1) - Team Chat
+  { name: 'Segun Ayodeji', email: 'segun.a@email.com', score: 86, stage: 'TEAM_CHAT' as const, source: 'OUTBOUND' as const },
 
-  // Technical (2)
-  { name: 'Tobi Falana', email: 'tobi.f@email.com', score: 83, stage: 'TECHNICAL' as const, source: 'linkedin' },
-  { name: 'Adaobi Nwankwo', email: 'adaobi.n@email.com', score: 78, stage: 'TECHNICAL' as const, source: 'referral' },
+  // Technical (2) - Coding Test
+  { name: 'Tobi Falana', email: 'tobi.f@email.com', score: 83, stage: 'TECHNICAL' as const, source: 'OUTBOUND' as const },
+  { name: 'Adaobi Nwankwo', email: 'adaobi.n@email.com', score: 78, stage: 'TECHNICAL' as const, source: 'EXCELLER' as const },
 
-  // HR Screen (2)
-  { name: 'Rachel Green', email: 'rachel.g@email.com', score: 79, stage: 'HR_SCREEN' as const, source: 'careers-page' },
-  { name: 'Uche Nwosu', email: 'uche.n@email.com', score: 74, stage: 'HR_SCREEN' as const, source: 'linkedin' },
+  // HR Screen (2) - People Chat
+  { name: 'Rachel Green', email: 'rachel.g@email.com', score: 79, stage: 'HR_SCREEN' as const, source: 'INBOUND' as const },
+  { name: 'Uche Nwosu', email: 'uche.n@email.com', score: 74, stage: 'HR_SCREEN' as const, source: 'OUTBOUND' as const },
 
   // Applied (2)
-  { name: 'Chris Evans', email: 'chris.e@email.com', score: 62, stage: 'APPLIED' as const, source: 'referral' },
-  { name: 'Bisi Adeniran', email: 'bisi.a@email.com', score: 55, stage: 'APPLIED' as const, source: 'careers-page' },
+  { name: 'Chris Evans', email: 'chris.e@email.com', score: 62, stage: 'APPLIED' as const, source: 'EXCELLER' as const },
+  { name: 'Bisi Adeniran', email: 'bisi.a@email.com', score: 55, stage: 'APPLIED' as const, source: 'INBOUND' as const },
 
   // Offer (1)
-  { name: 'Kehinde Ajayi', email: 'kehinde.a@email.com', score: 91, stage: 'OFFER' as const, source: 'linkedin' },
+  { name: 'Kehinde Ajayi', email: 'kehinde.a@email.com', score: 91, stage: 'OFFER' as const, source: 'OUTBOUND' as const },
 ]
 
 async function main() {

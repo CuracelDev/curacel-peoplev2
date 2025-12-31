@@ -11,8 +11,10 @@ type JobStatusType = z.infer<typeof JobStatusEnum>
 
 const JobCandidateStageEnum = z.enum([
   'APPLIED',
-  'HR_SCREEN',
-  'TECHNICAL',
+  'HR_SCREEN',     // People Chat
+  'TEAM_CHAT',     // Team Chat
+  'ADVISOR_CHAT',  // Advisor Chat
+  'TECHNICAL',     // Coding Test
   'PANEL',
   'TRIAL',
   'CEO_CHAT',
@@ -612,6 +614,322 @@ export const jobRouter = router({
       }
 
       return job
+    }),
+
+  // =====================
+  // ALL CANDIDATES ACROSS JOBS
+  // =====================
+
+  // Get all candidates across all jobs with filtering
+  getAllCandidates: protectedProcedure
+    .input(
+      z.object({
+        stage: JobCandidateStageEnum.optional(),
+        source: CandidateSourceEnum.optional(),
+        search: z.string().optional(),
+        jobId: z.string().optional(),
+        sortBy: z.enum(['score', 'appliedAt', 'name', 'updatedAt']).default('appliedAt'),
+        sortOrder: z.enum(['asc', 'desc']).default('desc'),
+        limit: z.number().min(1).max(100).default(20),
+        offset: z.number().min(0).default(0),
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
+      const filters = input || {}
+
+      // Build where clause
+      const where: Record<string, unknown> = {}
+
+      if (filters.stage) {
+        where.stage = filters.stage
+      } else {
+        // Exclude rejected/withdrawn by default
+        where.stage = { notIn: ['REJECTED', 'WITHDRAWN'] }
+      }
+
+      if (filters.source) {
+        where.source = filters.source
+      }
+
+      if (filters.jobId) {
+        where.jobId = filters.jobId
+      }
+
+      if (filters.search) {
+        where.OR = [
+          { name: { contains: filters.search, mode: 'insensitive' } },
+          { email: { contains: filters.search, mode: 'insensitive' } },
+          { currentCompany: { contains: filters.search, mode: 'insensitive' } },
+          { currentRole: { contains: filters.search, mode: 'insensitive' } },
+        ]
+      }
+
+      // Get candidates with pagination
+      const [candidates, total] = await Promise.all([
+        ctx.prisma.jobCandidate.findMany({
+          where,
+          orderBy: { [filters.sortBy || 'appliedAt']: filters.sortOrder || 'desc' },
+          take: filters.limit,
+          skip: filters.offset,
+          include: {
+            job: {
+              select: {
+                id: true,
+                title: true,
+                department: true,
+              },
+            },
+          },
+        }),
+        ctx.prisma.jobCandidate.count({ where }),
+      ])
+
+      // Get counts by stage
+      const stageCounts = await ctx.prisma.jobCandidate.groupBy({
+        by: ['stage'],
+        _count: { id: true },
+        where: filters.jobId ? { jobId: filters.jobId } : undefined,
+      })
+
+      const stageDisplayNames: Record<string, string> = {
+        APPLIED: 'Applied',
+        HR_SCREEN: 'People Chat',
+        TECHNICAL: 'Coding Test',
+        TEAM_CHAT: 'Team Chat',
+        ADVISOR_CHAT: 'Advisor Chat',
+        PANEL: 'Panel',
+        TRIAL: 'Trial',
+        CEO_CHAT: 'CEO Chat',
+        OFFER: 'Offer',
+        HIRED: 'Hired',
+        REJECTED: 'Rejected',
+        WITHDRAWN: 'Withdrawn',
+      }
+
+      const byStageCounts = stageCounts.reduce((acc, item) => {
+        acc[item.stage] = {
+          count: item._count.id,
+          displayName: stageDisplayNames[item.stage] || item.stage,
+        }
+        return acc
+      }, {} as Record<string, { count: number; displayName: string }>)
+
+      return {
+        candidates: candidates.map((c) => ({
+          ...c,
+          stageDisplayName: stageDisplayNames[c.stage] || c.stage,
+        })),
+        total,
+        byStageCounts,
+      }
+    }),
+
+  // Get full candidate profile with all related data
+  getCandidateProfile: protectedProcedure
+    .input(z.object({ candidateId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const candidate = await ctx.prisma.jobCandidate.findUnique({
+        where: { id: input.candidateId },
+        include: {
+          job: {
+            select: {
+              id: true,
+              title: true,
+              department: true,
+              hiringFlowSnapshot: {
+                select: {
+                  id: true,
+                  version: true,
+                  stages: true,
+                },
+              },
+            },
+          },
+          interviews: {
+            include: {
+              evaluations: {
+                include: {
+                  criteriaScores: {
+                    include: {
+                      criteria: true,
+                    },
+                  },
+                },
+              },
+              interviewerTokens: {
+                select: {
+                  id: true,
+                  interviewerName: true,
+                  interviewerEmail: true,
+                  interviewerRole: true,
+                  evaluationStatus: true,
+                  overallRating: true,
+                  recommendation: true,
+                  evaluationNotes: true,
+                  submittedAt: true,
+                  customQuestions: true,
+                },
+              },
+            },
+            orderBy: { scheduledAt: 'asc' },
+          },
+          assessments: {
+            include: {
+              template: {
+                select: {
+                  id: true,
+                  name: true,
+                  type: true,
+                },
+              },
+            },
+            orderBy: { createdAt: 'asc' },
+          },
+          addedBy: {
+            select: {
+              id: true,
+              fullName: true,
+              workEmail: true,
+            },
+          },
+          recruiterCandidate: {
+            include: {
+              recruiter: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  organizationName: true,
+                },
+              },
+            },
+          },
+          interestFormResponses: {
+            include: {
+              template: {
+                include: {
+                  questions: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      if (!candidate) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Candidate not found',
+        })
+      }
+
+      // Build stage display name mapping
+      const stageDisplayNames: Record<string, string> = {
+        APPLIED: 'Applied',
+        HR_SCREEN: 'People Chat',
+        TECHNICAL: 'Coding Test',
+        TEAM_CHAT: 'Team Chat',
+        ADVISOR_CHAT: 'Advisor Chat',
+        PANEL: 'Panel',
+        TRIAL: 'Trial',
+        CEO_CHAT: 'CEO Chat',
+        OFFER: 'Offer',
+        HIRED: 'Hired',
+        REJECTED: 'Rejected',
+        WITHDRAWN: 'Withdrawn',
+      }
+
+      // Build evaluation summary
+      const evaluationsByStage: Record<string, {
+        stage: string
+        stageName: string
+        evaluators: {
+          name: string
+          role: string | null
+          overallRating: number | null
+          recommendation: string | null
+          notes: string | null
+          criteriaScores: Array<{ name: string; score: number; notes: string | null }>
+        }[]
+        averageScore: number | null
+      }> = {}
+
+      for (const interview of candidate.interviews) {
+        const evaluators = []
+
+        // Combine evaluations from InterviewEvaluation and InterviewerToken
+        for (const evaluation of interview.evaluations) {
+          evaluators.push({
+            name: evaluation.evaluatorName,
+            role: null,
+            overallRating: evaluation.overallScore,
+            recommendation: evaluation.recommendation,
+            notes: evaluation.overallNotes,
+            criteriaScores: evaluation.criteriaScores.map((cs) => ({
+              name: cs.criteria.name,
+              score: cs.score,
+              notes: cs.notes,
+            })),
+          })
+        }
+
+        for (const token of interview.interviewerTokens) {
+          if (token.evaluationStatus === 'SUBMITTED') {
+            evaluators.push({
+              name: token.interviewerName,
+              role: token.interviewerRole,
+              overallRating: token.overallRating,
+              recommendation: token.recommendation,
+              notes: token.evaluationNotes,
+              criteriaScores: [],
+            })
+          }
+        }
+
+        if (evaluators.length > 0) {
+          const scores = evaluators.filter((e) => e.overallRating != null).map((e) => e.overallRating as number)
+          const averageScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null
+
+          evaluationsByStage[interview.stage] = {
+            stage: interview.stage,
+            stageName: interview.stageName || stageDisplayNames[interview.stage] || interview.stage,
+            evaluators,
+            averageScore,
+          }
+        }
+      }
+
+      return {
+        candidate: {
+          ...candidate,
+          stageDisplayName: stageDisplayNames[candidate.stage] || candidate.stage,
+        },
+        interviews: candidate.interviews.map((i) => ({
+          ...i,
+          stageDisplayName: stageDisplayNames[i.stage] || i.stage,
+        })),
+        assessments: candidate.assessments,
+        evaluationSummary: {
+          byStage: Object.values(evaluationsByStage),
+          overallScore: candidate.score,
+          recommendation: candidate.recommendation,
+          aiRecommendation: {
+            decision: candidate.recommendation,
+            confidence: candidate.recommendationConfidence,
+            summary: candidate.recommendationSummary,
+            strengths: candidate.recommendationStrengths,
+            risks: candidate.recommendationRisks,
+          },
+        },
+        documents: candidate.documents as Array<{
+          id: string
+          name: string
+          type: string
+          url: string
+          uploadedAt: string
+        }> | null,
+        stageDisplayNames,
+      }
     }),
 
   // Submit a public job application
