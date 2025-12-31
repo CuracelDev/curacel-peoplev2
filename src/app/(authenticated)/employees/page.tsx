@@ -29,6 +29,7 @@ import { Label } from '@/components/ui/label'
 import { Plus, Search, Users } from 'lucide-react'
 import { employeeStatusLabels, employeeStatusColors, formatDate, getInitials } from '@/lib/utils'
 import { useForm } from 'react-hook-form'
+import { PageActions } from '@/components/layout/page-actions'
 
 export default function EmployeesPage() {
   const router = useRouter()
@@ -73,7 +74,7 @@ export default function EmployeesPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
+      <PageActions>
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -147,7 +148,7 @@ export default function EmployeesPage() {
             </form>
           </DialogContent>
         </Dialog>
-      </div>
+      </PageActions>
 
       {/* Filters */}
       <Card>

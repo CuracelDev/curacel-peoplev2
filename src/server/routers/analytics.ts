@@ -1249,14 +1249,22 @@ export const analyticsRouter = router({
   // ============================
   // PIPELINE DATA (for charts)
   // ============================
-  getPipelineData: protectedProcedure.query(async ({ ctx }) => {
+  getPipelineData: protectedProcedure
+    .input(
+      z.object({
+        jobId: z.string().optional(),
+      }).optional()
+    )
+    .query(async ({ ctx, input }) => {
     const db = ctx.prisma
+    const jobFilter = input?.jobId ? { jobId: input.jobId } : {}
 
     // Get candidates by stage for pipeline visualization
     const candidatesByStage = await db.jobCandidate.groupBy({
       by: ['stage'],
       _count: { id: true },
       where: {
+        ...jobFilter,
         stage: { notIn: ['REJECTED', 'WITHDRAWN'] },
       },
     })
@@ -1310,12 +1318,14 @@ export const analyticsRouter = router({
 
     const applicationsLast30Days = await db.jobCandidate.count({
       where: {
+        ...jobFilter,
         appliedAt: { gte: thirtyDaysAgo },
       },
     })
 
     const hiresLast30Days = await db.jobCandidate.count({
       where: {
+        ...jobFilter,
         stage: 'HIRED',
         updatedAt: { gte: thirtyDaysAgo },
       },

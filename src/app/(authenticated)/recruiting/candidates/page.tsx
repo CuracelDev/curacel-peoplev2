@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -9,6 +10,7 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Input } from '@/components/ui/input'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
+import { PageActions } from '@/components/layout/page-actions'
 import {
   Dialog,
   DialogContent,
@@ -116,6 +118,8 @@ export default function CandidatesPage() {
     errorCount: number
     errors: { row: number; error: string }[]
   } | null>(null)
+  const searchParams = useSearchParams()
+  const addParam = searchParams.get('add')
 
   // Fetch hiring flows for team filter
   const { data: hiringFlows } = trpc.hiringFlow.list.useQuery()
@@ -342,6 +346,13 @@ export default function CandidatesPage() {
     }
   }
 
+  useEffect(() => {
+    if (addParam === '1' || addParam === 'true') {
+      setIsAddDialogOpen(true)
+      setAddMode('single')
+    }
+  }, [addParam])
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -352,9 +363,8 @@ export default function CandidatesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Filters Row */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4">
-        <div className="flex items-center gap-3">
+      <PageActions>
+        <div className="flex flex-wrap items-center gap-3">
           <Select value={teamFilter} onValueChange={setTeamFilter}>
             <SelectTrigger className="w-[160px]">
               <Users className="h-4 w-4 mr-2" />
@@ -383,7 +393,7 @@ export default function CandidatesPage() {
             </SelectContent>
           </Select>
         </div>
-      </div>
+      </PageActions>
 
       {/* Stats Row - Dynamic based on selected team */}
       <div className="flex gap-3 min-w-0">

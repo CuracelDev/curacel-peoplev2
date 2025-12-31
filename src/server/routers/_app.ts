@@ -25,6 +25,7 @@ import { interviewStageRouter } from './interview-stage'
 import { interviewRouter } from './interview'
 import { interviewTypeRouter } from './interview-type'
 import { assessmentRouter } from './assessment'
+import { assessmentAnalyticsRouter } from './assessment-analytics'
 import { analyticsRouter } from './analytics'
 import { recruiterRouter } from './recruiter'
 import { recruitingSettingsRouter } from './recruiting-settings'
@@ -60,6 +61,7 @@ export const appRouter = router({
   interview: interviewRouter,
   interviewType: interviewTypeRouter,
   assessment: assessmentRouter,
+  assessmentAnalytics: assessmentAnalyticsRouter,
   analytics: analyticsRouter,
   recruiter: recruiterRouter,
   recruitingSettings: recruitingSettingsRouter,

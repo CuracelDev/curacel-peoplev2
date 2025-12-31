@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { trpc } from '@/lib/trpc-client'
 import { Button } from '@/components/ui/button'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { PageActions } from '@/components/layout/page-actions'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,32 +68,31 @@ export default function ContractsPage() {
 
   return (
     <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-end gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="gap-2">
-                Filter by status
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => setStatusFilter('')}>
-                All Statuses
-              </DropdownMenuItem>
-              {Object.entries(contractStatusLabels).map(([value, label]) => (
-                <DropdownMenuItem key={value} onClick={() => setStatusFilter(value)}>
-                  {label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-          <Link href="/contracts/new">
-            <Button>
-              New employment contract
+      <PageActions>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              Filter by status
+              <ChevronDown className="h-4 w-4" />
             </Button>
-          </Link>
-      </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem onClick={() => setStatusFilter('')}>
+              All Statuses
+            </DropdownMenuItem>
+            {Object.entries(contractStatusLabels).map(([value, label]) => (
+              <DropdownMenuItem key={value} onClick={() => setStatusFilter(value)}>
+                {label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+        <Link href="/contracts/new">
+          <Button>
+            New employment contract
+          </Button>
+        </Link>
+      </PageActions>
 
       {/* Contracts List */}
       <div className="bg-card rounded-lg border">
@@ -175,4 +175,3 @@ export default function ContractsPage() {
     </div>
   )
 }
-

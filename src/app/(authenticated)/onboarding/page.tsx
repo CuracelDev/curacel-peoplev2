@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
+import { PageActions } from '@/components/layout/page-actions'
 import {
   Select,
   SelectContent,
@@ -45,14 +46,14 @@ export default function OnboardingPage() {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-end">
+      <PageActions>
         <Link href="/onboarding/new">
           <Button>
             <UserPlus className="mr-2 h-4 w-4" />
             Onboard New Employee
           </Button>
         </Link>
-      </div>
+      </PageActions>
 
       {/* Filters */}
       <Card>
@@ -224,4 +225,3 @@ export default function OnboardingPage() {
     </div>
   )
 }
-
