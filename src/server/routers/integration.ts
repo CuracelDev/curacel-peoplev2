@@ -624,7 +624,7 @@ export const integrationRouter = router({
 
   // Sync apps - runs on page load to add any new apps defined in code
   // This ensures new apps are automatically added without manual intervention
-  syncApps: protectedProcedure
+  syncApps: itAdminProcedure
     .mutation(async ({ ctx }) => {
       const defaultApps = [
         { type: 'GOOGLE_WORKSPACE' as const, name: 'Google Workspace', description: 'Provision Google Workspace accounts, groups, and organizational units' },

@@ -59,6 +59,14 @@ export default function IntegrationsPage() {
     return () => clearInterval(interval)
   }, [testConnection.isPending])
 
+  // Sync apps on mount - automatically adds any new apps defined in code
+  const syncTriggered = useRef(false)
+  useEffect(() => {
+    if (isLoading || syncApps.isPending || syncTriggered.current) return
+    syncTriggered.current = true
+    syncApps.mutate()
+  }, [isLoading, syncApps])
+
   useEffect(() => {
     if (isLoading || initApps.isPending || initTriggered.current) return
     const count = apps?.length ?? 0
