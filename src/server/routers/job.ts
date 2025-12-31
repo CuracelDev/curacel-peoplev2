@@ -994,4 +994,381 @@ export const jobRouter = router({
 
       return { success: true, candidateId: candidate.id }
     }),
+
+  // BULK UPLOAD ENDPOINTS
+  // =====================
+
+  // Parse uploaded file and use AI to match fields
+  parseUploadForBulkImport: protectedProcedure
+    .input(
+      z.object({
+        fileContent: z.string(), // Base64 or CSV content
+        fileName: z.string(),
+        fileType: z.enum(['csv', 'xlsx', 'xls']),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { fileContent, fileName, fileType } = input
+
+      // Expected candidate fields
+      const expectedFields = [
+        { key: 'name', label: 'Full Name', required: true },
+        { key: 'email', label: 'Email Address', required: true },
+        { key: 'phone', label: 'Phone Number', required: false },
+        { key: 'linkedinUrl', label: 'LinkedIn URL', required: false },
+        { key: 'currentRole', label: 'Current Role/Title', required: false },
+        { key: 'currentCompany', label: 'Current Company', required: false },
+        { key: 'yearsOfExperience', label: 'Years of Experience', required: false },
+        { key: 'location', label: 'Location', required: false },
+        { key: 'source', label: 'Source', required: false },
+        { key: 'notes', label: 'Notes', required: false },
+        { key: 'resumeUrl', label: 'Resume URL', required: false },
+      ]
+
+      // Parse CSV content to extract headers and sample rows
+      let headers: string[] = []
+      let sampleRows: string[][] = []
+      let allRows: string[][] = []
+
+      try {
+        if (fileType === 'csv') {
+          // Parse CSV
+          const lines = fileContent.split('\n').filter((line) => line.trim())
+          if (lines.length === 0) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'Empty file' })
+          }
+
+          // Simple CSV parsing (handles basic comma separation)
+          const parseLine = (line: string): string[] => {
+            const result: string[] = []
+            let current = ''
+            let inQuotes = false
+
+            for (let i = 0; i < line.length; i++) {
+              const char = line[i]
+              if (char === '"') {
+                inQuotes = !inQuotes
+              } else if (char === ',' && !inQuotes) {
+                result.push(current.trim())
+                current = ''
+              } else {
+                current += char
+              }
+            }
+            result.push(current.trim())
+            return result
+          }
+
+          headers = parseLine(lines[0])
+          allRows = lines.slice(1).map(parseLine)
+          sampleRows = allRows.slice(0, 5) // First 5 rows as sample
+        } else {
+          // For Excel files, we'd need xlsx library on the server
+          // For now, return an error asking for CSV
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Excel files are not yet supported. Please convert to CSV.',
+          })
+        }
+      } catch (error) {
+        if (error instanceof TRPCError) throw error
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Failed to parse file. Please check the format.',
+        })
+      }
+
+      // Get AI settings for field matching
+      let aiMapping: Record<string, string> = {}
+      let confidenceScores: Record<string, number> = {}
+      let needsManualMapping = false
+
+      try {
+        const settings = await ctx.prisma.aISettings.findFirst({
+          orderBy: { updatedAt: 'desc' },
+        })
+
+        if (settings?.apiKey) {
+          const { decrypt } = await import('@/lib/encryption')
+          const apiKey = decrypt(settings.apiKey)
+
+          // Build prompt for AI field matching
+          const prompt = `You are an expert at data field mapping. Given the following CSV headers and sample data, match each header to the most appropriate candidate field.
+
+CSV Headers: ${JSON.stringify(headers)}
+
+Sample Data (first 3 rows):
+${sampleRows
+  .slice(0, 3)
+  .map((row, i) => `Row ${i + 1}: ${JSON.stringify(row)}`)
+  .join('\n')}
+
+Expected Candidate Fields:
+${expectedFields.map((f) => `- ${f.key}: ${f.label}${f.required ? ' (required)' : ''}`).join('\n')}
+
+Return a JSON object where:
+- Keys are the CSV header names (exactly as provided)
+- Values are objects with:
+  - "field": the matched candidate field key (or null if no match)
+  - "confidence": a number 0-100 indicating match confidence
+
+Example response:
+{
+  "Full Name": {"field": "name", "confidence": 95},
+  "Email": {"field": "email", "confidence": 98},
+  "Company": {"field": "currentCompany", "confidence": 85},
+  "Unknown Column": {"field": null, "confidence": 0}
+}
+
+IMPORTANT: Return ONLY valid JSON, no additional text.`
+
+          if (settings.provider === 'OPENAI') {
+            const { default: OpenAI } = await import('openai')
+            const client = new OpenAI({ apiKey })
+
+            const response = await client.chat.completions.create({
+              model: settings.model || 'gpt-4o-mini',
+              messages: [{ role: 'user', content: prompt }],
+              response_format: { type: 'json_object' },
+            })
+
+            const content = response.choices[0]?.message?.content
+            if (content) {
+              const parsed = JSON.parse(content)
+              for (const [header, match] of Object.entries(parsed)) {
+                const m = match as { field: string | null; confidence: number }
+                if (m.field) {
+                  aiMapping[header] = m.field
+                  confidenceScores[header] = m.confidence
+                  if (m.confidence < 70) {
+                    needsManualMapping = true
+                  }
+                } else {
+                  needsManualMapping = true
+                }
+              }
+            }
+          } else if (settings.provider === 'ANTHROPIC') {
+            const { default: Anthropic } = await import('@anthropic-ai/sdk')
+            const client = new Anthropic({ apiKey })
+
+            const response = await client.messages.create({
+              model: settings.model || 'claude-3-haiku-20240307',
+              max_tokens: 1024,
+              messages: [{ role: 'user', content: prompt }],
+            })
+
+            const textContent = response.content.find((c) => c.type === 'text')
+            if (textContent && textContent.type === 'text') {
+              // Extract JSON from response (may have markdown code blocks)
+              let jsonStr = textContent.text
+              const jsonMatch = jsonStr.match(/```(?:json)?\s*([\s\S]*?)```/)
+              if (jsonMatch) {
+                jsonStr = jsonMatch[1]
+              }
+              const parsed = JSON.parse(jsonStr.trim())
+              for (const [header, match] of Object.entries(parsed)) {
+                const m = match as { field: string | null; confidence: number }
+                if (m.field) {
+                  aiMapping[header] = m.field
+                  confidenceScores[header] = m.confidence
+                  if (m.confidence < 70) {
+                    needsManualMapping = true
+                  }
+                } else {
+                  needsManualMapping = true
+                }
+              }
+            }
+          }
+        } else {
+          // No AI configured, require manual mapping
+          needsManualMapping = true
+        }
+      } catch (error) {
+        console.error('AI field matching failed:', error)
+        needsManualMapping = true
+      }
+
+      // Check if required fields are mapped
+      const mappedFields = new Set(Object.values(aiMapping))
+      for (const field of expectedFields) {
+        if (field.required && !mappedFields.has(field.key)) {
+          needsManualMapping = true
+          break
+        }
+      }
+
+      return {
+        headers,
+        sampleRows,
+        totalRows: allRows.length,
+        expectedFields,
+        aiMapping,
+        confidenceScores,
+        needsManualMapping,
+        parsedData: allRows,
+      }
+    }),
+
+  // Bulk import candidates with field mapping
+  bulkImportCandidates: protectedProcedure
+    .input(
+      z.object({
+        jobId: z.string().optional(),
+        fieldMapping: z.record(z.string(), z.string()), // header -> field key
+        data: z.array(z.array(z.string())), // Parsed rows
+        headers: z.array(z.string()),
+        source: CandidateSourceEnum.optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { jobId, fieldMapping, data, headers, source = 'INBOUND' } = input
+
+      // If no job specified, we need to find or create a default one
+      let targetJobId = jobId
+
+      if (!targetJobId) {
+        // Look for an active job or create a generic talent pool
+        const activeJob = await ctx.prisma.job.findFirst({
+          where: { status: 'ACTIVE' },
+          orderBy: { createdAt: 'desc' },
+        })
+
+        if (activeJob) {
+          targetJobId = activeJob.id
+        } else {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'No active job found. Please select a job to import candidates to.',
+          })
+        }
+      }
+
+      // Build candidate records
+      const candidates: Array<{
+        name: string
+        email: string
+        phone?: string
+        linkedinUrl?: string
+        currentRole?: string
+        currentCompany?: string
+        yearsOfExperience?: number
+        location?: string
+        notes?: string
+        resumeUrl?: string
+      }> = []
+
+      const errors: Array<{ row: number; error: string }> = []
+
+      for (let i = 0; i < data.length; i++) {
+        const row = data[i]
+        const candidate: Record<string, unknown> = {}
+
+        // Map each column to the appropriate field
+        for (let j = 0; j < headers.length; j++) {
+          const header = headers[j]
+          const fieldKey = fieldMapping[header]
+          const value = row[j]?.trim()
+
+          if (fieldKey && value) {
+            if (fieldKey === 'yearsOfExperience') {
+              const num = parseInt(value, 10)
+              if (!isNaN(num)) {
+                candidate[fieldKey] = num
+              }
+            } else {
+              candidate[fieldKey] = value
+            }
+          }
+        }
+
+        // Validate required fields
+        if (!candidate.name || typeof candidate.name !== 'string') {
+          errors.push({ row: i + 1, error: 'Missing name' })
+          continue
+        }
+
+        if (!candidate.email || typeof candidate.email !== 'string') {
+          errors.push({ row: i + 1, error: 'Missing email' })
+          continue
+        }
+
+        // Basic email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!emailRegex.test(candidate.email)) {
+          errors.push({ row: i + 1, error: `Invalid email: ${candidate.email}` })
+          continue
+        }
+
+        candidates.push(candidate as (typeof candidates)[0])
+      }
+
+      // Check for duplicate emails within the batch
+      const emailSet = new Set<string>()
+      const duplicates: string[] = []
+      for (const c of candidates) {
+        if (emailSet.has(c.email.toLowerCase())) {
+          duplicates.push(c.email)
+        } else {
+          emailSet.add(c.email.toLowerCase())
+        }
+      }
+
+      if (duplicates.length > 0) {
+        errors.push({
+          row: 0,
+          error: `Duplicate emails in file: ${duplicates.slice(0, 3).join(', ')}${duplicates.length > 3 ? ` and ${duplicates.length - 3} more` : ''}`,
+        })
+      }
+
+      // Check for existing candidates in database
+      const existingEmails = await ctx.prisma.jobCandidate.findMany({
+        where: {
+          email: { in: candidates.map((c) => c.email.toLowerCase()) },
+          jobId: targetJobId,
+        },
+        select: { email: true },
+      })
+
+      const existingSet = new Set(existingEmails.map((e) => e.email.toLowerCase()))
+      const newCandidates = candidates.filter((c) => !existingSet.has(c.email.toLowerCase()))
+      const skippedCount = candidates.length - newCandidates.length
+
+      // Import new candidates
+      let importedCount = 0
+
+      if (newCandidates.length > 0) {
+        const result = await ctx.prisma.jobCandidate.createMany({
+          data: newCandidates.map((c) => ({
+            jobId: targetJobId!,
+            name: c.name,
+            email: c.email.toLowerCase(),
+            phone: c.phone,
+            linkedinUrl: c.linkedinUrl,
+            currentRole: c.currentRole,
+            currentCompany: c.currentCompany,
+            yearsOfExperience: c.yearsOfExperience,
+            location: c.location,
+            notes: c.notes,
+            resumeUrl: c.resumeUrl,
+            source,
+            stage: 'APPLIED',
+            addedById: ctx.session.user.id,
+          })),
+          skipDuplicates: true,
+        })
+
+        importedCount = result.count
+      }
+
+      return {
+        success: true,
+        totalRows: data.length,
+        importedCount,
+        skippedCount,
+        errorCount: errors.length,
+        errors: errors.slice(0, 10), // Return first 10 errors
+      }
+    }),
 })
