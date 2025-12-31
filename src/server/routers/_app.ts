@@ -31,6 +31,7 @@ import { recruitingSettingsRouter } from './recruiting-settings'
 import { hiringFlowRouter } from './hiringFlow'
 import { questionRouter } from './question'
 import { candidateEmailRouter } from './candidate-email'
+import { blueAIAnalysisRouter } from './blueai-analysis'
 
 export const appRouter = router({
   employee: employeeRouter,
@@ -65,6 +66,7 @@ export const appRouter = router({
   hiringFlow: hiringFlowRouter,
   question: questionRouter,
   candidateEmail: candidateEmailRouter,
+  blueAIAnalysis: blueAIAnalysisRouter,
 })
 
 export type AppRouter = typeof appRouter

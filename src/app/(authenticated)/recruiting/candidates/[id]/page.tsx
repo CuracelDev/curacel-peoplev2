@@ -47,6 +47,8 @@ import { Textarea } from '@/components/ui/textarea'
 import { cn, getInitials } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
 import { format } from 'date-fns'
+import { EmailTab } from '@/components/recruiting/email-tab'
+import { BlueAIAnalysisTab } from '@/components/recruiting/blueai-analysis-tab'
 
 // Fallback mock candidate data - James Okafor full profile
 const mockCandidate = {
@@ -586,6 +588,8 @@ export default function CandidateProfilePage() {
             <TabsTrigger value="stages" className="text-xs sm:text-sm">Interviews</TabsTrigger>
             <TabsTrigger value="assessments" className="text-xs sm:text-sm">Assessments</TabsTrigger>
             <TabsTrigger value="values" className="text-xs sm:text-sm">Values</TabsTrigger>
+            <TabsTrigger value="email" className="text-xs sm:text-sm">Email</TabsTrigger>
+            <TabsTrigger value="blueai" className="text-xs sm:text-sm">BlueAI</TabsTrigger>
             <TabsTrigger value="decision" className="text-xs sm:text-sm">Decision</TabsTrigger>
           </TabsList>
         </div>
@@ -1312,6 +1316,25 @@ export default function CandidateProfilePage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        {/* Email Tab */}
+        <TabsContent value="email" className="mt-6">
+          <EmailTab
+            candidateId={candidate.id}
+            candidateName={candidate.name}
+            candidateEmail={candidate.email}
+            jobId={candidate.job?.id}
+            jobTitle={candidate.job?.title}
+          />
+        </TabsContent>
+
+        {/* BlueAI Analysis Tab */}
+        <TabsContent value="blueai" className="mt-6">
+          <BlueAIAnalysisTab
+            candidateId={candidate.id}
+            candidateName={candidate.name}
+          />
         </TabsContent>
 
         {/* Decision Tab */}
