@@ -97,19 +97,19 @@ const settingsSections = [
         title: 'Interview Types',
         description: 'Configure types, formats, durations.',
         icon: Video,
-        href: '/recruiting/settings/all?section=interviewTypes',
+        href: '/recruiting/settings/interview-types',
       },
       {
         title: 'Interview Rubrics',
         description: 'Set evaluation criteria and scoring.',
         icon: ClipboardCheck,
-        href: '/recruiting/settings/all?section=rubrics',
+        href: '/recruiting/settings/rubrics',
       },
       {
         title: 'Interest Forms',
         description: 'Create candidate application forms.',
         icon: FileQuestion,
-        href: '/recruiting/settings/all?section=interestForms',
+        href: '/recruiting/settings/interest-forms',
       },
       {
         title: 'Question Bank',
