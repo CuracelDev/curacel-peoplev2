@@ -352,9 +352,8 @@ export default function CandidatesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header Row with Title and Filters */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold text-foreground">Hiring Candidates</h1>
+      {/* Filters Row */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4">
         <div className="flex items-center gap-3">
           <Select value={teamFilter} onValueChange={setTeamFilter}>
             <SelectTrigger className="w-[160px]">
@@ -397,7 +396,7 @@ export default function CandidatesPage() {
             )}
             onClick={() => setActiveFilter(card.key)}
           >
-            <CardContent className="pt-3 pb-3 px-3 text-center">
+            <CardContent className="py-4 px-3 flex flex-col items-center justify-center text-center">
               <div className="text-xs text-muted-foreground truncate">{card.label}</div>
               <div className="text-xl font-bold">{stageCounts[card.key] || 0}</div>
             </CardContent>
