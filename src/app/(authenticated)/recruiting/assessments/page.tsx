@@ -57,7 +57,6 @@ import {
   Code,
   Brain,
   Briefcase,
-  Sparkles,
   Calendar,
   Clock,
   CheckCircle,
@@ -71,10 +70,9 @@ import { toast } from 'sonner'
 
 // Type display names and colors
 const typeConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
-  CODING_TEST: { label: 'Coding Test', color: 'bg-amber-100 text-amber-800', icon: Code },
-  KANDI_IO: { label: 'Kandi.io', color: 'bg-purple-100 text-purple-800', icon: Sparkles },
-  PERSONALITY_MBTI: { label: 'MBTI', color: 'bg-blue-100 text-blue-800', icon: Brain },
-  PERSONALITY_BIG5: { label: 'Big 5', color: 'bg-indigo-100 text-indigo-800', icon: Brain },
+  COMPETENCY_TEST: { label: 'Competency Test', color: 'bg-purple-100 text-purple-800', icon: ClipboardCheck },
+  CODING_TEST: { label: 'Coding Test', color: 'bg-blue-100 text-blue-800', icon: Code },
+  PERSONALITY_TEST: { label: 'Personality Test', color: 'bg-pink-100 text-pink-800', icon: Brain },
   WORK_TRIAL: { label: 'Work Trial', color: 'bg-green-100 text-green-800', icon: Briefcase },
   CUSTOM: { label: 'Custom', color: 'bg-muted text-foreground', icon: FileText },
 }
@@ -184,11 +182,11 @@ export default function AssessmentsPage() {
   // Filter types for display
   const types = [
     { key: 'all', label: 'All' },
-    { key: 'CODING_TEST', label: 'Coding Tests' },
-    { key: 'KANDI_IO', label: 'Kandi.io' },
-    { key: 'PERSONALITY_MBTI', label: 'MBTI' },
-    { key: 'PERSONALITY_BIG5', label: 'Big 5' },
+    { key: 'COMPETENCY_TEST', label: 'Competency' },
+    { key: 'CODING_TEST', label: 'Coding' },
+    { key: 'PERSONALITY_TEST', label: 'Personality' },
     { key: 'WORK_TRIAL', label: 'Work Trial' },
+    { key: 'CUSTOM', label: 'Custom' },
   ]
 
   // Score color based on value

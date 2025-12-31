@@ -41,7 +41,6 @@ import {
 } from '@/components/ui/dropdown-menu'
 import {
   Code,
-  Sparkles,
   Brain,
   Briefcase,
   Plus,
@@ -55,6 +54,7 @@ import {
   Clock,
   Target,
   Wand2,
+  Sparkles,
   Copy,
   Check,
   Search,
@@ -63,22 +63,20 @@ import {
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
-type AssessmentType = 'CODING_TEST' | 'KANDI_IO' | 'PERSONALITY_MBTI' | 'PERSONALITY_BIG5' | 'WORK_TRIAL' | 'CUSTOM'
+type AssessmentType = 'COMPETENCY_TEST' | 'CODING_TEST' | 'PERSONALITY_TEST' | 'WORK_TRIAL' | 'CUSTOM'
 
 const typeConfig: Record<AssessmentType, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
+  COMPETENCY_TEST: { label: 'Competency Test', icon: Target, color: 'bg-purple-100 text-purple-800' },
   CODING_TEST: { label: 'Coding Test', icon: Code, color: 'bg-blue-100 text-blue-800' },
-  KANDI_IO: { label: 'Kandi.io', icon: Sparkles, color: 'bg-purple-100 text-purple-800' },
-  PERSONALITY_MBTI: { label: 'MBTI', icon: Brain, color: 'bg-pink-100 text-pink-800' },
-  PERSONALITY_BIG5: { label: 'Big 5', icon: Brain, color: 'bg-orange-100 text-orange-800' },
+  PERSONALITY_TEST: { label: 'Personality Test', icon: Brain, color: 'bg-pink-100 text-pink-800' },
   WORK_TRIAL: { label: 'Work Trial', icon: Briefcase, color: 'bg-green-100 text-green-800' },
   CUSTOM: { label: 'Custom', icon: FileText, color: 'bg-gray-100 text-gray-800' },
 }
 
 const assessmentTypes: { key: AssessmentType; label: string; description: string }[] = [
+  { key: 'COMPETENCY_TEST', label: 'Competency Test', description: 'Skills and competency-based assessments' },
   { key: 'CODING_TEST', label: 'Coding Test', description: 'Technical coding challenges and assessments' },
-  { key: 'KANDI_IO', label: 'Kandi.io', description: 'Kandi.io assessment platform integration' },
-  { key: 'PERSONALITY_MBTI', label: 'Personality (MBTI)', description: 'Myers-Briggs Type Indicator assessment' },
-  { key: 'PERSONALITY_BIG5', label: 'Personality (Big 5)', description: 'Big Five personality traits assessment' },
+  { key: 'PERSONALITY_TEST', label: 'Personality Test', description: 'Personality and behavioral assessments' },
   { key: 'WORK_TRIAL', label: 'Work Trial', description: 'Paid or unpaid work trial period' },
   { key: 'CUSTOM', label: 'Custom', description: 'Custom assessment or evaluation' },
 ]
@@ -104,7 +102,7 @@ export default function AssessmentSettingsPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    type: 'CODING_TEST' as AssessmentType,
+    type: 'COMPETENCY_TEST' as AssessmentType,
     externalUrl: '',
     externalPlatform: '',
     durationMinutes: '',
@@ -194,7 +192,7 @@ export default function AssessmentSettingsPage() {
     setFormData({
       name: '',
       description: '',
-      type: 'CODING_TEST',
+      type: 'COMPETENCY_TEST',
       externalUrl: '',
       externalPlatform: '',
       durationMinutes: '',
