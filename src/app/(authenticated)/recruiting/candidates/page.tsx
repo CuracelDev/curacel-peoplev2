@@ -33,12 +33,15 @@ import {
   ChevronLeft,
   ChevronRight,
   Loader2,
+  Calendar,
+  Users,
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
-import { format, formatDistanceToNow } from 'date-fns'
+import { format, formatDistanceToNow, subDays, subMonths, startOfDay, endOfDay } from 'date-fns'
 
 type SortOption = 'score-desc' | 'score-asc' | 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc'
+type DateFilter = 'all' | 'today' | 'week' | 'month' | 'quarter'
 
 const stageStyles: Record<string, string> = {
   'APPLIED': 'bg-muted text-foreground/80',
@@ -70,6 +73,8 @@ export default function CandidatesPage() {
   const [activeFilter, setActiveFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [sortOption, setSortOption] = useState<SortOption>('score-desc')
+  const [teamFilter, setTeamFilter] = useState<string>('all')
+  const [dateFilter, setDateFilter] = useState<DateFilter>('all')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [newCandidate, setNewCandidate] = useState({
     name: '',
@@ -79,6 +84,9 @@ export default function CandidatesPage() {
     source: '',
     notes: '',
   })
+
+  // Fetch hiring flows for team filter
+  const { data: hiringFlows } = trpc.hiringFlow.list.useQuery()
 
   // Build query params based on filters
   const sortBy = sortOption.startsWith('score') ? 'score' as const :
@@ -108,15 +116,74 @@ export default function CandidatesPage() {
   const total = candidatesData?.total || 0
   const byStageCounts = candidatesData?.byStageCounts || {}
 
-  // Calculate stage counts
-  const stageCounts = {
-    all: Object.values(byStageCounts).reduce((sum, s) => sum + s.count, 0),
-    applied: byStageCounts['APPLIED']?.count || 0,
-    hrScreen: byStageCounts['HR_SCREEN']?.count || 0,
-    technical: byStageCounts['TECHNICAL']?.count || 0,
-    panel: (byStageCounts['TEAM_CHAT']?.count || 0) + (byStageCounts['PANEL']?.count || 0),
-    offer: byStageCounts['OFFER']?.count || 0,
+  // Get the selected hiring flow stages
+  const selectedFlow = useMemo(() => {
+    if (teamFilter === 'all' || !hiringFlows) return null
+    return hiringFlows.find((f) => f.id === teamFilter)
+  }, [teamFilter, hiringFlows])
+
+  // Stage name to key mapping
+  const stageNameToKey: Record<string, string> = {
+    'Applied': 'APPLIED',
+    'People Chat': 'HR_SCREEN',
+    'HR Screen': 'HR_SCREEN',
+    'Coding Test': 'TECHNICAL',
+    'Technical': 'TECHNICAL',
+    'Team Chat': 'TEAM_CHAT',
+    'Panel': 'PANEL',
+    'Trial': 'TRIAL',
+    'CEO Chat': 'CEO_CHAT',
+    'Offer': 'OFFER',
+    'Hired': 'HIRED',
   }
+
+  // Build dynamic stage cards based on selected flow or default
+  const stageCards = useMemo(() => {
+    const defaultCards = [
+      { key: 'all', label: 'All', stageKeys: [] as string[] },
+      { key: 'applied', label: 'Applied', stageKeys: ['APPLIED'] },
+      { key: 'hrScreen', label: 'People Chat', stageKeys: ['HR_SCREEN'] },
+      { key: 'technical', label: 'Coding Test', stageKeys: ['TECHNICAL'] },
+      { key: 'panel', label: 'Team Chat', stageKeys: ['TEAM_CHAT', 'PANEL'] },
+      { key: 'offer', label: 'Offer', stageKeys: ['OFFER'] },
+    ]
+
+    if (!selectedFlow) return defaultCards
+
+    // Build cards from the selected flow's stages
+    const cards: { key: string; label: string; stageKeys: string[] }[] = [
+      { key: 'all', label: 'All', stageKeys: [] },
+    ]
+
+    for (const stageName of selectedFlow.stages) {
+      const stageKey = stageNameToKey[stageName] || stageName.toUpperCase().replace(/\s+/g, '_')
+      cards.push({
+        key: stageKey.toLowerCase(),
+        label: stageName,
+        stageKeys: [stageKey],
+      })
+    }
+
+    return cards
+  }, [selectedFlow])
+
+  // Calculate stage counts dynamically
+  const stageCounts = useMemo(() => {
+    const counts: Record<string, number> = {
+      all: Object.values(byStageCounts).reduce((sum, s) => sum + s.count, 0),
+    }
+
+    for (const card of stageCards) {
+      if (card.key !== 'all') {
+        counts[card.key] = card.stageKeys.reduce(
+          (sum, key) => sum + (byStageCounts[key]?.count || 0),
+          0
+        )
+      }
+    }
+
+    return counts
+  }, [byStageCounts, stageCards])
 
   const toggleCandidate = (id: string) => {
     setSelectedCandidates(prev =>
@@ -173,82 +240,95 @@ export default function CandidatesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Stats Row - Always fits in 1 row */}
+      {/* Header Row with Title and Filters */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h1 className="text-2xl font-semibold text-foreground">Hiring Candidates</h1>
+        <div className="flex items-center gap-3">
+          <Select value={teamFilter} onValueChange={setTeamFilter}>
+            <SelectTrigger className="w-[160px]">
+              <Users className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="All Teams" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Teams</SelectItem>
+              {hiringFlows?.map((flow) => (
+                <SelectItem key={flow.id} value={flow.id}>
+                  {flow.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={dateFilter} onValueChange={(v) => setDateFilter(v as DateFilter)}>
+            <SelectTrigger className="w-[140px]">
+              <Calendar className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="All Time" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="today">Today</SelectItem>
+              <SelectItem value="week">This Week</SelectItem>
+              <SelectItem value="month">This Month</SelectItem>
+              <SelectItem value="quarter">This Quarter</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Stats Row - Dynamic based on selected team */}
       <div className="flex gap-3 min-w-0">
-        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'all' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('all')}>
-          <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-muted-foreground truncate">All</div>
-            <div className="text-xl font-bold">{stageCounts.all}</div>
-          </CardContent>
-        </Card>
-        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'applied' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('applied')}>
-          <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-muted-foreground truncate">Applied</div>
-            <div className="text-xl font-bold">{stageCounts.applied}</div>
-          </CardContent>
-        </Card>
-        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'hrScreen' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('hrScreen')}>
-          <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-muted-foreground truncate">People Chat</div>
-            <div className="text-xl font-bold">{stageCounts.hrScreen}</div>
-          </CardContent>
-        </Card>
-        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'technical' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('technical')}>
-          <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-muted-foreground truncate">Coding Test</div>
-            <div className="text-xl font-bold">{stageCounts.technical}</div>
-          </CardContent>
-        </Card>
-        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'panel' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('panel')}>
-          <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-muted-foreground truncate">Team Chat</div>
-            <div className="text-xl font-bold">{stageCounts.panel}</div>
-          </CardContent>
-        </Card>
-        <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'offer' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('offer')}>
-          <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-muted-foreground truncate">Offer</div>
-            <div className="text-xl font-bold">{stageCounts.offer || 0}</div>
-          </CardContent>
-        </Card>
+        {stageCards.map((card) => (
+          <Card
+            key={card.key}
+            className={cn(
+              "flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all",
+              activeFilter === card.key && 'ring-2 ring-primary'
+            )}
+            onClick={() => setActiveFilter(card.key)}
+          >
+            <CardContent className="pt-3 pb-3 px-3 text-center">
+              <div className="text-xs text-muted-foreground truncate">{card.label}</div>
+              <div className="text-xl font-bold">{stageCounts[card.key] || 0}</div>
+            </CardContent>
+          </Card>
+        ))}
       </div>
 
       {/* Search and Actions */}
       <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-          <div className="relative flex-1 sm:flex-none">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search candidates..."
-              className="pl-9 w-full sm:w-48 lg:w-64"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
-          <div className="flex items-center gap-2 sm:gap-3">
-            <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
-              <SelectTrigger className="w-full sm:w-[160px] lg:w-[200px]">
-                <SelectValue placeholder="Sort by..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="score-desc">Score (High to Low)</SelectItem>
-                <SelectItem value="score-asc">Score (Low to High)</SelectItem>
-                <SelectItem value="date-desc">Date (Newest First)</SelectItem>
-                <SelectItem value="date-asc">Date (Oldest First)</SelectItem>
-                <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-                <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button variant="outline" size="sm" className="gap-2 whitespace-nowrap" onClick={handleExport}>
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Export{selectedCandidates.length > 0 && ` (${selectedCandidates.length})`}</span>
-            </Button>
-            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="gap-2 whitespace-nowrap">
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden sm:inline">Add Candidate</span>
-                </Button>
-              </DialogTrigger>
+        <div className="relative flex-1 sm:flex-none">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search candidates..."
+            className="pl-9 w-full sm:w-48 lg:w-64"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+        <div className="flex items-center gap-2 sm:gap-3 sm:ml-auto">
+          <Select value={sortOption} onValueChange={(value) => setSortOption(value as SortOption)}>
+            <SelectTrigger className="w-full sm:w-[160px] lg:w-[200px]">
+              <SelectValue placeholder="Sort by..." />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="score-desc">Score (High to Low)</SelectItem>
+              <SelectItem value="score-asc">Score (Low to High)</SelectItem>
+              <SelectItem value="date-desc">Date (Newest First)</SelectItem>
+              <SelectItem value="date-asc">Date (Oldest First)</SelectItem>
+              <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+              <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+            </SelectContent>
+          </Select>
+          <Button variant="outline" size="sm" className="gap-2 whitespace-nowrap" onClick={handleExport}>
+            <Download className="h-4 w-4" />
+            <span className="hidden sm:inline">Export{selectedCandidates.length > 0 && ` (${selectedCandidates.length})`}</span>
+          </Button>
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button size="sm" className="gap-2 whitespace-nowrap">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline">Add Candidate</span>
+              </Button>
+            </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>Add New Candidate</DialogTitle>
