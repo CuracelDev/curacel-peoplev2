@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import { router, hrAdminProcedure } from '@/lib/trpc'
+import { router, hrAdminProcedure, protectedProcedure } from '@/lib/trpc'
 import {
   startOfMonth,
   endOfMonth,
@@ -1125,4 +1125,325 @@ export const analyticsRouter = router({
         total,
       }
     }),
+
+  // ============================
+  // DASHBOARD STATS (for main dashboard)
+  // ============================
+  getDashboardStats: protectedProcedure.query(async ({ ctx }) => {
+    const db = ctx.prisma
+
+    // Get counts in parallel
+    const [
+      totalActiveJobs,
+      totalCandidates,
+      candidatesByStage,
+      upcomingInterviews,
+      recentActivity,
+    ] = await Promise.all([
+      // Total active jobs
+      db.job.count({
+        where: { status: 'ACTIVE' },
+      }),
+
+      // Total candidates (excluding rejected/withdrawn)
+      db.jobCandidate.count({
+        where: {
+          stage: { notIn: ['REJECTED', 'WITHDRAWN'] },
+        },
+      }),
+
+      // Candidates by stage
+      db.jobCandidate.groupBy({
+        by: ['stage'],
+        _count: { id: true },
+        where: {
+          stage: { notIn: ['REJECTED', 'WITHDRAWN'] },
+        },
+      }),
+
+      // Upcoming interviews (next 7 days)
+      db.candidateInterview.findMany({
+        where: {
+          scheduledAt: {
+            gte: new Date(),
+            lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          },
+          status: 'SCHEDULED',
+        },
+        include: {
+          candidate: {
+            select: {
+              id: true,
+              name: true,
+              avatarUrl: true,
+              job: {
+                select: { id: true, title: true },
+              },
+            },
+          },
+        },
+        orderBy: { scheduledAt: 'asc' },
+        take: 10,
+      }),
+
+      // Recent activity (last 10 candidates added/moved)
+      db.jobCandidate.findMany({
+        orderBy: { updatedAt: 'desc' },
+        take: 10,
+        select: {
+          id: true,
+          name: true,
+          stage: true,
+          appliedAt: true,
+          updatedAt: true,
+          job: {
+            select: { id: true, title: true },
+          },
+        },
+      }),
+    ])
+
+    // Format candidates by stage with display names
+    const stageDisplayNames: Record<string, string> = {
+      APPLIED: 'Applied',
+      HR_SCREEN: 'People Chat',
+      TEAM_CHAT: 'Team Chat',
+      ADVISOR_CHAT: 'Advisor Chat',
+      TECHNICAL: 'Coding Test',
+      PANEL: 'Panel',
+      TRIAL: 'Trial',
+      CEO_CHAT: 'CEO Chat',
+      OFFER: 'Offer',
+      HIRED: 'Hired',
+    }
+
+    const formattedCandidatesByStage = candidatesByStage.map((item) => ({
+      stage: item.stage,
+      displayName: stageDisplayNames[item.stage] || item.stage,
+      count: item._count.id,
+    }))
+
+    return {
+      totalActiveJobs,
+      totalCandidates,
+      candidatesByStage: formattedCandidatesByStage,
+      upcomingInterviews: upcomingInterviews.map((interview) => ({
+        id: interview.id,
+        scheduledAt: interview.scheduledAt,
+        stage: interview.stage,
+        stageName: interview.stageName,
+        candidate: interview.candidate,
+      })),
+      recentActivity: recentActivity.map((candidate) => ({
+        id: candidate.id,
+        name: candidate.name,
+        stage: candidate.stage,
+        stageDisplayName: stageDisplayNames[candidate.stage] || candidate.stage,
+        appliedAt: candidate.appliedAt,
+        updatedAt: candidate.updatedAt,
+        job: candidate.job,
+      })),
+    }
+  }),
+
+  // ============================
+  // PIPELINE DATA (for charts)
+  // ============================
+  getPipelineData: protectedProcedure.query(async ({ ctx }) => {
+    const db = ctx.prisma
+
+    // Get candidates by stage for pipeline visualization
+    const candidatesByStage = await db.jobCandidate.groupBy({
+      by: ['stage'],
+      _count: { id: true },
+      where: {
+        stage: { notIn: ['REJECTED', 'WITHDRAWN'] },
+      },
+    })
+
+    // Define pipeline order
+    const pipelineOrder = [
+      'APPLIED',
+      'HR_SCREEN',
+      'TECHNICAL',
+      'TEAM_CHAT',
+      'ADVISOR_CHAT',
+      'TRIAL',
+      'CEO_CHAT',
+      'OFFER',
+      'HIRED',
+    ]
+
+    const stageDisplayNames: Record<string, string> = {
+      APPLIED: 'Applied',
+      HR_SCREEN: 'People Chat',
+      TECHNICAL: 'Coding Test',
+      TEAM_CHAT: 'Team Chat',
+      ADVISOR_CHAT: 'Advisor Chat',
+      TRIAL: 'Trial',
+      CEO_CHAT: 'CEO Chat',
+      OFFER: 'Offer',
+      HIRED: 'Hired',
+    }
+
+    const stageCountMap = new Map(
+      candidatesByStage.map((item) => [item.stage, item._count.id])
+    )
+
+    const totalCandidates = candidatesByStage.reduce(
+      (sum, item) => sum + item._count.id,
+      0
+    )
+
+    const stages = pipelineOrder.map((stage) => {
+      const count = stageCountMap.get(stage) || 0
+      return {
+        stage,
+        displayName: stageDisplayNames[stage] || stage,
+        count,
+        percentage: totalCandidates > 0 ? Math.round((count / totalCandidates) * 100) : 0,
+      }
+    })
+
+    // Get hiring trends (last 30 days)
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+    const applicationsLast30Days = await db.jobCandidate.count({
+      where: {
+        appliedAt: { gte: thirtyDaysAgo },
+      },
+    })
+
+    const hiresLast30Days = await db.jobCandidate.count({
+      where: {
+        stage: 'HIRED',
+        updatedAt: { gte: thirtyDaysAgo },
+      },
+    })
+
+    return {
+      stages,
+      totalCandidates,
+      applicationsLast30Days,
+      hiresLast30Days,
+    }
+  }),
+
+  // ============================
+  // TOP CANDIDATES
+  // ============================
+  getTopCandidates: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(50).default(5),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const db = ctx.prisma
+
+      const candidates = await db.jobCandidate.findMany({
+        where: {
+          stage: { notIn: ['REJECTED', 'WITHDRAWN', 'HIRED'] },
+          score: { not: null },
+        },
+        orderBy: { score: 'desc' },
+        take: input.limit,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          avatarUrl: true,
+          currentRole: true,
+          currentCompany: true,
+          stage: true,
+          score: true,
+          recommendation: true,
+          appliedAt: true,
+          job: {
+            select: {
+              id: true,
+              title: true,
+              department: true,
+            },
+          },
+        },
+      })
+
+      const stageDisplayNames: Record<string, string> = {
+        APPLIED: 'Applied',
+        HR_SCREEN: 'People Chat',
+        TECHNICAL: 'Coding Test',
+        TEAM_CHAT: 'Team Chat',
+        ADVISOR_CHAT: 'Advisor Chat',
+        TRIAL: 'Trial',
+        CEO_CHAT: 'CEO Chat',
+        OFFER: 'Offer',
+      }
+
+      return candidates.map((candidate) => ({
+        ...candidate,
+        stageDisplayName: stageDisplayNames[candidate.stage] || candidate.stage,
+      }))
+    }),
+
+  // ============================
+  // HIRING METRICS SUMMARY
+  // ============================
+  getHiringMetricsSummary: protectedProcedure.query(async ({ ctx }) => {
+    const db = ctx.prisma
+
+    // Get source breakdown
+    const sourceBreakdown = await db.jobCandidate.groupBy({
+      by: ['source'],
+      _count: { id: true },
+    })
+
+    // Calculate average time to hire (for hired candidates)
+    const hiredCandidates = await db.jobCandidate.findMany({
+      where: { stage: 'HIRED' },
+      select: {
+        appliedAt: true,
+        updatedAt: true,
+      },
+    })
+
+    let avgTimeToHireDays = 0
+    if (hiredCandidates.length > 0) {
+      const totalDays = hiredCandidates.reduce((sum, candidate) => {
+        const diffMs = candidate.updatedAt.getTime() - candidate.appliedAt.getTime()
+        return sum + diffMs / (1000 * 60 * 60 * 24)
+      }, 0)
+      avgTimeToHireDays = Math.round(totalDays / hiredCandidates.length)
+    }
+
+    // Calculate offer acceptance rate
+    const offersExtended = await db.jobCandidate.count({
+      where: { stage: { in: ['OFFER', 'HIRED'] } },
+    })
+
+    const offersAccepted = await db.jobCandidate.count({
+      where: { stage: 'HIRED' },
+    })
+
+    const offerAcceptanceRate =
+      offersExtended > 0 ? Math.round((offersAccepted / offersExtended) * 100) : 0
+
+    const sourceDisplayNames: Record<string, string> = {
+      INBOUND: 'Inbound',
+      OUTBOUND: 'Outbound',
+      RECRUITER: 'Recruiter',
+      EXCELLER: 'Exceller',
+    }
+
+    return {
+      avgTimeToHireDays,
+      offerAcceptanceRate,
+      totalHires: hiredCandidates.length,
+      sourceBreakdown: sourceBreakdown.map((item) => ({
+        source: item.source,
+        displayName: sourceDisplayNames[item.source] || item.source,
+        count: item._count.id,
+      })),
+    }
+  }),
 })

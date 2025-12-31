@@ -32,45 +32,37 @@ import {
   MoreHorizontal,
   ChevronLeft,
   ChevronRight,
+  Loader2,
 } from 'lucide-react'
 import { cn, getInitials } from '@/lib/utils'
-
-// Mock data for candidates
-const mockCandidates = [
-  { id: '1', name: 'James Okafor', email: 'james.okafor@email.com', score: 87, stage: 'Panel Interview', stageType: 'panel', appliedDate: 'Dec 16, 2025', appliedTimestamp: new Date('2025-12-16'), lastUpdated: '2 hours ago', color: 'bg-green-500' },
-  { id: '2', name: 'Sarah Chen', email: 'sarah.chen@email.com', score: 82, stage: 'HR Screen', stageType: 'hr-screen', appliedDate: 'Dec 27, 2025', appliedTimestamp: new Date('2025-12-27'), lastUpdated: 'Just now', color: 'bg-sky-500' },
-  { id: '3', name: 'Adaeze Nwosu', email: 'adaeze.nwosu@email.com', score: 80, stage: 'Technical', stageType: 'technical', appliedDate: 'Dec 18, 2025', appliedTimestamp: new Date('2025-12-18'), lastUpdated: '1 day ago', color: 'bg-indigo-500' },
-  { id: '4', name: 'Amaka Abubakar', email: 'amaka.abubakar@email.com', score: 76, stage: 'Panel Interview', stageType: 'panel', appliedDate: 'Dec 17, 2025', appliedTimestamp: new Date('2025-12-17'), lastUpdated: '3 hours ago', color: 'bg-pink-500' },
-  { id: '5', name: 'Kelechi Okonkwo', email: 'kelechi.o@email.com', score: 74, stage: 'Technical', stageType: 'technical', appliedDate: 'Dec 19, 2025', appliedTimestamp: new Date('2025-12-19'), lastUpdated: 'Yesterday', color: 'bg-amber-500' },
-  { id: '6', name: 'Tunde Olawale', email: 'tunde.o@email.com', score: 71, stage: 'HR Screen', stageType: 'hr-screen', appliedDate: 'Dec 20, 2025', appliedTimestamp: new Date('2025-12-20'), lastUpdated: '2 days ago', color: 'bg-violet-500' },
-  { id: '7', name: 'Blessing Musa', email: 'blessing.m@email.com', score: 68, stage: 'Applied', stageType: 'applied', appliedDate: 'Dec 25, 2025', appliedTimestamp: new Date('2025-12-25'), lastUpdated: '3 days ago', color: 'bg-teal-500' },
-  { id: '8', name: 'David Peters', email: 'david.p@email.com', score: 55, stage: 'Applied', stageType: 'applied', appliedDate: 'Dec 26, 2025', appliedTimestamp: new Date('2025-12-26'), lastUpdated: '2 days ago', color: 'bg-red-500' },
-  { id: '9', name: 'John Adams', email: 'john.adams@email.com', score: 48, stage: 'Applied', stageType: 'applied', appliedDate: 'Dec 27, 2025', appliedTimestamp: new Date('2025-12-27'), lastUpdated: '1 day ago', color: 'bg-gray-500' },
-]
-
-const stageCounts = {
-  all: 8,
-  applied: 2,
-  hrScreen: 2,
-  technical: 2,
-  panel: 1,
-  offer: 1,
-}
+import { trpc } from '@/lib/trpc-client'
+import { format, formatDistanceToNow } from 'date-fns'
 
 type SortOption = 'score-desc' | 'score-asc' | 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc'
 
 const stageStyles: Record<string, string> = {
-  'applied': 'bg-gray-100 text-gray-600',
-  'hr-screen': 'bg-indigo-100 text-indigo-700',
-  'technical': 'bg-amber-100 text-amber-700',
-  'panel': 'bg-green-100 text-green-700',
-  'offer': 'bg-pink-100 text-pink-700',
+  'APPLIED': 'bg-gray-100 text-gray-600',
+  'HR_SCREEN': 'bg-indigo-100 text-indigo-700',
+  'TECHNICAL': 'bg-amber-100 text-amber-700',
+  'TEAM_CHAT': 'bg-green-100 text-green-700',
+  'PANEL': 'bg-green-100 text-green-700',
+  'TRIAL': 'bg-blue-100 text-blue-700',
+  'CEO_CHAT': 'bg-purple-100 text-purple-700',
+  'OFFER': 'bg-pink-100 text-pink-700',
+  'HIRED': 'bg-emerald-100 text-emerald-700',
 }
 
-function getScoreColor(score: number) {
+function getScoreColor(score: number | null) {
+  if (!score) return 'text-gray-400 bg-gray-50'
   if (score >= 80) return 'text-green-600 bg-green-50'
   if (score >= 65) return 'text-amber-600 bg-amber-50'
   return 'text-red-600 bg-red-50'
+}
+
+function getAvatarColor(name: string) {
+  const colors = ['bg-green-500', 'bg-indigo-500', 'bg-sky-500', 'bg-amber-500', 'bg-pink-500', 'bg-purple-500', 'bg-teal-500']
+  const index = name.length % colors.length
+  return colors[index]
 }
 
 export default function CandidatesPage() {
@@ -88,6 +80,44 @@ export default function CandidatesPage() {
     notes: '',
   })
 
+  // Build query params based on filters
+  const sortBy = sortOption.startsWith('score') ? 'score' as const :
+                 sortOption.startsWith('date') ? 'appliedAt' as const :
+                 'name' as const
+  const sortOrder = sortOption.endsWith('desc') ? 'desc' as const : 'asc' as const
+
+  // Map filter to stage
+  const stageFilter = activeFilter === 'all' ? undefined :
+                      activeFilter === 'applied' ? 'APPLIED' as const :
+                      activeFilter === 'hrScreen' ? 'HR_SCREEN' as const :
+                      activeFilter === 'technical' ? 'TECHNICAL' as const :
+                      activeFilter === 'panel' ? 'TEAM_CHAT' as const :
+                      activeFilter === 'offer' ? 'OFFER' as const : undefined
+
+  // Fetch candidates from database
+  const { data: candidatesData, isLoading } = trpc.job.getAllCandidates.useQuery({
+    stage: stageFilter,
+    search: searchQuery || undefined,
+    sortBy,
+    sortOrder,
+    limit: 50,
+    offset: 0,
+  })
+
+  const candidates = candidatesData?.candidates || []
+  const total = candidatesData?.total || 0
+  const byStageCounts = candidatesData?.byStageCounts || {}
+
+  // Calculate stage counts
+  const stageCounts = {
+    all: Object.values(byStageCounts).reduce((sum, s) => sum + s.count, 0),
+    applied: byStageCounts['APPLIED']?.count || 0,
+    hrScreen: byStageCounts['HR_SCREEN']?.count || 0,
+    technical: byStageCounts['TECHNICAL']?.count || 0,
+    panel: (byStageCounts['TEAM_CHAT']?.count || 0) + (byStageCounts['PANEL']?.count || 0),
+    offer: byStageCounts['OFFER']?.count || 0,
+  }
+
   const toggleCandidate = (id: string) => {
     setSelectedCandidates(prev =>
       prev.includes(id) ? prev.filter(c => c !== id) : [...prev, id]
@@ -95,62 +125,24 @@ export default function CandidatesPage() {
   }
 
   const toggleAll = () => {
-    if (selectedCandidates.length === mockCandidates.length) {
+    if (selectedCandidates.length === candidates.length) {
       setSelectedCandidates([])
     } else {
-      setSelectedCandidates(mockCandidates.map(c => c.id))
+      setSelectedCandidates(candidates.map(c => c.id))
     }
   }
 
-  const filteredCandidates = useMemo(() => {
-    let candidates = mockCandidates.filter(candidate => {
-      const matchesSearch = candidate.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        candidate.email.toLowerCase().includes(searchQuery.toLowerCase())
-
-      if (activeFilter === 'all') return matchesSearch
-      if (activeFilter === 'applied') return matchesSearch && candidate.stageType === 'applied'
-      if (activeFilter === 'hrScreen') return matchesSearch && candidate.stageType === 'hr-screen'
-      if (activeFilter === 'technical') return matchesSearch && candidate.stageType === 'technical'
-      if (activeFilter === 'panel') return matchesSearch && candidate.stageType === 'panel'
-      if (activeFilter === 'offer') return matchesSearch && candidate.stageType === 'offer'
-      return matchesSearch
-    })
-
-    // Apply sorting
-    switch (sortOption) {
-      case 'score-desc':
-        candidates.sort((a, b) => b.score - a.score)
-        break
-      case 'score-asc':
-        candidates.sort((a, b) => a.score - b.score)
-        break
-      case 'date-desc':
-        candidates.sort((a, b) => b.appliedTimestamp.getTime() - a.appliedTimestamp.getTime())
-        break
-      case 'date-asc':
-        candidates.sort((a, b) => a.appliedTimestamp.getTime() - b.appliedTimestamp.getTime())
-        break
-      case 'name-asc':
-        candidates.sort((a, b) => a.name.localeCompare(b.name))
-        break
-      case 'name-desc':
-        candidates.sort((a, b) => b.name.localeCompare(a.name))
-        break
-    }
-
-    return candidates
-  }, [searchQuery, activeFilter, sortOption])
-
   const handleExport = () => {
     const candidatesToExport = selectedCandidates.length > 0
-      ? filteredCandidates.filter(c => selectedCandidates.includes(c.id))
-      : filteredCandidates
+      ? candidates.filter(c => selectedCandidates.includes(c.id))
+      : candidates
 
     const csvContent = [
       ['Name', 'Email', 'Score', 'Stage', 'Applied Date'].join(','),
-      ...candidatesToExport.map(c =>
-        [c.name, c.email, c.score, c.stage, c.appliedDate].join(',')
-      ),
+      ...candidatesToExport.map(c => {
+        const appliedDate = c.appliedAt instanceof Date ? c.appliedAt : new Date(c.appliedAt)
+        return [c.name, c.email, c.score || '-', c.stageDisplayName, format(appliedDate, 'MMM d, yyyy')].join(',')
+      }),
     ].join('\n')
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -171,6 +163,14 @@ export default function CandidatesPage() {
     setIsAddDialogOpen(false)
   }
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       {/* Stats Row - Always fits in 1 row */}
@@ -189,19 +189,19 @@ export default function CandidatesPage() {
         </Card>
         <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'hrScreen' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('hrScreen')}>
           <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-gray-500 truncate">HR Screen</div>
+            <div className="text-xs text-gray-500 truncate">People Chat</div>
             <div className="text-xl font-bold">{stageCounts.hrScreen}</div>
           </CardContent>
         </Card>
         <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'technical' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('technical')}>
           <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-gray-500 truncate">Technical</div>
+            <div className="text-xs text-gray-500 truncate">Coding Test</div>
             <div className="text-xl font-bold">{stageCounts.technical}</div>
           </CardContent>
         </Card>
         <Card className={cn("flex-1 min-w-0 border-0 shadow-sm cursor-pointer transition-all", activeFilter === 'panel' && 'ring-2 ring-primary')} onClick={() => setActiveFilter('panel')}>
           <CardContent className="pt-3 pb-3 px-3">
-            <div className="text-xs text-gray-500 truncate">Panel</div>
+            <div className="text-xs text-gray-500 truncate">Team Chat</div>
             <div className="text-xl font-bold">{stageCounts.panel}</div>
           </CardContent>
         </Card>
@@ -349,7 +349,7 @@ export default function CandidatesPage() {
               <tr className="border-b border-gray-100">
                 <th className="w-12 py-3 px-4 text-left">
                   <Checkbox
-                    checked={selectedCandidates.length === mockCandidates.length && mockCandidates.length > 0}
+                    checked={selectedCandidates.length === candidates.length && candidates.length > 0}
                     onCheckedChange={toggleAll}
                   />
                 </th>
@@ -362,67 +362,82 @@ export default function CandidatesPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-50">
-              {filteredCandidates.map((candidate) => (
-                <tr
-                  key={candidate.id}
-                  className={cn(
-                    "hover:bg-gray-50 cursor-pointer transition-colors",
-                    selectedCandidates.includes(candidate.id) && 'bg-indigo-50/50'
-                  )}
-                >
-                  <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                    <Checkbox
-                      checked={selectedCandidates.includes(candidate.id)}
-                      onCheckedChange={() => toggleCandidate(candidate.id)}
-                    />
-                  </td>
-                  <td className="py-3 px-2">
-                    <Link href={`/recruiting/candidates/${candidate.id}`}>
-                      <div className={cn(
-                        "w-12 h-10 flex items-center justify-center rounded font-bold text-base",
-                        getScoreColor(candidate.score)
-                      )}>
-                        {candidate.score}
-                      </div>
-                    </Link>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-3">
-                      <Avatar className={cn("h-9 w-9", candidate.color)}>
-                        <AvatarFallback className={cn("text-white text-xs font-medium", candidate.color)}>
-                          {getInitials(candidate.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium text-gray-900">{candidate.name}</div>
-                        <div className="text-xs text-gray-500">{candidate.email}</div>
-                      </div>
-                    </Link>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Link href={`/recruiting/candidates/${candidate.id}`}>
-                      <Badge variant="secondary" className={stageStyles[candidate.stageType]}>
-                        {candidate.stage}
-                      </Badge>
-                    </Link>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Link href={`/recruiting/candidates/${candidate.id}`} className="text-sm text-gray-600">
-                      {candidate.appliedDate}
-                    </Link>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Link href={`/recruiting/candidates/${candidate.id}`} className="text-sm text-gray-500">
-                      {candidate.lastUpdated}
-                    </Link>
-                  </td>
-                  <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
+              {candidates.length > 0 ? candidates.map((candidate) => {
+                const appliedDate = candidate.appliedAt instanceof Date
+                  ? candidate.appliedAt
+                  : new Date(candidate.appliedAt)
+                const updatedDate = candidate.updatedAt instanceof Date
+                  ? candidate.updatedAt
+                  : new Date(candidate.updatedAt)
+
+                return (
+                  <tr
+                    key={candidate.id}
+                    className={cn(
+                      "hover:bg-gray-50 cursor-pointer transition-colors",
+                      selectedCandidates.includes(candidate.id) && 'bg-indigo-50/50'
+                    )}
+                  >
+                    <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={selectedCandidates.includes(candidate.id)}
+                        onCheckedChange={() => toggleCandidate(candidate.id)}
+                      />
+                    </td>
+                    <td className="py-3 px-2">
+                      <Link href={`/recruiting/candidates/${candidate.id}`}>
+                        <div className={cn(
+                          "w-12 h-10 flex items-center justify-center rounded font-bold text-base",
+                          getScoreColor(candidate.score)
+                        )}>
+                          {candidate.score || '-'}
+                        </div>
+                      </Link>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-3">
+                        <Avatar className={cn("h-9 w-9", getAvatarColor(candidate.name))}>
+                          <AvatarFallback className={cn("text-white text-xs font-medium", getAvatarColor(candidate.name))}>
+                            {getInitials(candidate.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-gray-900">{candidate.name}</div>
+                          <div className="text-xs text-gray-500">{candidate.email}</div>
+                        </div>
+                      </Link>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Link href={`/recruiting/candidates/${candidate.id}`}>
+                        <Badge variant="secondary" className={stageStyles[candidate.stage] || 'bg-gray-100 text-gray-600'}>
+                          {candidate.stageDisplayName}
+                        </Badge>
+                      </Link>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Link href={`/recruiting/candidates/${candidate.id}`} className="text-sm text-gray-600">
+                        {format(appliedDate, 'MMM d, yyyy')}
+                      </Link>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Link href={`/recruiting/candidates/${candidate.id}`} className="text-sm text-gray-500">
+                        {formatDistanceToNow(updatedDate, { addSuffix: true })}
+                      </Link>
+                    </td>
+                    <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </td>
+                  </tr>
+                )
+              }) : (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-gray-500">
+                    No candidates found
                   </td>
                 </tr>
-              ))}
+              )}
             </tbody>
           </table>
         </div>
@@ -430,7 +445,7 @@ export default function CandidatesPage() {
         {/* Pagination */}
         <div className="px-4 py-3 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="text-xs sm:text-sm text-gray-500 order-2 sm:order-1">
-            Showing 1-{filteredCandidates.length} of {stageCounts.all} candidates
+            Showing 1-{candidates.length} of {total} candidates
           </div>
           <div className="flex gap-2 order-1 sm:order-2">
             <Button variant="outline" size="sm" disabled>
