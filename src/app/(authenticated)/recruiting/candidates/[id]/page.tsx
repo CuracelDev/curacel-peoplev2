@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import {
@@ -9,12 +9,7 @@ import {
   Mail,
   Linkedin,
   Calendar,
-  MapPin,
-  Briefcase,
-  Building2,
-  Phone,
   FileText,
-  ArrowLeft,
   ThumbsUp,
   ThumbsDown,
   Minus,
@@ -25,7 +20,6 @@ import {
   Brain,
   Sparkles,
   ChevronRight,
-  ExternalLink,
   Star,
   BarChart3,
   Heart,
@@ -46,323 +40,15 @@ import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import { cn, getInitials } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
+import { normalizeCandidateScoreWeights, type CandidateScoreComponent } from '@/lib/recruiting/score-config'
 import { format } from 'date-fns'
 import { EmailTab } from '@/components/recruiting/email-tab'
 import { BlueAIAnalysisTab } from '@/components/recruiting/blueai-analysis-tab'
+import { ScheduleInterviewDialog } from '@/components/recruiting/schedule-interview-dialog'
+import { toast } from 'sonner'
 
-// Fallback mock candidate data - James Okafor full profile
-const mockCandidate = {
-  id: '1',
-  name: 'James Okafor',
-  email: 'james.okafor@email.com',
-  phone: '+234 802 345 6789',
-  linkedinUrl: 'linkedin.com/in/jamesokafor',
-  currentRole: 'Senior Backend Engineer (Tech Lead)',
-  currentCompany: 'Paystack',
-  yearsOfExperience: 6,
-  location: 'Lagos, Nigeria',
-  position: 'Senior Backend Engineer',
-  stage: 'Panel Interview',
-  score: 87,
-  scoreChange: '+9 from HR Screen',
-  appliedDate: 'Dec 16, 2025',
-  color: 'bg-green-500',
-  mbtiType: 'INTJ',
-
-  // Score breakdown
-  experienceMatchScore: 85,
-  skillsMatchScore: 82,
-  domainFitScore: 68,
-  educationScore: 90,
-  scoreExplanation: 'Strong technical background with relevant fintech experience at top companies (Paystack, Andela, Flutterwave). Skills align well with role requirements. Gap: No direct insurance industry experience, though regulatory compliance work at Paystack is transferable.',
-
-  // Resume summary
-  resumeSummary: 'Experienced backend engineer with 6 years building scalable distributed systems. Currently leading a team of 5 engineers at Paystack. Strong expertise in Node.js, Python, and cloud infrastructure. Track record of delivering high-impact projects including a payments processing system handling $50M+ monthly transactions.',
-
-  // Work experience
-  workExperience: [
-    {
-      title: 'Senior Backend Engineer (Tech Lead)',
-      company: 'Paystack',
-      startDate: 'Mar 2022',
-      endDate: 'Present',
-      isCurrent: true,
-      highlights: [
-        'Led team of 5 engineers in building a new payment processing microservice handling $50M+ monthly',
-        'Architected event-driven system that reduced transaction failures by 40%',
-        'Implemented CI/CD pipelines cutting deployment time from 2 hours to 15 minutes',
-        'Mentored 3 junior developers who have since been promoted',
-      ],
-      skills: ['Node.js', 'TypeScript', 'PostgreSQL', 'Redis', 'Kubernetes'],
-    },
-    {
-      title: 'Backend Engineer',
-      company: 'Andela',
-      startDate: 'Jun 2019',
-      endDate: 'Feb 2022',
-      isCurrent: false,
-      highlights: [
-        'Built RESTful APIs serving 100K+ daily active users',
-        'Designed and implemented authentication system using OAuth 2.0',
-        'Reduced API response times by 60% through query optimization',
-      ],
-      skills: ['Python', 'Django', 'AWS', 'Docker'],
-    },
-    {
-      title: 'Junior Software Developer',
-      company: 'Flutterwave',
-      startDate: 'Jan 2018',
-      endDate: 'May 2019',
-      isCurrent: false,
-      highlights: [
-        'Contributed to merchant dashboard serving 5,000+ businesses',
-        'Wrote unit tests increasing code coverage from 45% to 78%',
-      ],
-      skills: ['JavaScript', 'React', 'Node.js'],
-    },
-  ],
-
-  // Education
-  education: [
-    {
-      degree: 'B.Sc.',
-      field: 'Computer Science',
-      institution: 'University of Lagos',
-      years: '2014 - 2018',
-      honors: 'First Class Honours',
-    },
-  ],
-
-  // Skills
-  skills: {
-    languages: ['Node.js', 'TypeScript', 'Python', 'Django', 'Express.js', 'NestJS'],
-    databases: ['PostgreSQL', 'MongoDB', 'Redis', 'Elasticsearch'],
-    infrastructure: ['AWS', 'Docker', 'Kubernetes', 'Terraform', 'CI/CD'],
-  },
-
-  // Interest form
-  whyCuracel: "I'm excited about democratizing insurance access in Africa. The technical challenges of building reliable claims processing at scale align perfectly with my experience building payment systems. I want to apply my skills to solve problems that have real social impact.",
-  salaryExpMin: 90000,
-  salaryExpMax: 100000,
-  noticePeriod: '4 weeks',
-
-  // BlueAI Summary
-  aiSummary: {
-    description: `James is a highly experienced backend engineer with 7+ years at top-tier companies including Paystack and Andela. He demonstrates strong technical depth in distributed systems and has led teams of 5-8 engineers. His communication style is clear and structured, and he shows genuine alignment with Curacel's mission in insurtech.`,
-    strengths: [
-      'Deep expertise in microservices architecture and event-driven systems',
-      'Proven track record leading engineering teams at scale',
-      'Excellent communicator with structured problem-solving approach',
-      'Strong alignment with company values and mission',
-    ],
-    areasToExplore: [
-      'Limited experience with insurance domain specifically',
-      'May prefer larger team environments based on background',
-      'Salary expectations at top of range',
-    ],
-  },
-
-  // Stage score breakdown
-  scoreBreakdown: [
-    { label: 'Application', score: 85 },
-    { label: 'HR Screen', score: 78 },
-    { label: 'Technical Test', score: 92 },
-    { label: 'Technical Interview', score: 88 },
-    { label: 'Panel Interview', score: 90 },
-  ],
-
-  // PRESS Values scores
-  pressValues: [
-    { letter: 'P', name: 'Passionate', score: 88, rating: 'Strong' },
-    { letter: 'R', name: 'Relentless', score: 85, rating: 'Strong' },
-    { letter: 'E', name: 'Empowered', score: 82, rating: 'Strong' },
-    { letter: 'S', name: 'Sense of Urgency', score: 76, rating: 'Moderate' },
-    { letter: 'S', name: 'Seeing Possibilities', score: 80, rating: 'Strong' },
-  ],
-  pressValuesAvg: 82,
-
-  // Competency scores
-  competencyScores: {
-    systemDesign: 90,
-    technicalLeadership: 85,
-    problemSolving: 88,
-    communication: 82,
-    domainKnowledge: 65,
-  },
-
-  // Personality profile (OCEAN)
-  personalityProfile: {
-    openness: 85,
-    conscientiousness: 90,
-    extraversion: 45,
-    agreeableness: 70,
-    neuroticism: 25,
-  },
-
-  // Team fit
-  teamFitStrengths: [
-    "Strategic thinking complements team's execution focus",
-    "High conscientiousness matches team's quality standards",
-    'Calm under pressure (low neuroticism) good for incident response',
-  ],
-  teamFitConsiderations: [
-    'Lower extraversion - may need encouragement to share ideas in groups',
-  ],
-
-  // Stage timeline
-  stageTimeline: [
-    { name: 'Applied', score: 85, date: 'Dec 16, 2025', status: 'completed' },
-    { name: 'HR Screen', score: 78, date: 'Dec 18, 2025', status: 'completed' },
-    { name: 'Kand.io Test', score: 92, date: 'Dec 20, 2025', status: 'completed' },
-    { name: 'Technical', score: 88, date: 'Dec 22, 2025', status: 'completed' },
-    { name: 'Panel', score: 90, date: 'Today', status: 'current' },
-    { name: 'Offer', score: null, date: 'Pending', status: 'upcoming' },
-  ],
-
-  // Must validate
-  mustValidate: [
-    'Experience working in smaller, fast-paced teams',
-    'Long-term career goals and startup commitment',
-    'Salary expectations alignment',
-  ],
-
-  // Documents
-  documents: [
-    { name: 'Resume.pdf', type: 'pdf' },
-    { name: 'Kand.io Results.pdf', type: 'pdf' },
-  ],
-
-  // BlueAI Recommendation
-  recommendation: 'HIRE',
-  recommendationConfidence: 92,
-  recommendationSummary: "James demonstrates exceptional technical depth with a strong track record at high-growth fintech companies. His experience leading teams and building payment systems at Paystack directly translates to Curacel's needs. While he lacks insurance domain experience, his demonstrated ability to quickly master complex regulatory environments (evidenced by his compliance work at Paystack) and strong PRESS values alignment make him an excellent fit for the Senior Backend Engineer role.",
-  recommendationStrengths: [
-    '6 years of relevant backend experience at top companies',
-    'Proven leadership - led team of 5, mentored 3 promotions',
-    'Strong system design skills (event-driven, microservices)',
-    'High PRESS alignment especially Passionate Work (88%)',
-  ],
-  recommendationRisks: [
-    { risk: 'No insurance experience', mitigation: 'Pair with domain expert for first 90 days' },
-    { risk: 'Salary at top of range ($95k)', mitigation: 'Consider equity comp or performance bonus' },
-    { risk: 'Lower extraversion', mitigation: 'Ensure comfortable channels for cross-team comms' },
-  ],
-
-  // Decision
-  decisionStatus: 'PENDING',
-
-  // Interview Evaluations (Scorecards)
-  interviewEvaluations: [
-    {
-      stage: 'HR Screen',
-      stageType: 'HR_SCREEN',
-      date: 'Dec 18, 2025',
-      overallScore: 78,
-      evaluators: [
-        {
-          name: 'Sarah Johnson',
-          role: 'HR Manager',
-          overallRating: 4,
-          recommendation: 'ADVANCE',
-          notes: 'Strong communication skills and genuine interest in the role. Good cultural fit.',
-          criteria: [
-            { name: 'Communication Skills', score: 4, maxScore: 5, notes: 'Clear and articulate' },
-            { name: 'Cultural Fit', score: 4, maxScore: 5, notes: 'Aligns well with company values' },
-            { name: 'Interest in Role', score: 5, maxScore: 5, notes: 'Highly motivated' },
-            { name: 'Professional Presence', score: 4, maxScore: 5, notes: 'Well prepared' },
-            { name: 'Salary Expectations', score: 3, maxScore: 5, notes: 'Slightly above budget' },
-          ],
-        },
-      ],
-    },
-    {
-      stage: 'Technical Interview',
-      stageType: 'TECHNICAL',
-      date: 'Dec 22, 2025',
-      overallScore: 88,
-      evaluators: [
-        {
-          name: 'Michael Chen',
-          role: 'Engineering Lead',
-          overallRating: 4,
-          recommendation: 'STRONG_ADVANCE',
-          notes: 'Excellent system design skills. Deep understanding of distributed systems.',
-          criteria: [
-            { name: 'Technical Knowledge', score: 5, maxScore: 5, notes: 'Expert level understanding' },
-            { name: 'Problem Solving', score: 4, maxScore: 5, notes: 'Methodical approach' },
-            { name: 'System Design', score: 5, maxScore: 5, notes: 'Excellent architecture skills' },
-            { name: 'Code Quality', score: 4, maxScore: 5, notes: 'Clean, maintainable code' },
-            { name: 'Technical Communication', score: 4, maxScore: 5, notes: 'Explains concepts well' },
-          ],
-        },
-        {
-          name: 'Emily Davis',
-          role: 'Senior Engineer',
-          overallRating: 4,
-          recommendation: 'ADVANCE',
-          notes: 'Solid fundamentals. Would benefit from more insurance domain exposure.',
-          criteria: [
-            { name: 'Technical Knowledge', score: 4, maxScore: 5, notes: 'Strong backend skills' },
-            { name: 'Problem Solving', score: 5, maxScore: 5, notes: 'Creative solutions' },
-            { name: 'System Design', score: 4, maxScore: 5, notes: 'Good scalability thinking' },
-            { name: 'Code Quality', score: 4, maxScore: 5, notes: 'Follows best practices' },
-            { name: 'Technical Communication', score: 4, maxScore: 5, notes: 'Clear explanations' },
-          ],
-        },
-      ],
-    },
-    {
-      stage: 'Panel Interview',
-      stageType: 'PANEL',
-      date: 'Dec 27, 2025',
-      overallScore: 90,
-      evaluators: [
-        {
-          name: 'Alice Katheu',
-          role: 'VP of Engineering',
-          overallRating: 5,
-          recommendation: 'STRONG_HIRE',
-          notes: 'Exceptional leadership potential. Strong strategic thinking.',
-          criteria: [
-            { name: 'Leadership Potential', score: 5, maxScore: 5, notes: 'Proven team lead experience' },
-            { name: 'Strategic Thinking', score: 4, maxScore: 5, notes: 'Good long-term vision' },
-            { name: 'Cultural Alignment', score: 5, maxScore: 5, notes: 'Excellent PRESS alignment' },
-            { name: 'Growth Mindset', score: 5, maxScore: 5, notes: 'Eager to learn' },
-            { name: 'Collaboration', score: 4, maxScore: 5, notes: 'Works well with others' },
-          ],
-        },
-        {
-          name: 'Kabiru Awulu',
-          role: 'CTO',
-          overallRating: 4,
-          recommendation: 'HIRE',
-          notes: 'Strong technical foundation. Would be a great addition to the team.',
-          criteria: [
-            { name: 'Leadership Potential', score: 4, maxScore: 5, notes: 'Good management skills' },
-            { name: 'Strategic Thinking', score: 5, maxScore: 5, notes: 'Excellent vision' },
-            { name: 'Cultural Alignment', score: 4, maxScore: 5, notes: 'Good fit' },
-            { name: 'Growth Mindset', score: 4, maxScore: 5, notes: 'Open to feedback' },
-            { name: 'Collaboration', score: 5, maxScore: 5, notes: 'Team player' },
-          ],
-        },
-        {
-          name: 'Tunde Ogunleye',
-          role: 'Product Lead',
-          overallRating: 4,
-          recommendation: 'HIRE',
-          notes: 'Good product sense. Understands user needs well.',
-          criteria: [
-            { name: 'Leadership Potential', score: 4, maxScore: 5, notes: 'Mentorship experience' },
-            { name: 'Strategic Thinking', score: 4, maxScore: 5, notes: 'Business aware' },
-            { name: 'Cultural Alignment', score: 5, maxScore: 5, notes: 'Strong values fit' },
-            { name: 'Growth Mindset', score: 4, maxScore: 5, notes: 'Continuous learner' },
-            { name: 'Collaboration', score: 4, maxScore: 5, notes: 'Cross-functional experience' },
-          ],
-        },
-      ],
-    },
-  ],
-}
+const normalizeStageKey = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9]+/g, '')
 
 export default function CandidateProfilePage() {
   const params = useParams()
@@ -370,6 +56,12 @@ export default function CandidateProfilePage() {
   const [activeTab, setActiveTab] = useState('overview')
   const [decisionNotes, setDecisionNotes] = useState('')
   const [selectedDecision, setSelectedDecision] = useState<string | null>(null)
+  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
+  const [actionInFlight, setActionInFlight] = useState<
+    null | 'advance' | 'reject' | 'decision'
+  >(null)
+  const [exporting, setExporting] = useState(false)
+  const [decisionInitialized, setDecisionInitialized] = useState(false)
 
   // Fetch candidate profile from database
   const { data: profileData, isLoading } = trpc.job.getCandidateProfile.useQuery(
@@ -377,131 +69,394 @@ export default function CandidateProfilePage() {
     { enabled: !!candidateId }
   )
 
-  // Map database data to UI format, falling back to mock data
+  const { data: scoreSettings } = trpc.recruitingSettings.get.useQuery()
+  const { data: latestAnalysis } = trpc.blueAIAnalysis.getLatestAnalysis.useQuery(
+    { candidateId },
+    { enabled: !!candidateId }
+  )
+  const utils = trpc.useUtils()
+  const updateCandidate = trpc.job.updateCandidate.useMutation({
+    onSuccess: () => {
+      utils.job.getCandidateProfile.invalidate({ candidateId })
+    },
+  })
+
+  const scoreWeights = useMemo(
+    () => {
+      if (!scoreSettings?.candidateScoreWeights) {
+        return []
+      }
+
+      return normalizeCandidateScoreWeights(
+        scoreSettings.candidateScoreWeights as CandidateScoreComponent[] | null
+      )
+    },
+    [scoreSettings?.candidateScoreWeights]
+  )
+
   const candidate = useMemo(() => {
-    if (!profileData?.candidate) return mockCandidate
+    if (!profileData?.candidate) return null
 
     const c = profileData.candidate
     const evalSummary = profileData.evaluationSummary
+    const interviews = profileData.interviews ?? []
+    const assessments = profileData.assessments ?? []
+
+    const average = (values: number[]) =>
+      values.length > 0 ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : null
 
     // Parse JSON fields with type safety
-    const workExperience = (c.workExperience as typeof mockCandidate.workExperience) || mockCandidate.workExperience
-    const education = (c.education as typeof mockCandidate.education) || mockCandidate.education
-    const skills = (c.skills as typeof mockCandidate.skills) || mockCandidate.skills
+    const workExperience = Array.isArray(c.workExperience) ? c.workExperience : []
+    const education = Array.isArray(c.education) ? c.education : []
+    const skillsData = (c.skills as {
+      languages?: string[]
+      databases?: string[]
+      infrastructure?: string[]
+      frameworks?: string[]
+    }) || {}
+    const skills = {
+      languages: Array.isArray(skillsData.languages) ? skillsData.languages : [],
+      databases: Array.isArray(skillsData.databases) ? skillsData.databases : [],
+      infrastructure: Array.isArray(skillsData.infrastructure) ? skillsData.infrastructure : [],
+      frameworks: Array.isArray(skillsData.frameworks) ? skillsData.frameworks : [],
+    }
     const pressValuesScores = c.pressValuesScores as Record<string, number> | null
-    const competencyScores = (c.competencyScores as typeof mockCandidate.competencyScores) || mockCandidate.competencyScores
-    const personalityProfile = (c.personalityProfile as typeof mockCandidate.personalityProfile) || mockCandidate.personalityProfile
+    const competencyScores = (c.competencyScores as Record<string, number> | null) || null
+    const personalityProfile = (c.personalityProfile as Record<string, number> | null) || null
     const teamFitAnalysis = c.teamFitAnalysis as { strengths?: string[]; considerations?: string[] } | null
-    const aiSummary = (c.aiSummary as typeof mockCandidate.aiSummary) || mockCandidate.aiSummary
+
+    const normalizePressScore = (value?: number | null) => {
+      if (typeof value !== 'number') return null
+      const normalized = value <= 5 ? value * 20 : value
+      return Math.round(normalized)
+    }
+
+    const getPressRating = (score: number) => (
+      score >= 80 ? 'Strong' : score >= 60 ? 'Moderate' : 'Needs Review'
+    )
 
     // Map PRESS values from scores object to array format
     const pressValues = pressValuesScores ? [
-      { letter: 'P', name: 'Passionate', score: Math.round((pressValuesScores.passionate || 0) * 20), rating: pressValuesScores.passionate >= 4 ? 'Strong' : 'Moderate' },
-      { letter: 'R', name: 'Relentless', score: Math.round((pressValuesScores.relentless || 0) * 20), rating: pressValuesScores.relentless >= 4 ? 'Strong' : 'Moderate' },
-      { letter: 'E', name: 'Empowered', score: Math.round((pressValuesScores.empowered || 0) * 20), rating: pressValuesScores.empowered >= 4 ? 'Strong' : 'Moderate' },
-      { letter: 'S', name: 'Sense of Urgency', score: Math.round((pressValuesScores.senseOfUrgency || 0) * 20), rating: pressValuesScores.senseOfUrgency >= 4 ? 'Strong' : 'Moderate' },
-      { letter: 'S', name: 'Seeing Possibilities', score: Math.round((pressValuesScores.seeingPossibilities || 0) * 20), rating: pressValuesScores.seeingPossibilities >= 4 ? 'Strong' : 'Moderate' },
-    ] : mockCandidate.pressValues
+      { letter: 'P', name: 'Passionate', score: normalizePressScore(pressValuesScores.passionate) },
+      { letter: 'R', name: 'Relentless', score: normalizePressScore(pressValuesScores.relentless) },
+      { letter: 'E', name: 'Empowered', score: normalizePressScore(pressValuesScores.empowered) },
+      { letter: 'S', name: 'Sense of Urgency', score: normalizePressScore(pressValuesScores.senseOfUrgency) },
+      { letter: 'S', name: 'Seeing Possibilities', score: normalizePressScore(pressValuesScores.seeingPossibilities) },
+    ]
+      .filter((value) => typeof value.score === 'number')
+      .map((value) => ({
+        ...value,
+        score: value.score as number,
+        rating: getPressRating(value.score as number),
+      })) : []
 
-    const pressValuesAvg = pressValues.reduce((sum, v) => sum + v.score, 0) / pressValues.length
+    const pressValuesAvg = typeof c.pressValuesAvg === 'number'
+      ? Math.round(c.pressValuesAvg)
+      : pressValues.length > 0
+        ? Math.round(pressValues.reduce((sum, v) => sum + v.score, 0) / pressValues.length)
+        : null
 
     // Build interview evaluations from database
-    const interviewEvaluations = (evalSummary?.byStage || []).map(stage => ({
-      stage: stage.stageName,
-      stageType: stage.stage,
-      date: 'Recent',
-      overallScore: stage.averageScore || 0,
-      evaluators: stage.evaluators.map(e => ({
-        name: e.name,
-        role: e.role || 'Interviewer',
-        overallRating: e.overallRating || 0,
-        recommendation: e.recommendation || 'PENDING',
-        notes: e.notes || '',
-        criteria: e.criteriaScores.map(cs => ({
-          name: cs.name,
-          score: cs.score,
-          maxScore: 5,
-          notes: cs.notes || '',
+    const interviewScoreLookup = new Map<string, number>()
+    for (const interview of interviews) {
+      const score = interview.overallScore ?? interview.score ?? null
+      if (typeof score === 'number') {
+        interviewScoreLookup.set(interview.stage, score)
+      }
+    }
+
+    const interviewEvaluations = (evalSummary?.byStage || []).map((stage) => {
+      const rawAverage = stage.averageScore
+      const scaledAverage = typeof rawAverage === 'number'
+        ? Math.round(rawAverage <= 5 ? rawAverage * 20 : rawAverage)
+        : null
+      const overallScore = interviewScoreLookup.get(stage.stage) ?? scaledAverage
+      const interviewForStage = interviews.find((interview) => interview.stage === stage.stage)
+      const interviewDate = interviewForStage?.completedAt || interviewForStage?.scheduledAt
+      const date = interviewDate ? format(new Date(interviewDate), 'MMM d, yyyy') : null
+
+      return {
+        stage: stage.stageName || stage.stage,
+        stageType: stage.stage,
+        date,
+        overallScore,
+        evaluators: stage.evaluators.map((e) => ({
+          name: e.name,
+          role: e.role || 'Interviewer',
+          overallRating: e.overallRating,
+          recommendation: e.recommendation || 'PENDING',
+          notes: e.notes || '',
+          criteria: e.criteriaScores.map((cs) => ({
+            name: cs.name,
+            score: cs.score,
+            maxScore: 5,
+            notes: cs.notes || '',
+          })),
         })),
-      })),
-    }))
+      }
+    })
 
-    // Build score breakdown from interview scores
-    const scoreBreakdown = [
-      { label: 'Application', score: c.score || 0 },
-      ...interviewEvaluations.map(ie => ({
-        label: ie.stage,
-        score: ie.overallScore,
-      })),
-    ]
+    const interviewAverage = average(
+      interviews
+        .map((interview) => interview.overallScore ?? interview.score)
+        .filter((score): score is number => typeof score === 'number')
+    )
 
-    // Build stage timeline from interviews
-    const stageTimeline = [
-      {
-        name: 'Applied',
-        score: c.score || 0,
-        date: c.appliedAt ? format(new Date(c.appliedAt), 'MMM d, yyyy') : 'Unknown',
-        status: 'completed' as const,
-      },
-      ...profileData.interviews.map((interview, idx) => ({
-        name: interview.stageName || interview.stage,
-        score: interview.score || null,
-        date: interview.scheduledAt ? format(new Date(interview.scheduledAt), 'MMM d, yyyy') : 'Pending',
-        status: interview.status === 'COMPLETED' ? 'completed' as const :
-                interview.status === 'SCHEDULED' ? 'current' as const : 'upcoming' as const,
-      })),
-    ]
+    const assessmentAverage = average(
+      assessments
+        .map((assessment) => assessment.overallScore ?? assessment.qualityScore ?? assessment.completionPercent)
+        .filter((score): score is number => typeof score === 'number')
+    )
+
+    const competencyAverage = competencyScores
+      ? average(Object.values(competencyScores).filter((score) => typeof score === 'number'))
+      : null
+
+    const personalityAverage = personalityProfile
+      ? average(Object.values(personalityProfile).filter((score) => typeof score === 'number'))
+      : null
+
+    const recommendationStrengths = Array.isArray(evalSummary?.aiRecommendation?.strengths)
+      ? (evalSummary?.aiRecommendation?.strengths as string[])
+      : Array.isArray(c.recommendationStrengths)
+        ? (c.recommendationStrengths as string[])
+        : []
+
+    const recommendationRisks = Array.isArray(evalSummary?.aiRecommendation?.risks)
+      ? (evalSummary?.aiRecommendation?.risks as Array<{ risk: string; mitigation: string }>)
+      : Array.isArray(c.recommendationRisks)
+        ? (c.recommendationRisks as Array<{ risk: string; mitigation: string }>)
+        : []
+
+    const flowStages = Array.isArray(c.job?.hiringFlowSnapshot?.stages)
+      ? (c.job?.hiringFlowSnapshot?.stages as string[])
+      : []
+    const flowStageKeys = flowStages.map((stage) => normalizeStageKey(stage))
+    const candidateStageName = c.customStageName || c.stageDisplayName || c.stage
+    const candidateStageKey = candidateStageName ? normalizeStageKey(candidateStageName) : ''
+    const candidateStageIndex = candidateStageKey ? flowStageKeys.indexOf(candidateStageKey) : -1
+
+    const interviewsByStage = new Map<string, typeof interviews[number]>()
+    const completedStageKeys = new Set<string>()
+    const currentStageKeys = new Set<string>()
+
+    for (const interview of interviews) {
+      const key = normalizeStageKey(interview.stageName || interview.stageDisplayName || interview.stage)
+      if (!key) continue
+
+      const existing = interviewsByStage.get(key)
+      const existingDate = existing?.completedAt || existing?.scheduledAt || existing?.createdAt
+      const nextDate = interview.completedAt || interview.scheduledAt || interview.createdAt
+      if (!existing || (nextDate && (!existingDate || nextDate > existingDate))) {
+        interviewsByStage.set(key, interview)
+      }
+
+      if (interview.status === 'COMPLETED') {
+        completedStageKeys.add(key)
+      } else if (interview.status === 'IN_PROGRESS' || interview.status === 'SCHEDULED') {
+        currentStageKeys.add(key)
+      }
+    }
+
+    const assessmentsByStage = new Map<string, typeof assessments[number]>()
+    const assessmentStageKeys = flowStages
+      .filter((stage) => /assessment|test|case|exercise|trial/i.test(stage))
+      .map((stage) => normalizeStageKey(stage))
+    const sortedAssessments = [...assessments].sort((a, b) => {
+      const aDate = a.completedAt || a.startedAt || a.createdAt
+      const bDate = b.completedAt || b.startedAt || b.createdAt
+      return (aDate?.getTime() || 0) - (bDate?.getTime() || 0)
+    })
+
+    assessmentStageKeys.forEach((key, index) => {
+      const assessment = sortedAssessments[index]
+      if (!assessment) return
+      assessmentsByStage.set(key, assessment)
+
+      if (assessment.status === 'COMPLETED') {
+        completedStageKeys.add(key)
+      } else if (assessment.status === 'IN_PROGRESS') {
+        currentStageKeys.add(key)
+      }
+    })
+
+    let lastCompletedIndex = -1
+    flowStageKeys.forEach((key, index) => {
+      const stageName = flowStages[index]
+      const isAppliedStage = /apply|applied/i.test(stageName) && c.appliedAt
+      if (completedStageKeys.has(key) || isAppliedStage) {
+        lastCompletedIndex = index
+      }
+    })
+
+    const currentStageIndex = flowStageKeys.findIndex((key) => currentStageKeys.has(key))
+
+    let displayStageIndex = candidateStageIndex
+    if (displayStageIndex < 0 && currentStageIndex >= 0) {
+      displayStageIndex = currentStageIndex
+    }
+    if (displayStageIndex < 0) {
+      displayStageIndex = lastCompletedIndex
+    }
+
+    const isHiredStage = c.stage === 'HIRED' || candidateStageKey.includes('hired')
+    if (candidateStageIndex > -1 && lastCompletedIndex > -1 && candidateStageIndex > lastCompletedIndex + 1) {
+      displayStageIndex = lastCompletedIndex
+    }
+    if (isHiredStage && c.decisionStatus !== 'HIRE' && lastCompletedIndex >= 0) {
+      displayStageIndex = lastCompletedIndex
+    }
+
+    const stageTimeline = flowStages.map((stage, index) => {
+      const key = flowStageKeys[index]
+      const interview = interviewsByStage.get(key)
+      const assessment = assessmentsByStage.get(key)
+      const score = interview?.overallScore ?? interview?.score ?? assessment?.overallScore ?? assessment?.qualityScore ?? null
+      const rawDate =
+        interview?.completedAt ||
+        interview?.scheduledAt ||
+        assessment?.completedAt ||
+        assessment?.startedAt ||
+        (/apply|applied/i.test(stage) ? c.appliedAt : null)
+      const date = rawDate ? format(new Date(rawDate), 'MMM d, yyyy') : null
+
+      let status: 'completed' | 'current' | 'upcoming' = 'upcoming'
+      if (completedStageKeys.has(key)) {
+        status = 'completed'
+      } else if (currentStageKeys.has(key)) {
+        status = 'current'
+      } else if (displayStageIndex >= 0) {
+        if (index < displayStageIndex) {
+          status = 'completed'
+        } else if (index === displayStageIndex) {
+          status = 'current'
+        }
+      }
+
+      return {
+        name: stage,
+        score,
+        date,
+        status,
+      }
+    })
+
+    const stageLabel = displayStageIndex >= 0 ? flowStages[displayStageIndex] : candidateStageName
 
     return {
       id: c.id,
       name: c.name,
       email: c.email,
-      phone: c.phone || mockCandidate.phone,
-      linkedinUrl: c.linkedinUrl || mockCandidate.linkedinUrl,
-      currentRole: workExperience[0]?.title || mockCandidate.currentRole,
-      currentCompany: workExperience[0]?.company || mockCandidate.currentCompany,
-      yearsOfExperience: workExperience.length > 0 ? workExperience.length + 3 : mockCandidate.yearsOfExperience,
-      location: c.location || mockCandidate.location,
-      position: profileData.candidate.job?.title || mockCandidate.position,
-      stage: c.stageDisplayName || c.stage,
-      score: c.score || mockCandidate.score,
-      scoreChange: mockCandidate.scoreChange,
-      appliedDate: c.appliedAt ? format(new Date(c.appliedAt), 'MMM d, yyyy') : mockCandidate.appliedDate,
-      color: 'bg-green-500',
-      mbtiType: mockCandidate.mbtiType,
-      experienceMatchScore: c.experienceMatchScore || mockCandidate.experienceMatchScore,
-      skillsMatchScore: c.skillsMatchScore || mockCandidate.skillsMatchScore,
-      domainFitScore: c.domainFitScore || mockCandidate.domainFitScore,
-      educationScore: c.educationScore || mockCandidate.educationScore,
-      scoreExplanation: c.scoreExplanation || mockCandidate.scoreExplanation,
-      resumeSummary: c.resumeSummary || c.bio || mockCandidate.resumeSummary,
+      phone: c.phone || null,
+      linkedinUrl: c.linkedinUrl || null,
+      currentRole: workExperience[0]?.title || null,
+      currentCompany: workExperience[0]?.company || null,
+      yearsOfExperience: typeof c.yearsOfExperience === 'number' ? c.yearsOfExperience : null,
+      location: c.location || null,
+      position: c.job?.title || null,
+      job: c.job || null,
+      stage: stageLabel || null,
+      rawStage: c.stage,
+      score: typeof c.score === 'number' ? c.score : null,
+      appliedDate: c.appliedAt ? format(new Date(c.appliedAt), 'MMM d, yyyy') : null,
+      color: 'bg-indigo-600',
+      mbtiType: c.mbtiType || null,
+      experienceMatchScore: c.experienceMatchScore ?? null,
+      skillsMatchScore: c.skillsMatchScore ?? null,
+      domainFitScore: c.domainFitScore ?? null,
+      educationScore: c.educationScore ?? null,
+      scoreExplanation: c.scoreExplanation || null,
+      resumeSummary: c.resumeSummary || c.bio || null,
       workExperience,
       education,
       skills,
-      whyCuracel: c.coverLetter || mockCandidate.whyCuracel,
-      salaryExpMin: c.salaryExpectationMin || mockCandidate.salaryExpMin,
-      salaryExpMax: c.salaryExpectationMax || mockCandidate.salaryExpMax,
-      noticePeriod: c.noticePeriod || mockCandidate.noticePeriod,
-      aiSummary,
-      scoreBreakdown: scoreBreakdown.length > 1 ? scoreBreakdown : mockCandidate.scoreBreakdown,
+      whyCuracel: c.coverLetter || c.whyCuracel || null,
+      salaryExpMin: c.salaryExpMin ?? null,
+      salaryExpMax: c.salaryExpMax ?? null,
+      noticePeriod: c.noticePeriod || null,
       pressValues,
-      pressValuesAvg: Math.round(pressValuesAvg),
-      competencyScores,
-      personalityProfile,
-      teamFitStrengths: teamFitAnalysis?.strengths || mockCandidate.teamFitStrengths,
-      teamFitConsiderations: teamFitAnalysis?.considerations || mockCandidate.teamFitConsiderations,
-      stageTimeline: stageTimeline.length > 1 ? stageTimeline : mockCandidate.stageTimeline,
-      mustValidate: c.mustValidate || mockCandidate.mustValidate,
-      documents: profileData.documents || mockCandidate.documents,
-      recommendation: evalSummary?.recommendation || mockCandidate.recommendation,
-      recommendationConfidence: evalSummary?.aiRecommendation?.confidence || mockCandidate.recommendationConfidence,
-      recommendationSummary: evalSummary?.aiRecommendation?.summary || mockCandidate.recommendationSummary,
-      recommendationStrengths: evalSummary?.aiRecommendation?.strengths || mockCandidate.recommendationStrengths,
-      recommendationRisks: evalSummary?.aiRecommendation?.risks || mockCandidate.recommendationRisks,
-      decisionStatus: c.decisionStatus || mockCandidate.decisionStatus,
-      interviewEvaluations: interviewEvaluations.length > 0 ? interviewEvaluations : mockCandidate.interviewEvaluations,
+      pressValuesAvg,
+      competencyScores: competencyScores || {},
+      personalityProfile: personalityProfile || {},
+      competencyAverage,
+      personalityAverage,
+      interviewAverage,
+      assessmentAverage,
+      teamFitStrengths: teamFitAnalysis?.strengths || [],
+      teamFitConsiderations: teamFitAnalysis?.considerations || [],
+      stageTimeline,
+      mustValidate: Array.isArray(c.mustValidate) ? c.mustValidate : [],
+      documents: (profileData.documents as Array<{
+        id: string
+        name: string
+        type: string
+        url: string
+        uploadedAt: string
+      }>) || [],
+      assessments,
+      recommendation: evalSummary?.recommendation || c.recommendation || null,
+      recommendationConfidence: evalSummary?.aiRecommendation?.confidence ?? c.recommendationConfidence ?? null,
+      recommendationSummary: evalSummary?.aiRecommendation?.summary || c.recommendationSummary || null,
+      recommendationStrengths,
+      recommendationRisks,
+      decisionStatus: c.decisionStatus || null,
+      decisionNotes: c.decisionNotes || null,
+      interviewEvaluations,
     }
   }, [profileData])
+
+  const scoreComponents = useMemo(() => {
+    if (!candidate) return []
+
+    const getScoreValue = (key: CandidateScoreComponent['id']) => {
+      switch (key) {
+        case 'experienceMatchScore':
+          return candidate.experienceMatchScore
+        case 'skillsMatchScore':
+          return candidate.skillsMatchScore
+        case 'domainFitScore':
+          return candidate.domainFitScore
+        case 'educationScore':
+          return candidate.educationScore
+        case 'pressValuesAvg':
+          return candidate.pressValuesAvg
+        case 'interviewAverage':
+          return candidate.interviewAverage
+        case 'assessmentAverage':
+          return candidate.assessmentAverage
+        case 'competencyAverage':
+          return candidate.competencyAverage
+        case 'personalityAverage':
+          return candidate.personalityAverage
+        default:
+          return null
+      }
+    }
+
+    return scoreWeights
+      .filter((component) => component.enabled)
+      .map((component) => {
+        const value = getScoreValue(component.id)
+        if (typeof value !== 'number') return null
+
+        return {
+          ...component,
+          value,
+        }
+      })
+      .filter((component): component is CandidateScoreComponent & { value: number } => component !== null)
+  }, [candidate, scoreWeights])
+
+  const overallScore = useMemo(() => {
+    if (scoreComponents.length === 0) return null
+    const totalWeight = scoreComponents.reduce((sum, component) => sum + component.weight, 0)
+    if (totalWeight <= 0) return null
+    const weightedTotal = scoreComponents.reduce(
+      (sum, component) => sum + component.value * component.weight,
+      0
+    )
+    return Math.round(weightedTotal / totalWeight)
+  }, [scoreComponents])
 
   if (isLoading) {
     return (
@@ -509,6 +464,103 @@ export default function CandidateProfilePage() {
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
       </div>
     )
+  }
+
+  if (!candidate) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px] text-sm text-muted-foreground">
+        Candidate profile not found.
+      </div>
+    )
+  }
+
+  const displayScore = overallScore
+  const analysisStrengths = Array.isArray(latestAnalysis?.strengths)
+    ? (latestAnalysis?.strengths as string[])
+    : []
+  const analysisConcerns = Array.isArray(latestAnalysis?.concerns)
+    ? (latestAnalysis?.concerns as Array<string | { title?: string; description?: string }>)
+        .map((item) => (typeof item === 'string' ? item : item.title || item.description || ''))
+        .filter(Boolean)
+    : []
+
+  useEffect(() => {
+    if (!candidate || decisionInitialized) return
+    if (candidate.decisionStatus && candidate.decisionStatus !== 'PENDING') {
+      setSelectedDecision(candidate.decisionStatus)
+    }
+    if (candidate.decisionNotes) {
+      setDecisionNotes(candidate.decisionNotes)
+    }
+    setDecisionInitialized(true)
+  }, [candidate, decisionInitialized])
+
+  const handleExportProfile = async () => {
+    if (!candidateId) return
+    try {
+      setExporting(true)
+      const response = await fetch(`/api/recruiting/candidates/${candidateId}/export`, {
+        method: 'GET',
+        credentials: 'include',
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => '')
+        throw new Error(errorText || 'Failed to export profile')
+      }
+
+      const blob = await response.blob()
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      const disposition = response.headers.get('content-disposition')
+      const fileMatch = disposition?.match(/filename=\"([^\"]+)\"/)
+      const safeName = candidate?.name
+        ? candidate.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')
+        : 'candidate'
+      const fallbackName = `candidate-profile-${safeName || 'export'}.pdf`
+
+      link.href = url
+      link.download = fileMatch?.[1] || fallbackName
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+      toast.success('Candidate profile PDF downloaded')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to export profile')
+    } finally {
+      setExporting(false)
+    }
+  }
+
+  const handleStageUpdate = async (stage: 'OFFER' | 'REJECTED', successMessage: string) => {
+    if (updateCandidate.isPending) return
+    setActionInFlight(stage === 'OFFER' ? 'advance' : 'reject')
+    try {
+      await updateCandidate.mutateAsync({ id: candidateId, stage })
+      toast.success(successMessage)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to update candidate')
+    } finally {
+      setActionInFlight(null)
+    }
+  }
+
+  const handleSubmitDecision = async () => {
+    if (!selectedDecision || updateCandidate.isPending) return
+    setActionInFlight('decision')
+    try {
+      await updateCandidate.mutateAsync({
+        id: candidateId,
+        decisionStatus: selectedDecision as 'HIRE' | 'HOLD' | 'NO_HIRE',
+        decisionNotes: decisionNotes.trim() ? decisionNotes.trim() : null,
+      })
+      toast.success('Decision saved')
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to save decision')
+    } finally {
+      setActionInFlight(null)
+    }
   }
 
   return (
@@ -525,41 +577,62 @@ export default function CandidateProfilePage() {
               </Avatar>
 
               {/* Score - visible on mobile next to avatar */}
-              <div className="text-center p-3 bg-green-50 rounded-xl border border-green-200 sm:hidden">
-                <div className="text-3xl font-bold text-green-600">{candidate.score}</div>
-                <div className="text-xs text-muted-foreground">Score</div>
-              </div>
+              {typeof displayScore === 'number' && (
+                <div className="text-center p-3 bg-green-50 rounded-xl border border-green-200 sm:hidden">
+                  <div className="text-3xl font-bold text-green-600">{displayScore}</div>
+                  <div className="text-xs text-muted-foreground">Overall Score</div>
+                </div>
+              )}
             </div>
 
             <div className="flex-1 min-w-0">
               <h1 className="text-xl sm:text-2xl font-semibold mb-1">{candidate.name}</h1>
               <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3">
-                <span className="flex items-center gap-1.5">
-                  <Mail className="h-3.5 w-3.5 flex-shrink-0" />
-                  <span className="truncate">{candidate.email}</span>
-                </span>
-                <a href={`https://${candidate.linkedinUrl}`} target="_blank" className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700">
-                  <Linkedin className="h-3.5 w-3.5 flex-shrink-0" />
-                  LinkedIn
-                </a>
-                <span className="flex items-center gap-1.5">
-                  <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
-                  {candidate.appliedDate}
-                </span>
+                {candidate.email && (
+                  <span className="flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="truncate">{candidate.email}</span>
+                  </span>
+                )}
+                {candidate.linkedinUrl && (
+                  <a
+                    href={`https://${candidate.linkedinUrl}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700"
+                  >
+                    <Linkedin className="h-3.5 w-3.5 flex-shrink-0" />
+                    LinkedIn
+                  </a>
+                )}
+                {candidate.appliedDate && (
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+                    {candidate.appliedDate}
+                  </span>
+                )}
               </div>
               <div className="flex flex-wrap gap-2">
-                <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 text-xs">{candidate.position}</Badge>
-                <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-xs">{candidate.stage}</Badge>
-                <Badge variant="secondary" className="text-xs">{candidate.mbtiType}</Badge>
+                {candidate.position && (
+                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 text-xs">{candidate.position}</Badge>
+                )}
+                {candidate.stage && (
+                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-xs">{candidate.stage}</Badge>
+                )}
+                {candidate.mbtiType && (
+                  <Badge variant="secondary" className="text-xs">{candidate.mbtiType}</Badge>
+                )}
               </div>
             </div>
 
             {/* Score - hidden on mobile, shown on desktop */}
-            <div className="hidden sm:block text-center p-4 bg-green-50 rounded-xl border border-green-200 flex-shrink-0">
-              <div className="text-4xl font-bold text-green-600">{candidate.score}</div>
-              <div className="text-xs text-muted-foreground">Overall Score</div>
-              <div className="text-xs text-green-600 mt-1">{candidate.scoreChange}</div>
-            </div>
+            {typeof displayScore === 'number' && (
+              <div className="hidden sm:block text-center p-4 bg-green-50 rounded-xl border border-green-200 flex-shrink-0">
+                <div className="text-4xl font-bold text-green-600">{displayScore}</div>
+                <div className="text-xs text-muted-foreground">Overall Score</div>
+                <div className="text-[10px] text-green-700 mt-1">Weighted from profile inputs</div>
+              </div>
+            )}
 
             <div className="flex sm:flex-col gap-2">
               <Link href={`/recruiting/candidates/${candidateId}/stages/panel`} className="flex-1 sm:flex-none">
@@ -574,7 +647,13 @@ export default function CandidateProfilePage() {
                   <span className="hidden sm:inline">Generate Questions</span>
                 </Button>
               </Link>
-              <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-xs sm:text-sm"
+                onClick={handleExportProfile}
+                disabled={exporting}
+              >
                 <Download className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Export Profile</span>
               </Button>
@@ -612,27 +691,41 @@ export default function CandidateProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-foreground/80 mb-4">{candidate.aiSummary.description}</p>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                      <div className="font-semibold text-green-600 mb-3">Strengths</div>
-                      {candidate.aiSummary.strengths.map((strength, i) => (
-                        <div key={i} className="flex items-start gap-2 py-2">
-                          <Check className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
-                          <span className="text-sm">{strength}</span>
+                  {latestAnalysis ? (
+                    <>
+                      <p className="text-sm text-foreground/80 mb-4">{latestAnalysis.summary}</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                        <div>
+                          <div className="font-semibold text-green-600 mb-3">Strengths</div>
+                          {analysisStrengths.length > 0 ? (
+                            analysisStrengths.map((strength, i) => (
+                              <div key={i} className="flex items-start gap-2 py-2">
+                                <Check className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <span className="text-sm">{strength}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-sm text-muted-foreground">No strengths captured yet.</div>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                    <div>
-                      <div className="font-semibold text-amber-600 mb-3">Areas to Explore</div>
-                      {candidate.aiSummary.areasToExplore.map((area, i) => (
-                        <div key={i} className="flex items-start gap-2 py-2">
-                          <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                          <span className="text-sm">{area}</span>
+                        <div>
+                          <div className="font-semibold text-amber-600 mb-3">Areas to Explore</div>
+                          {analysisConcerns.length > 0 ? (
+                            analysisConcerns.map((area, i) => (
+                              <div key={i} className="flex items-start gap-2 py-2">
+                                <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                                <span className="text-sm">{area}</span>
+                              </div>
+                            ))
+                          ) : (
+                            <div className="text-sm text-muted-foreground">No concerns captured yet.</div>
+                          )}
                         </div>
-                      ))}
-                    </div>
-                  </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No BlueAI summary yet.</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -645,15 +738,22 @@ export default function CandidateProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {candidate.scoreBreakdown.map((item, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <span className="w-32 text-sm text-foreground/80">{item.label}</span>
-                      <div className="flex-1">
-                        <Progress value={item.score} className="h-2" />
+                  {scoreComponents.length > 0 ? (
+                    scoreComponents.map((item) => (
+                      <div key={item.id} className="flex items-center gap-3">
+                        <div className="w-36">
+                          <div className="text-sm text-foreground/80">{item.label}</div>
+                          <div className="text-[10px] text-muted-foreground">Weight {item.weight}%</div>
+                        </div>
+                        <div className="flex-1">
+                          <Progress value={item.value} className="h-2" />
+                        </div>
+                        <span className="w-10 text-right font-semibold text-sm">{item.value}</span>
                       </div>
-                      <span className="w-10 text-right font-semibold text-sm">{item.score}</span>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No scoring inputs yet.</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -666,20 +766,24 @@ export default function CandidateProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3">
-                    {candidate.pressValues.map((value, i) => (
-                      <div key={i} className="text-center p-3 sm:p-4 bg-muted/50 rounded-xl">
-                        <div className="text-xl sm:text-2xl font-bold text-indigo-600 mb-1">{value.letter}</div>
-                        <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-muted-foreground">{value.name}</div>
-                        <div className={cn(
-                          'text-xs sm:text-sm font-semibold mt-2',
-                          value.rating === 'Strong' ? 'text-green-600' : 'text-amber-600'
-                        )}>
-                          {value.rating}
+                  {candidate.pressValues.length > 0 ? (
+                    <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 sm:gap-3">
+                      {candidate.pressValues.map((value, i) => (
+                        <div key={i} className="text-center p-3 sm:p-4 bg-muted/50 rounded-xl">
+                          <div className="text-xl sm:text-2xl font-bold text-indigo-600 mb-1">{value.letter}</div>
+                          <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-muted-foreground">{value.name}</div>
+                          <div className={cn(
+                            'text-xs sm:text-sm font-semibold mt-2',
+                            value.rating === 'Strong' ? 'text-green-600' : value.rating === 'Moderate' ? 'text-amber-600' : 'text-red-600'
+                          )}>
+                            {value.rating}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No PRESS values recorded yet.</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -692,15 +796,24 @@ export default function CandidateProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="p-5 bg-green-50 border border-green-200 rounded-xl text-center">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-full font-semibold text-sm mb-3">
-                      <Check className="h-4 w-4" />
-                      ADVANCE TO OFFER
+                  {candidate.recommendation || candidate.recommendationSummary ? (
+                    <div className="p-5 bg-green-50 border border-green-200 rounded-xl text-center">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-full font-semibold text-sm mb-3">
+                        <Check className="h-4 w-4" />
+                        {candidate.recommendation?.replace(/_/g, ' ') || 'Recommendation'}
+                      </div>
+                      <div className="text-sm text-foreground/80">
+                        {typeof candidate.recommendationConfidence === 'number' && (
+                          <strong>Confidence: {candidate.recommendationConfidence}%</strong>
+                        )}
+                        {candidate.recommendationSummary && (
+                          <span className="block mt-2">{candidate.recommendationSummary}</span>
+                        )}
+                      </div>
                     </div>
-                    <div className="text-sm text-foreground/80">
-                      <strong>Confidence: {candidate.recommendationConfidence}%</strong> - Strong candidate with excellent technical skills and cultural fit
-                    </div>
-                  </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No BlueAI recommendation yet.</div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -716,42 +829,45 @@ export default function CandidateProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="relative">
-                    {candidate.stageTimeline.map((stage, i) => (
-                      <div key={i} className="flex gap-4 pb-5 last:pb-0 relative">
-                        {i < candidate.stageTimeline.length - 1 && (
-                          <div className="absolute left-[15px] top-8 bottom-0 w-0.5 bg-muted" />
-                        )}
-                        <div className={cn(
-                          'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10',
-                          stage.status === 'completed' && 'bg-green-500 text-white',
-                          stage.status === 'current' && 'bg-indigo-600 text-white shadow-[0_0_0_4px_rgba(99,102,241,0.2)]',
-                          stage.status === 'upcoming' && 'bg-muted text-muted-foreground'
-                        )}>
-                          <Check className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1 pt-1">
-                          <div className="flex items-center justify-between mb-1">
-                            <span className="font-medium text-sm">{stage.name}</span>
-                            {stage.score && (
-                              <span className={cn(
-                                'px-2 py-0.5 rounded text-xs font-semibold',
-                                stage.score >= 80 ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
-                              )}>
-                                {stage.score}
-                              </span>
+                  {candidate.stageTimeline.length > 0 ? (
+                    <div className="relative">
+                      {candidate.stageTimeline.map((stage, i) => (
+                        <div key={i} className="flex gap-4 pb-5 last:pb-0 relative">
+                          {i < candidate.stageTimeline.length - 1 && (
+                            <div className="absolute left-[15px] top-8 bottom-0 w-0.5 bg-muted" />
+                          )}
+                          <div className={cn(
+                            'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10',
+                            stage.status === 'completed' && 'bg-green-500 text-white',
+                            stage.status === 'current' && 'bg-indigo-600 text-white shadow-[0_0_0_4px_rgba(99,102,241,0.2)]',
+                            stage.status === 'upcoming' && 'bg-muted text-muted-foreground'
+                          )}>
+                            <Check className="h-4 w-4" />
+                          </div>
+                          <div className="flex-1 pt-1">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="font-medium text-sm">{stage.name}</span>
+                              {typeof stage.score === 'number' && (
+                                <span className={cn(
+                                  'px-2 py-0.5 rounded text-xs font-semibold',
+                                  stage.score >= 80 ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
+                                )}>
+                                  {stage.score}
+                                </span>
+                              )}
+                            </div>
+                            {stage.date && (
+                              <div className="text-xs text-muted-foreground">
+                                {stage.date}
+                              </div>
                             )}
                           </div>
-                          <div className={cn(
-                            'text-xs',
-                            stage.status === 'upcoming' ? 'text-muted-foreground' : 'text-muted-foreground'
-                          )}>
-                            {stage.date}
-                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No hiring flow data available.</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -764,18 +880,16 @@ export default function CandidateProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {candidate.mustValidate.map((item, i) => (
-                    <div key={i} className="flex items-start gap-2 py-2">
-                      <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
-                      <span className="text-sm">{item}</span>
-                    </div>
-                  ))}
-                  <div className="mt-4 flex flex-col gap-2">
-                    <Button className="w-full justify-start">
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Advance to Offer
-                    </Button>
-                  </div>
+                  {candidate.mustValidate.length > 0 ? (
+                    candidate.mustValidate.map((item, i) => (
+                      <div key={i} className="flex items-start gap-2 py-2">
+                        <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">{item}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No validation items yet.</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -790,18 +904,32 @@ export default function CandidateProfilePage() {
                 <CardContent>
                   <div className="space-y-2">
                     {[
-                      { label: 'Current Role', value: 'Senior Engineer' },
-                      { label: 'Current Company', value: candidate.currentCompany },
-                      { label: 'Experience', value: `${candidate.yearsOfExperience} years` },
-                      { label: 'Notice Period', value: candidate.noticePeriod },
-                      { label: 'Salary Expectation', value: `$${candidate.salaryExpMin.toLocaleString()} - $${candidate.salaryExpMax.toLocaleString()}` },
-                      { label: 'MBTI', value: candidate.mbtiType },
-                    ].map((item, i) => (
-                      <div key={i} className="flex justify-between py-2 border-b border-border last:border-0 text-sm">
-                        <span className="text-muted-foreground">{item.label}</span>
-                        <span className="font-medium">{item.value}</span>
-                      </div>
-                    ))}
+                      candidate.currentRole
+                        ? { label: 'Current Role', value: candidate.currentRole }
+                        : null,
+                      candidate.currentCompany
+                        ? { label: 'Current Company', value: candidate.currentCompany }
+                        : null,
+                      typeof candidate.yearsOfExperience === 'number'
+                        ? { label: 'Experience', value: `${candidate.yearsOfExperience} years` }
+                        : null,
+                      candidate.noticePeriod
+                        ? { label: 'Notice Period', value: candidate.noticePeriod }
+                        : null,
+                      typeof candidate.salaryExpMin === 'number' && typeof candidate.salaryExpMax === 'number'
+                        ? { label: 'Salary Expectation', value: `$${candidate.salaryExpMin.toLocaleString()} - $${candidate.salaryExpMax.toLocaleString()}` }
+                        : null,
+                      candidate.mbtiType
+                        ? { label: 'MBTI', value: candidate.mbtiType }
+                        : null,
+                    ]
+                      .filter((item): item is { label: string; value: string } => Boolean(item))
+                      .map((item) => (
+                        <div key={item.label} className="flex justify-between py-2 border-b border-border last:border-0 text-sm">
+                          <span className="text-muted-foreground">{item.label}</span>
+                          <span className="font-medium">{item.value}</span>
+                        </div>
+                      ))}
                   </div>
                 </CardContent>
               </Card>
@@ -815,13 +943,17 @@ export default function CandidateProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {candidate.documents.map((doc, i) => (
-                    <div key={i} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer">
-                      <FileText className="h-4 w-4 text-red-500" />
-                      <span className="flex-1 text-sm">{doc.name}</span>
-                      <Download className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  ))}
+                  {candidate.documents.length > 0 ? (
+                    candidate.documents.map((doc) => (
+                      <div key={doc.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer">
+                        <FileText className="h-4 w-4 text-red-500" />
+                        <span className="flex-1 text-sm">{doc.name}</span>
+                        <Download className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No documents uploaded yet.</div>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -841,27 +973,44 @@ export default function CandidateProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4">
-                    {[
-                      { label: 'Experience Match', score: candidate.experienceMatchScore },
-                      { label: 'Skills Match', score: candidate.skillsMatchScore },
-                      { label: 'Domain Fit', score: candidate.domainFitScore },
-                      { label: 'Education', score: candidate.educationScore },
-                    ].map((item, i) => (
-                      <div key={i} className="text-center p-3 bg-muted/50 rounded-lg">
-                        <div className={cn(
-                          'text-2xl font-bold',
-                          item.score >= 80 ? 'text-green-600' : item.score >= 65 ? 'text-amber-600' : 'text-red-600'
-                        )}>
-                          {item.score}
-                        </div>
-                        <div className="text-xs text-muted-foreground">{item.label}</div>
+                  {[
+                    { label: 'Experience Match', score: candidate.experienceMatchScore },
+                    { label: 'Skills Match', score: candidate.skillsMatchScore },
+                    { label: 'Domain Fit', score: candidate.domainFitScore },
+                    { label: 'Education', score: candidate.educationScore },
+                  ].filter((item) => typeof item.score === 'number').length > 0 ? (
+                    <>
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4">
+                        {[
+                          { label: 'Experience Match', score: candidate.experienceMatchScore },
+                          { label: 'Skills Match', score: candidate.skillsMatchScore },
+                          { label: 'Domain Fit', score: candidate.domainFitScore },
+                          { label: 'Education', score: candidate.educationScore },
+                        ]
+                          .filter((item): item is { label: string; score: number } => typeof item.score === 'number')
+                          .map((item) => (
+                            <div key={item.label} className="text-center p-3 bg-muted/50 rounded-lg">
+                              <div className={cn(
+                                'text-2xl font-bold',
+                                item.score >= 80 ? 'text-green-600' : item.score >= 65 ? 'text-amber-600' : 'text-red-600'
+                              )}>
+                                {item.score}
+                              </div>
+                              <div className="text-xs text-muted-foreground">{item.label}</div>
+                            </div>
+                          ))}
                       </div>
-                    ))}
-                  </div>
-                  <p className="text-sm text-foreground/80 bg-muted/50 p-3 rounded-lg">
-                    {candidate.scoreExplanation}
-                  </p>
+                      {candidate.scoreExplanation ? (
+                        <p className="text-sm text-foreground/80 bg-muted/50 p-3 rounded-lg">
+                          {candidate.scoreExplanation}
+                        </p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">No score explanation available.</p>
+                      )}
+                    </>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No application score inputs yet.</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -871,9 +1020,13 @@ export default function CandidateProfilePage() {
                   <CardTitle className="text-base">Summary</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-foreground/80 leading-relaxed">
-                    {candidate.resumeSummary}
-                  </p>
+                  {candidate.resumeSummary ? (
+                    <p className="text-sm text-foreground/80 leading-relaxed">
+                      {candidate.resumeSummary}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No resume summary available.</p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -883,31 +1036,41 @@ export default function CandidateProfilePage() {
                   <CardTitle className="text-base">Work Experience</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {candidate.workExperience.map((exp, i) => (
-                    <div key={i} className={cn(i > 0 && 'pt-6 border-t')}>
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <h4 className="font-semibold">{exp.title}</h4>
-                          <div className="text-sm text-muted-foreground">{exp.company}</div>
+                  {candidate.workExperience.length > 0 ? (
+                    candidate.workExperience.map((exp, i) => (
+                      <div key={i} className={cn(i > 0 && 'pt-6 border-t')}>
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <h4 className="font-semibold">{exp.title}</h4>
+                            <div className="text-sm text-muted-foreground">{exp.company}</div>
+                          </div>
+                          {(exp.startDate || exp.endDate) && (
+                            <Badge variant={exp.isCurrent ? 'default' : 'secondary'}>
+                              {exp.startDate || '—'} - {exp.endDate || 'Present'}
+                            </Badge>
+                          )}
                         </div>
-                        <Badge variant={exp.isCurrent ? 'default' : 'secondary'}>
-                          {exp.startDate} - {exp.endDate}
-                        </Badge>
+                        {Array.isArray(exp.highlights) && exp.highlights.length > 0 && (
+                          <ul className="list-disc list-inside text-sm text-foreground/80 space-y-1 mb-3">
+                            {exp.highlights.map((h, j) => (
+                              <li key={j}>{h}</li>
+                            ))}
+                          </ul>
+                        )}
+                        {Array.isArray(exp.skills) && exp.skills.length > 0 && (
+                          <div className="flex flex-wrap gap-1.5">
+                            {exp.skills.map((skill, j) => (
+                              <Badge key={j} variant="outline" className="text-xs">
+                                {skill}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                       </div>
-                      <ul className="list-disc list-inside text-sm text-foreground/80 space-y-1 mb-3">
-                        {exp.highlights.map((h, j) => (
-                          <li key={j}>{h}</li>
-                        ))}
-                      </ul>
-                      <div className="flex flex-wrap gap-1.5">
-                        {exp.skills.map((skill, j) => (
-                          <Badge key={j} variant="outline" className="text-xs">
-                            {skill}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No work experience provided yet.</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -917,20 +1080,26 @@ export default function CandidateProfilePage() {
                   <CardTitle className="text-base">Education</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  {candidate.education.map((edu, i) => (
-                    <div key={i} className="flex justify-between items-start">
-                      <div>
-                        <h4 className="font-semibold">{edu.degree} {edu.field}</h4>
-                        <div className="text-sm text-muted-foreground">{edu.institution}</div>
-                        {edu.honors && (
-                          <Badge variant="outline" className="mt-1 text-xs text-green-600 border-green-300">
-                            {edu.honors}
-                          </Badge>
+                  {candidate.education.length > 0 ? (
+                    candidate.education.map((edu, i) => (
+                      <div key={i} className="flex justify-between items-start">
+                        <div>
+                          <h4 className="font-semibold">{edu.degree} {edu.field}</h4>
+                          <div className="text-sm text-muted-foreground">{edu.institution}</div>
+                          {edu.honors && (
+                            <Badge variant="outline" className="mt-1 text-xs text-green-600 border-green-300">
+                              {edu.honors}
+                            </Badge>
+                          )}
+                        </div>
+                        {edu.years && (
+                          <span className="text-sm text-muted-foreground">{edu.years}</span>
                         )}
                       </div>
-                      <span className="text-sm text-muted-foreground">{edu.years}</span>
-                    </div>
-                  ))}
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No education records yet.</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -940,9 +1109,13 @@ export default function CandidateProfilePage() {
                   <CardTitle className="text-base">Why Curacel?</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
-                    {candidate.whyCuracel}
-                  </p>
+                  {candidate.whyCuracel ? (
+                    <p className="text-sm text-foreground/80 leading-relaxed whitespace-pre-wrap">
+                      {candidate.whyCuracel}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No response provided yet.</p>
+                  )}
                 </CardContent>
               </Card>
             </div>
@@ -954,30 +1127,39 @@ export default function CandidateProfilePage() {
                   <CardTitle className="text-base">Skills</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div>
-                    <div className="text-xs font-medium text-muted-foreground uppercase mb-2">Languages & Frameworks</div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {candidate.skills.languages.map((skill, i) => (
-                        <Badge key={i} variant="secondary">{skill}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium text-muted-foreground uppercase mb-2">Databases</div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {candidate.skills.databases.map((skill, i) => (
-                        <Badge key={i} variant="secondary">{skill}</Badge>
-                      ))}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-xs font-medium text-muted-foreground uppercase mb-2">Infrastructure</div>
-                    <div className="flex flex-wrap gap-1.5">
-                      {candidate.skills.infrastructure.map((skill, i) => (
-                        <Badge key={i} variant="secondary">{skill}</Badge>
-                      ))}
-                    </div>
-                  </div>
+                  {candidate.skills.languages.length > 0 ||
+                  candidate.skills.frameworks.length > 0 ||
+                  candidate.skills.databases.length > 0 ||
+                  candidate.skills.infrastructure.length > 0 ? (
+                    <>
+                      <div>
+                        <div className="text-xs font-medium text-muted-foreground uppercase mb-2">Languages & Frameworks</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {[...candidate.skills.languages, ...candidate.skills.frameworks].map((skill, i) => (
+                            <Badge key={i} variant="secondary">{skill}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs font-medium text-muted-foreground uppercase mb-2">Databases</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {candidate.skills.databases.map((skill, i) => (
+                            <Badge key={i} variant="secondary">{skill}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                      <div>
+                        <div className="text-xs font-medium text-muted-foreground uppercase mb-2">Infrastructure</div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {candidate.skills.infrastructure.map((skill, i) => (
+                            <Badge key={i} variant="secondary">{skill}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No skills listed yet.</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -987,22 +1169,37 @@ export default function CandidateProfilePage() {
                   <CardTitle className="text-base">Application Details</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-sm text-muted-foreground">Salary Expectation</span>
-                    <span className="text-sm font-medium">${candidate.salaryExpMin.toLocaleString()} - ${candidate.salaryExpMax.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-sm text-muted-foreground">Notice Period</span>
-                    <span className="text-sm font-medium">{candidate.noticePeriod}</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-sm text-muted-foreground">MBTI Type</span>
-                    <Badge variant="secondary">{candidate.mbtiType}</Badge>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-sm text-muted-foreground">Years of Experience</span>
-                    <span className="text-sm font-medium">{candidate.yearsOfExperience} years</span>
-                  </div>
+                  {[
+                    typeof candidate.salaryExpMin === 'number' && typeof candidate.salaryExpMax === 'number'
+                      ? { label: 'Salary Expectation', value: `$${candidate.salaryExpMin.toLocaleString()} - $${candidate.salaryExpMax.toLocaleString()}` }
+                      : null,
+                    candidate.noticePeriod
+                      ? { label: 'Notice Period', value: candidate.noticePeriod }
+                      : null,
+                    candidate.mbtiType
+                      ? { label: 'MBTI Type', value: candidate.mbtiType }
+                      : null,
+                    typeof candidate.yearsOfExperience === 'number'
+                      ? { label: 'Years of Experience', value: `${candidate.yearsOfExperience} years` }
+                      : null,
+                  ]
+                    .filter((item): item is { label: string; value: string } => Boolean(item))
+                    .map((item, index, arr) => (
+                      <div
+                        key={item.label}
+                        className={cn('flex justify-between py-2 text-sm', index < arr.length - 1 && 'border-b')}
+                      >
+                        <span className="text-muted-foreground">{item.label}</span>
+                        <span className="font-medium">{item.value}</span>
+                      </div>
+                    ))}
+                  {(!candidate.noticePeriod &&
+                    candidate.salaryExpMin === null &&
+                    candidate.salaryExpMax === null &&
+                    !candidate.mbtiType &&
+                    candidate.yearsOfExperience === null) && (
+                    <div className="text-sm text-muted-foreground">No application details yet.</div>
+                  )}
                 </CardContent>
               </Card>
 
@@ -1016,12 +1213,16 @@ export default function CandidateProfilePage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {candidate.mustValidate.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-amber-800">
-                        <ChevronRight className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                        {item}
-                      </li>
-                    ))}
+                    {candidate.mustValidate.length > 0 ? (
+                      candidate.mustValidate.map((item, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-amber-800">
+                          <ChevronRight className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-sm text-amber-800">No validation items yet.</li>
+                    )}
                   </ul>
                 </CardContent>
               </Card>
@@ -1031,7 +1232,8 @@ export default function CandidateProfilePage() {
 
         {/* Interview Stages Tab */}
         <TabsContent value="stages" className="mt-6">
-          <div className="space-y-6">
+          {candidate.interviewEvaluations.length > 0 ? (
+            <div className="space-y-6">
             {candidate.interviewEvaluations.map((evaluation, evalIdx) => (
               <Card key={evalIdx} className="hover:border-indigo-300 transition-colors">
                 <Link href={`/recruiting/candidates/${candidateId}/interviews/${evaluation.stageType.toLowerCase()}`}>
@@ -1042,22 +1244,24 @@ export default function CandidateProfilePage() {
                           {evaluation.stage}
                           <ChevronRight className="h-4 w-4 text-muted-foreground" />
                         </CardTitle>
-                        <Badge variant="outline">{evaluation.date}</Badge>
+                        {evaluation.date && <Badge variant="outline">{evaluation.date}</Badge>}
                         <Badge variant="outline" className="bg-indigo-50 text-indigo-600 border-indigo-200">
                           <Mic className="h-3 w-3 mr-1" />
                           Fireflies
                         </Badge>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Overall Score:</span>
-                        <Badge className={cn(
-                          'text-lg px-3 py-1',
-                          evaluation.overallScore >= 85 ? 'bg-green-500' :
-                          evaluation.overallScore >= 70 ? 'bg-amber-500' : 'bg-red-500'
-                        )}>
-                          {evaluation.overallScore}
-                        </Badge>
-                      </div>
+                      {typeof evaluation.overallScore === 'number' && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-muted-foreground">Overall Score:</span>
+                          <Badge className={cn(
+                            'text-lg px-3 py-1',
+                            evaluation.overallScore >= 85 ? 'bg-green-500' :
+                            evaluation.overallScore >= 70 ? 'bg-amber-500' : 'bg-red-500'
+                          )}>
+                            {evaluation.overallScore}
+                          </Badge>
+                        </div>
+                      )}
                     </div>
                   </CardHeader>
                 </Link>
@@ -1081,31 +1285,37 @@ export default function CandidateProfilePage() {
                           <div className="flex items-center gap-4">
                             <div className="text-right">
                               <div className="text-sm text-muted-foreground">Rating</div>
-                              <div className="flex items-center gap-1">
-                                {[1, 2, 3, 4, 5].map((star) => (
-                                  <Star
-                                    key={star}
-                                    className={cn(
-                                      'h-4 w-4',
-                                      star <= evaluator.overallRating
-                                        ? 'fill-amber-400 text-amber-400'
-                                        : 'text-muted-foreground/40'
-                                    )}
-                                  />
-                                ))}
-                              </div>
+                              {typeof evaluator.overallRating === 'number' ? (
+                                <div className="flex items-center gap-1">
+                                  {[1, 2, 3, 4, 5].map((star) => (
+                                    <Star
+                                      key={star}
+                                      className={cn(
+                                        'h-4 w-4',
+                                        star <= evaluator.overallRating
+                                          ? 'fill-amber-400 text-amber-400'
+                                          : 'text-muted-foreground/40'
+                                      )}
+                                    />
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-xs text-muted-foreground">No rating yet</div>
+                              )}
                             </div>
-                            <Badge className={cn(
-                              evaluator.recommendation === 'STRONG_HIRE' || evaluator.recommendation === 'STRONG_ADVANCE'
-                                ? 'bg-green-600'
-                                : evaluator.recommendation === 'HIRE' || evaluator.recommendation === 'ADVANCE'
-                                ? 'bg-green-500'
-                                : evaluator.recommendation === 'HOLD'
-                                ? 'bg-amber-500'
-                                : 'bg-red-500'
-                            )}>
-                              {evaluator.recommendation.replace('_', ' ')}
-                            </Badge>
+                            {evaluator.recommendation && (
+                              <Badge className={cn(
+                                evaluator.recommendation === 'STRONG_HIRE' || evaluator.recommendation === 'STRONG_ADVANCE'
+                                  ? 'bg-green-600'
+                                  : evaluator.recommendation === 'HIRE' || evaluator.recommendation === 'ADVANCE'
+                                  ? 'bg-green-500'
+                                  : evaluator.recommendation === 'HOLD'
+                                  ? 'bg-amber-500'
+                                  : 'bg-red-500'
+                              )}>
+                                {evaluator.recommendation.replace('_', ' ')}
+                              </Badge>
+                            )}
                           </div>
                         </div>
 
@@ -1181,14 +1391,60 @@ export default function CandidateProfilePage() {
               </CardContent>
             </Card>
           </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
+              <p>No interview evaluations yet.</p>
+            </div>
+          )}
         </TabsContent>
 
         {/* Assessments Tab */}
         <TabsContent value="assessments" className="mt-6">
-          <div className="text-center py-12 text-muted-foreground">
-            <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
-            <p>Assessment results will appear here.</p>
-          </div>
+          {candidate.assessments.length > 0 ? (
+            <div className="space-y-4">
+              {candidate.assessments.map((assessment) => (
+                <Card key={assessment.id}>
+                  <CardHeader>
+                    <CardTitle className="text-base flex items-center justify-between">
+                      <span>{assessment.template?.name || 'Assessment'}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {assessment.status.replace('_', ' ')}
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm text-muted-foreground">
+                    <div className="flex items-center justify-between">
+                      <span>Score</span>
+                      <span className="font-medium text-foreground">
+                        {typeof assessment.overallScore === 'number'
+                          ? assessment.overallScore
+                          : typeof assessment.qualityScore === 'number'
+                            ? assessment.qualityScore
+                            : '—'}
+                      </span>
+                    </div>
+                    {assessment.completedAt && (
+                      <div className="flex items-center justify-between">
+                        <span>Completed</span>
+                        <span className="font-medium text-foreground">
+                          {format(new Date(assessment.completedAt), 'MMM d, yyyy')}
+                        </span>
+                      </div>
+                    )}
+                    {assessment.summary && (
+                      <p className="text-foreground/80">{assessment.summary}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 text-muted-foreground">
+              <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
+              <p>No assessments yet.</p>
+            </div>
+          )}
         </TabsContent>
 
         {/* Values & Fit Tab */}
@@ -1201,23 +1457,29 @@ export default function CandidateProfilePage() {
                   <Shield className="h-4 w-4 text-indigo-600" />
                   PRESS Values Alignment
                 </CardTitle>
-                <p className="text-sm text-muted-foreground">Average: {candidate.pressValuesAvg}%</p>
+                <p className="text-sm text-muted-foreground">
+                  Average: {typeof candidate.pressValuesAvg === 'number' ? `${candidate.pressValuesAvg}%` : '—'}
+                </p>
               </CardHeader>
               <CardContent className="space-y-4">
-                {candidate.pressValues.map((value, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">
-                      {value.letter}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>{value.name}</span>
-                        <span className="font-semibold">{value.score}%</span>
+                {candidate.pressValues.length > 0 ? (
+                  candidate.pressValues.map((value, i) => (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">
+                        {value.letter}
                       </div>
-                      <Progress value={value.score} className="h-2" />
+                      <div className="flex-1">
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>{value.name}</span>
+                          <span className="font-semibold">{value.score}%</span>
+                        </div>
+                        <Progress value={value.score} className="h-2" />
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                ) : (
+                  <div className="text-sm text-muted-foreground">No PRESS values recorded yet.</div>
+                )}
               </CardContent>
             </Card>
 
@@ -1230,30 +1492,34 @@ export default function CandidateProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  { key: 'systemDesign', label: 'System Design' },
-                  { key: 'technicalLeadership', label: 'Technical Leadership' },
-                  { key: 'problemSolving', label: 'Problem Solving' },
-                  { key: 'communication', label: 'Communication' },
-                  { key: 'domainKnowledge', label: 'Domain Knowledge' },
-                ].map((comp, i) => (
-                  <div key={i}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>{comp.label}</span>
-                      <span className={cn(
-                        'font-semibold',
-                        candidate.competencyScores[comp.key as keyof typeof candidate.competencyScores] >= 80 ? 'text-green-600' :
-                        candidate.competencyScores[comp.key as keyof typeof candidate.competencyScores] >= 65 ? 'text-amber-600' : 'text-red-600'
-                      )}>
-                        {candidate.competencyScores[comp.key as keyof typeof candidate.competencyScores]}%
-                      </span>
-                    </div>
-                    <Progress
-                      value={candidate.competencyScores[comp.key as keyof typeof candidate.competencyScores]}
-                      className="h-2"
-                    />
-                  </div>
-                ))}
+                {Object.keys(candidate.competencyScores).length > 0 ? (
+                  [
+                    { key: 'systemDesign', label: 'System Design' },
+                    { key: 'technicalLeadership', label: 'Technical Leadership' },
+                    { key: 'problemSolving', label: 'Problem Solving' },
+                    { key: 'communication', label: 'Communication' },
+                    { key: 'domainKnowledge', label: 'Domain Knowledge' },
+                  ].map((comp) => {
+                    const value = candidate.competencyScores[comp.key as keyof typeof candidate.competencyScores]
+                    if (typeof value !== 'number') return null
+                    return (
+                      <div key={comp.key}>
+                        <div className="flex justify-between text-sm mb-1">
+                          <span>{comp.label}</span>
+                          <span className={cn(
+                            'font-semibold',
+                            value >= 80 ? 'text-green-600' : value >= 65 ? 'text-amber-600' : 'text-red-600'
+                          )}>
+                            {value}%
+                          </span>
+                        </div>
+                        <Progress value={value} className="h-2" />
+                      </div>
+                    )
+                  })
+                ) : (
+                  <div className="text-sm text-muted-foreground">No competency scores yet.</div>
+                )}
               </CardContent>
             </Card>
 
@@ -1266,29 +1532,34 @@ export default function CandidateProfilePage() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
-                {[
-                  { key: 'openness', label: 'Openness', description: 'Creative, curious' },
-                  { key: 'conscientiousness', label: 'Conscientiousness', description: 'Organized, reliable' },
-                  { key: 'extraversion', label: 'Extraversion', description: 'Outgoing, energetic' },
-                  { key: 'agreeableness', label: 'Agreeableness', description: 'Cooperative, trusting' },
-                  { key: 'neuroticism', label: 'Neuroticism', description: 'Emotional stability (inverted)' },
-                ].map((trait, i) => (
-                  <div key={i}>
-                    <div className="flex justify-between text-sm mb-1">
-                      <div>
-                        <span className="font-medium">{trait.label}</span>
-                        <span className="text-muted-foreground ml-2 text-xs">{trait.description}</span>
+                {Object.keys(candidate.personalityProfile).length > 0 ? (
+                  [
+                    { key: 'openness', label: 'Openness', description: 'Creative, curious' },
+                    { key: 'conscientiousness', label: 'Conscientiousness', description: 'Organized, reliable' },
+                    { key: 'extraversion', label: 'Extraversion', description: 'Outgoing, energetic' },
+                    { key: 'agreeableness', label: 'Agreeableness', description: 'Cooperative, trusting' },
+                    { key: 'neuroticism', label: 'Neuroticism', description: 'Emotional stability (inverted)' },
+                  ].map((trait) => {
+                    const value = candidate.personalityProfile[trait.key as keyof typeof candidate.personalityProfile]
+                    if (typeof value !== 'number') return null
+                    return (
+                      <div key={trait.key}>
+                        <div className="flex justify-between text-sm mb-1">
+                          <div>
+                            <span className="font-medium">{trait.label}</span>
+                            <span className="text-muted-foreground ml-2 text-xs">{trait.description}</span>
+                          </div>
+                          <span className="font-semibold">
+                            {value}%
+                          </span>
+                        </div>
+                        <Progress value={value} className="h-2" />
                       </div>
-                      <span className="font-semibold">
-                        {candidate.personalityProfile[trait.key as keyof typeof candidate.personalityProfile]}%
-                      </span>
-                    </div>
-                    <Progress
-                      value={candidate.personalityProfile[trait.key as keyof typeof candidate.personalityProfile]}
-                      className="h-2"
-                    />
-                  </div>
-                ))}
+                    )
+                  })
+                ) : (
+                  <div className="text-sm text-muted-foreground">No personality profile yet.</div>
+                )}
               </CardContent>
             </Card>
 
@@ -1304,23 +1575,31 @@ export default function CandidateProfilePage() {
                 <div>
                   <h4 className="text-sm font-medium text-green-600 mb-2">Strengths</h4>
                   <ul className="space-y-2">
-                    {candidate.teamFitStrengths.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
-                        <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                        {item}
-                      </li>
-                    ))}
+                    {candidate.teamFitStrengths.length > 0 ? (
+                      candidate.teamFitStrengths.map((item, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
+                          <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-sm text-muted-foreground">No strengths captured yet.</li>
+                    )}
                   </ul>
                 </div>
                 <div>
                   <h4 className="text-sm font-medium text-amber-600 mb-2">Considerations</h4>
                   <ul className="space-y-2">
-                    {candidate.teamFitConsiderations.map((item, i) => (
-                      <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
-                        <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
-                        {item}
-                      </li>
-                    ))}
+                    {candidate.teamFitConsiderations.length > 0 ? (
+                      candidate.teamFitConsiderations.map((item, i) => (
+                        <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
+                          <AlertTriangle className="h-4 w-4 text-amber-500 mt-0.5 flex-shrink-0" />
+                          {item}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="text-sm text-muted-foreground">No considerations captured yet.</li>
+                    )}
                   </ul>
                 </div>
               </CardContent>
@@ -1360,19 +1639,29 @@ export default function CandidateProfilePage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex items-center gap-4 mb-4">
-                    <Badge className="text-lg px-4 py-2 bg-green-500">
-                      <ThumbsUp className="h-5 w-5 mr-2" />
-                      {candidate.recommendation}
-                    </Badge>
-                    <div>
-                      <div className="text-sm text-muted-foreground">Confidence</div>
-                      <div className="text-xl font-bold">{candidate.recommendationConfidence}%</div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-foreground leading-relaxed">
-                    {candidate.recommendationSummary}
-                  </p>
+                  {candidate.recommendation || candidate.recommendationSummary ? (
+                    <>
+                      <div className="flex items-center gap-4 mb-4">
+                        <Badge className="text-lg px-4 py-2 bg-green-500">
+                          <ThumbsUp className="h-5 w-5 mr-2" />
+                          {(candidate.recommendation || 'PENDING').replace(/_/g, ' ')}
+                        </Badge>
+                        {typeof candidate.recommendationConfidence === 'number' && (
+                          <div>
+                            <div className="text-sm text-muted-foreground">Confidence</div>
+                            <div className="text-xl font-bold">{candidate.recommendationConfidence}%</div>
+                          </div>
+                        )}
+                      </div>
+                      {candidate.recommendationSummary && (
+                        <p className="text-sm text-foreground leading-relaxed">
+                          {candidate.recommendationSummary}
+                        </p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">No BlueAI recommendation yet.</p>
+                  )}
                 </CardContent>
               </Card>
 
@@ -1384,12 +1673,16 @@ export default function CandidateProfilePage() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
-                      {candidate.recommendationStrengths.map((item, i) => (
-                        <li key={i} className="flex items-start gap-2 text-sm">
-                          <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
-                          {item}
-                        </li>
-                      ))}
+                      {candidate.recommendationStrengths.length > 0 ? (
+                        candidate.recommendationStrengths.map((item, i) => (
+                          <li key={i} className="flex items-start gap-2 text-sm">
+                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))
+                      ) : (
+                        <li className="text-sm text-muted-foreground">No strengths available yet.</li>
+                      )}
                     </ul>
                   </CardContent>
                 </Card>
@@ -1400,17 +1693,21 @@ export default function CandidateProfilePage() {
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-3">
-                      {candidate.recommendationRisks.map((item, i) => (
-                        <li key={i} className="text-sm">
-                          <div className="flex items-start gap-2 text-amber-700">
-                            <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                            {item.risk}
-                          </div>
-                          <div className="ml-6 text-muted-foreground text-xs mt-1">
-                            Mitigation: {item.mitigation}
-                          </div>
-                        </li>
-                      ))}
+                      {candidate.recommendationRisks.length > 0 ? (
+                        candidate.recommendationRisks.map((item, i) => (
+                          <li key={i} className="text-sm">
+                            <div className="flex items-start gap-2 text-amber-700">
+                              <AlertTriangle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                              {item.risk}
+                            </div>
+                            <div className="ml-6 text-muted-foreground text-xs mt-1">
+                              Mitigation: {item.mitigation}
+                            </div>
+                          </li>
+                        ))
+                      ) : (
+                        <li className="text-sm text-muted-foreground">No risks logged yet.</li>
+                      )}
                     </ul>
                   </CardContent>
                 </Card>
@@ -1463,7 +1760,11 @@ export default function CandidateProfilePage() {
                     onChange={(e) => setDecisionNotes(e.target.value)}
                     className="min-h-[100px]"
                   />
-                  <Button className="mt-4 w-full" disabled={!selectedDecision}>
+                  <Button
+                    className="mt-4 w-full"
+                    disabled={!selectedDecision || actionInFlight === 'decision'}
+                    onClick={handleSubmitDecision}
+                  >
                     Submit Decision
                   </Button>
                 </CardContent>
@@ -1478,18 +1779,29 @@ export default function CandidateProfilePage() {
                   <CardTitle className="text-base">Score Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-sm text-muted-foreground">Application Score</span>
-                    <span className="font-semibold text-green-600">{candidate.score}</span>
-                  </div>
-                  <div className="flex justify-between py-2 border-b">
-                    <span className="text-sm text-muted-foreground">PRESS Values Avg</span>
-                    <span className="font-semibold">{candidate.pressValuesAvg}%</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span className="text-sm text-muted-foreground">BlueAI Confidence</span>
-                    <span className="font-semibold">{candidate.recommendationConfidence}%</span>
-                  </div>
+                  {typeof candidate.score === 'number' && (
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-sm text-muted-foreground">Application Score</span>
+                      <span className="font-semibold text-green-600">{candidate.score}</span>
+                    </div>
+                  )}
+                  {typeof candidate.pressValuesAvg === 'number' && (
+                    <div className="flex justify-between py-2 border-b">
+                      <span className="text-sm text-muted-foreground">PRESS Values Avg</span>
+                      <span className="font-semibold">{candidate.pressValuesAvg}%</span>
+                    </div>
+                  )}
+                  {typeof candidate.recommendationConfidence === 'number' && (
+                    <div className="flex justify-between py-2">
+                      <span className="text-sm text-muted-foreground">BlueAI Confidence</span>
+                      <span className="font-semibold">{candidate.recommendationConfidence}%</span>
+                    </div>
+                  )}
+                  {typeof candidate.score !== 'number' &&
+                    typeof candidate.pressValuesAvg !== 'number' &&
+                    typeof candidate.recommendationConfidence !== 'number' && (
+                      <div className="text-sm text-muted-foreground">No scoring summary yet.</div>
+                    )}
                 </CardContent>
               </Card>
 
@@ -1499,15 +1811,28 @@ export default function CandidateProfilePage() {
                   <CardTitle className="text-base">Quick Actions</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button
+                    className="w-full justify-start"
+                    disabled={actionInFlight === 'advance'}
+                    onClick={() => handleStageUpdate('OFFER', 'Candidate moved to Offer')}
+                  >
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Advance to Offer
                   </Button>
-                  <Button variant="outline" className="w-full justify-start">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={() => setScheduleDialogOpen(true)}
+                  >
                     <Calendar className="h-4 w-4 mr-2" />
                     Schedule Final Interview
                   </Button>
-                  <Button variant="outline" className="w-full justify-start text-red-600 hover:text-red-700">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-red-600 hover:text-red-700"
+                    disabled={actionInFlight === 'reject'}
+                    onClick={() => handleStageUpdate('REJECTED', 'Candidate marked as rejected')}
+                  >
                     <ThumbsDown className="h-4 w-4 mr-2" />
                     Send Rejection
                   </Button>
@@ -1518,6 +1843,12 @@ export default function CandidateProfilePage() {
         </TabsContent>
       </Tabs>
 
+      <ScheduleInterviewDialog
+        open={scheduleDialogOpen}
+        onOpenChange={setScheduleDialogOpen}
+        candidateId={candidateId}
+        jobId={candidate.job?.id}
+      />
     </div>
   )
 }

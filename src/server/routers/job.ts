@@ -510,14 +510,28 @@ export const jobRouter = router({
         score: z.number().min(0).max(100).optional().nullable(),
         source: z.string().optional().nullable(),
         notes: z.string().optional().nullable(),
+        decisionStatus: z.enum(['PENDING', 'HIRE', 'HOLD', 'NO_HIRE']).optional(),
+        decisionNotes: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...data } = input
+      const { id, decisionStatus, decisionNotes, ...data } = input
+      const updateData: Record<string, unknown> = { ...data }
+
+      if (decisionStatus) {
+        updateData.decisionStatus = decisionStatus
+        updateData.decisionNotes = decisionNotes ?? null
+        updateData.decisionAt = new Date()
+        if (ctx.user?.employeeId) {
+          updateData.decisionBy = ctx.user.employeeId
+        }
+      } else if (decisionNotes !== undefined) {
+        updateData.decisionNotes = decisionNotes
+      }
 
       return ctx.prisma.jobCandidate.update({
         where: { id },
-        data,
+        data: updateData,
       })
     }),
 

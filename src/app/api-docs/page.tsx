@@ -404,9 +404,20 @@ export default function ApiDocsPage() {
                   <span className="text-muted-foreground">— fetch candidate</span>
                 </div>
                 <div className="flex items-center gap-2">
+                  <Badge variant="secondary">GET</Badge>
+                  <code>/api/recruiting/candidates/:id/export</code>
+                  <span className="text-muted-foreground">— export candidate profile PDF</span>
+                </div>
+                <div className="flex items-center gap-2">
                   <Badge className="bg-amber-600">PATCH</Badge>
                   <code>/api/v1/candidates/:id/stage</code>
                   <span className="text-muted-foreground">— update candidate stage</span>
+                </div>
+                <div className="rounded border border-border/60 bg-muted/40 p-3 text-xs text-foreground/80">
+                  <div className="font-semibold text-foreground">PDF export</div>
+                  <div>GET `/api/recruiting/candidates/:id/export` returns a PDF stream.</div>
+                  <div>Auth: signed-in session (cookies). Response: `application/pdf`.</div>
+                  <div>Errors: 401 unauthenticated, 404 candidate not found.</div>
                 </div>
               </div>
 
@@ -436,6 +447,26 @@ export default function ApiDocsPage() {
                   <code>/api/v1/interview-rubrics</code>
                   <span className="text-muted-foreground">— create rubric</span>
                 </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-semibold">Recruiting Settings (tRPC)</h4>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-amber-600">POST</Badge>
+                  <code>/api/trpc/recruitingSettings.update</code>
+                  <span className="text-muted-foreground">— update recruiting settings</span>
+                </div>
+              </div>
+
+              <div className="rounded bg-gray-900 p-3 text-xs text-gray-100">
+                <pre>{`// Candidate score weights (tRPC input)
+{
+  "candidateScoreWeights": [
+    { "id": "experienceMatchScore", "label": "Experience Match", "weight": 20, "enabled": true },
+    { "id": "skillsMatchScore", "label": "Skills Match", "weight": 20, "enabled": true },
+    { "id": "interviewAverage", "label": "Interview Average", "weight": 20, "enabled": true }
+  ]
+}`}</pre>
               </div>
 
               <div className="rounded bg-gray-900 p-3 text-xs text-gray-100">
