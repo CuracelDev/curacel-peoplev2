@@ -59,6 +59,7 @@ import {
 import { cn, getInitials } from '@/lib/utils'
 import { format, formatDistanceToNow } from 'date-fns'
 import { RescheduleDialog } from '@/components/recruiting/reschedule-dialog'
+import { AddInterviewerDialog } from '@/components/recruiting/add-interviewer-dialog'
 
 // Rating scale component
 function RatingScale({
@@ -156,6 +157,9 @@ export default function InterviewDetailPage() {
   const [copiedLink, setCopiedLink] = useState(false)
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [addInterviewerDialogOpen, setAddInterviewerDialogOpen] = useState(false)
+  const [removeInterviewerDialogOpen, setRemoveInterviewerDialogOpen] = useState(false)
+  const [interviewerToRemove, setInterviewerToRemove] = useState<{ email: string; name: string } | null>(null)
 
   // Fetch interview data
   const {
@@ -191,6 +195,18 @@ export default function InterviewDetailPage() {
     },
     onError: (error) => {
       toast.error('Failed to cancel interview', { description: error.message })
+    },
+  })
+
+  const removeInterviewerMutation = trpc.interview.removeInterviewer.useMutation({
+    onSuccess: () => {
+      toast.success('Interviewer removed')
+      setRemoveInterviewerDialogOpen(false)
+      setInterviewerToRemove(null)
+      utils.interview.get.invalidate({ id: interviewId })
+    },
+    onError: (error) => {
+      toast.error('Failed to remove interviewer', { description: error.message })
     },
   })
 
@@ -260,6 +276,20 @@ export default function InterviewDetailPage() {
     } else {
       toast.error('No meeting link available')
     }
+  }
+
+  const handleRemoveInterviewer = () => {
+    if (interviewerToRemove) {
+      removeInterviewerMutation.mutate({
+        interviewId,
+        email: interviewerToRemove.email,
+      })
+    }
+  }
+
+  const openRemoveInterviewerDialog = (email: string, name: string) => {
+    setInterviewerToRemove({ email, name })
+    setRemoveInterviewerDialogOpen(true)
   }
 
   // Loading state
@@ -698,7 +728,7 @@ export default function InterviewDetailPage() {
             <h3 className="font-semibold">
               {interviewers.length} Interviewer{interviewers.length !== 1 ? 's' : ''}
             </h3>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" onClick={() => setAddInterviewerDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Add Interviewer
             </Button>
@@ -846,6 +876,10 @@ export default function InterviewDetailPage() {
                             variant="ghost"
                             size="sm"
                             className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              openRemoveInterviewerDialog(interviewer.email, interviewer.name)
+                            }}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
                             Remove
@@ -865,7 +899,7 @@ export default function InterviewDetailPage() {
                 <p className="text-muted-foreground mb-4">
                   Add interviewers to collect their feedback on this candidate.
                 </p>
-                <Button>
+                <Button onClick={() => setAddInterviewerDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Interviewer
                 </Button>
@@ -902,6 +936,36 @@ export default function InterviewDetailPage() {
             >
               {cancelMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Cancel Interview
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Add Interviewer Dialog */}
+      <AddInterviewerDialog
+        open={addInterviewerDialogOpen}
+        onOpenChange={setAddInterviewerDialogOpen}
+        interviewId={interviewId}
+      />
+
+      {/* Remove Interviewer Confirmation Dialog */}
+      <AlertDialog open={removeInterviewerDialogOpen} onOpenChange={setRemoveInterviewerDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove Interviewer</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to remove {interviewerToRemove?.name} as an interviewer?
+              Their feedback link will be revoked.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Interviewer</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleRemoveInterviewer}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {removeInterviewerMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Remove Interviewer
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
