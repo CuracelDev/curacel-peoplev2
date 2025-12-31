@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import {
@@ -35,6 +35,7 @@ import {
   AlertCircle,
   HelpCircle,
   Mic,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -44,9 +45,11 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
 import { cn, getInitials } from '@/lib/utils'
+import { trpc } from '@/lib/trpc-client'
+import { format } from 'date-fns'
 
-// Mock candidate data - James Okafor full profile
-const candidate = {
+// Fallback mock candidate data - James Okafor full profile
+const mockCandidate = {
   id: '1',
   name: 'James Okafor',
   email: 'james.okafor@email.com',
@@ -365,6 +368,146 @@ export default function CandidateProfilePage() {
   const [activeTab, setActiveTab] = useState('overview')
   const [decisionNotes, setDecisionNotes] = useState('')
   const [selectedDecision, setSelectedDecision] = useState<string | null>(null)
+
+  // Fetch candidate profile from database
+  const { data: profileData, isLoading } = trpc.job.getCandidateProfile.useQuery(
+    { candidateId },
+    { enabled: !!candidateId }
+  )
+
+  // Map database data to UI format, falling back to mock data
+  const candidate = useMemo(() => {
+    if (!profileData?.candidate) return mockCandidate
+
+    const c = profileData.candidate
+    const evalSummary = profileData.evaluationSummary
+
+    // Parse JSON fields with type safety
+    const workExperience = (c.workExperience as typeof mockCandidate.workExperience) || mockCandidate.workExperience
+    const education = (c.education as typeof mockCandidate.education) || mockCandidate.education
+    const skills = (c.skills as typeof mockCandidate.skills) || mockCandidate.skills
+    const pressValuesScores = c.pressValuesScores as Record<string, number> | null
+    const competencyScores = (c.competencyScores as typeof mockCandidate.competencyScores) || mockCandidate.competencyScores
+    const personalityProfile = (c.personalityProfile as typeof mockCandidate.personalityProfile) || mockCandidate.personalityProfile
+    const teamFitAnalysis = c.teamFitAnalysis as { strengths?: string[]; considerations?: string[] } | null
+    const aiSummary = (c.aiSummary as typeof mockCandidate.aiSummary) || mockCandidate.aiSummary
+
+    // Map PRESS values from scores object to array format
+    const pressValues = pressValuesScores ? [
+      { letter: 'P', name: 'Passionate', score: Math.round((pressValuesScores.passionate || 0) * 20), rating: pressValuesScores.passionate >= 4 ? 'Strong' : 'Moderate' },
+      { letter: 'R', name: 'Relentless', score: Math.round((pressValuesScores.relentless || 0) * 20), rating: pressValuesScores.relentless >= 4 ? 'Strong' : 'Moderate' },
+      { letter: 'E', name: 'Empowered', score: Math.round((pressValuesScores.empowered || 0) * 20), rating: pressValuesScores.empowered >= 4 ? 'Strong' : 'Moderate' },
+      { letter: 'S', name: 'Sense of Urgency', score: Math.round((pressValuesScores.senseOfUrgency || 0) * 20), rating: pressValuesScores.senseOfUrgency >= 4 ? 'Strong' : 'Moderate' },
+      { letter: 'S', name: 'Seeing Possibilities', score: Math.round((pressValuesScores.seeingPossibilities || 0) * 20), rating: pressValuesScores.seeingPossibilities >= 4 ? 'Strong' : 'Moderate' },
+    ] : mockCandidate.pressValues
+
+    const pressValuesAvg = pressValues.reduce((sum, v) => sum + v.score, 0) / pressValues.length
+
+    // Build interview evaluations from database
+    const interviewEvaluations = (evalSummary?.byStage || []).map(stage => ({
+      stage: stage.stageName,
+      stageType: stage.stage,
+      date: 'Recent',
+      overallScore: stage.averageScore || 0,
+      evaluators: stage.evaluators.map(e => ({
+        name: e.name,
+        role: e.role || 'Interviewer',
+        overallRating: e.overallRating || 0,
+        recommendation: e.recommendation || 'PENDING',
+        notes: e.notes || '',
+        criteria: e.criteriaScores.map(cs => ({
+          name: cs.name,
+          score: cs.score,
+          maxScore: 5,
+          notes: cs.notes || '',
+        })),
+      })),
+    }))
+
+    // Build score breakdown from interview scores
+    const scoreBreakdown = [
+      { label: 'Application', score: c.score || 0 },
+      ...interviewEvaluations.map(ie => ({
+        label: ie.stage,
+        score: ie.overallScore,
+      })),
+    ]
+
+    // Build stage timeline from interviews
+    const stageTimeline = [
+      {
+        name: 'Applied',
+        score: c.score || 0,
+        date: c.appliedAt ? format(new Date(c.appliedAt), 'MMM d, yyyy') : 'Unknown',
+        status: 'completed' as const,
+      },
+      ...profileData.interviews.map((interview, idx) => ({
+        name: interview.stageName || interview.stage,
+        score: interview.score || null,
+        date: interview.scheduledAt ? format(new Date(interview.scheduledAt), 'MMM d, yyyy') : 'Pending',
+        status: interview.status === 'COMPLETED' ? 'completed' as const :
+                interview.status === 'SCHEDULED' ? 'current' as const : 'upcoming' as const,
+      })),
+    ]
+
+    return {
+      id: c.id,
+      name: c.name,
+      email: c.email,
+      phone: c.phone || mockCandidate.phone,
+      linkedinUrl: c.linkedinUrl || mockCandidate.linkedinUrl,
+      currentRole: workExperience[0]?.title || mockCandidate.currentRole,
+      currentCompany: workExperience[0]?.company || mockCandidate.currentCompany,
+      yearsOfExperience: workExperience.length > 0 ? workExperience.length + 3 : mockCandidate.yearsOfExperience,
+      location: c.location || mockCandidate.location,
+      position: profileData.candidate.job?.title || mockCandidate.position,
+      stage: c.stageDisplayName || c.stage,
+      score: c.score || mockCandidate.score,
+      scoreChange: mockCandidate.scoreChange,
+      appliedDate: c.appliedAt ? format(new Date(c.appliedAt), 'MMM d, yyyy') : mockCandidate.appliedDate,
+      color: 'bg-green-500',
+      mbtiType: mockCandidate.mbtiType,
+      experienceMatchScore: c.experienceMatchScore || mockCandidate.experienceMatchScore,
+      skillsMatchScore: c.skillsMatchScore || mockCandidate.skillsMatchScore,
+      domainFitScore: c.domainFitScore || mockCandidate.domainFitScore,
+      educationScore: c.educationScore || mockCandidate.educationScore,
+      scoreExplanation: c.scoreExplanation || mockCandidate.scoreExplanation,
+      resumeSummary: c.resumeSummary || c.bio || mockCandidate.resumeSummary,
+      workExperience,
+      education,
+      skills,
+      whyCuracel: c.coverLetter || mockCandidate.whyCuracel,
+      salaryExpMin: c.salaryExpectationMin || mockCandidate.salaryExpMin,
+      salaryExpMax: c.salaryExpectationMax || mockCandidate.salaryExpMax,
+      noticePeriod: c.noticePeriod || mockCandidate.noticePeriod,
+      aiSummary,
+      scoreBreakdown: scoreBreakdown.length > 1 ? scoreBreakdown : mockCandidate.scoreBreakdown,
+      pressValues,
+      pressValuesAvg: Math.round(pressValuesAvg),
+      competencyScores,
+      personalityProfile,
+      teamFitStrengths: teamFitAnalysis?.strengths || mockCandidate.teamFitStrengths,
+      teamFitConsiderations: teamFitAnalysis?.considerations || mockCandidate.teamFitConsiderations,
+      stageTimeline: stageTimeline.length > 1 ? stageTimeline : mockCandidate.stageTimeline,
+      mustValidate: c.mustValidate || mockCandidate.mustValidate,
+      documents: profileData.documents || mockCandidate.documents,
+      recommendation: evalSummary?.recommendation || mockCandidate.recommendation,
+      recommendationConfidence: evalSummary?.aiRecommendation?.confidence || mockCandidate.recommendationConfidence,
+      recommendationSummary: evalSummary?.aiRecommendation?.summary || mockCandidate.recommendationSummary,
+      recommendationStrengths: evalSummary?.aiRecommendation?.strengths || mockCandidate.recommendationStrengths,
+      recommendationRisks: evalSummary?.aiRecommendation?.risks || mockCandidate.recommendationRisks,
+      decisionStatus: c.decisionStatus || mockCandidate.decisionStatus,
+      interviewEvaluations: interviewEvaluations.length > 0 ? interviewEvaluations : mockCandidate.interviewEvaluations,
+    }
+  }, [profileData])
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+      </div>
+    )
+  }
 
   return (
     <div className="p-3 sm:p-6">
