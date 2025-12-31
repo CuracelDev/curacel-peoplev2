@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -29,12 +30,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet'
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -57,11 +52,8 @@ import {
   Code,
   Brain,
   Briefcase,
-  Calendar,
-  Clock,
-  CheckCircle,
-  X,
   Plus,
+  Copy,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -95,10 +87,10 @@ const recommendationConfig: Record<string, { label: string; color: string }> = {
 type Assessment = NonNullable<ReturnType<typeof trpc.assessment.list.useQuery>['data']>[number]
 
 export default function AssessmentsPage() {
+  const router = useRouter()
   const [activeFilter, setActiveFilter] = useState('all')
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
-  const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null)
   const [sendDialogOpen, setSendDialogOpen] = useState(false)
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>('')
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
@@ -164,6 +156,16 @@ export default function AssessmentsPage() {
     },
   })
 
+  const copyLink = trpc.assessment.copyLink.useMutation({
+    onSuccess: (data) => {
+      navigator.clipboard.writeText(data.url)
+      toast.success('Assessment link copied to clipboard')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to copy link')
+    },
+  })
+
   const handleSendAssessment = () => {
     if (!selectedCandidateId || !selectedTemplateId) {
       toast.error('Please select a candidate and assessment template')
@@ -177,6 +179,10 @@ export default function AssessmentsPage() {
 
   const handleResendInvite = (assessmentId: string) => {
     resendInvite.mutate({ id: assessmentId })
+  }
+
+  const handleCopyLink = (assessmentId: string) => {
+    copyLink.mutate({ id: assessmentId })
   }
 
   // Filter types for display
@@ -305,7 +311,7 @@ export default function AssessmentsPage() {
                     <TableRow
                       key={assessment.id}
                       className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => setSelectedAssessment(assessment)}
+                      onClick={() => router.push(`/recruiting/assessments/${assessment.id}`)}
                     >
                       <TableCell className="py-4">
                         <div className="flex items-center gap-3">
@@ -374,29 +380,41 @@ export default function AssessmentsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setSelectedAssessment(assessment)}>
-                              <Eye className="h-4 w-4 mr-2" />
-                              View Details
+                            <DropdownMenuItem asChild>
+                              <Link href={`/recruiting/assessments/${assessment.id}`}>
+                                <Eye className="h-4 w-4 mr-2" />
+                                View Details
+                              </Link>
                             </DropdownMenuItem>
                             {assessment.template.externalUrl && (
-                              <DropdownMenuItem>
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Open Assessment
+                              <DropdownMenuItem asChild>
+                                <a href={assessment.template.externalUrl} target="_blank" rel="noopener noreferrer">
+                                  <ExternalLink className="h-4 w-4 mr-2" />
+                                  Open Assessment
+                                </a>
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleResendInvite(assessment.id)
-                              }}
-                            >
-                              <Send className="h-4 w-4 mr-2" />
-                              Resend Invite
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
-                              <Upload className="h-4 w-4 mr-2" />
-                              Upload Result
-                            </DropdownMenuItem>
+                            {assessment.template.emailSubject && assessment.template.emailBody ? (
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleResendInvite(assessment.id)
+                                }}
+                              >
+                                <Send className="h-4 w-4 mr-2" />
+                                Resend Invite
+                              </DropdownMenuItem>
+                            ) : (
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleCopyLink(assessment.id)
+                                }}
+                              >
+                                <Copy className="h-4 w-4 mr-2" />
+                                Copy Assessment Link
+                              </DropdownMenuItem>
+                            )}
                             {assessment.template.type === 'WORK_TRIAL' && (
                               <DropdownMenuItem>
                                 <RefreshCw className="h-4 w-4 mr-2" />
@@ -414,183 +432,6 @@ export default function AssessmentsPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Assessment Detail Sheet */}
-      <Sheet open={!!selectedAssessment} onOpenChange={(open) => !open && setSelectedAssessment(null)}>
-        <SheetContent className="sm:max-w-lg overflow-y-auto">
-          {selectedAssessment && (() => {
-            const type = typeConfig[selectedAssessment.template.type] || typeConfig.CUSTOM
-            const status = statusConfig[selectedAssessment.status] || statusConfig.NOT_STARTED
-            const recommendation = selectedAssessment.recommendation
-              ? recommendationConfig[selectedAssessment.recommendation]
-              : null
-            const TypeIcon = type.icon
-
-            return (
-              <>
-                <SheetHeader className="pb-4 border-b">
-                  <div className="flex items-start gap-3">
-                    <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                      <User className="h-6 w-6 text-muted-foreground" />
-                    </div>
-                    <div>
-                      <SheetTitle className="text-lg">
-                        {selectedAssessment.candidate?.name || 'Unknown'}
-                      </SheetTitle>
-                      <p className="text-sm text-muted-foreground">
-                        {selectedAssessment.candidate?.job?.title || 'No position'}
-                      </p>
-                    </div>
-                  </div>
-                </SheetHeader>
-
-                <div className="py-6 space-y-6">
-                  {/* Assessment Info */}
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Assessment</h4>
-                    <div className="p-4 bg-muted/50 rounded-lg space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Name</span>
-                        <span className="font-medium">{selectedAssessment.template.name}</span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Type</span>
-                        <Badge className={cn('font-normal', type.color)}>
-                          <TypeIcon className="h-3 w-3 mr-1" />
-                          {type.label}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Status</span>
-                        <Badge className={cn('font-normal', status.color)}>
-                          {status.label}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Score & Recommendation */}
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Results</h4>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="p-4 bg-muted/50 rounded-lg text-center">
-                        <div className="text-sm text-muted-foreground mb-1">Score</div>
-                        <div className={cn('text-2xl font-bold', getScoreColor(selectedAssessment.overallScore))}>
-                          {selectedAssessment.overallScore !== null ? `${selectedAssessment.overallScore}%` : '-'}
-                        </div>
-                      </div>
-                      <div className="p-4 bg-muted/50 rounded-lg text-center">
-                        <div className="text-sm text-muted-foreground mb-1">Recommendation</div>
-                        {recommendation ? (
-                          <Badge className={cn('font-normal text-base px-3 py-1', recommendation.color)}>
-                            {recommendation.label}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Timeline */}
-                  <div>
-                    <h4 className="text-sm font-medium text-muted-foreground mb-3">Timeline</h4>
-                    <div className="space-y-3">
-                      <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <div className="flex-1">
-                          <div className="text-sm text-muted-foreground">Invite Sent</div>
-                          <div className="font-medium">
-                            {selectedAssessment.inviteSentAt
-                              ? format(new Date(selectedAssessment.inviteSentAt), 'MMM d, yyyy \'at\' h:mm a')
-                              : 'Not sent yet'}
-                          </div>
-                        </div>
-                      </div>
-                      {selectedAssessment.startedAt && (
-                        <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
-                          <Clock className="h-4 w-4 text-muted-foreground" />
-                          <div className="flex-1">
-                            <div className="text-sm text-muted-foreground">Started</div>
-                            <div className="font-medium">
-                              {format(new Date(selectedAssessment.startedAt), 'MMM d, yyyy \'at\' h:mm a')}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {selectedAssessment.completedAt && (
-                        <div className="flex items-center gap-3 p-3 bg-green-50 rounded-lg">
-                          <CheckCircle className="h-4 w-4 text-green-600" />
-                          <div className="flex-1">
-                            <div className="text-sm text-green-700">Completed</div>
-                            <div className="font-medium text-green-800">
-                              {format(new Date(selectedAssessment.completedAt), 'MMM d, yyyy \'at\' h:mm a')}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      {selectedAssessment.expiresAt && !selectedAssessment.completedAt && (
-                        <div className="flex items-center gap-3 p-3 bg-amber-50 rounded-lg">
-                          <Clock className="h-4 w-4 text-amber-600" />
-                          <div className="flex-1">
-                            <div className="text-sm text-amber-700">Expires</div>
-                            <div className="font-medium text-amber-800">
-                              {format(new Date(selectedAssessment.expiresAt), 'MMM d, yyyy \'at\' h:mm a')}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Notes */}
-                  {selectedAssessment.notes && (
-                    <div>
-                      <h4 className="text-sm font-medium text-muted-foreground mb-3">Notes</h4>
-                      <div className="p-4 bg-muted/50 rounded-lg">
-                        <p className="text-sm whitespace-pre-wrap">{selectedAssessment.notes}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Actions */}
-                  <div className="pt-4 border-t space-y-3">
-                    <Button asChild className="w-full">
-                      <Link href={`/recruiting/candidates/${selectedAssessment.candidateId}`}>
-                        <User className="h-4 w-4 mr-2" />
-                        View Candidate Profile
-                      </Link>
-                    </Button>
-                    {selectedAssessment.template.externalUrl && (
-                      <Button variant="outline" className="w-full" asChild>
-                        <a href={selectedAssessment.template.externalUrl} target="_blank" rel="noopener noreferrer">
-                          <ExternalLink className="h-4 w-4 mr-2" />
-                          Open Assessment Platform
-                        </a>
-                      </Button>
-                    )}
-                    {selectedAssessment.status !== 'COMPLETED' && (
-                      <Button
-                        variant="outline"
-                        className="w-full"
-                        onClick={() => handleResendInvite(selectedAssessment.id)}
-                        disabled={resendInvite.isPending}
-                      >
-                        {resendInvite.isPending ? (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        ) : (
-                          <Send className="h-4 w-4 mr-2" />
-                        )}
-                        Resend Invite
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </>
-            )
-          })()}
-        </SheetContent>
-      </Sheet>
 
       {/* Send Assessment Dialog */}
       <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
