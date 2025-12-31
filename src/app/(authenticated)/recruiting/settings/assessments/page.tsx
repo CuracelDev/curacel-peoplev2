@@ -8,9 +8,6 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Switch } from '@/components/ui/switch'
-import { Slider } from '@/components/ui/slider'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Dialog,
@@ -19,7 +16,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
 import {
   Select,
@@ -44,12 +40,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from '@/components/ui/accordion'
-import {
   Code,
   Sparkles,
   Brain,
@@ -65,36 +55,43 @@ import {
   Clock,
   Target,
   Wand2,
-  Settings2,
   Copy,
   Check,
-  GripVertical,
-  ChevronDown,
-  AlertCircle,
-  ExternalLink,
+  Search,
+  FileText,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
 type AssessmentType = 'CODING_TEST' | 'KANDI_IO' | 'PERSONALITY_MBTI' | 'PERSONALITY_BIG5' | 'WORK_TRIAL' | 'CUSTOM'
 
-const typeConfig: Record<AssessmentType, { label: string; icon: React.ComponentType<{ className?: string }> }> = {
-  CODING_TEST: { label: 'Coding Tests', icon: Code },
-  KANDI_IO: { label: 'Kandi.io', icon: Sparkles },
-  PERSONALITY_MBTI: { label: 'Personality (MBTI)', icon: Brain },
-  PERSONALITY_BIG5: { label: 'Personality (Big 5)', icon: Brain },
-  WORK_TRIAL: { label: 'Work Trial', icon: Briefcase },
-  CUSTOM: { label: 'Custom', icon: Briefcase },
+const typeConfig: Record<AssessmentType, { label: string; icon: React.ComponentType<{ className?: string }>; color: string }> = {
+  CODING_TEST: { label: 'Coding Test', icon: Code, color: 'bg-blue-100 text-blue-800' },
+  KANDI_IO: { label: 'Kandi.io', icon: Sparkles, color: 'bg-purple-100 text-purple-800' },
+  PERSONALITY_MBTI: { label: 'MBTI', icon: Brain, color: 'bg-pink-100 text-pink-800' },
+  PERSONALITY_BIG5: { label: 'Big 5', icon: Brain, color: 'bg-orange-100 text-orange-800' },
+  WORK_TRIAL: { label: 'Work Trial', icon: Briefcase, color: 'bg-green-100 text-green-800' },
+  CUSTOM: { label: 'Custom', icon: FileText, color: 'bg-gray-100 text-gray-800' },
 }
 
+const assessmentTypes: { key: AssessmentType; label: string; description: string }[] = [
+  { key: 'CODING_TEST', label: 'Coding Test', description: 'Technical coding challenges and assessments' },
+  { key: 'KANDI_IO', label: 'Kandi.io', description: 'Kandi.io assessment platform integration' },
+  { key: 'PERSONALITY_MBTI', label: 'Personality (MBTI)', description: 'Myers-Briggs Type Indicator assessment' },
+  { key: 'PERSONALITY_BIG5', label: 'Personality (Big 5)', description: 'Big Five personality traits assessment' },
+  { key: 'WORK_TRIAL', label: 'Work Trial', description: 'Paid or unpaid work trial period' },
+  { key: 'CUSTOM', label: 'Custom', description: 'Custom assessment or evaluation' },
+]
+
 export default function AssessmentSettingsPage() {
-  const [activeTab, setActiveTab] = useState<AssessmentType>('CODING_TEST')
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<string | null>(null)
   const [showAIDialog, setShowAIDialog] = useState(false)
   const [selectedTemplateForAI, setSelectedTemplateForAI] = useState<string | null>(null)
   const [generatedQuestions, setGeneratedQuestions] = useState<any[]>([])
   const [copiedWebhook, setCopiedWebhook] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [typeFilter, setTypeFilter] = useState<string>('all')
 
   // AI Generation settings
   const [aiSettings, setAISettings] = useState({
@@ -107,6 +104,7 @@ export default function AssessmentSettingsPage() {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    type: 'CODING_TEST' as AssessmentType,
     externalUrl: '',
     externalPlatform: '',
     durationMinutes: '',
@@ -118,13 +116,20 @@ export default function AssessmentSettingsPage() {
     teamId: '',
   })
 
-  // Fetch templates
-  const { data: templates, isLoading, refetch } = trpc.assessment.listTemplates.useQuery({
-    type: activeTab,
-  })
+  // Fetch ALL templates (no type filter in query)
+  const { data: templates, isLoading, refetch } = trpc.assessment.listTemplates.useQuery({})
 
   // Fetch teams for dropdown
   const { data: teams } = trpc.team.listForSelect.useQuery()
+
+  // Filter templates locally
+  const filteredTemplates = templates?.filter((template) => {
+    const matchesSearch = !searchQuery ||
+      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      template.description?.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesType = typeFilter === 'all' || template.type === typeFilter
+    return matchesSearch && matchesType
+  })
 
   // Mutations
   const createTemplate = trpc.assessment.createTemplate.useMutation({
@@ -132,20 +137,33 @@ export default function AssessmentSettingsPage() {
       setIsCreateDialogOpen(false)
       resetForm()
       refetch()
+      toast.success('Assessment template created')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to create template')
     },
   })
 
   const updateTemplate = trpc.assessment.updateTemplate.useMutation({
     onSuccess: () => {
       setEditingTemplate(null)
+      setIsCreateDialogOpen(false)
       resetForm()
       refetch()
+      toast.success('Assessment template updated')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to update template')
     },
   })
 
   const deleteTemplate = trpc.assessment.deleteTemplate.useMutation({
     onSuccess: () => {
       refetch()
+      toast.success('Template deleted')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete template')
     },
   })
 
@@ -176,6 +194,7 @@ export default function AssessmentSettingsPage() {
     setFormData({
       name: '',
       description: '',
+      type: 'CODING_TEST',
       externalUrl: '',
       externalPlatform: '',
       durationMinutes: '',
@@ -186,13 +205,14 @@ export default function AssessmentSettingsPage() {
       webhookUrl: '',
       teamId: '',
     })
+    setEditingTemplate(null)
   }
 
   const handleSubmit = () => {
     const data = {
       name: formData.name,
       description: formData.description || undefined,
-      type: activeTab,
+      type: formData.type,
       externalUrl: formData.externalUrl || undefined,
       externalPlatform: formData.externalPlatform || undefined,
       durationMinutes: formData.durationMinutes ? parseInt(formData.durationMinutes) : undefined,
@@ -215,6 +235,7 @@ export default function AssessmentSettingsPage() {
     setFormData({
       name: template.name,
       description: template.description || '',
+      type: template.type,
       externalUrl: template.externalUrl || '',
       externalPlatform: template.externalPlatform || '',
       durationMinutes: template.durationMinutes?.toString() || '',
@@ -261,336 +282,366 @@ export default function AssessmentSettingsPage() {
     setTimeout(() => setCopiedWebhook(false), 2000)
   }
 
-  const tabs: { key: AssessmentType; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-    { key: 'CODING_TEST', label: 'Coding Tests', icon: Code },
-    { key: 'KANDI_IO', label: 'Kandi.io', icon: Sparkles },
-    { key: 'PERSONALITY_MBTI', label: 'MBTI', icon: Brain },
-    { key: 'PERSONALITY_BIG5', label: 'Big 5', icon: Brain },
-    { key: 'WORK_TRIAL', label: 'Work Trial', icon: Briefcase },
-  ]
-
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold">Assessment Settings</h1>
-          <p className="text-sm text-muted-foreground">
-            Configure assessment templates for different evaluation types
-          </p>
-        </div>
-      </div>
+      {/* Templates Card */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+          <div>
+            <CardTitle>Assessment Templates</CardTitle>
+            <CardDescription>
+              Configure assessment templates for candidate evaluations
+            </CardDescription>
+          </div>
+          <Button onClick={() => {
+            resetForm()
+            setIsCreateDialogOpen(true)
+          }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Template
+          </Button>
+        </CardHeader>
+        <CardContent>
+          {/* Search and Filter */}
+          <div className="flex items-center gap-3 mb-4">
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search templates..."
+                className="pl-9"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+            <Select value={typeFilter} onValueChange={setTypeFilter}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Filter by type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                {assessmentTypes.map((type) => (
+                  <SelectItem key={type.key} value={type.key}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
 
-      {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as AssessmentType)}>
-        <TabsList className="grid grid-cols-5 w-full max-w-2xl">
-          {tabs.map((tab) => {
-            const Icon = tab.icon
-            return (
-              <TabsTrigger key={tab.key} value={tab.key} className="flex items-center gap-2">
-                <Icon className="h-4 w-4" />
-                <span className="hidden sm:inline">{tab.label}</span>
-              </TabsTrigger>
-            )
-          })}
-        </TabsList>
-
-        {tabs.map((tab) => (
-          <TabsContent key={tab.key} value={tab.key} className="mt-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle className="flex items-center gap-2">
-                    {(() => {
-                      const Icon = typeConfig[tab.key].icon
-                      return <Icon className="h-5 w-5" />
-                    })()}
-                    {typeConfig[tab.key].label} Templates
-                  </CardTitle>
-                  <CardDescription>
-                    Manage {tab.label.toLowerCase()} assessment templates
-                  </CardDescription>
-                </div>
-                <Dialog open={isCreateDialogOpen && activeTab === tab.key} onOpenChange={(open) => {
-                  setIsCreateDialogOpen(open)
-                  if (!open) {
-                    setEditingTemplate(null)
-                    resetForm()
-                  }
-                }}>
-                  <DialogTrigger asChild>
-                    <Button>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Template
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>
-                        {editingTemplate ? 'Edit' : 'Create'} {typeConfig[tab.key].label} Template
-                      </DialogTitle>
-                      <DialogDescription>
-                        Configure the assessment template settings
-                      </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                      {/* Basic Info */}
-                      <div className="grid gap-2">
-                        <Label htmlFor="name">Template Name *</Label>
-                        <Input
-                          id="name"
-                          placeholder="e.g., Backend Coding Challenge"
-                          value={formData.name}
-                          onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        />
-                      </div>
-                      <div className="grid gap-2">
-                        <Label htmlFor="description">Description</Label>
-                        <Textarea
-                          id="description"
-                          placeholder="Brief description of this assessment"
-                          value={formData.description}
-                          onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        />
-                      </div>
-
-                      {/* Team Assignment */}
-                      <div className="grid gap-2">
-                        <Label htmlFor="team">Team Assignment</Label>
-                        <Select
-                          value={formData.teamId || 'global'}
-                          onValueChange={(v) => setFormData({ ...formData, teamId: v === 'global' ? '' : v })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select team (or leave global)" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="global">Global (All Teams)</SelectItem>
-                            {teams?.map((team) => (
-                              <SelectItem key={team.id} value={team.id}>
-                                {team.name}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* External URL */}
-                      <div className="grid gap-2">
-                        <Label htmlFor="externalUrl" className="flex items-center gap-2">
-                          <LinkIcon className="h-4 w-4" />
-                          Assessment URL
-                        </Label>
-                        <Input
-                          id="externalUrl"
-                          placeholder="https://..."
-                          value={formData.externalUrl}
-                          onChange={(e) => setFormData({ ...formData, externalUrl: e.target.value })}
-                        />
-                      </div>
-
-                      {/* Duration & Passing Score */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                          <Label htmlFor="duration" className="flex items-center gap-2">
-                            <Clock className="h-4 w-4" />
-                            Duration (minutes)
-                          </Label>
-                          <Input
-                            id="duration"
-                            type="number"
-                            placeholder="60"
-                            value={formData.durationMinutes}
-                            onChange={(e) => setFormData({ ...formData, durationMinutes: e.target.value })}
-                          />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label htmlFor="passingScore" className="flex items-center gap-2">
-                            <Target className="h-4 w-4" />
-                            Passing Score (%)
-                          </Label>
-                          <Input
-                            id="passingScore"
-                            type="number"
-                            placeholder="70"
-                            value={formData.passingScore}
-                            onChange={(e) => setFormData({ ...formData, passingScore: e.target.value })}
-                          />
-                        </div>
-                      </div>
-
-                      {/* Instructions */}
-                      <div className="grid gap-2">
-                        <Label htmlFor="instructions">Instructions</Label>
-                        <Textarea
-                          id="instructions"
-                          placeholder="Instructions for candidates..."
-                          rows={3}
-                          value={formData.instructions}
-                          onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
-                        />
-                      </div>
-
-                      {/* Email Template */}
-                      <div className="border-t pt-4 mt-2">
-                        <h4 className="font-medium flex items-center gap-2 mb-3">
-                          <Mail className="h-4 w-4" />
-                          Email Template
-                        </h4>
-                        <div className="grid gap-4">
-                          <div className="grid gap-2">
-                            <Label htmlFor="emailSubject">Subject</Label>
-                            <Input
-                              id="emailSubject"
-                              placeholder="You're invited to complete an assessment"
-                              value={formData.emailSubject}
-                              onChange={(e) => setFormData({ ...formData, emailSubject: e.target.value })}
-                            />
-                          </div>
-                          <div className="grid gap-2">
-                            <Label htmlFor="emailBody">Body</Label>
-                            <Textarea
-                              id="emailBody"
-                              placeholder="Email body template..."
-                              rows={4}
-                              value={formData.emailBody}
-                              onChange={(e) => setFormData({ ...formData, emailBody: e.target.value })}
-                            />
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Webhook (for Coding Tests) */}
-                      {tab.key === 'CODING_TEST' && (
-                        <div className="border-t pt-4 mt-2">
-                          <h4 className="font-medium flex items-center gap-2 mb-3">
-                            <Webhook className="h-4 w-4" />
-                            Webhook Configuration
-                          </h4>
-                          <div className="grid gap-2">
-                            <Label htmlFor="webhookUrl">Webhook URL (for receiving results)</Label>
-                            <Input
-                              id="webhookUrl"
-                              placeholder="https://your-app.com/api/webhooks/assessment"
-                              value={formData.webhookUrl}
-                              onChange={(e) => setFormData({ ...formData, webhookUrl: e.target.value })}
-                            />
-                            <p className="text-xs text-muted-foreground">
-                              Results from external assessment tools will be sent to this URL
-                            </p>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    <DialogFooter>
-                      <Button variant="outline" onClick={() => {
-                        setIsCreateDialogOpen(false)
-                        setEditingTemplate(null)
-                        resetForm()
-                      }}>
-                        Cancel
-                      </Button>
-                      <Button
-                        onClick={handleSubmit}
-                        disabled={!formData.name || createTemplate.isPending || updateTemplate.isPending}
-                      >
-                        {(createTemplate.isPending || updateTemplate.isPending) && (
-                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        )}
-                        {editingTemplate ? 'Update' : 'Create'} Template
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
-              </CardHeader>
-              <CardContent>
-                {isLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                  </div>
-                ) : !templates?.length ? (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <p>No templates configured yet</p>
-                    <p className="text-sm">Create your first template to get started</p>
-                  </div>
-                ) : (
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Team</TableHead>
-                        <TableHead>Duration</TableHead>
-                        <TableHead>Passing Score</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {templates.map((template) => (
-                        <TableRow key={template.id}>
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{template.name}</div>
-                              {template.description && (
-                                <div className="text-sm text-muted-foreground truncate max-w-xs">
-                                  {template.description}
-                                </div>
-                              )}
+          {/* Table */}
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : !filteredTemplates?.length ? (
+            <div className="text-center py-8 text-muted-foreground">
+              <p>No templates found</p>
+              <p className="text-sm">
+                {searchQuery || typeFilter !== 'all'
+                  ? 'Try adjusting your filters'
+                  : 'Create your first template to get started'}
+              </p>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Team</TableHead>
+                  <TableHead>Duration</TableHead>
+                  <TableHead>Passing Score</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead className="w-[50px]"></TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTemplates.map((template) => {
+                  const config = typeConfig[template.type as AssessmentType] || typeConfig.CUSTOM
+                  const TypeIcon = config.icon
+                  return (
+                    <TableRow key={template.id}>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium">{template.name}</div>
+                          {template.description && (
+                            <div className="text-sm text-muted-foreground truncate max-w-xs">
+                              {template.description}
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {template.teamId ? 'Team Specific' : 'Global'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {template.durationMinutes ? `${template.durationMinutes} min` : '-'}
-                          </TableCell>
-                          <TableCell>
-                            {template.passingScore ? `${template.passingScore}%` : '-'}
-                          </TableCell>
-                          <TableCell>
-                            <Badge className={template.isActive ? 'bg-green-100 text-green-800' : 'bg-muted text-foreground/80'}>
-                              {template.isActive ? 'Active' : 'Inactive'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem onClick={() => startEdit(template)}>
-                                  <Pencil className="h-4 w-4 mr-2" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => openAIDialog(template.id)}>
-                                  <Wand2 className="h-4 w-4 mr-2" />
-                                  Generate Questions with AI
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-red-600"
-                                  onClick={() => deleteTemplate.mutate({ id: template.id })}
-                                >
-                                  <Trash2 className="h-4 w-4 mr-2" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-        ))}
-      </Tabs>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={cn('flex items-center gap-1 w-fit', config.color)}>
+                          <TypeIcon className="h-3 w-3" />
+                          {config.label}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {template.teamId ? 'Team Specific' : 'Global'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {template.durationMinutes ? `${template.durationMinutes} min` : '-'}
+                      </TableCell>
+                      <TableCell>
+                        {template.passingScore ? `${template.passingScore}%` : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={template.isActive ? 'bg-green-100 text-green-800' : 'bg-muted text-foreground/80'}>
+                          {template.isActive ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => startEdit(template)}>
+                              <Pencil className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => openAIDialog(template.id)}>
+                              <Wand2 className="h-4 w-4 mr-2" />
+                              Generate Questions with AI
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-red-600"
+                              onClick={() => deleteTemplate.mutate({ id: template.id })}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Create/Edit Dialog */}
+      <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
+        setIsCreateDialogOpen(open)
+        if (!open) resetForm()
+      }}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {editingTemplate ? 'Edit' : 'Create'} Assessment Template
+            </DialogTitle>
+            <DialogDescription>
+              Configure the assessment template settings
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            {/* Assessment Type */}
+            <div className="grid gap-2">
+              <Label htmlFor="type">Assessment Type *</Label>
+              <Select
+                value={formData.type}
+                onValueChange={(v) => setFormData({ ...formData, type: v as AssessmentType })}
+                disabled={!!editingTemplate}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select assessment type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {assessmentTypes.map((type) => {
+                    const config = typeConfig[type.key]
+                    const TypeIcon = config.icon
+                    return (
+                      <SelectItem key={type.key} value={type.key}>
+                        <div className="flex items-center gap-2">
+                          <TypeIcon className="h-4 w-4" />
+                          <span>{type.label}</span>
+                        </div>
+                      </SelectItem>
+                    )
+                  })}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                {assessmentTypes.find(t => t.key === formData.type)?.description}
+              </p>
+            </div>
+
+            {/* Basic Info */}
+            <div className="grid gap-2">
+              <Label htmlFor="name">Template Name *</Label>
+              <Input
+                id="name"
+                placeholder="e.g., Backend Coding Challenge"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Brief description of this assessment"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+              />
+            </div>
+
+            {/* Team Assignment */}
+            <div className="grid gap-2">
+              <Label htmlFor="team">Team Assignment</Label>
+              <Select
+                value={formData.teamId || 'global'}
+                onValueChange={(v) => setFormData({ ...formData, teamId: v === 'global' ? '' : v })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select team (or leave global)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="global">Global (All Teams)</SelectItem>
+                  {teams?.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* External URL */}
+            <div className="grid gap-2">
+              <Label htmlFor="externalUrl" className="flex items-center gap-2">
+                <LinkIcon className="h-4 w-4" />
+                Assessment URL
+              </Label>
+              <Input
+                id="externalUrl"
+                placeholder="https://..."
+                value={formData.externalUrl}
+                onChange={(e) => setFormData({ ...formData, externalUrl: e.target.value })}
+              />
+            </div>
+
+            {/* Duration & Passing Score */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <Label htmlFor="duration" className="flex items-center gap-2">
+                  <Clock className="h-4 w-4" />
+                  Duration (minutes)
+                </Label>
+                <Input
+                  id="duration"
+                  type="number"
+                  placeholder="60"
+                  value={formData.durationMinutes}
+                  onChange={(e) => setFormData({ ...formData, durationMinutes: e.target.value })}
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="passingScore" className="flex items-center gap-2">
+                  <Target className="h-4 w-4" />
+                  Passing Score (%)
+                </Label>
+                <Input
+                  id="passingScore"
+                  type="number"
+                  placeholder="70"
+                  value={formData.passingScore}
+                  onChange={(e) => setFormData({ ...formData, passingScore: e.target.value })}
+                />
+              </div>
+            </div>
+
+            {/* Instructions */}
+            <div className="grid gap-2">
+              <Label htmlFor="instructions">Instructions</Label>
+              <Textarea
+                id="instructions"
+                placeholder="Instructions for candidates..."
+                rows={3}
+                value={formData.instructions}
+                onChange={(e) => setFormData({ ...formData, instructions: e.target.value })}
+              />
+            </div>
+
+            {/* Email Template */}
+            <div className="border-t pt-4 mt-2">
+              <h4 className="font-medium flex items-center gap-2 mb-3">
+                <Mail className="h-4 w-4" />
+                Email Template
+              </h4>
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="emailSubject">Subject</Label>
+                  <Input
+                    id="emailSubject"
+                    placeholder="You're invited to complete an assessment"
+                    value={formData.emailSubject}
+                    onChange={(e) => setFormData({ ...formData, emailSubject: e.target.value })}
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="emailBody">Body</Label>
+                  <Textarea
+                    id="emailBody"
+                    placeholder="Email body template..."
+                    rows={4}
+                    value={formData.emailBody}
+                    onChange={(e) => setFormData({ ...formData, emailBody: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Webhook (for Coding Tests) */}
+            {formData.type === 'CODING_TEST' && (
+              <div className="border-t pt-4 mt-2">
+                <h4 className="font-medium flex items-center gap-2 mb-3">
+                  <Webhook className="h-4 w-4" />
+                  Webhook Configuration
+                </h4>
+                <div className="grid gap-2">
+                  <Label htmlFor="webhookUrl">Webhook URL (for receiving results)</Label>
+                  <Input
+                    id="webhookUrl"
+                    placeholder="https://your-app.com/api/webhooks/assessment"
+                    value={formData.webhookUrl}
+                    onChange={(e) => setFormData({ ...formData, webhookUrl: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Results from external assessment tools will be sent to this URL
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setIsCreateDialogOpen(false)
+              resetForm()
+            }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={!formData.name || createTemplate.isPending || updateTemplate.isPending}
+            >
+              {(createTemplate.isPending || updateTemplate.isPending) && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
+              {editingTemplate ? 'Update' : 'Create'} Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* AI Question Generation Dialog */}
       <Dialog open={showAIDialog} onOpenChange={setShowAIDialog}>
@@ -744,7 +795,7 @@ export default function AssessmentSettingsPage() {
       </Dialog>
 
       {/* Webhook URL Card */}
-      <Card className="mt-6">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Webhook className="h-5 w-5" />
