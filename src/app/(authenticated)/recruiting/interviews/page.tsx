@@ -55,7 +55,7 @@ import { cn } from '@/lib/utils'
 import { format, isPast, isToday, isTomorrow } from 'date-fns'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ScheduleInterviewDialog } from '@/components/recruiting/schedule-interview-dialog'
+// Schedule dialog replaced with full page at /recruiting/interviews/schedule
 import { toast } from 'sonner'
 
 // Default counts when no data
@@ -93,7 +93,6 @@ export default function InterviewsPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
   // Dialog states
-  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(null)
 
@@ -207,10 +206,12 @@ export default function InterviewsPage() {
             </button>
           ))}
         </div>
-        <Button size="sm" onClick={() => setScheduleDialogOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Schedule Interview
-        </Button>
+        <Link href="/recruiting/interviews/schedule">
+          <Button size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Schedule Interview
+          </Button>
+        </Link>
       </div>
 
       {/* Search and Filters */}
@@ -430,13 +431,6 @@ export default function InterviewsPage() {
           )}
         </CardContent>
       </Card>
-
-      {/* Schedule Interview Dialog */}
-      <ScheduleInterviewDialog
-        open={scheduleDialogOpen}
-        onOpenChange={setScheduleDialogOpen}
-        onSuccess={() => toast.success('Interview scheduled successfully')}
-      />
 
       {/* Cancel Interview Confirmation Dialog */}
       <AlertDialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>

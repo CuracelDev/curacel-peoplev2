@@ -197,6 +197,16 @@ export const interviewRouter = router({
         meetingLink: z.string().optional(),
         stageTemplateId: z.string().optional(),
         notes: z.string().optional(),
+        // Question assignment during scheduling
+        questionIds: z.array(z.string()).optional(),
+        customQuestions: z.array(
+          z.object({
+            text: z.string(),
+            category: z.string(),
+            isRequired: z.boolean().optional().default(false),
+            saveToBank: z.boolean().optional().default(false),
+          })
+        ).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -254,6 +264,58 @@ export const interviewRouter = router({
           interviewType: true,
         },
       })
+
+      // Assign questions if provided
+      if (input.questionIds?.length || input.customQuestions?.length) {
+        const assignedQuestions = []
+
+        // Add questions from bank
+        if (input.questionIds?.length) {
+          for (let i = 0; i < input.questionIds.length; i++) {
+            assignedQuestions.push({
+              interviewId: interview.id,
+              questionId: input.questionIds[i],
+              sortOrder: i,
+            })
+          }
+        }
+
+        // Add custom questions
+        if (input.customQuestions?.length) {
+          const startOrder = input.questionIds?.length || 0
+          for (let i = 0; i < input.customQuestions.length; i++) {
+            const customQ = input.customQuestions[i]
+
+            // If saveToBank is true, create the question first
+            let questionId: string | undefined
+            if (customQ.saveToBank) {
+              const newQuestion = await ctx.prisma.interviewQuestion.create({
+                data: {
+                  text: customQ.text,
+                  category: customQ.category,
+                  tags: [],
+                  createdById: ctx.session?.user?.employee?.id || null,
+                },
+              })
+              questionId = newQuestion.id
+            }
+
+            assignedQuestions.push({
+              interviewId: interview.id,
+              questionId: questionId || null,
+              customText: questionId ? null : customQ.text,
+              category: customQ.category,
+              isRequired: customQ.isRequired || false,
+              saveToBank: customQ.saveToBank || false,
+              sortOrder: startOrder + i,
+            })
+          }
+        }
+
+        await ctx.prisma.interviewAssignedQuestion.createMany({
+          data: assignedQuestions,
+        })
+      }
 
       return {
         ...interview,
@@ -2164,5 +2226,191 @@ Respond ONLY with valid JSON, no additional text.`
           meetLink: event.meetLink,
         }
       }
+    }),
+
+  // Get assigned questions for an interview
+  getAssignedQuestions: protectedProcedure
+    .input(z.object({ interviewId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const questions = await ctx.prisma.interviewAssignedQuestion.findMany({
+        where: { interviewId: input.interviewId },
+        include: {
+          question: {
+            include: {
+              interviewType: true,
+              job: true,
+            },
+          },
+        },
+        orderBy: { sortOrder: 'asc' },
+      })
+
+      return questions.map((q) => ({
+        id: q.id,
+        questionId: q.questionId,
+        text: q.question?.text || q.customText || '',
+        followUp: q.question?.followUp,
+        category: q.question?.category || q.category || '',
+        tags: q.question?.tags || [],
+        isRequired: q.isRequired,
+        wasAsked: q.wasAsked,
+        rating: q.rating,
+        notes: q.notes,
+        sortOrder: q.sortOrder,
+        isCustom: !q.questionId,
+        saveToBank: q.saveToBank,
+      }))
+    }),
+
+  // Assign questions to an existing interview
+  assignQuestions: protectedProcedure
+    .input(
+      z.object({
+        interviewId: z.string(),
+        questionIds: z.array(z.string()).optional(),
+        customQuestions: z.array(
+          z.object({
+            text: z.string(),
+            category: z.string(),
+            isRequired: z.boolean().optional().default(false),
+            saveToBank: z.boolean().optional().default(false),
+          })
+        ).optional(),
+        replaceExisting: z.boolean().optional().default(false),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Check interview exists
+      const interview = await ctx.prisma.candidateInterview.findUnique({
+        where: { id: input.interviewId },
+      })
+
+      if (!interview) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Interview not found',
+        })
+      }
+
+      // Delete existing if replacing
+      if (input.replaceExisting) {
+        await ctx.prisma.interviewAssignedQuestion.deleteMany({
+          where: { interviewId: input.interviewId },
+        })
+      }
+
+      // Get current max sortOrder
+      const maxSortOrder = input.replaceExisting
+        ? -1
+        : (await ctx.prisma.interviewAssignedQuestion.aggregate({
+            where: { interviewId: input.interviewId },
+            _max: { sortOrder: true },
+          }))._max.sortOrder ?? -1
+
+      const assignedQuestions = []
+      let currentOrder = maxSortOrder + 1
+
+      // Add questions from bank
+      if (input.questionIds?.length) {
+        for (const questionId of input.questionIds) {
+          // Skip if already assigned
+          const existing = await ctx.prisma.interviewAssignedQuestion.findFirst({
+            where: { interviewId: input.interviewId, questionId },
+          })
+          if (!existing) {
+            assignedQuestions.push({
+              interviewId: input.interviewId,
+              questionId,
+              sortOrder: currentOrder++,
+            })
+          }
+        }
+      }
+
+      // Add custom questions
+      if (input.customQuestions?.length) {
+        for (const customQ of input.customQuestions) {
+          let questionId: string | null = null
+          if (customQ.saveToBank) {
+            const newQuestion = await ctx.prisma.interviewQuestion.create({
+              data: {
+                text: customQ.text,
+                category: customQ.category,
+                tags: [],
+                createdById: ctx.session?.user?.employee?.id || null,
+              },
+            })
+            questionId = newQuestion.id
+          }
+
+          assignedQuestions.push({
+            interviewId: input.interviewId,
+            questionId,
+            customText: questionId ? null : customQ.text,
+            category: customQ.category,
+            isRequired: customQ.isRequired || false,
+            saveToBank: customQ.saveToBank || false,
+            sortOrder: currentOrder++,
+          })
+        }
+      }
+
+      if (assignedQuestions.length > 0) {
+        await ctx.prisma.interviewAssignedQuestion.createMany({
+          data: assignedQuestions,
+        })
+      }
+
+      return { added: assignedQuestions.length }
+    }),
+
+  // Update an assigned question (mark as asked, add rating, etc.)
+  updateAssignedQuestion: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        wasAsked: z.boolean().optional(),
+        rating: z.number().min(1).max(5).optional(),
+        notes: z.string().optional(),
+        isRequired: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, ...data } = input
+
+      return ctx.prisma.interviewAssignedQuestion.update({
+        where: { id },
+        data,
+      })
+    }),
+
+  // Remove an assigned question
+  removeAssignedQuestion: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.interviewAssignedQuestion.delete({
+        where: { id: input.id },
+      })
+      return { success: true }
+    }),
+
+  // Reorder assigned questions
+  reorderAssignedQuestions: protectedProcedure
+    .input(
+      z.object({
+        interviewId: z.string(),
+        questionOrder: z.array(z.string()), // Array of assigned question IDs in new order
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updates = input.questionOrder.map((id, index) =>
+        ctx.prisma.interviewAssignedQuestion.update({
+          where: { id },
+          data: { sortOrder: index },
+        })
+      )
+
+      await ctx.prisma.$transaction(updates)
+      return { success: true }
     }),
 })

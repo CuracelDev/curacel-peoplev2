@@ -70,6 +70,7 @@ const settingsNav = [
   { id: 'interviewTypes', name: 'Interview Types', icon: Video },
   { id: 'interestForms', name: 'Interest Forms', icon: FileQuestion },
   { id: 'rubrics', name: 'Interview Rubrics', icon: ClipboardCheck },
+  { id: 'questions', name: 'Question Bank', icon: FileQuestion },
   { id: 'scoring', name: 'Candidate Scoring', icon: BarChart3 },
   { id: 'webhooks', name: 'Webhooks', icon: Webhook },
   { id: 'recruiters', name: 'External Recruiters', icon: UserCircle2 },
@@ -131,6 +132,7 @@ const sectionMap: Record<string, string> = {
   interviewTypes: 'interviewTypes',
   forms: 'interestForms',
   rubrics: 'rubrics',
+  questions: 'questions',
   scoring: 'scoring',
 }
 
@@ -1283,6 +1285,11 @@ export default function SettingsPage() {
             <InterviewTypesSection />
           )}
 
+          {/* Question Bank Section */}
+          {activeSection === 'questions' && (
+            <QuestionBankSection />
+          )}
+
           {/* Webhooks Section */}
           {activeSection === 'webhooks' && (
             <Card id="webhooks">
@@ -2206,6 +2213,550 @@ function InterviewTypesSection() {
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               )}
               {editingType?.id ? 'Update Type' : 'Create Type'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </Card>
+  )
+}
+
+// Question Bank Section Component
+function QuestionBankSection() {
+  const [selectedJob, setSelectedJob] = useState<string>('')
+  const [selectedInterviewType, setSelectedInterviewType] = useState<string>('')
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([
+    'situational',
+    'behavioral',
+    'technical',
+  ])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
+
+  // Dialog states
+  const [createDialogOpen, setCreateDialogOpen] = useState(false)
+  const [editingQuestion, setEditingQuestion] = useState<{
+    id: string
+    text: string
+    followUp: string
+    category: string
+    tags: string[]
+  } | null>(null)
+
+  // New question form state
+  const [newQuestion, setNewQuestion] = useState({
+    text: '',
+    followUp: '',
+    category: 'behavioral' as 'situational' | 'behavioral' | 'technical' | 'motivational' | 'culture',
+    tags: '',
+  })
+
+  // Fetch data
+  const { data: jobs } = trpc.job.list.useQuery({ status: 'ACTIVE' })
+  const { data: interviewTypes } = trpc.interviewType.list.useQuery()
+  const { data: categoriesData } = trpc.question.getCategories.useQuery()
+
+  // Determine category filter
+  const categoryFilter = selectedCategories.length === 1
+    ? (selectedCategories[0] as 'situational' | 'behavioral' | 'technical' | 'motivational' | 'culture')
+    : undefined
+
+  // Fetch questions with filters
+  const {
+    data: questionsData,
+    isLoading: questionsLoading,
+    refetch: refetchQuestions,
+  } = trpc.question.list.useQuery({
+    category: categoryFilter,
+    jobId: selectedJob || undefined,
+    interviewTypeId: selectedInterviewType || undefined,
+    search: searchQuery || undefined,
+    onlyFavorites: showFavoritesOnly || undefined,
+    limit: 100,
+  })
+
+  // Mutations
+  const utils = trpc.useUtils()
+
+  const createMutation = trpc.question.create.useMutation({
+    onSuccess: () => {
+      utils.question.list.invalidate()
+      utils.question.getCategories.invalidate()
+      setCreateDialogOpen(false)
+      setNewQuestion({ text: '', followUp: '', category: 'behavioral', tags: '' })
+    },
+  })
+
+  const updateMutation = trpc.question.update.useMutation({
+    onSuccess: () => {
+      utils.question.list.invalidate()
+      setEditingQuestion(null)
+    },
+  })
+
+  const toggleFavoriteMutation = trpc.question.toggleFavorite.useMutation({
+    onSuccess: () => {
+      utils.question.list.invalidate()
+    },
+  })
+
+  const deleteMutation = trpc.question.delete.useMutation({
+    onSuccess: () => {
+      utils.question.list.invalidate()
+      utils.question.getCategories.invalidate()
+    },
+  })
+
+  const seedDefaultsMutation = trpc.question.seedDefaults.useMutation({
+    onSuccess: () => {
+      utils.question.list.invalidate()
+      utils.question.getCategories.invalidate()
+    },
+  })
+
+  const categoryConfig: Record<string, {
+    name: string
+    description: string
+    color: string
+    badgeColor: string
+  }> = {
+    situational: {
+      name: 'Situational',
+      description: '"What would you do if..."',
+      color: 'bg-indigo-50 text-indigo-600',
+      badgeColor: 'bg-indigo-100 text-indigo-700',
+    },
+    behavioral: {
+      name: 'Behavioral',
+      description: '"Tell me about a time..."',
+      color: 'bg-green-50 text-green-600',
+      badgeColor: 'bg-green-100 text-green-700',
+    },
+    motivational: {
+      name: 'Motivational',
+      description: '"Why do you want..."',
+      color: 'bg-amber-50 text-amber-600',
+      badgeColor: 'bg-amber-100 text-amber-700',
+    },
+    technical: {
+      name: 'Technical',
+      description: 'Role-specific questions',
+      color: 'bg-pink-50 text-pink-600',
+      badgeColor: 'bg-pink-100 text-pink-700',
+    },
+    culture: {
+      name: 'Culture/Values',
+      description: 'PRESS alignment',
+      color: 'bg-cyan-50 text-cyan-600',
+      badgeColor: 'bg-cyan-100 text-cyan-700',
+    },
+  }
+
+  const categoryOrder = ['situational', 'behavioral', 'motivational', 'technical', 'culture']
+
+  const toggleCategory = (categoryId: string) => {
+    setSelectedCategories((prev) =>
+      prev.includes(categoryId)
+        ? prev.filter((c) => c !== categoryId)
+        : [...prev, categoryId]
+    )
+  }
+
+  const handleCreateQuestion = () => {
+    if (!newQuestion.text.trim()) return
+
+    createMutation.mutate({
+      text: newQuestion.text.trim(),
+      followUp: newQuestion.followUp.trim() || undefined,
+      category: newQuestion.category,
+      tags: newQuestion.tags.split(',').map((t) => t.trim()).filter(Boolean),
+      jobId: selectedJob || undefined,
+      interviewTypeId: selectedInterviewType || undefined,
+    })
+  }
+
+  const handleUpdateQuestion = () => {
+    if (!editingQuestion || !editingQuestion.text.trim()) return
+
+    updateMutation.mutate({
+      id: editingQuestion.id,
+      text: editingQuestion.text.trim(),
+      followUp: editingQuestion.followUp.trim() || undefined,
+      category: editingQuestion.category as 'situational' | 'behavioral' | 'technical' | 'motivational' | 'culture',
+      tags: editingQuestion.tags,
+    })
+  }
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text)
+  }
+
+  // Group questions by category
+  const questionsByCategory = questionsData?.questions.reduce((acc, q) => {
+    if (!selectedCategories.includes(q.category)) return acc
+    if (!acc[q.category]) acc[q.category] = []
+    acc[q.category].push(q)
+    return acc
+  }, {} as Record<string, typeof questionsData.questions>) ?? {}
+
+  const totalQuestions = questionsData?.total ?? 0
+  const isEmpty = totalQuestions === 0 && !questionsLoading
+
+  return (
+    <Card id="questions">
+      <CardHeader className="p-5 border-b">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-lg font-semibold">Question Bank</h2>
+            <p className="text-sm text-muted-foreground">
+              Manage reusable interview questions. Questions are automatically suggested when scheduling interviews.
+            </p>
+          </div>
+          <Button onClick={() => setCreateDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Question
+          </Button>
+        </div>
+      </CardHeader>
+      <CardContent className="p-5">
+        {/* Filters */}
+        <div className="flex items-center gap-3 mb-4 pb-4 border-b">
+          <Input
+            placeholder="Search questions..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-64"
+          />
+          <Select value={selectedJob || 'all'} onValueChange={(v) => setSelectedJob(v === 'all' ? '' : v)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="All jobs" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All jobs</SelectItem>
+              {jobs?.map((job) => (
+                <SelectItem key={job.id} value={job.id}>
+                  {job.title}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedInterviewType || 'all'} onValueChange={(v) => setSelectedInterviewType(v === 'all' ? '' : v)}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="All types" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All types</SelectItem>
+              {interviewTypes?.map((type) => (
+                <SelectItem key={type.id} value={type.id}>
+                  {type.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Button
+            variant={showFavoritesOnly ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+          >
+            <Star className={cn('h-4 w-4 mr-2', showFavoritesOnly && 'fill-current')} />
+            Favorites
+          </Button>
+        </div>
+
+        {/* Category Filters */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          {categoryOrder.map((catId) => {
+            const category = categoryConfig[catId]
+            const count = categoriesData?.find((c) => c.value === catId)?.count ?? 0
+            return (
+              <Badge
+                key={catId}
+                variant={selectedCategories.includes(catId) ? 'default' : 'outline'}
+                className="cursor-pointer"
+                onClick={() => toggleCategory(catId)}
+              >
+                {selectedCategories.includes(catId) && <Check className="h-3 w-3 mr-1" />}
+                {category.name} ({count})
+              </Badge>
+            )
+          })}
+        </div>
+
+        {/* Content */}
+        {questionsLoading ? (
+          <div className="flex items-center justify-center py-10">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          </div>
+        ) : isEmpty ? (
+          <div className="text-center py-10 text-muted-foreground">
+            <FileQuestion className="h-12 w-12 mx-auto mb-3 text-muted-foreground/60" />
+            <p className="font-medium">No questions in the bank</p>
+            <p className="text-sm mt-1 mb-4">Add interview questions that can be reused across interviews.</p>
+            <div className="flex justify-center gap-3">
+              <Button onClick={() => setCreateDialogOpen(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add First Question
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => seedDefaultsMutation.mutate()}
+                disabled={seedDefaultsMutation.isPending}
+              >
+                {seedDefaultsMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Seed Defaults
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {categoryOrder.map((catId) => {
+              const questions = questionsByCategory[catId]
+              if (!questions?.length) return null
+              const category = categoryConfig[catId]
+
+              return (
+                <div key={catId} className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Badge className={category.badgeColor}>{category.name}</Badge>
+                    <span className="text-sm text-muted-foreground">{questions.length} questions</span>
+                  </div>
+                  <div className="space-y-2">
+                    {questions.map((question, index) => (
+                      <div
+                        key={question.id}
+                        className="flex gap-3 p-3 border rounded-lg hover:bg-muted/30 transition-colors"
+                      >
+                        <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center font-medium text-xs text-foreground/70 flex-shrink-0">
+                          {index + 1}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-foreground mb-1">{question.text}</p>
+                          {question.followUp && (
+                            <p className="text-xs text-muted-foreground italic mb-1">{question.followUp}</p>
+                          )}
+                          <div className="flex flex-wrap gap-1">
+                            {question.tags.map((tag, i) => (
+                              <Badge key={i} variant="secondary" className="text-xs py-0">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() => toggleFavoriteMutation.mutate({ id: question.id })}
+                          >
+                            <Star className={cn('h-4 w-4', question.isFavorite && 'fill-amber-400 text-amber-400')} />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() => copyToClipboard(question.text)}
+                          >
+                            <Copy className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0"
+                            onClick={() =>
+                              setEditingQuestion({
+                                id: question.id,
+                                text: question.text,
+                                followUp: question.followUp ?? '',
+                                category: question.category,
+                                tags: question.tags,
+                              })
+                            }
+                          >
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-red-500 hover:text-red-600"
+                            onClick={() => {
+                              if (confirm('Delete this question?')) {
+                                deleteMutation.mutate({ id: question.id })
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </CardContent>
+
+      {/* Create Question Dialog */}
+      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Add Question to Bank</DialogTitle>
+            <DialogDescription>
+              Create a reusable interview question.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Category *</Label>
+              <Select
+                value={newQuestion.category}
+                onValueChange={(v) => setNewQuestion((prev) => ({ ...prev, category: v as typeof newQuestion.category }))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {categoryOrder.map((catId) => (
+                    <SelectItem key={catId} value={catId}>
+                      {categoryConfig[catId].name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label>Question *</Label>
+              <Textarea
+                placeholder="Enter the interview question..."
+                value={newQuestion.text}
+                onChange={(e) => setNewQuestion((prev) => ({ ...prev, text: e.target.value }))}
+                rows={3}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Follow-up Question (optional)</Label>
+              <Input
+                placeholder="What would you do differently?"
+                value={newQuestion.followUp}
+                onChange={(e) => setNewQuestion((prev) => ({ ...prev, followUp: e.target.value }))}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Tags (comma-separated)</Label>
+              <Input
+                placeholder="Leadership, Problem Solving, Communication"
+                value={newQuestion.tags}
+                onChange={(e) => setNewQuestion((prev) => ({ ...prev, tags: e.target.value }))}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+            <Button
+              onClick={handleCreateQuestion}
+              disabled={!newQuestion.text.trim() || createMutation.isPending}
+            >
+              {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Add Question
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Question Dialog */}
+      <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>Edit Question</DialogTitle>
+          </DialogHeader>
+          {editingQuestion && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Category *</Label>
+                <Select
+                  value={editingQuestion.category}
+                  onValueChange={(v) =>
+                    setEditingQuestion((prev) => prev && { ...prev, category: v })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categoryOrder.map((catId) => (
+                      <SelectItem key={catId} value={catId}>
+                        {categoryConfig[catId].name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Question *</Label>
+                <Textarea
+                  value={editingQuestion.text}
+                  onChange={(e) =>
+                    setEditingQuestion((prev) => prev && { ...prev, text: e.target.value })
+                  }
+                  rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Follow-up Question</Label>
+                <Input
+                  value={editingQuestion.followUp}
+                  onChange={(e) =>
+                    setEditingQuestion((prev) => prev && { ...prev, followUp: e.target.value })
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Tags</Label>
+                <div className="flex flex-wrap gap-2">
+                  {editingQuestion.tags.map((tag, i) => (
+                    <Badge key={i} variant="secondary" className="gap-1">
+                      {tag}
+                      <button
+                        onClick={() =>
+                          setEditingQuestion((prev) =>
+                            prev && { ...prev, tags: prev.tags.filter((_, idx) => idx !== i) }
+                          )
+                        }
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                  <Input
+                    placeholder="Add tag..."
+                    className="w-32 h-6 text-xs"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        const value = (e.target as HTMLInputElement).value.trim()
+                        if (value) {
+                          setEditingQuestion((prev) =>
+                            prev && { ...prev, tags: [...prev.tags, value] }
+                          )
+                          ;(e.target as HTMLInputElement).value = ''
+                        }
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingQuestion(null)}>Cancel</Button>
+            <Button
+              onClick={handleUpdateQuestion}
+              disabled={!editingQuestion?.text.trim() || updateMutation.isPending}
+            >
+              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
