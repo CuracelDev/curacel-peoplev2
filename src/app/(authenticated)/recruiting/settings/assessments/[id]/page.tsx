@@ -35,6 +35,9 @@ import {
   User,
   UserCog,
   Check,
+  Copy,
+  ExternalLink,
+  Info,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
@@ -430,28 +433,98 @@ export default function EditAssessmentPage() {
           </CardContent>
         </Card>
 
-        {/* Webhook (for Coding Tests) */}
-        {formData.type === 'CODING_TEST' && (
-          <Card>
+        {/* Webhook Configuration (for Webhook/API input method) */}
+        {formData.inputMethod === 'WEBHOOK' && (
+          <Card className="border-indigo-200 bg-indigo-50/30">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Webhook className="h-5 w-5" />
+                <Webhook className="h-5 w-5 text-indigo-600" />
                 Webhook Configuration
               </CardTitle>
-              <CardDescription>Receive results from external assessment platforms</CardDescription>
+              <CardDescription>
+                Configure which external platform will provide assessment results
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid gap-2">
-                <Label htmlFor="webhookUrl">Webhook URL</Label>
-                <Input
-                  id="webhookUrl"
-                  placeholder="https://your-app.com/api/webhooks/assessment"
-                  value={formData.webhookUrl}
-                  onChange={(e) => setFormData({ ...formData, webhookUrl: e.target.value })}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Results from external assessment tools will be sent to this URL
-                </p>
+            <CardContent className="space-y-4">
+              {/* Platform Selection */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="externalPlatform">External Platform *</Label>
+                  <Select
+                    value={formData.externalPlatform || ''}
+                    onValueChange={(v) => setFormData({ ...formData, externalPlatform: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select platform..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="kandi">Kandi.io</SelectItem>
+                      <SelectItem value="webhook">Generic Webhook</SelectItem>
+                      <SelectItem value="testgorilla">TestGorilla</SelectItem>
+                      <SelectItem value="codility">Codility</SelectItem>
+                      <SelectItem value="hackerrank">HackerRank</SelectItem>
+                      <SelectItem value="custom">Custom Integration</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    The platform that will send results via webhook
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="externalUrl">External Assessment URL</Label>
+                  <Input
+                    id="externalUrl"
+                    placeholder="https://platform.com/assessment/..."
+                    value={formData.externalUrl}
+                    onChange={(e) => setFormData({ ...formData, externalUrl: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    URL where candidates take this assessment (optional)
+                  </p>
+                </div>
+              </div>
+
+              {/* Webhook Endpoint - shows after platform is selected */}
+              {formData.externalPlatform && (
+                <div className="space-y-2 p-4 bg-white rounded-lg border">
+                  <Label className="text-sm font-medium">Your Webhook Endpoint</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      readOnly
+                      value={typeof window !== 'undefined' ? `${window.location.origin}/api/webhooks/assessments/${formData.externalPlatform}` : `/api/webhooks/assessments/${formData.externalPlatform}`}
+                      className="font-mono text-sm"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        const url = `${window.location.origin}/api/webhooks/assessments/${formData.externalPlatform}`
+                        navigator.clipboard.writeText(url)
+                        toast.success('Webhook URL copied to clipboard')
+                      }}
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Configure this URL in your <strong>{formData.externalPlatform}</strong> platform settings to send results here
+                  </p>
+                </div>
+              )}
+
+              {/* How it works */}
+              <div className="p-4 bg-white rounded-lg border space-y-3">
+                <div className="flex items-center gap-2 font-medium text-sm">
+                  <Info className="h-4 w-4 text-indigo-600" />
+                  How Webhook Integration Works
+                </div>
+                <ol className="text-sm text-muted-foreground space-y-2 list-decimal list-inside">
+                  <li>First, set up your platform credentials in <Link href="/settings" className="text-indigo-600 hover:underline inline-flex items-center gap-1">Settings &gt; Integrations <ExternalLink className="h-3 w-3" /></Link></li>
+                  <li>Configure the webhook URL above in your external platform</li>
+                  <li>When assigning this assessment to a candidate, the external ID will link results</li>
+                  <li>Results are automatically received and matched to the candidate</li>
+                </ol>
               </div>
             </CardContent>
           </Card>
