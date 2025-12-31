@@ -592,7 +592,10 @@ export const integrationRouter = router({
       })
     }),
 
-  // Initialize default apps
+  // Default app definitions - shared between initialize and sync
+  // When adding a new app, add it here and it will automatically sync to the database
+
+  // Initialize default apps (admin only, creates all apps)
   initializeApps: adminProcedure
     .mutation(async ({ ctx }) => {
       const defaultApps = [
@@ -617,6 +620,41 @@ export const integrationRouter = router({
       }
 
       return { success: true }
+    }),
+
+  // Sync apps - runs on page load to add any new apps defined in code
+  // This ensures new apps are automatically added without manual intervention
+  syncApps: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      const defaultApps = [
+        { type: 'GOOGLE_WORKSPACE' as const, name: 'Google Workspace', description: 'Provision Google Workspace accounts, groups, and organizational units' },
+        { type: 'SLACK' as const, name: 'Slack', description: 'Provision Slack workspace access and channel memberships' },
+        { type: 'BITBUCKET' as const, name: 'Bitbucket', description: 'Provision Bitbucket repository access and permissions' },
+        { type: 'JIRA' as const, name: 'Jira', description: 'Provision Jira project access and issue management' },
+        { type: 'PASSBOLT' as const, name: 'Passbolt', description: 'Provision Passbolt password management and secure sharing' },
+        { type: 'HUBSPOT' as const, name: 'HubSpot', description: 'Provision HubSpot CRM access and marketing automation' },
+        { type: 'STANDUPNINJA' as const, name: 'StandupNinja', description: 'Provision StandupNinja team standup and status management' },
+        { type: 'FIREFLIES' as const, name: 'Fireflies.ai', description: 'Automatically attach meeting transcripts to interviews' },
+      ]
+
+      // Get existing app types
+      const existingApps = await ctx.prisma.app.findMany({
+        select: { type: true },
+      })
+      const existingTypes = new Set(existingApps.map(a => a.type))
+
+      // Only upsert apps that don't exist yet (faster than upserting all)
+      const newApps = defaultApps.filter(app => !existingTypes.has(app.type))
+
+      for (const app of newApps) {
+        await ctx.prisma.app.upsert({
+          where: { type_name: { type: app.type, name: app.name } },
+          create: { ...app, isEnabled: true },
+          update: {},
+        })
+      }
+
+      return { added: newApps.length }
     }),
 
   toggleApp: itAdminProcedure
