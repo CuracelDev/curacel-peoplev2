@@ -183,7 +183,8 @@ export const interviewRouter = router({
     .input(
       z.object({
         candidateId: z.string(),
-        stage: interviewStageEnum,
+        stage: interviewStageEnum.optional(),
+        interviewTypeId: z.string().optional(),
         scheduledAt: z.string(),
         duration: z.number().optional().default(60),
         interviewers: z.array(
@@ -211,16 +212,36 @@ export const interviewRouter = router({
         })
       }
 
+      // Get interview type if provided
+      let stage = input.stage || 'HR_SCREEN'
+      let stageName = stageDisplayNames[stage] || stage
+      let stageTemplateId = input.stageTemplateId
+      let duration = input.duration
+
+      if (input.interviewTypeId) {
+        const interviewType = await ctx.prisma.interviewType.findUnique({
+          where: { id: input.interviewTypeId },
+          include: { rubricTemplate: true },
+        })
+
+        if (interviewType) {
+          stageName = interviewType.name
+          stageTemplateId = interviewType.rubricTemplateId || stageTemplateId
+          duration = input.duration || interviewType.defaultDuration
+        }
+      }
+
       const interview = await ctx.prisma.candidateInterview.create({
         data: {
           candidateId: input.candidateId,
-          stage: input.stage,
-          stageName: stageDisplayNames[input.stage] || input.stage,
+          stage,
+          stageName,
+          interviewTypeId: input.interviewTypeId,
           scheduledAt: new Date(input.scheduledAt),
-          duration: input.duration,
+          duration,
           interviewers: input.interviewers,
           meetingLink: input.meetingLink,
-          stageTemplateId: input.stageTemplateId,
+          stageTemplateId,
           feedback: input.notes,
           status: 'SCHEDULED',
         },
@@ -230,12 +251,13 @@ export const interviewRouter = router({
               job: true,
             },
           },
+          interviewType: true,
         },
       })
 
       return {
         ...interview,
-        stageDisplayName: stageDisplayNames[interview.stage] || interview.stageName || interview.stage,
+        stageDisplayName: interview.interviewType?.name || stageDisplayNames[interview.stage] || interview.stageName || interview.stage,
       }
     }),
 

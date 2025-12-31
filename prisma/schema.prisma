@@ -1381,6 +1381,13 @@ model CandidateInterview {
   // Link to interview stage template for rubric
   stageTemplateId String?
 
+  // Link to interview type
+  interviewTypeId String?
+  interviewType   InterviewType? @relation(fields: [interviewTypeId], references: [id])
+
+  // Aggregated overall score (0-100)
+  overallScore    Int?
+
   // Individual evaluator scorecards
   evaluations  InterviewEvaluation[]
 
@@ -1405,6 +1412,7 @@ model CandidateInterview {
   @@index([candidateId, stage])
   @@index([scheduledAt])
   @@index([stageTemplateId])
+  @@index([interviewTypeId])
 }
 
 // Public interview tokens for interviewers
@@ -1647,8 +1655,40 @@ model InterestFormResponse {
 }
 
 // ============================================
-// RECRUITING - INTERVIEW RUBRICS/SCORECARDS
+// RECRUITING - INTERVIEW TYPES & RUBRICS
 // ============================================
+
+// Interview Type - defines distinct interview types with their rubric, interviewers, and questions
+model InterviewType {
+  id                 String   @id @default(uuid())
+  name               String   // "People Chat", "Team Chat", "Technical", etc.
+  slug               String   @unique
+  description        String?
+  defaultDuration    Int      @default(60) // minutes
+
+  // Link to rubric template
+  rubricTemplateId   String?
+  rubricTemplate     InterviewStageTemplate? @relation(fields: [rubricTemplateId], references: [id])
+
+  // Interviewer constraints - which roles can conduct this type
+  allowedRoles       String[] // ["HR", "HIRING_MANAGER", "ENGINEER", "EXECUTIVE", "ANY"]
+
+  // Question categories for this type (from Question Bank)
+  questionCategories String[] // ["situational", "behavioral", "technical", "culture", "motivational"]
+
+  // Display order
+  sortOrder          Int      @default(0)
+  isActive           Boolean  @default(true)
+
+  // Interviews of this type
+  interviews         CandidateInterview[]
+
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([slug])
+  @@index([isActive])
+}
 
 // Interview Stage Template - defines the stages and their rubrics
 model InterviewStageTemplate {
@@ -1663,8 +1703,9 @@ model InterviewStageTemplate {
   jobId       String?
   job         Job?     @relation("JobInterviewStages", fields: [jobId], references: [id], onDelete: Cascade)
 
-  criteria    InterviewStageCriteria[]
-  evaluations InterviewEvaluation[]
+  criteria       InterviewStageCriteria[]
+  evaluations    InterviewEvaluation[]
+  interviewTypes InterviewType[]
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
