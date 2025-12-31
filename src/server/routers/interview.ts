@@ -1693,6 +1693,292 @@ export const interviewRouter = router({
       }
     }),
 
+  // ============================================
+  // Phase 8: AI Transcript Analysis
+  // ============================================
+
+  // Analyze interview transcript with AI
+  analyzeTranscriptWithAI: protectedProcedure
+    .input(
+      z.object({
+        interviewId: z.string(),
+        forceRegenerate: z.boolean().optional().default(false),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Get interview with transcript and rubric
+      const interview = await ctx.prisma.candidateInterview.findUnique({
+        where: { id: input.interviewId },
+        include: {
+          candidate: {
+            include: {
+              job: true,
+            },
+          },
+          interviewType: true,
+        },
+      })
+
+      if (!interview) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Interview not found',
+        })
+      }
+
+      if (!interview.firefliesTranscript) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'No transcript attached to this interview. Attach a Fireflies recording first.',
+        })
+      }
+
+      // Check if we already have AI analysis and not forcing regeneration
+      if (interview.aiAnalysis && !input.forceRegenerate) {
+        return {
+          analysis: interview.aiAnalysis,
+          wasRegenerated: false,
+        }
+      }
+
+      // Get AI settings
+      const aiSettings = await ctx.prisma.aISettings.findFirst({
+        orderBy: { updatedAt: 'desc' },
+      })
+
+      if (!aiSettings?.apiKey) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'AI settings not configured',
+        })
+      }
+
+      // Get rubric criteria if available
+      let rubricCriteria: Array<{ id: string; name: string; description: string | null; weight: number }> = []
+      if (interview.stageTemplateId) {
+        const template = await ctx.prisma.interviewStageTemplate.findUnique({
+          where: { id: interview.stageTemplateId },
+          include: { criteria: { orderBy: { order: 'asc' } } },
+        })
+        if (template) {
+          rubricCriteria = template.criteria.map(c => ({
+            id: c.id,
+            name: c.name,
+            description: c.description,
+            weight: c.weight,
+          }))
+        }
+      }
+
+      // Build AI prompt
+      const stageName = interview.interviewType?.name ||
+        stageDisplayNames[interview.stage] ||
+        interview.stageName ||
+        interview.stage
+
+      const prompt = `You are BlueAI, an expert recruiting analyst at Curacel. Analyze this interview transcript and provide detailed feedback.
+
+## Company Values (PRESS)
+- Passionate Work: Deep love for what we do
+- Relentless Growth: Continuous improvement mindset
+- Empowered Action: Taking ownership and initiative
+- Sense of Urgency: Moving fast and decisively
+- Seeing Possibilities: Innovation and creative problem-solving
+
+## Interview Context
+- Candidate: ${interview.candidate.name}
+- Position: ${interview.candidate.job?.title || 'Unknown'}
+- Interview Type: ${stageName}
+- Duration: ${interview.duration} minutes
+
+${rubricCriteria.length > 0 ? `## Evaluation Criteria
+${rubricCriteria.map(c => `- ${c.name} (weight: ${c.weight}): ${c.description || 'No description'}`).join('\n')}` : ''}
+
+## Transcript
+${interview.firefliesTranscript.slice(0, 15000)}${interview.firefliesTranscript.length > 15000 ? '\n... [transcript truncated]' : ''}
+
+## Response Format (JSON)
+{
+  "candidateScores": [
+    {
+      "criteriaName": "string",
+      "score": 4, // 1-5 scale
+      "confidence": 0.85, // 0-1
+      "evidence": ["Quote or observation from transcript"],
+      "reasoning": "Why this score"
+    }
+  ],
+  "overallAssessment": {
+    "score": 75, // 0-100
+    "recommendation": "HIRE", // STRONG_HIRE, HIRE, MAYBE, NO_HIRE, STRONG_NO_HIRE
+    "confidence": 0.8,
+    "summary": "2-3 sentence summary"
+  },
+  "pressValuesAlignment": {
+    "passionateWork": 4,
+    "relentlessGrowth": 4,
+    "empoweredAction": 3,
+    "senseOfUrgency": 4,
+    "seeingPossibilities": 3
+  },
+  "interviewerFeedback": [
+    {
+      "interviewerName": "string",
+      "questionsAsked": 5,
+      "followUpQuality": "good", // poor, fair, good, excellent
+      "listeningRatio": 0.65, // % time candidate spoke
+      "biasIndicators": ["potential concern"],
+      "strengths": ["what they did well"],
+      "improvements": ["areas to improve"]
+    }
+  ],
+  "highlights": [
+    {
+      "timestamp": "05:32",
+      "type": "strength", // strength, concern, red_flag, notable
+      "content": "Candidate demonstrated...",
+      "relevantCriteria": "Communication"
+    }
+  ],
+  "communicationAnalysis": {
+    "clarity": 4,
+    "confidence": 4,
+    "specificity": 3,
+    "enthusiasm": 4,
+    "technicalArticulation": 4
+  },
+  "suggestedFollowUps": ["Questions for next round"],
+  "concerns": ["Areas that need validation"],
+  "strengths": ["Key candidate strengths observed"]
+}
+
+Respond ONLY with valid JSON, no additional text.`
+
+      // Call AI for analysis
+      let analysisResult: unknown
+
+      try {
+        const { decrypt } = await import('@/lib/encryption')
+        const apiKey = decrypt(aiSettings.apiKey)
+
+        switch (aiSettings.provider) {
+          case 'ANTHROPIC': {
+            const { default: Anthropic } = await import('@anthropic-ai/sdk')
+            const client = new Anthropic({ apiKey })
+
+            const response = await client.messages.create({
+              model: aiSettings.model,
+              max_tokens: 4096,
+              messages: [{ role: 'user', content: prompt }],
+            })
+
+            const textContent = response.content.find(c => c.type === 'text')
+            if (!textContent || textContent.type !== 'text') {
+              throw new Error('No text response from AI')
+            }
+
+            analysisResult = JSON.parse(textContent.text)
+            break
+          }
+
+          case 'OPENAI': {
+            const { default: OpenAI } = await import('openai')
+            const client = new OpenAI({ apiKey })
+
+            const response = await client.chat.completions.create({
+              model: aiSettings.model,
+              messages: [{ role: 'user', content: prompt }],
+              response_format: { type: 'json_object' },
+            })
+
+            const content = response.choices[0]?.message?.content
+            if (!content) {
+              throw new Error('No response from AI')
+            }
+
+            analysisResult = JSON.parse(content)
+            break
+          }
+
+          case 'GEMINI': {
+            const response = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${aiSettings.model}:generateContent?key=${apiKey}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }],
+                  generationConfig: { responseMimeType: 'application/json' },
+                }),
+              }
+            )
+
+            const data = await response.json()
+            const genContent = data.candidates?.[0]?.content?.parts?.[0]?.text
+            if (!genContent) {
+              throw new Error('No response from AI')
+            }
+
+            analysisResult = JSON.parse(genContent)
+            break
+          }
+
+          default:
+            throw new Error(`Unsupported AI provider: ${aiSettings.provider}`)
+        }
+      } catch (error) {
+        console.error('AI transcript analysis failed:', error)
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to analyze transcript',
+        })
+      }
+
+      // Store analysis result on interview
+      const updatedInterview = await ctx.prisma.candidateInterview.update({
+        where: { id: input.interviewId },
+        data: {
+          aiAnalysis: analysisResult as object,
+          aiAnalyzedAt: new Date(),
+        },
+      })
+
+      return {
+        analysis: updatedInterview.aiAnalysis,
+        wasRegenerated: true,
+        analyzedAt: updatedInterview.aiAnalyzedAt,
+      }
+    }),
+
+  // Get AI analysis for an interview
+  getAIAnalysis: protectedProcedure
+    .input(z.object({ interviewId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const interview = await ctx.prisma.candidateInterview.findUnique({
+        where: { id: input.interviewId },
+        select: {
+          aiAnalysis: true,
+          aiAnalyzedAt: true,
+          firefliesTranscript: true,
+          firefliesMeetingId: true,
+        },
+      })
+
+      if (!interview) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Interview not found',
+        })
+      }
+
+      return {
+        hasTranscript: !!interview.firefliesTranscript,
+        hasAnalysis: !!interview.aiAnalysis,
+        analysis: interview.aiAnalysis,
+        analyzedAt: interview.aiAnalyzedAt,
+      }
+    }),
+
   // Sync interview to calendar (create or update)
   syncInterviewToCalendar: protectedProcedure
     .input(

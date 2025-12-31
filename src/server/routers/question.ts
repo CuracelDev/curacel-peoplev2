@@ -514,6 +514,285 @@ export const questionRouter = router({
       return { count: created.count }
     }),
 
+  // AI-powered question generation
+  generateAIQuestions: protectedProcedure
+    .input(
+      z.object({
+        candidateId: z.string(),
+        interviewTypeId: z.string().optional(),
+        jobId: z.string().optional(),
+        categories: z.array(questionCategoryEnum).optional(),
+        count: z.number().min(1).max(20).optional().default(10),
+        focusAreas: z.array(z.string()).optional(), // e.g., ["leadership", "technical depth"]
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { prisma } = ctx
+      const { candidateId, interviewTypeId, jobId, categories, count, focusAreas } = input
+
+      // Get AI settings
+      const aiSettings = await prisma.aISettings.findFirst({
+        orderBy: { updatedAt: 'desc' },
+      })
+
+      if (!aiSettings?.apiKey) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'AI settings not configured. Please configure in Settings → AI Configuration.',
+        })
+      }
+
+      // Get candidate data
+      const candidate = await prisma.jobCandidate.findUnique({
+        where: { id: candidateId },
+        include: {
+          job: true,
+          interviews: {
+            include: {
+              evaluations: {
+                select: {
+                  overallNotes: true,
+                  recommendation: true,
+                },
+              },
+            },
+            orderBy: { scheduledAt: 'desc' },
+            take: 3,
+          },
+        },
+      })
+
+      if (!candidate) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Candidate not found',
+        })
+      }
+
+      // Get interview type info
+      let targetCategories = categories
+      let interviewTypeName = 'General Interview'
+
+      if (interviewTypeId) {
+        const interviewType = await prisma.interviewType.findUnique({
+          where: { id: interviewTypeId },
+        })
+        if (interviewType) {
+          interviewTypeName = interviewType.name
+          if (!targetCategories && interviewType.questionCategories?.length) {
+            targetCategories = interviewType.questionCategories as typeof categories
+          }
+        }
+      }
+
+      // Get job info if not from candidate
+      let jobTitle = candidate.job?.title || 'Unknown Position'
+      let jobDescription = candidate.job?.description || ''
+
+      if (jobId && !candidate.job) {
+        const job = await prisma.job.findUnique({
+          where: { id: jobId },
+          select: { title: true, description: true },
+        })
+        if (job) {
+          jobTitle = job.title
+          jobDescription = job.description || ''
+        }
+      }
+
+      // Build AI prompt
+      const prompt = `You are an expert interviewer at Curacel, an insurtech company. Generate ${count} insightful interview questions for a candidate.
+
+## Company Values (PRESS)
+- Passionate Work: Deep love for what we do
+- Relentless Growth: Continuous improvement mindset
+- Empowered Action: Taking ownership and initiative
+- Sense of Urgency: Moving fast and decisively
+- Seeing Possibilities: Innovation and creative problem-solving
+
+## Candidate Profile
+- Name: ${candidate.name}
+- Current Role: ${candidate.currentRole || 'Not specified'}
+- Current Company: ${candidate.currentCompany || 'Not specified'}
+- Years of Experience: ${candidate.yearsOfExperience || 'Not specified'}
+- Location: ${candidate.location || 'Not specified'}
+- Skills: ${candidate.skills?.join(', ') || 'Not specified'}
+${candidate.bio ? `- Bio: ${candidate.bio}` : ''}
+${candidate.resumeSummary ? `- Resume Summary: ${candidate.resumeSummary.slice(0, 500)}...` : ''}
+
+## Position
+- Title: ${jobTitle}
+${jobDescription ? `- Description: ${jobDescription.slice(0, 500)}...` : ''}
+
+## Interview Type
+${interviewTypeName}
+
+## Question Categories to Focus On
+${targetCategories?.join(', ') || 'behavioral, situational, technical, motivational, culture'}
+
+${focusAreas?.length ? `## Specific Focus Areas\n${focusAreas.join(', ')}` : ''}
+
+${candidate.mustValidate?.length ? `## Points to Validate (from previous analysis)\n${(candidate.mustValidate as string[]).join('\n')}` : ''}
+
+${candidate.interviews?.length ? `## Previous Interview Insights\n${candidate.interviews.map(i => i.evaluations.map(e => e.overallNotes).filter(Boolean).join('\n')).join('\n').slice(0, 500)}` : ''}
+
+## Response Format (JSON array)
+Return ONLY a valid JSON array of questions. Each question must have:
+{
+  "text": "The main question (be specific and probing)",
+  "followUp": "A follow-up question to dig deeper",
+  "category": "situational|behavioral|technical|motivational|culture",
+  "tags": ["Tag1", "Tag2", "Tag3"],
+  "reasoning": "Why this question is relevant for this candidate (2-3 sentences)"
+}
+
+Generate questions that:
+1. Are tailored to this specific candidate's background
+2. Probe areas that need validation
+3. Assess cultural fit with PRESS values
+4. Uncover both strengths and potential concerns
+5. Allow the candidate to demonstrate relevant experience
+
+Respond ONLY with a valid JSON array, no additional text.`
+
+      // Call AI
+      let generatedQuestions: Array<{
+        text: string
+        followUp: string
+        category: string
+        tags: string[]
+        reasoning: string
+      }> = []
+
+      try {
+        const { decrypt } = await import('@/lib/encryption')
+        const apiKey = decrypt(aiSettings.apiKey)
+
+        switch (aiSettings.provider) {
+          case 'ANTHROPIC': {
+            const { default: Anthropic } = await import('@anthropic-ai/sdk')
+            const client = new Anthropic({ apiKey })
+
+            const response = await client.messages.create({
+              model: aiSettings.model,
+              max_tokens: 4096,
+              messages: [{ role: 'user', content: prompt }],
+            })
+
+            const textContent = response.content.find(c => c.type === 'text')
+            if (!textContent || textContent.type !== 'text') {
+              throw new Error('No text response from Anthropic')
+            }
+
+            generatedQuestions = JSON.parse(textContent.text)
+            break
+          }
+
+          case 'OPENAI': {
+            const { default: OpenAI } = await import('openai')
+            const client = new OpenAI({ apiKey })
+
+            const response = await client.chat.completions.create({
+              model: aiSettings.model,
+              messages: [{ role: 'user', content: prompt }],
+              response_format: { type: 'json_object' },
+            })
+
+            const content = response.choices[0]?.message?.content
+            if (!content) {
+              throw new Error('No response from OpenAI')
+            }
+
+            const parsed = JSON.parse(content)
+            generatedQuestions = Array.isArray(parsed) ? parsed : parsed.questions || []
+            break
+          }
+
+          case 'GEMINI': {
+            const response = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/${aiSettings.model}:generateContent?key=${apiKey}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: prompt }] }],
+                  generationConfig: { responseMimeType: 'application/json' },
+                }),
+              }
+            )
+
+            const data = await response.json()
+            const genContent = data.candidates?.[0]?.content?.parts?.[0]?.text
+            if (!genContent) {
+              throw new Error('No response from Gemini')
+            }
+
+            generatedQuestions = JSON.parse(genContent)
+            break
+          }
+
+          default:
+            throw new Error(`Unsupported AI provider: ${aiSettings.provider}`)
+        }
+      } catch (error) {
+        console.error('AI question generation failed:', error)
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Failed to generate questions',
+        })
+      }
+
+      return {
+        questions: generatedQuestions.map((q, idx) => ({
+          id: `ai-${Date.now()}-${idx}`,
+          ...q,
+          isAIGenerated: true,
+          candidateId,
+          interviewTypeId,
+        })),
+        candidateName: candidate.name,
+        interviewType: interviewTypeName,
+        generatedAt: new Date().toISOString(),
+      }
+    }),
+
+  // Save AI-generated questions to the question bank
+  saveAIQuestions: protectedProcedure
+    .input(
+      z.object({
+        questions: z.array(
+          z.object({
+            text: z.string().min(10),
+            followUp: z.string().optional(),
+            category: questionCategoryEnum,
+            tags: z.array(z.string()).optional().default([]),
+          })
+        ),
+        jobId: z.string().optional(),
+        interviewTypeId: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { prisma, session } = ctx
+
+      const user = await prisma.user.findUnique({
+        where: { id: session.user.id },
+        select: { employeeId: true },
+      })
+
+      const created = await prisma.interviewQuestion.createMany({
+        data: input.questions.map((q) => ({
+          ...q,
+          jobId: input.jobId,
+          interviewTypeId: input.interviewTypeId,
+          createdById: user?.employeeId,
+          source: 'AI_GENERATED',
+        })),
+      })
+
+      return { count: created.count, message: `${created.count} questions saved to bank` }
+    }),
+
   // Seed default questions
   seedDefaults: adminProcedure.mutation(async ({ ctx }) => {
     const { prisma, session } = ctx
