@@ -292,12 +292,12 @@ export default function QuestionsPage() {
               {/* Job Selection */}
               <div className="mb-4">
                 <Label className="mb-2 block">Job Position</Label>
-                <Select value={selectedJob} onValueChange={setSelectedJob}>
+                <Select value={selectedJob || 'all'} onValueChange={(v) => setSelectedJob(v === 'all' ? '' : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All jobs" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All jobs</SelectItem>
+                    <SelectItem value="all">All jobs</SelectItem>
                     {jobs?.map((job) => (
                       <SelectItem key={job.id} value={job.id}>
                         {job.title}
@@ -310,12 +310,12 @@ export default function QuestionsPage() {
               {/* Interview Type */}
               <div className="mb-4">
                 <Label className="mb-2 block">Interview Type</Label>
-                <Select value={selectedInterviewType} onValueChange={setSelectedInterviewType}>
+                <Select value={selectedInterviewType || 'all'} onValueChange={(v) => setSelectedInterviewType(v === 'all' ? '' : v)}>
                   <SelectTrigger>
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All types</SelectItem>
+                    <SelectItem value="all">All types</SelectItem>
                     {interviewTypes?.map((type) => (
                       <SelectItem key={type.id} value={type.id}>
                         {type.name}
