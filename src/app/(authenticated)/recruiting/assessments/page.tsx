@@ -5,6 +5,7 @@ import { trpc } from '@/lib/trpc-client'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import {
   Table,
@@ -34,6 +35,14 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import {
   Search,
   ClipboardCheck,
   MoreHorizontal,
@@ -53,10 +62,12 @@ import {
   Clock,
   CheckCircle,
   X,
+  Plus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 // Type display names and colors
 const typeConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
@@ -90,6 +101,12 @@ export default function AssessmentsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedAssessment, setSelectedAssessment] = useState<Assessment | null>(null)
+  const [sendDialogOpen, setSendDialogOpen] = useState(false)
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string>('')
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
+  const [candidateSearch, setCandidateSearch] = useState('')
+
+  const utils = trpc.useUtils()
 
   // Fetch assessments
   const { data: assessments, isLoading } = trpc.assessment.list.useQuery({
@@ -100,6 +117,69 @@ export default function AssessmentsPage() {
 
   // Fetch counts
   const { data: counts } = trpc.assessment.getCounts.useQuery()
+
+  // Fetch candidates for send dialog
+  const { data: candidatesData } = trpc.job.getAllCandidates.useQuery(
+    { search: candidateSearch || undefined, limit: 50 },
+    { enabled: sendDialogOpen }
+  )
+  const candidates = candidatesData?.candidates
+
+  // Fetch templates for send dialog
+  const { data: templates } = trpc.assessment.listTemplates.useQuery(
+    { isActive: true },
+    { enabled: sendDialogOpen }
+  )
+
+  // Mutations
+  const createAssessment = trpc.assessment.create.useMutation({
+    onSuccess: (data) => {
+      // After creating, send the invite
+      sendInvite.mutate({ id: data.id })
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to create assessment')
+    },
+  })
+
+  const sendInvite = trpc.assessment.sendInvite.useMutation({
+    onSuccess: () => {
+      toast.success('Assessment invite sent successfully')
+      setSendDialogOpen(false)
+      setSelectedCandidateId('')
+      setSelectedTemplateId('')
+      utils.assessment.list.invalidate()
+      utils.assessment.getCounts.invalidate()
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to send assessment invite')
+    },
+  })
+
+  const resendInvite = trpc.assessment.sendInvite.useMutation({
+    onSuccess: () => {
+      toast.success('Invite resent successfully')
+      utils.assessment.list.invalidate()
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to resend invite')
+    },
+  })
+
+  const handleSendAssessment = () => {
+    if (!selectedCandidateId || !selectedTemplateId) {
+      toast.error('Please select a candidate and assessment template')
+      return
+    }
+    createAssessment.mutate({
+      candidateId: selectedCandidateId,
+      templateId: selectedTemplateId,
+    })
+  }
+
+  const handleResendInvite = (assessmentId: string) => {
+    resendInvite.mutate({ id: assessmentId })
+  }
 
   // Filter types for display
   const types = [
@@ -149,8 +229,8 @@ export default function AssessmentsPage() {
             </button>
           ))}
         </div>
-        <Button>
-          <Send className="h-4 w-4 mr-2" />
+        <Button onClick={() => setSendDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
           Send Assessment
         </Button>
       </div>
@@ -306,7 +386,12 @@ export default function AssessmentsPage() {
                                 Open Assessment
                               </DropdownMenuItem>
                             )}
-                            <DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleResendInvite(assessment.id)
+                              }}
+                            >
                               <Send className="h-4 w-4 mr-2" />
                               Resend Invite
                             </DropdownMenuItem>
@@ -487,8 +572,17 @@ export default function AssessmentsPage() {
                       </Button>
                     )}
                     {selectedAssessment.status !== 'COMPLETED' && (
-                      <Button variant="outline" className="w-full">
-                        <Send className="h-4 w-4 mr-2" />
+                      <Button
+                        variant="outline"
+                        className="w-full"
+                        onClick={() => handleResendInvite(selectedAssessment.id)}
+                        disabled={resendInvite.isPending}
+                      >
+                        {resendInvite.isPending ? (
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        ) : (
+                          <Send className="h-4 w-4 mr-2" />
+                        )}
                         Resend Invite
                       </Button>
                     )}
@@ -499,6 +593,116 @@ export default function AssessmentsPage() {
           })()}
         </SheetContent>
       </Sheet>
+
+      {/* Send Assessment Dialog */}
+      <Dialog open={sendDialogOpen} onOpenChange={setSendDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Send Assessment</DialogTitle>
+            <DialogDescription>
+              Select a candidate and assessment template to send an invite.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Candidate Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="candidate">Candidate</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="candidateSearch"
+                  placeholder="Search candidates..."
+                  className="pl-9 mb-2"
+                  value={candidateSearch}
+                  onChange={(e) => setCandidateSearch(e.target.value)}
+                />
+              </div>
+              <Select value={selectedCandidateId} onValueChange={setSelectedCandidateId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a candidate" />
+                </SelectTrigger>
+                <SelectContent>
+                  {candidates?.map((candidate) => (
+                    <SelectItem key={candidate.id} value={candidate.id}>
+                      <div className="flex items-center gap-2">
+                        <span>{candidate.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {candidate.job?.title || 'No position'}
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                  {(!candidates || candidates.length === 0) && (
+                    <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                      {candidateSearch ? 'No candidates found' : 'No candidates available'}
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Template Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="template">Assessment Template</Label>
+              <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates?.map((template) => {
+                    const config = typeConfig[template.type] || typeConfig.CUSTOM
+                    const TypeIcon = config.icon
+                    return (
+                      <SelectItem key={template.id} value={template.id}>
+                        <div className="flex items-center gap-2">
+                          <TypeIcon className="h-4 w-4" />
+                          <span>{template.name}</span>
+                          <Badge className={cn('text-xs', config.color)}>
+                            {config.label}
+                          </Badge>
+                        </div>
+                      </SelectItem>
+                    )
+                  })}
+                  {(!templates || templates.length === 0) && (
+                    <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                      No templates available
+                    </div>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setSendDialogOpen(false)
+                setSelectedCandidateId('')
+                setSelectedTemplateId('')
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSendAssessment}
+              disabled={!selectedCandidateId || !selectedTemplateId || createAssessment.isPending || sendInvite.isPending}
+            >
+              {(createAssessment.isPending || sendInvite.isPending) ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Send className="h-4 w-4 mr-2" />
+                  Send Assessment
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
