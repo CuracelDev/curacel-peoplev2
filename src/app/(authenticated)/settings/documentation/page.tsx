@@ -555,6 +555,64 @@ const docSections: DocSection[] = [
     ],
   },
   {
+    id: 'recruiting-scoring',
+    title: 'Candidate scoring',
+    description: 'Configure how overall candidate scores are weighted.',
+    blocks: [
+      {
+        title: 'Where to configure',
+        items: [
+          'Go to Recruiting > Settings > Candidate Scoring.',
+          'Enable or disable score inputs based on your process.',
+        ],
+      },
+      {
+        title: 'Step-by-step',
+        ordered: true,
+        items: [
+          'Toggle the inputs you want included in the overall score.',
+          'Adjust the weight sliders to set their importance.',
+          'Review the enabled weight total (weights are normalized).',
+          'Click Save Scoring to apply the new weights.',
+        ],
+      },
+      {
+        title: 'Notes',
+        items: [
+          'Only available profile data is included in the calculation.',
+          'Missing inputs are excluded from the weighted average.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'candidate-profile-export',
+    title: 'Candidate profile export',
+    description: 'Download a structured PDF summary of a candidate profile.',
+    blocks: [
+      {
+        title: 'How to export',
+        ordered: true,
+        items: [
+          'Open Recruiting > Candidates and select a candidate.',
+          'In the profile header, click Export Profile.',
+          'Wait for the PDF to generate and download.',
+          'Share the PDF with stakeholders or attach it to hiring notes.',
+        ],
+      },
+      {
+        title: 'What is included',
+        items: [
+          'Candidate contact details, stage, and position.',
+          'Weighted score breakdown and overall score.',
+          'Stage progress, interviews, and assessments.',
+          'BlueAI summary, strengths, and areas to explore.',
+          'Must-validate items and resume summary when available.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'recruiting-jobs',
     title: 'Recruiting jobs',
     description: 'Create and manage job roles for the recruiting pipeline.',

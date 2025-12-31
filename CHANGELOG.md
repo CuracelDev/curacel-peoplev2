@@ -11,9 +11,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Public careers landing page (`/careers`) for job seekers
   - Public recruiter application forms (`/recruiter`)
   - Public jobs API endpoint (`/api/jobs`) for external integrations
+- **Recruiting Mock Seed**
+  - Added `scripts/seed-single-candidate.ts` to populate one consistent mock candidate with flow, interviews, assessments, and BlueAI analysis
+- **Candidate Profile PDF Export**
+  - Added `/api/recruiting/candidates/:id/export` for structured PDF downloads from the candidate profile
 - **Recruiting Settings Enhancements**
   - Expanded recruiting settings page with comprehensive configuration options
   - Recruiter router for managing public-facing recruitment features
+- **Candidate Scoring Settings**
+  - Configure weighted inputs for overall candidate scores in Recruiting Settings
+  - Missing profile data is excluded from the weighted calculation
 - **Job Settings section in Administration**
   - New parent settings page (`/settings/job-settings`) grouping job-related configurations
   - Contains Job Descriptions and Interview Settings
@@ -92,9 +99,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Offboarding page: Same responsive improvements as onboarding
   - Contracts page: Contract list items stack on mobile, responsive padding
   - All pages now work properly on mobile (320px), tablet (768px), and desktop viewports
+- Candidate profile actions now export profiles, update stages/decisions, and open the interview scheduler
 - Candidate profile tabs now fill the page width with evenly distributed triggers
-- Candidate profile actions now live inline (Export Profile under Generate Questions; Advance to Offer in Must Validate and Decision quick actions)
+- Candidate profile actions now live inline (Export Profile under Generate Questions; Advance to Offer in Decision quick actions)
 - Updated AI copy to use BlueAI across the app UI and documentation
+- Candidate profile now renders DB-only data with hiring flow-aligned stage progress and weighted overall scoring
 - **Recruiting Assessments Page Improvements**
   - Enhanced UI and layout for assessments management
 - **Interviews Page Enhancements**

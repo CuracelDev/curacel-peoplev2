@@ -33,6 +33,7 @@ import {
   Layers,
   Video,
   Loader2,
+  BarChart3,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -59,6 +60,7 @@ import {
 } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
+import { normalizeCandidateScoreWeights, type CandidateScoreComponent } from '@/lib/recruiting/score-config'
 
 const settingsNav = [
   { id: 'competencies', name: 'Competencies', icon: Star },
@@ -68,6 +70,7 @@ const settingsNav = [
   { id: 'interviewTypes', name: 'Interview Types', icon: Video },
   { id: 'interestForms', name: 'Interest Forms', icon: FileQuestion },
   { id: 'rubrics', name: 'Interview Rubrics', icon: ClipboardCheck },
+  { id: 'scoring', name: 'Candidate Scoring', icon: BarChart3 },
   { id: 'webhooks', name: 'Webhooks', icon: Webhook },
   { id: 'recruiters', name: 'External Recruiters', icon: UserCircle2 },
   { id: 'sources', name: 'Source Channels', icon: Layers },
@@ -128,6 +131,7 @@ const sectionMap: Record<string, string> = {
   interviewTypes: 'interviewTypes',
   forms: 'interestForms',
   rubrics: 'rubrics',
+  scoring: 'scoring',
 }
 
 export default function SettingsPage() {
@@ -141,6 +145,7 @@ export default function SettingsPage() {
     agreeableness: 70,
     neuroticism: 30,
   })
+  const [scoreComponents, setScoreComponents] = useState<CandidateScoreComponent[]>([])
   // Hiring flow state - now using tRPC instead of localStorage
   const hiringFlowsQuery = trpc.hiringFlow.list.useQuery()
   const [activeFlowId, setActiveFlowId] = useState<string | null>(null)
@@ -282,6 +287,15 @@ export default function SettingsPage() {
     }
   }, [hiringFlowsQuery.data, activeFlowId])
 
+  useEffect(() => {
+    if (!recruitingSettingsQuery.data?.candidateScoreWeights) return
+    setScoreComponents(
+      normalizeCandidateScoreWeights(
+        recruitingSettingsQuery.data.candidateScoreWeights as CandidateScoreComponent[]
+      )
+    )
+  }, [recruitingSettingsQuery.data?.candidateScoreWeights])
+
   // Initialize edited flow when active flow changes
   useEffect(() => {
     const activeFlow = (hiringFlowsQuery.data ?? []).find((f) => f.id === activeFlowId)
@@ -297,6 +311,10 @@ export default function SettingsPage() {
 
   const flows = hiringFlowsQuery.data ?? []
   const activeFlow = flows.find((flow) => flow.id === activeFlowId)
+  const totalScoreWeight = scoreComponents.reduce(
+    (sum, item) => sum + (item.enabled ? item.weight : 0),
+    0
+  )
 
   const updateEditedFlow = (updates: Partial<typeof editedFlow>) => {
     if (!editedFlow) return
@@ -314,6 +332,18 @@ export default function SettingsPage() {
   const addStage = () => {
     if (!editedFlow) return
     updateEditedFlow({ stages: [...editedFlow.stages, 'New Stage'] })
+  }
+
+  const updateScoreComponent = (id: CandidateScoreComponent['id'], updates: Partial<CandidateScoreComponent>) => {
+    setScoreComponents((prev) =>
+      prev.map((component) => (component.id === id ? { ...component, ...updates } : component))
+    )
+  }
+
+  const handleSaveScoreWeights = () => {
+    updateSettingsMutation.mutate({
+      candidateScoreWeights: scoreComponents,
+    })
   }
 
   const removeStage = (index: number) => {
@@ -1187,6 +1217,63 @@ export default function SettingsPage() {
                     </div>
                   </>
                 )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Candidate Scoring */}
+          {activeSection === 'scoring' && (
+            <Card id="scoring">
+              <CardHeader className="p-5 border-b">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h2 className="text-lg font-semibold">Candidate Scoring</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Configure how the overall score is weighted across profile inputs. Missing data is excluded from the calculation.
+                    </p>
+                  </div>
+                  <Button onClick={handleSaveScoreWeights} disabled={updateSettingsMutation.isPending}>
+                    <Save className="h-4 w-4 mr-2" />
+                    {updateSettingsMutation.isPending ? 'Saving...' : 'Save Scoring'}
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent className="p-5 space-y-4">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
+                  <span>Enabled weight total: {totalScoreWeight}%</span>
+                  <span>Weights are normalized when computing scores.</span>
+                </div>
+                <div className="space-y-4">
+                  {scoreComponents.length > 0 ? (
+                    scoreComponents.map((component) => (
+                      <div key={component.id} className="rounded-lg border border-border p-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <div className="font-medium">{component.label}</div>
+                            <div className="text-xs text-muted-foreground">{component.description}</div>
+                          </div>
+                          <Switch
+                            checked={component.enabled}
+                            onCheckedChange={(value) => updateScoreComponent(component.id, { enabled: value })}
+                          />
+                        </div>
+                        <div className="mt-4 flex items-center gap-4">
+                          <Slider
+                            value={[component.weight]}
+                            max={100}
+                            step={1}
+                            disabled={!component.enabled}
+                            onValueChange={(value) => updateScoreComponent(component.id, { weight: value[0] })}
+                            className="flex-1"
+                          />
+                          <div className="w-12 text-right text-sm font-medium">{component.weight}%</div>
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground">Loading scoring settings...</div>
+                  )}
+                </div>
               </CardContent>
             </Card>
           )}
@@ -2126,4 +2213,3 @@ function InterviewTypesSection() {
     </Card>
   )
 }
-
