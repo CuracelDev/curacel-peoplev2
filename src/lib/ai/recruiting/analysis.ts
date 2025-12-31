@@ -51,14 +51,39 @@ async function getAISettings() {
     orderBy: { updatedAt: 'desc' },
   })
 
-  if (!settings?.apiKey) {
+  if (!settings) {
     throw new Error('AI settings not configured')
+  }
+
+  // Get the appropriate key and model based on provider
+  let apiKey: string | null = null
+  let model: string
+
+  switch (settings.provider) {
+    case 'OPENAI':
+      apiKey = settings.openaiKeyEncrypted
+      model = settings.openaiModel
+      break
+    case 'ANTHROPIC':
+      apiKey = settings.anthropicKeyEncrypted
+      model = settings.anthropicModel
+      break
+    case 'GEMINI':
+      apiKey = settings.geminiKeyEncrypted
+      model = settings.geminiModel
+      break
+    default:
+      throw new Error(`Unsupported AI provider: ${settings.provider}`)
+  }
+
+  if (!apiKey) {
+    throw new Error(`API key not configured for provider: ${settings.provider}`)
   }
 
   return {
     provider: settings.provider,
-    model: settings.model,
-    apiKey: decrypt(settings.apiKey),
+    model,
+    apiKey: decrypt(apiKey),
   }
 }
 

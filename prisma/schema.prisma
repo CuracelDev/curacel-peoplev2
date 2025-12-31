@@ -2275,6 +2275,10 @@ model CandidateAIAnalysis {
   recommendation  String?  // "STRONG_HIRE", "HIRE", "HOLD", "NO_HIRE"
   confidence      Int?     // 0-100
 
+  // Must-validate points and suggested questions
+  mustValidatePoints   Json?  // Array of points to validate in next stage
+  nextStageQuestions   Json?  // Array of suggested questions for next stage
+
   // AI model info
   aiProvider      String?  // "ANTHROPIC", "OPENAI", "GEMINI"
   aiModel         String?  // Specific model used
