@@ -19,6 +19,7 @@ import {
   GitBranch,
   FileQuestion,
   ClipboardCheck,
+  Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -82,25 +83,37 @@ const settingsSections = [
         title: 'Hiring Flows',
         description: 'Define interview stages for different roles.',
         icon: GitBranch,
-        href: '/recruiting/settings?section=flows',
+        href: '/recruiting/settings/all?section=interview',
       },
       {
         title: 'Interview Types',
         description: 'Configure interview types and durations.',
         icon: Users,
-        href: '/recruiting/settings?section=interviewTypes',
+        href: '/recruiting/settings/all?section=interviewTypes',
       },
       {
         title: 'Interest Forms',
         description: 'Create application forms for candidates.',
         icon: FileQuestion,
-        href: '/recruiting/settings?section=forms',
+        href: '/recruiting/settings/all?section=interestForms',
       },
       {
         title: 'Interview Rubrics',
         description: 'Set evaluation criteria for interviews.',
         icon: ClipboardCheck,
-        href: '/recruiting/settings?section=rubrics',
+        href: '/recruiting/settings/all?section=rubrics',
+      },
+      {
+        title: 'Assessments',
+        description: 'Configure tests and assessments.',
+        icon: ClipboardList,
+        href: '/recruiting/settings/assessments',
+      },
+      {
+        title: 'All Hiring Settings',
+        description: 'View all hiring configuration options.',
+        icon: Settings,
+        href: '/recruiting/settings',
       },
     ],
   },
