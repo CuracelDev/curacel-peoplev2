@@ -49,38 +49,7 @@ import {
   Video,
 } from 'lucide-react'
 import { format } from 'date-fns'
-
-// Interview types configuration (will be moved to DB in Phase 4)
-const INTERVIEW_TYPES = [
-  {
-    id: 'people-chat',
-    name: 'People Chat',
-    stage: 'HR_SCREEN',
-    duration: 45,
-    description: 'Initial HR screening call'
-  },
-  {
-    id: 'team-chat',
-    name: 'Team Chat',
-    stage: 'TEAM_CHAT',
-    duration: 60,
-    description: 'Interview with potential teammates'
-  },
-  {
-    id: 'advisor-chat',
-    name: 'Advisor Chat',
-    stage: 'ADVISOR_CHAT',
-    duration: 45,
-    description: 'Interview with company advisors'
-  },
-  {
-    id: 'ceo-chat',
-    name: 'CEO Chat',
-    stage: 'CEO_CHAT',
-    duration: 60,
-    description: 'Final interview with CEO'
-  },
-]
+import { toast } from 'sonner'
 
 interface ScheduleInterviewDialogProps {
   open: boolean
@@ -99,7 +68,7 @@ export function ScheduleInterviewDialog({
 }: ScheduleInterviewDialogProps) {
   // Form state
   const [selectedCandidateId, setSelectedCandidateId] = useState(preselectedCandidateId || '')
-  const [interviewType, setInterviewType] = useState('')
+  const [interviewTypeId, setInterviewTypeId] = useState('')
   const [selectedInterviewers, setSelectedInterviewers] = useState<Array<{ id: string; name: string; email: string }>>([])
   const [date, setDate] = useState<Date>()
   const [time, setTime] = useState('10:00')
@@ -113,6 +82,9 @@ export function ScheduleInterviewDialog({
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [candidateSearch, setCandidateSearch] = useState('')
   const [interviewerSearch, setInterviewerSearch] = useState('')
+
+  // Fetch interview types from database
+  const { data: interviewTypesData, isLoading: typesLoading } = trpc.interviewType.list.useQuery()
 
   // Fetch candidates
   const { data: candidatesData, isLoading: candidatesLoading } = trpc.job.getAllCandidates.useQuery({
@@ -133,9 +105,15 @@ export function ScheduleInterviewDialog({
     onSuccess: () => {
       utils.interview.list.invalidate()
       utils.interview.getCounts.invalidate()
+      toast.success('Interview scheduled successfully')
       onOpenChange(false)
       resetForm()
       onSuccess?.()
+    },
+    onError: (error) => {
+      toast.error('Failed to schedule interview', {
+        description: error.message,
+      })
     },
   })
 
@@ -146,15 +124,15 @@ export function ScheduleInterviewDialog({
 
   // Get selected interview type info
   const selectedType = useMemo(() => {
-    return INTERVIEW_TYPES.find(t => t.id === interviewType)
-  }, [interviewType])
+    return interviewTypesData?.find(t => t.id === interviewTypeId)
+  }, [interviewTypesData, interviewTypeId])
 
   // Update duration when interview type changes
   const handleInterviewTypeChange = (value: string) => {
-    setInterviewType(value)
-    const type = INTERVIEW_TYPES.find(t => t.id === value)
+    setInterviewTypeId(value)
+    const type = interviewTypesData?.find(t => t.id === value)
     if (type) {
-      setDuration(type.duration)
+      setDuration(type.defaultDuration)
     }
   }
 
@@ -178,7 +156,7 @@ export function ScheduleInterviewDialog({
   // Reset form
   const resetForm = () => {
     setSelectedCandidateId(preselectedCandidateId || '')
-    setInterviewType('')
+    setInterviewTypeId('')
     setSelectedInterviewers([])
     setDate(undefined)
     setTime('10:00')
@@ -191,12 +169,9 @@ export function ScheduleInterviewDialog({
 
   // Handle submit
   const handleSubmit = async () => {
-    if (!selectedCandidateId || !interviewType || !date || selectedInterviewers.length === 0) {
+    if (!selectedCandidateId || !interviewTypeId || !date || selectedInterviewers.length === 0) {
       return
     }
-
-    const selectedTypeInfo = INTERVIEW_TYPES.find(t => t.id === interviewType)
-    if (!selectedTypeInfo) return
 
     // Combine date and time
     const [hours, minutes] = time.split(':').map(Number)
@@ -205,16 +180,20 @@ export function ScheduleInterviewDialog({
 
     await scheduleMutation.mutateAsync({
       candidateId: selectedCandidateId,
-      stage: selectedTypeInfo.stage as any,
-      scheduledAt,
+      interviewTypeId,
+      scheduledAt: scheduledAt.toISOString(),
       duration,
-      interviewers: selectedInterviewers.map(i => ({ name: i.name, email: i.email })),
+      interviewers: selectedInterviewers.map(i => ({
+        employeeId: i.id,
+        name: i.name,
+        email: i.email,
+      })),
       meetingLink: meetingLink || undefined,
       notes: notes || undefined,
     })
   }
 
-  const isValid = selectedCandidateId && interviewType && date && selectedInterviewers.length > 0
+  const isValid = selectedCandidateId && interviewTypeId && date && selectedInterviewers.length > 0
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -301,19 +280,24 @@ export function ScheduleInterviewDialog({
           {/* Interview Type */}
           <div className="grid gap-2">
             <Label htmlFor="type">Interview Type *</Label>
-            <Select value={interviewType} onValueChange={handleInterviewTypeChange}>
+            <Select value={interviewTypeId} onValueChange={handleInterviewTypeChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Select interview type..." />
+                <SelectValue placeholder={typesLoading ? "Loading types..." : "Select interview type..."} />
               </SelectTrigger>
               <SelectContent>
-                {INTERVIEW_TYPES.map((type) => (
+                {interviewTypesData?.map((type) => (
                   <SelectItem key={type.id} value={type.id}>
                     <div className="flex flex-col">
                       <span>{type.name}</span>
-                      <span className="text-xs text-muted-foreground">{type.duration} min</span>
+                      <span className="text-xs text-muted-foreground">{type.defaultDuration} min</span>
                     </div>
                   </SelectItem>
                 ))}
+                {(!interviewTypesData || interviewTypesData.length === 0) && !typesLoading && (
+                  <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                    No interview types configured. Add them in Settings.
+                  </div>
+                )}
               </SelectContent>
             </Select>
             {selectedType && (
@@ -407,11 +391,11 @@ export function ScheduleInterviewDialog({
                   <Calendar
                     mode="single"
                     selected={date}
-                    onSelect={(d) => {
+                    onSelect={(d: Date | undefined) => {
                       setDate(d)
                       setCalendarOpen(false)
                     }}
-                    disabled={(date) => date < new Date()}
+                    disabled={(d: Date) => d < new Date()}
                     initialFocus
                   />
                 </PopoverContent>
