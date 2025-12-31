@@ -92,6 +92,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Offboarding page: Same responsive improvements as onboarding
   - Contracts page: Contract list items stack on mobile, responsive padding
   - All pages now work properly on mobile (320px), tablet (768px), and desktop viewports
+- Candidate profile tabs now fill the page width with evenly distributed triggers
+- Candidate profile actions now live inline (Export Profile under Generate Questions; Advance to Offer in Must Validate and Decision quick actions)
+- Updated AI copy to use BlueAI across the app UI and documentation
 - **Recruiting Assessments Page Improvements**
   - Enhanced UI and layout for assessments management
 - **Interviews Page Enhancements**

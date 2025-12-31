@@ -75,7 +75,7 @@ export default function BlueAIInterviewsPage() {
     <div className="space-y-6">
       <SettingsPageHeader
         title="BlueAI Interviews"
-        description="Configure AI-powered analysis for recruiting interviews and candidate assessments"
+        description="Configure BlueAI analysis for recruiting interviews and candidate assessments"
       />
 
       {/* Auto-Analysis Triggers */}
@@ -253,7 +253,7 @@ export default function BlueAIInterviewsPage() {
             Tab Summaries
           </CardTitle>
           <CardDescription>
-            AI-generated summaries shown at the bottom of candidate profile tabs
+            BlueAI-generated summaries shown at the bottom of candidate profile tabs
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -301,7 +301,7 @@ export default function BlueAIInterviewsPage() {
             Custom Analysis Prompt
           </CardTitle>
           <CardDescription>
-            Add custom instructions for the AI when generating candidate analyses
+            Add custom instructions for BlueAI when generating candidate analyses
           </CardDescription>
         </CardHeader>
         <CardContent>

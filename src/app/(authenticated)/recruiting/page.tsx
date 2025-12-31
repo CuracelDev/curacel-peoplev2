@@ -327,7 +327,7 @@ export default function RecruitingDashboard() {
               </div>
               <div>
                 <div className="font-medium text-sm">Generate Questions</div>
-                <div className="text-xs text-muted-foreground">AI-powered interview questions</div>
+                <div className="text-xs text-muted-foreground">BlueAI interview questions</div>
               </div>
             </Link>
 

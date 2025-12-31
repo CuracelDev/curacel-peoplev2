@@ -146,7 +146,7 @@ const mockCandidate = {
   salaryExpMax: 100000,
   noticePeriod: '4 weeks',
 
-  // AI Summary
+  // BlueAI Summary
   aiSummary: {
     description: `James is a highly experienced backend engineer with 7+ years at top-tier companies including Paystack and Andela. He demonstrates strong technical depth in distributed systems and has led teams of 5-8 engineers. His communication style is clear and structured, and he shows genuine alignment with Curacel's mission in insurtech.`,
     strengths: [
@@ -232,7 +232,7 @@ const mockCandidate = {
     { name: 'Kand.io Results.pdf', type: 'pdf' },
   ],
 
-  // AI Recommendation
+  // BlueAI Recommendation
   recommendation: 'HIRE',
   recommendationConfidence: 92,
   recommendationSummary: "James demonstrates exceptional technical depth with a strong track record at high-growth fintech companies. His experience leading teams and building payment systems at Paystack directly translates to Curacel's needs. While he lacks insurance domain experience, his demonstrated ability to quickly master complex regulatory environments (evidenced by his compliance work at Paystack) and strong PRESS values alignment make him an excellent fit for the Senior Backend Engineer role.",
@@ -574,6 +574,10 @@ export default function CandidateProfilePage() {
                   <span className="hidden sm:inline">Generate Questions</span>
                 </Button>
               </Link>
+              <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
+                <Download className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Export Profile</span>
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -581,16 +585,16 @@ export default function CandidateProfilePage() {
 
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-        <div className="overflow-x-auto -mx-3 px-3 sm:mx-0 sm:px-0">
-          <TabsList className="min-w-max">
-            <TabsTrigger value="overview" className="text-xs sm:text-sm">Overview</TabsTrigger>
-            <TabsTrigger value="application" className="text-xs sm:text-sm">Application</TabsTrigger>
-            <TabsTrigger value="stages" className="text-xs sm:text-sm">Interviews</TabsTrigger>
-            <TabsTrigger value="assessments" className="text-xs sm:text-sm">Assessments</TabsTrigger>
-            <TabsTrigger value="values" className="text-xs sm:text-sm">Values</TabsTrigger>
-            <TabsTrigger value="email" className="text-xs sm:text-sm">Email</TabsTrigger>
-            <TabsTrigger value="blueai" className="text-xs sm:text-sm">BlueAI</TabsTrigger>
-            <TabsTrigger value="decision" className="text-xs sm:text-sm">Decision</TabsTrigger>
+        <div className="overflow-x-auto">
+          <TabsList className="flex w-full">
+            <TabsTrigger value="overview" className="flex-1 justify-center text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="application" className="flex-1 justify-center text-xs sm:text-sm">Application</TabsTrigger>
+            <TabsTrigger value="stages" className="flex-1 justify-center text-xs sm:text-sm">Interviews</TabsTrigger>
+            <TabsTrigger value="assessments" className="flex-1 justify-center text-xs sm:text-sm">Assessments</TabsTrigger>
+            <TabsTrigger value="values" className="flex-1 justify-center text-xs sm:text-sm">Values</TabsTrigger>
+            <TabsTrigger value="email" className="flex-1 justify-center text-xs sm:text-sm">Email</TabsTrigger>
+            <TabsTrigger value="blueai" className="flex-1 justify-center text-xs sm:text-sm">BlueAI</TabsTrigger>
+            <TabsTrigger value="decision" className="flex-1 justify-center text-xs sm:text-sm">Decision</TabsTrigger>
           </TabsList>
         </div>
 
@@ -599,12 +603,12 @@ export default function CandidateProfilePage() {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
             {/* Main Column */}
             <div className="space-y-4">
-              {/* Blue AI Summary */}
+              {/* BlueAI Summary */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Star className="h-4 w-4 text-indigo-600" />
-                    Blue AI's Summary
+                    BlueAI's Summary
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -679,12 +683,12 @@ export default function CandidateProfilePage() {
                 </CardContent>
               </Card>
 
-              {/* AI Recommendation */}
+              {/* BlueAI Recommendation */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <CheckCircle className="h-4 w-4" />
-                    AI Recommendation
+                    BlueAI Recommendation
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -766,6 +770,12 @@ export default function CandidateProfilePage() {
                       <span className="text-sm">{item}</span>
                     </div>
                   ))}
+                  <div className="mt-4 flex flex-col gap-2">
+                    <Button className="w-full justify-start">
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      Advance to Offer
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -1341,12 +1351,12 @@ export default function CandidateProfilePage() {
         <TabsContent value="decision" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
             <div className="space-y-6">
-              {/* AI Recommendation */}
+              {/* BlueAI Recommendation */}
               <Card className="border-2 border-green-300 bg-green-50">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <Sparkles className="h-4 w-4" />
-                    AI Recommendation
+                    BlueAI Recommendation
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1477,7 +1487,7 @@ export default function CandidateProfilePage() {
                     <span className="font-semibold">{candidate.pressValuesAvg}%</span>
                   </div>
                   <div className="flex justify-between py-2">
-                    <span className="text-sm text-muted-foreground">AI Confidence</span>
+                    <span className="text-sm text-muted-foreground">BlueAI Confidence</span>
                     <span className="font-semibold">{candidate.recommendationConfidence}%</span>
                   </div>
                 </CardContent>
@@ -1490,8 +1500,8 @@ export default function CandidateProfilePage() {
                 </CardHeader>
                 <CardContent className="space-y-2">
                   <Button variant="outline" className="w-full justify-start">
-                    <Mail className="h-4 w-4 mr-2" />
-                    Send Offer Letter
+                    <CheckCircle className="h-4 w-4 mr-2" />
+                    Advance to Offer
                   </Button>
                   <Button variant="outline" className="w-full justify-start">
                     <Calendar className="h-4 w-4 mr-2" />
@@ -1508,18 +1518,6 @@ export default function CandidateProfilePage() {
         </TabsContent>
       </Tabs>
 
-      {/* Action Bar */}
-      <div className="fixed bottom-4 sm:bottom-6 right-3 sm:right-6 flex gap-2 sm:gap-3">
-        <Button variant="outline" size="sm" className="text-xs sm:text-sm">
-          <Download className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">Export Profile</span>
-        </Button>
-        <Button size="sm" className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm">
-          <CheckCircle className="h-4 w-4 sm:mr-2" />
-          <span className="hidden sm:inline">Advance to Offer</span>
-          <span className="sm:hidden">Advance</span>
-        </Button>
-      </div>
     </div>
   )
 }

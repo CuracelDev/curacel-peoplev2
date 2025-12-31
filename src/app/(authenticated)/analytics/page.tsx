@@ -84,11 +84,6 @@ export default function AnalyticsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Hiring Analytics</h1>
-        <p className="text-muted-foreground">Track and analyze your hiring performance metrics</p>
-      </div>
-
       <Tabs defaultValue="overview" className="space-y-6">
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
