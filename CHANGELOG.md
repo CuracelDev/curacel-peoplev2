@@ -99,6 +99,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Offboarding page: Same responsive improvements as onboarding
   - Contracts page: Contract list items stack on mobile, responsive padding
   - All pages now work properly on mobile (320px), tablet (768px), and desktop viewports
+- Candidate list filters now align with the breadcrumb row
+- Jobs, Employees, Contracts, Onboarding, and Offboarding actions now align with the breadcrumb row
+- Dashboard recruiting widgets now pull live DB data for pipeline metrics, top candidates, activity, and upcoming interviews
+- Dashboard quick actions now link to scheduling interviews instead of transcript uploads
 - Candidate profile actions now export profiles, update stages/decisions, and open the interview scheduler
 - Candidate profile tabs now fill the page width with evenly distributed triggers
 - Candidate profile actions now live inline (Export Profile under Generate Questions; Advance to Offer in Decision quick actions)
@@ -132,6 +136,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Local dev auth boot issues caused by missing database and NextAuth secrets
 - Missing slider component in Recruiting settings causing build failure
 - Create Job and Save as Draft actions now respond with validation feedback
+- Dashboard hook order now consistent to prevent render mismatch errors
 
 ## [December 2024]
 

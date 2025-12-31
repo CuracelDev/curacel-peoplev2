@@ -24,6 +24,7 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
+import { PageActions } from '@/components/layout/page-actions'
 
 function getJobIcon(department?: string | null) {
   const dept = department?.toLowerCase() || ''
@@ -144,15 +145,14 @@ export default function PositionsPage() {
 
   return (
     <div className="p-3 sm:p-6">
-      {/* Action Bar */}
-      <div className="flex justify-end mb-4 sm:mb-6">
+      <PageActions>
         <Link href="/recruiting/positions/new">
           <Button>
             <Plus className="h-4 w-4 mr-2" />
             Create Job
           </Button>
         </Link>
-      </div>
+      </PageActions>
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">

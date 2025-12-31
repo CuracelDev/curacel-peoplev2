@@ -37,6 +37,93 @@ const typeDisplayNames: Record<string, string> = {
   'CUSTOM': 'Custom',
 }
 
+// Helper to replace template variables
+function replaceVariables(template: string, vars: Record<string, string>): string {
+  let result = template
+  for (const [key, value] of Object.entries(vars)) {
+    result = result.replace(new RegExp(`{{${key}}}`, 'g'), value)
+    result = result.replace(new RegExp(`{${key}}`, 'g'), value)
+  }
+  return result
+}
+
+// Generate default email body for assessment invite
+function generateDefaultEmailBody(
+  candidateName: string,
+  assessmentName: string,
+  jobTitle: string,
+  assessmentUrl: string,
+  expiresAt: Date | null,
+  durationMinutes: number | null,
+  instructions: string | null
+): string {
+  const expiryText = expiresAt
+    ? `Please complete this assessment by ${expiresAt.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}.`
+    : 'Please complete this assessment at your earliest convenience.'
+
+  const durationText = durationMinutes
+    ? `This assessment will take approximately ${durationMinutes} minutes.`
+    : ''
+
+  const instructionsSection = instructions
+    ? `<div style="background-color: #fff8e6; border-left: 4px solid #f59e0b; padding: 16px; margin: 24px 0;">
+         <h3 style="margin: 0 0 12px 0; color: #92400e;">Important Instructions</h3>
+         <p style="margin: 0; color: #78350f; white-space: pre-wrap;">${instructions}</p>
+       </div>`
+    : ''
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  <div style="background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%); padding: 32px; border-radius: 12px 12px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">Assessment Invitation</h1>
+  </div>
+
+  <div style="background: #ffffff; padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
+    <p style="margin-bottom: 24px;">Hi ${candidateName},</p>
+
+    <p>Thank you for your interest in the <strong>${jobTitle}</strong> position at Curacel. As part of our evaluation process, we'd like you to complete the following assessment:</p>
+
+    <div style="background-color: #f3f4f6; padding: 20px; border-radius: 8px; margin: 24px 0;">
+      <h2 style="margin: 0 0 8px 0; color: #1f2937; font-size: 18px;">${assessmentName}</h2>
+      ${durationText ? `<p style="margin: 0; color: #6b7280; font-size: 14px;">${durationText}</p>` : ''}
+    </div>
+
+    ${instructionsSection}
+
+    <p>${expiryText}</p>
+
+    <div style="text-align: center; margin: 32px 0;">
+      <a href="${assessmentUrl}" style="display: inline-block; background: linear-gradient(135deg, #0066cc 0%, #0052a3 100%); color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-weight: 600; font-size: 16px;">Start Assessment</a>
+    </div>
+
+    <p style="color: #6b7280; font-size: 14px;">If the button doesn't work, copy and paste this link into your browser:</p>
+    <p style="color: #0066cc; font-size: 14px; word-break: break-all;">${assessmentUrl}</p>
+
+    <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 32px 0;">
+
+    <p style="color: #6b7280; font-size: 14px; margin: 0;">If you have any questions, please don't hesitate to reach out to us.</p>
+
+    <p style="margin-top: 24px;">
+      Best regards,<br>
+      <strong>The Curacel Recruiting Team</strong>
+    </p>
+  </div>
+
+  <div style="text-align: center; padding: 20px; color: #9ca3af; font-size: 12px;">
+    <p style="margin: 0;">&copy; ${new Date().getFullYear()} Curacel. All rights reserved.</p>
+    <p style="margin: 8px 0 0 0;">This email was sent to you as part of your job application.</p>
+  </div>
+</body>
+</html>
+`
+}
+
 export const assessmentRouter = router({
   // ============================================
   // TEMPLATE MANAGEMENT
@@ -536,33 +623,105 @@ export const assessmentRouter = router({
       }
     }),
 
-  // Send assessment invite (mark as invited, could trigger email)
+  // Send assessment invite (mark as invited and send email)
   sendInvite: protectedProcedure
     .input(
       z.object({
         id: z.string(),
+        sendEmail: z.boolean().optional().default(true),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      // Get current assessment
+      const existingAssessment = await ctx.prisma.candidateAssessment.findUnique({
+        where: { id: input.id },
+        include: {
+          candidate: {
+            include: { job: true },
+          },
+          template: true,
+        },
+      })
+
+      if (!existingAssessment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Assessment not found',
+        })
+      }
+
+      // Generate new token
+      const inviteToken = randomUUID()
+      const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+      const assessmentUrl = existingAssessment.template.externalUrl
+        || `${baseUrl}/assessment/${inviteToken}`
+
       const assessment = await ctx.prisma.candidateAssessment.update({
         where: { id: input.id },
         data: {
           status: 'INVITED',
           inviteSentAt: new Date(),
-          inviteToken: randomUUID(), // Generate new token
+          inviteToken,
+          externalUrl: assessmentUrl,
         },
         include: {
-          candidate: true,
+          candidate: {
+            include: { job: true },
+          },
           template: true,
         },
       })
 
-      // TODO: Send email with assessment link
-      // For now, just return the assessment with token
+      // Send email if requested
+      if (input.sendEmail) {
+        try {
+          const { sendCandidateEmail } = await import('@/lib/email-service')
+
+          // Use template email or default
+          const subject = assessment.template.emailSubject
+            || `Assessment Invitation: ${assessment.template.name}`
+
+          const emailBody = assessment.template.emailBody
+            ? replaceVariables(assessment.template.emailBody, {
+                candidateName: assessment.candidate.name,
+                assessmentName: assessment.template.name,
+                jobTitle: assessment.candidate.job?.title || 'the position',
+                assessmentUrl,
+                expiresAt: assessment.expiresAt?.toLocaleDateString() || 'in 7 days',
+                durationMinutes: assessment.template.durationMinutes?.toString() || 'untimed',
+              })
+            : generateDefaultEmailBody(
+                assessment.candidate.name,
+                assessment.template.name,
+                assessment.candidate.job?.title || 'the position',
+                assessmentUrl,
+                assessment.expiresAt,
+                assessment.template.durationMinutes,
+                assessment.template.instructions
+              )
+
+          // Get the recruiter's email from session
+          const recruiterEmail = ctx.session?.user?.email || 'recruiting@curacel.co'
+          const recruiterName = ctx.session?.user?.name || 'Curacel Recruiting'
+
+          await sendCandidateEmail({
+            candidateId: assessment.candidateId,
+            recruiterId: ctx.session?.user?.id || 'system',
+            recruiterEmail,
+            recruiterName,
+            subject,
+            htmlBody: emailBody,
+          })
+        } catch (emailError) {
+          console.error('Failed to send assessment invite email:', emailError)
+          // Don't fail the mutation if email fails, just log it
+        }
+      }
 
       return {
         ...assessment,
         typeDisplayName: typeDisplayNames[assessment.template.type] || assessment.template.type,
+        assessmentUrl,
       }
     }),
 
@@ -931,5 +1090,230 @@ export const assessmentRouter = router({
         ...updatedAssessment,
         typeDisplayName: typeDisplayNames[updatedAssessment.template.type] || updatedAssessment.template.type,
       }
+    }),
+
+  // ============================================
+  // JOB-BASED ASSESSMENTS
+  // ============================================
+
+  // Get assessments configured for a job
+  getJobAssessments: protectedProcedure
+    .input(z.object({ jobId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const jobAssessments = await ctx.prisma.jobAssessmentTemplate.findMany({
+        where: { jobId: input.jobId },
+        include: {
+          template: true,
+        },
+        orderBy: { sortOrder: 'asc' },
+      })
+
+      return jobAssessments.map(ja => ({
+        ...ja,
+        typeDisplayName: typeDisplayNames[ja.template.type] || ja.template.type,
+      }))
+    }),
+
+  // Add assessment to job
+  addJobAssessment: adminProcedure
+    .input(
+      z.object({
+        jobId: z.string(),
+        templateId: z.string(),
+        triggerStage: z.string().optional(),
+        isRequired: z.boolean().optional().default(false),
+        sortOrder: z.number().optional().default(0),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const jobAssessment = await ctx.prisma.jobAssessmentTemplate.create({
+        data: {
+          jobId: input.jobId,
+          templateId: input.templateId,
+          triggerStage: input.triggerStage,
+          isRequired: input.isRequired,
+          sortOrder: input.sortOrder,
+        },
+        include: {
+          template: true,
+        },
+      })
+
+      return {
+        ...jobAssessment,
+        typeDisplayName: typeDisplayNames[jobAssessment.template.type] || jobAssessment.template.type,
+      }
+    }),
+
+  // Remove assessment from job
+  removeJobAssessment: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.jobAssessmentTemplate.delete({
+        where: { id: input.id },
+      })
+      return { success: true }
+    }),
+
+  // Reorder job assessments
+  reorderJobAssessments: adminProcedure
+    .input(
+      z.object({
+        jobId: z.string(),
+        templateIds: z.array(z.string()),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updates = input.templateIds.map((templateId, index) =>
+        ctx.prisma.jobAssessmentTemplate.updateMany({
+          where: { jobId: input.jobId, templateId },
+          data: { sortOrder: index },
+        })
+      )
+
+      await Promise.all(updates)
+      return { success: true }
+    }),
+
+  // ============================================
+  // AI-POWERED FEATURES
+  // ============================================
+
+  // Generate assessment questions using AI
+  generateQuestions: protectedProcedure
+    .input(
+      z.object({
+        jobId: z.string().optional(),
+        templateId: z.string().optional(),
+        type: z.enum(['technical', 'behavioral', 'cognitive', 'role_specific']),
+        count: z.number().optional().default(10),
+        difficulty: z.enum(['easy', 'medium', 'hard', 'mixed']).optional().default('mixed'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { generateAssessmentQuestions } = await import('@/lib/ai/recruiting/assessment-analysis')
+      const questions = await generateAssessmentQuestions(input)
+      return questions
+    }),
+
+  // Save generated questions to template
+  saveGeneratedQuestions: adminProcedure
+    .input(
+      z.object({
+        templateId: z.string(),
+        questions: z.array(z.any()),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const template = await ctx.prisma.assessmentTemplate.update({
+        where: { id: input.templateId },
+        data: {
+          questions: input.questions,
+          aiGenerated: true,
+        },
+      })
+      return template
+    }),
+
+  // Grade assessment responses using AI
+  gradeResponses: protectedProcedure
+    .input(
+      z.object({
+        assessmentId: z.string(),
+        responses: z.array(
+          z.object({
+            questionId: z.string(),
+            response: z.string(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { gradeAssessmentResponses } = await import('@/lib/ai/recruiting/assessment-analysis')
+
+      // Save responses first
+      await ctx.prisma.candidateAssessment.update({
+        where: { id: input.assessmentId },
+        data: {
+          responses: input.responses,
+          status: 'IN_PROGRESS',
+          startedAt: new Date(),
+        },
+      })
+
+      // Grade responses
+      const gradedResponses = await gradeAssessmentResponses(input)
+
+      // Calculate overall score
+      const totalScore = gradedResponses.reduce((sum, r) => sum + r.score, 0)
+      const maxPossible = gradedResponses.reduce((sum, r) => sum + r.maxScore, 0)
+      const overallScore = maxPossible > 0 ? Math.round((totalScore / maxPossible) * 100) : 0
+
+      // Update assessment with grades
+      const assessment = await ctx.prisma.candidateAssessment.update({
+        where: { id: input.assessmentId },
+        data: {
+          overallScore,
+          scores: gradedResponses,
+          status: 'COMPLETED',
+          completedAt: new Date(),
+        },
+        include: {
+          candidate: true,
+          template: true,
+        },
+      })
+
+      return {
+        assessment,
+        gradedResponses,
+      }
+    }),
+
+  // Analyze assessment results and generate recommendations
+  analyzeResults: protectedProcedure
+    .input(z.object({ assessmentId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { analyzeAssessmentResults } = await import('@/lib/ai/recruiting/assessment-analysis')
+      const analysis = await analyzeAssessmentResults(input.assessmentId)
+      return analysis
+    }),
+
+  // Get AI recommendations for assessments to send
+  getRecommendedAssessments: protectedProcedure
+    .input(
+      z.object({
+        candidateId: z.string(),
+        jobId: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { getRecommendedAssessments } = await import('@/lib/ai/recruiting/assessment-analysis')
+      const recommendations = await getRecommendedAssessments(input)
+      return recommendations
+    }),
+
+  // Predict job performance based on assessments
+  predictPerformance: protectedProcedure
+    .input(z.object({ candidateId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { predictJobPerformance } = await import('@/lib/ai/recruiting/assessment-analysis')
+      const insights = await predictJobPerformance(input.candidateId)
+      return insights
+    }),
+
+  // Analyze team fit
+  analyzeTeamFit: protectedProcedure
+    .input(
+      z.object({
+        candidateId: z.string(),
+        teamId: z.string().optional(),
+        departmentName: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { analyzeTeamFit } = await import('@/lib/ai/recruiting/assessment-analysis')
+      const analysis = await analyzeTeamFit(input)
+      return analysis
     }),
 })

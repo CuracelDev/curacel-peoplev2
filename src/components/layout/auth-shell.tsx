@@ -6,6 +6,7 @@ import { Sidebar } from '@/components/layout/sidebar'
 import { Header } from '@/components/layout/header'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { cn } from '@/lib/utils'
+import { PageActionsProvider, PageActionsSlot } from '@/components/layout/page-actions'
 
 export function AuthShell({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false)
@@ -29,7 +30,8 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <div className="min-h-screen bg-background">
+    <PageActionsProvider>
+      <div className="min-h-screen bg-background">
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
@@ -46,24 +48,28 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
       />
 
       {/* Main content */}
-      <div className={cn(
-        'transition-all duration-200',
-        'lg:ml-56',
-        isCollapsed && 'lg:ml-16'
-      )}>
-        <Header
-          collapsed={isCollapsed}
-          onToggle={() => {
-            if (isAIAgentView) return
-            setCollapsed((prev) => !prev)
-          }}
-          onMobileMenuClick={() => setMobileOpen(true)}
-        />
-        <main className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
-          <Breadcrumb className="mb-4" />
-          {children}
-        </main>
+        <div className={cn(
+          'transition-all duration-200',
+          'lg:ml-56',
+          isCollapsed && 'lg:ml-16'
+        )}>
+          <Header
+            collapsed={isCollapsed}
+            onToggle={() => {
+              if (isAIAgentView) return
+              setCollapsed((prev) => !prev)
+            }}
+            onMobileMenuClick={() => setMobileOpen(true)}
+          />
+          <main className="px-3 sm:px-4 md:px-6 py-3 sm:py-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <Breadcrumb className="mb-0" />
+              <PageActionsSlot />
+            </div>
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </PageActionsProvider>
   )
 }

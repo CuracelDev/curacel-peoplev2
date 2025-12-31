@@ -1,0 +1,169 @@
+/**
+ * Submit Assessment API
+ *
+ * Handles submission of candidate responses and triggers AI grading
+ */
+
+import { NextRequest, NextResponse } from 'next/server'
+import { prisma } from '@/lib/prisma'
+import { gradeAssessmentResponses, analyzeAssessmentResults } from '@/lib/ai/recruiting/assessment-analysis'
+
+interface RouteParams {
+  params: Promise<{ token: string }>
+}
+
+interface Response {
+  questionId: string
+  response: string
+  submittedAt: string
+}
+
+export async function POST(request: NextRequest, { params }: RouteParams) {
+  const { token } = await params
+
+  try {
+    const body = await request.json()
+    const { responses } = body as { responses: Response[] }
+
+    if (!responses || !Array.isArray(responses)) {
+      return NextResponse.json(
+        { error: 'Invalid request body' },
+        { status: 400 }
+      )
+    }
+
+    // Find assessment by invite token
+    const assessment = await prisma.candidateAssessment.findUnique({
+      where: { inviteToken: token },
+      include: {
+        template: true,
+        candidate: {
+          include: { job: true },
+        },
+      },
+    })
+
+    if (!assessment) {
+      return NextResponse.json(
+        { error: 'Assessment not found' },
+        { status: 404 }
+      )
+    }
+
+    // Check if already completed
+    if (assessment.status === 'COMPLETED') {
+      return NextResponse.json(
+        { error: 'This assessment has already been submitted' },
+        { status: 400 }
+      )
+    }
+
+    // Update assessment with responses and mark as completed
+    const updatedAssessment = await prisma.candidateAssessment.update({
+      where: { id: assessment.id },
+      data: {
+        status: 'COMPLETED',
+        completedAt: new Date(),
+        responses: responses,
+      },
+    })
+
+    // Trigger AI grading in the background
+    // We don't wait for this to complete to give quick response to candidate
+    gradeAndAnalyzeInBackground(assessment.id)
+
+    return NextResponse.json({
+      success: true,
+      message: 'Assessment submitted successfully',
+      assessmentId: updatedAssessment.id,
+    })
+  } catch (error) {
+    console.error('Failed to submit assessment:', error)
+    return NextResponse.json(
+      { error: 'Failed to submit assessment' },
+      { status: 500 }
+    )
+  }
+}
+
+async function gradeAndAnalyzeInBackground(assessmentId: string) {
+  try {
+    // Grade the responses
+    const gradingResult = await gradeAssessmentResponses(assessmentId)
+
+    // Calculate overall score from grading
+    let totalScore = 0
+    let maxPossibleScore = 0
+
+    if (gradingResult.grades && Array.isArray(gradingResult.grades)) {
+      for (const grade of gradingResult.grades) {
+        totalScore += grade.score || 0
+        maxPossibleScore += grade.maxScore || 10
+      }
+    }
+
+    const overallScore = maxPossibleScore > 0
+      ? Math.round((totalScore / maxPossibleScore) * 100)
+      : null
+
+    // Update with grading results
+    await prisma.candidateAssessment.update({
+      where: { id: assessmentId },
+      data: {
+        overallScore,
+        scores: gradingResult.grades,
+        dimensionScores: gradingResult.dimensionScores,
+      },
+    })
+
+    // Run full AI analysis
+    const analysis = await analyzeAssessmentResults(assessmentId)
+
+    // Update with AI analysis
+    await prisma.candidateAssessment.update({
+      where: { id: assessmentId },
+      data: {
+        aiAnalysis: analysis as unknown as Record<string, unknown>,
+        aiRecommendation: analysis.recommendation,
+        aiConfidence: analysis.confidence,
+        summary: analysis.summary,
+        strengths: analysis.strengths,
+        risks: analysis.concerns,
+        recommendation: analysis.recommendation,
+        questionsForCandidate: analysis.interviewQuestions,
+      },
+    })
+
+    // Create audit log
+    await prisma.auditLog.create({
+      data: {
+        actorType: 'system',
+        action: 'UPDATE',
+        resourceType: 'candidate_assessment',
+        resourceId: assessmentId,
+        metadata: {
+          event: 'ASSESSMENT_GRADED',
+          overallScore,
+          recommendation: analysis.recommendation,
+        },
+      },
+    })
+
+    console.log(`Assessment ${assessmentId} graded and analyzed successfully`)
+  } catch (error) {
+    console.error(`Failed to grade assessment ${assessmentId}:`, error)
+
+    // Update assessment to indicate grading failed
+    await prisma.candidateAssessment.update({
+      where: { id: assessmentId },
+      data: {
+        notes: (await prisma.candidateAssessment.findUnique({
+          where: { id: assessmentId },
+          select: { notes: true },
+        }))?.notes
+          ? `${(await prisma.candidateAssessment.findUnique({ where: { id: assessmentId }, select: { notes: true } }))?.notes}\n\n[AI Grading Failed: ${error instanceof Error ? error.message : 'Unknown error'}]`
+          : `[AI Grading Failed: ${error instanceof Error ? error.message : 'Unknown error'}]`,
+      },
+    })
+  }
+}

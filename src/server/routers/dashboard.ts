@@ -211,6 +211,80 @@ export const dashboardRouter = router({
       }
     }),
 
+  getHiringOverview: hrAdminProcedure
+    .query(async ({ ctx }) => {
+      const now = new Date()
+      const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
+
+      const interviewStages = [
+        'HR_SCREEN',
+        'TECHNICAL',
+        'TEAM_CHAT',
+        'ADVISOR_CHAT',
+        'PANEL',
+        'TRIAL',
+        'CEO_CHAT',
+      ]
+
+      const [
+        activeJobs,
+        totalCandidates,
+        inInterview,
+        avgScoreAggregate,
+        newJobsThisWeek,
+        newCandidatesThisWeek,
+        interviewsScheduledThisWeek,
+        avgScoreThisWeek,
+        avgScoreLastWeek,
+      ] = await Promise.all([
+        ctx.prisma.job.count({ where: { status: 'ACTIVE' } }),
+        ctx.prisma.jobCandidate.count({
+          where: { stage: { notIn: ['REJECTED', 'WITHDRAWN'] } },
+        }),
+        ctx.prisma.jobCandidate.count({
+          where: { stage: { in: interviewStages } },
+        }),
+        ctx.prisma.jobCandidate.aggregate({
+          _avg: { score: true },
+          where: { score: { not: null } },
+        }),
+        ctx.prisma.job.count({ where: { createdAt: { gte: sevenDaysAgo } } }),
+        ctx.prisma.jobCandidate.count({ where: { appliedAt: { gte: sevenDaysAgo } } }),
+        ctx.prisma.candidateInterview.count({ where: { scheduledAt: { gte: sevenDaysAgo } } }),
+        ctx.prisma.jobCandidate.aggregate({
+          _avg: { score: true },
+          where: { score: { not: null }, updatedAt: { gte: sevenDaysAgo } },
+        }),
+        ctx.prisma.jobCandidate.aggregate({
+          _avg: { score: true },
+          where: { score: { not: null }, updatedAt: { gte: fourteenDaysAgo, lt: sevenDaysAgo } },
+        }),
+      ])
+
+      const avgScore = avgScoreAggregate._avg.score
+        ? Math.round(avgScoreAggregate._avg.score)
+        : null
+
+      const avgScoreDelta =
+        avgScoreThisWeek._avg.score != null && avgScoreLastWeek._avg.score != null
+          ? Math.round(avgScoreThisWeek._avg.score - avgScoreLastWeek._avg.score)
+          : null
+
+      return {
+        activeJobs,
+        totalCandidates,
+        inInterview,
+        avgScore,
+        changes: {
+          newJobsThisWeek,
+          newCandidatesThisWeek,
+          interviewsScheduledThisWeek,
+          avgScoreDelta,
+        },
+      }
+    }),
+
   getRecentActivity: hrAdminProcedure
     .query(async ({ ctx }) => {
       return ctx.prisma.auditLog.findMany({
@@ -300,4 +374,3 @@ export const dashboardRouter = router({
       }
     }),
 })
-
