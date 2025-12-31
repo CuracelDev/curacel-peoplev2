@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { httpBatchLink } from '@trpc/client'
 import { SessionProvider } from 'next-auth/react'
+import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import type { Session } from 'next-auth'
 import superjson from 'superjson'
 import { trpc } from '@/lib/trpc-client'
@@ -52,7 +53,14 @@ export function Providers({
     >
       <trpc.Provider client={trpcClient} queryClient={queryClient}>
         <QueryClientProvider client={queryClient}>
-          {children}
+          <NextThemesProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {children}
+          </NextThemesProvider>
         </QueryClientProvider>
       </trpc.Provider>
     </SessionProvider>

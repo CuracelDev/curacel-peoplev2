@@ -40,14 +40,14 @@ const DatePicker = React.forwardRef<HTMLInputElement, DatePickerProps>(
         <Input
           type="date"
           placeholder="dd/mm/yy"
-          className={cn('ring-gray-300 focus:ring-indigo-600 pr-10', className)}
+          className={cn('ring-border focus:ring-primary pr-10', className)}
           ref={mergeRefs(innerRef, forwardedRef)}
           {...props}
         />
         <button
           type="button"
           onClick={openPicker}
-          className="absolute inset-y-0 right-0 flex items-center px-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+          className="absolute inset-y-0 right-0 flex items-center px-3 text-muted-foreground hover:text-foreground focus:outline-none"
           aria-label="Open date picker"
         >
           <Calendar className="h-4 w-4" />

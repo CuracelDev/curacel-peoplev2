@@ -95,13 +95,13 @@ export function Breadcrumb({ className, customLabels = {} }: BreadcrumbProps) {
   return (
     <nav
       aria-label="Breadcrumb"
-      className={cn('flex items-center text-sm text-gray-500', className)}
+      className={cn('flex items-center text-sm text-muted-foreground', className)}
     >
       <ol className="flex items-center gap-1">
         <li>
           <Link
             href="/dashboard"
-            className="flex items-center hover:text-gray-700 transition-colors"
+            className="flex items-center hover:text-foreground transition-colors"
           >
             <Home className="h-4 w-4" />
           </Link>
@@ -109,13 +109,13 @@ export function Breadcrumb({ className, customLabels = {} }: BreadcrumbProps) {
 
         {breadcrumbs.map(({ path, label, isLast }) => (
           <li key={path} className="flex items-center">
-            <ChevronRight className="h-4 w-4 mx-1 text-gray-400" />
+            <ChevronRight className="h-4 w-4 mx-1 text-muted-foreground/60" />
             {isLast ? (
-              <span className="font-medium text-gray-900">{label}</span>
+              <span className="font-medium text-foreground">{label}</span>
             ) : (
               <Link
                 href={path}
-                className="hover:text-gray-700 transition-colors"
+                className="hover:text-foreground transition-colors"
               >
                 {label}
               </Link>

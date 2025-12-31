@@ -23,8 +23,8 @@ export function SettingsPageHeader({
           </Link>
         </Button>
         <div>
-          <h1 className={titleClassName || 'text-xl font-semibold text-gray-900'}>{title}</h1>
-          {description ? <p className="text-gray-500 mt-1">{description}</p> : null}
+          <h1 className={titleClassName || 'text-xl font-semibold text-foreground'}>{title}</h1>
+          {description ? <p className="text-muted-foreground mt-1">{description}</p> : null}
         </div>
       </div>
       {actions ? <div className="flex flex-wrap items-center gap-2">{actions}</div> : null}
