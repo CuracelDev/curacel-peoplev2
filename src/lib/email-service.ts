@@ -470,7 +470,7 @@ export async function syncInboundEmails(threadId: string): Promise<CandidateEmai
           toEmails: message.to.map(t => t.email),
           ccEmails: message.cc.map(c => c.email),
           subject: message.subject,
-          htmlBody: message.htmlBody,
+          htmlBody: message.htmlBody || '',
           textBody: message.textBody,
           status: 'DELIVERED',
           sentAt: message.date,

@@ -92,49 +92,31 @@ export async function recordTrackingEvent(
       },
     })
 
+    // Get current email state
+    const email = await prisma.candidateEmail.findUnique({
+      where: { id: emailId },
+      select: { openedAt: true, clickedAt: true },
+    })
+
     // Update email stats
     if (eventType === 'open') {
       await prisma.candidateEmail.update({
         where: { id: emailId },
         data: {
           openCount: { increment: 1 },
-          openedAt: { set: new Date() }, // Only sets if null
+          // Only set openedAt if it was null (first open)
+          ...(email && !email.openedAt ? { openedAt: new Date() } : {}),
         },
       })
-
-      // Also update with first open time if not set
-      const email = await prisma.candidateEmail.findUnique({
-        where: { id: emailId },
-        select: { openedAt: true },
-      })
-
-      if (!email?.openedAt) {
-        await prisma.candidateEmail.update({
-          where: { id: emailId },
-          data: { openedAt: new Date() },
-        })
-      }
     } else if (eventType === 'click') {
       await prisma.candidateEmail.update({
         where: { id: emailId },
         data: {
           clickCount: { increment: 1 },
-          clickedAt: { set: new Date() },
+          // Only set clickedAt if it was null (first click)
+          ...(email && !email.clickedAt ? { clickedAt: new Date() } : {}),
         },
       })
-
-      // Also update with first click time if not set
-      const email = await prisma.candidateEmail.findUnique({
-        where: { id: emailId },
-        select: { clickedAt: true },
-      })
-
-      if (!email?.clickedAt) {
-        await prisma.candidateEmail.update({
-          where: { id: emailId },
-          data: { clickedAt: new Date() },
-        })
-      }
     }
   } catch (error) {
     console.error('Failed to record tracking event:', error)
