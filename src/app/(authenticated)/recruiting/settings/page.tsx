@@ -528,39 +528,30 @@ export default function SettingsPage() {
   const selectedRubric = rubricTemplates.find((r) => r.id === selectedRubricId)
 
   return (
-    <div className="p-6">
-      {/* Page Header */}
-      <div className="flex justify-between items-start mb-6">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Hiring Settings</h1>
-          <p className="text-sm text-muted-foreground">Configure company-wide hiring criteria and interview processes</p>
+    <div className="space-y-6">
+      {/* Horizontal Tabs Navigation */}
+      <div className="border-b border-border">
+        <div className="flex gap-1 overflow-x-auto pb-px">
+          {settingsNav.map((item) => (
+            <button
+              key={item.id}
+              onClick={() => setActiveSection(item.id)}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px',
+                activeSection === item.id
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+              )}
+            >
+              <item.icon className="h-4 w-4" />
+              {item.name}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="grid grid-cols-[240px_1fr] gap-6">
-        {/* Settings Navigation - Sidebar List */}
-        <Card className="h-fit sticky top-20">
-          <CardContent className="p-3">
-            {settingsNav.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => setActiveSection(item.id)}
-                className={cn(
-                  'w-full flex items-center gap-3 p-3 rounded-lg transition-all text-left',
-                  activeSection === item.id
-                    ? 'bg-indigo-50 text-indigo-600'
-                    : 'text-foreground/80 hover:bg-muted hover:text-foreground'
-                )}
-              >
-                <item.icon className="h-[18px] w-[18px]" />
-                {item.name}
-              </button>
-            ))}
-          </CardContent>
-        </Card>
-
-        {/* Settings Content */}
-        <div className="space-y-6">
+      {/* Settings Content */}
+      <div className="space-y-6">
           {/* Competency Framework */}
           {activeSection === 'competencies' && (
             <Card id="competencies">
@@ -1624,7 +1615,6 @@ export default function SettingsPage() {
             </Card>
           )}
         </div>
-      </div>
 
       {/* Interest Form Dialog */}
       <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>

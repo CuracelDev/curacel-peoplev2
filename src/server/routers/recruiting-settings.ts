@@ -1,23 +1,38 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure } from '@/lib/trpc'
+import { normalizeCandidateScoreWeights } from '@/lib/recruiting/score-config'
 
 export const recruitingSettingsRouter = router({
   // Get recruiting settings (creates if doesn't exist)
   get: protectedProcedure.query(async ({ ctx }) => {
     // Try to get existing settings
     let settings = await ctx.prisma.recruitingSettings.findFirst()
+    const normalizedScoreWeights = normalizeCandidateScoreWeights(
+      settings?.candidateScoreWeights as ReturnType<typeof normalizeCandidateScoreWeights> | null
+    )
 
     // Create if doesn't exist
     if (!settings) {
       settings = await ctx.prisma.recruitingSettings.create({
         data: {
           organizationId: 'default',
+          candidateScoreWeights: normalizedScoreWeights,
+        },
+      })
+    } else if (!settings.candidateScoreWeights) {
+      settings = await ctx.prisma.recruitingSettings.update({
+        where: { id: settings.id },
+        data: {
+          candidateScoreWeights: normalizedScoreWeights,
         },
       })
     }
 
-    return settings
+    return {
+      ...settings,
+      candidateScoreWeights: normalizedScoreWeights,
+    }
   }),
 
   // Update recruiting settings
@@ -35,9 +50,22 @@ export const recruitingSettingsRouter = router({
         }).optional(),
         customInboundChannels: z.array(z.string()).optional(),
         customOutboundChannels: z.array(z.string()).optional(),
+        candidateScoreWeights: z.array(
+          z.object({
+            id: z.string(),
+            label: z.string(),
+            description: z.string().optional(),
+            weight: z.number(),
+            enabled: z.boolean(),
+          })
+        ).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const normalizedScoreWeights = input.candidateScoreWeights
+        ? normalizeCandidateScoreWeights(input.candidateScoreWeights)
+        : undefined
+
       // Get or create settings
       let settings = await ctx.prisma.recruitingSettings.findFirst()
 
@@ -48,6 +76,7 @@ export const recruitingSettingsRouter = router({
             ...input,
             globalWebhookUrl: input.globalWebhookUrl || null,
             companyLogoUrl: input.companyLogoUrl || null,
+            candidateScoreWeights: normalizedScoreWeights,
           },
         })
       } else {
@@ -57,6 +86,7 @@ export const recruitingSettingsRouter = router({
             ...input,
             globalWebhookUrl: input.globalWebhookUrl || null,
             companyLogoUrl: input.companyLogoUrl || null,
+            candidateScoreWeights: normalizedScoreWeights ?? settings.candidateScoreWeights,
           },
         })
       }

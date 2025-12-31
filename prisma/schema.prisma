@@ -1586,6 +1586,9 @@ model RecruitingSettings {
   customInboundChannels  Json? // ["Custom Channel 1", ...]
   customOutboundChannels Json?
 
+  // Candidate scoring weights
+  candidateScoreWeights Json? // [{ id, label, description, weight, enabled }]
+
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
