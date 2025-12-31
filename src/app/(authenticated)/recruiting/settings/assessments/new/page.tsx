@@ -223,27 +223,31 @@ export default function NewAssessmentPage() {
                 <Label htmlFor="duration" className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
                   Duration (minutes)
+                  <span className="text-muted-foreground font-normal text-xs">(optional)</span>
                 </Label>
                 <Input
                   id="duration"
                   type="number"
-                  placeholder="60"
+                  placeholder="e.g., 60"
                   value={formData.durationMinutes}
                   onChange={(e) => setFormData({ ...formData, durationMinutes: e.target.value })}
                 />
+                <p className="text-xs text-muted-foreground">Leave empty if no time limit</p>
               </div>
               <div className="grid gap-2">
                 <Label htmlFor="passingScore" className="flex items-center gap-2">
                   <Target className="h-4 w-4" />
                   Passing Score (%)
+                  <span className="text-muted-foreground font-normal text-xs">(optional)</span>
                 </Label>
                 <Input
                   id="passingScore"
                   type="number"
-                  placeholder="70"
+                  placeholder="e.g., 70"
                   value={formData.passingScore}
                   onChange={(e) => setFormData({ ...formData, passingScore: e.target.value })}
                 />
+                <p className="text-xs text-muted-foreground">Leave empty if no pass/fail threshold</p>
               </div>
             </div>
 
