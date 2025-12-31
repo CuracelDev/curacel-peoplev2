@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState } from 'react'
 import { trpc } from '@/lib/trpc-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -52,101 +52,20 @@ import {
   Plus,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { format, isPast, isToday, isTomorrow, addDays, addHours, subDays } from 'date-fns'
+import { format, isPast, isToday, isTomorrow } from 'date-fns'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ScheduleInterviewDialog } from '@/components/recruiting/schedule-interview-dialog'
 import { toast } from 'sonner'
 
-// Helper to generate mock interview data - consistent with detail page
-const generateMockInterviews = () => [
-  {
-    id: 'mock-1',
-    candidateId: 'cand-1',
-    stage: 'HR_SCREEN',
-    stageName: 'People Chat',
-    scheduledAt: addDays(new Date(), 1),
-    duration: 45,
-    status: 'SCHEDULED',
-    meetingLink: 'https://meet.google.com/abc-defg-hij',
-    interviewers: [
-      { name: 'Sarah Chen', email: 'sarah@curacel.co' },
-    ],
-    candidate: {
-      id: 'cand-1',
-      name: 'Oluwaseun Adeyemi',
-      email: 'seun.adeyemi@gmail.com',
-      job: { id: 'job-1', title: 'Senior Backend Engineer', department: 'Engineering' },
-    },
-  },
-  {
-    id: 'mock-2',
-    candidateId: 'cand-2',
-    stage: 'TEAM_CHAT',
-    stageName: 'Team Chat',
-    scheduledAt: addHours(new Date(), 3),
-    duration: 60,
-    status: 'SCHEDULED',
-    meetingLink: 'https://meet.google.com/xyz-uvwx-yz',
-    interviewers: [
-      { name: 'David Okonkwo', email: 'david@curacel.co' },
-      { name: 'Amara Nwosu', email: 'amara@curacel.co' },
-    ],
-    candidate: {
-      id: 'cand-2',
-      name: 'Chidinma Okafor',
-      email: 'chidinma.okafor@outlook.com',
-      job: { id: 'job-2', title: 'Product Manager', department: 'Product' },
-    },
-  },
-  {
-    id: 'mock-3',
-    candidateId: 'cand-3',
-    stage: 'CEO_CHAT',
-    stageName: 'CEO Chat',
-    scheduledAt: addDays(new Date(), 5),
-    duration: 30,
-    status: 'SCHEDULED',
-    meetingLink: 'https://meet.google.com/ceo-meet-123',
-    interviewers: [
-      { name: 'Henry Mascot', email: 'henry@curacel.co' },
-    ],
-    candidate: {
-      id: 'cand-3',
-      name: 'Ngozi Uchenna',
-      email: 'ngozi.uchenna@yahoo.com',
-      job: { id: 'job-3', title: 'Head of Sales', department: 'Sales' },
-    },
-  },
-  {
-    id: 'mock-4',
-    candidateId: 'cand-4',
-    stage: 'HR_SCREEN',
-    stageName: 'People Chat',
-    scheduledAt: subDays(new Date(), 2),
-    duration: 45,
-    status: 'COMPLETED',
-    meetingLink: null,
-    interviewers: [
-      { name: 'Sarah Chen', email: 'sarah@curacel.co' },
-    ],
-    candidate: {
-      id: 'cand-4',
-      name: 'Adaeze Igwe',
-      email: 'adaeze.igwe@gmail.com',
-      job: { id: 'job-2', title: 'Product Manager', department: 'Product' },
-    },
-  },
-]
-
-// Mock counts for demonstration
-const mockCounts = {
-  all: 4,
-  HR_SCREEN: 2,
-  TEAM_CHAT: 1,
+// Default counts when no data
+const defaultCounts = {
+  all: 0,
+  HR_SCREEN: 0,
+  TEAM_CHAT: 0,
   ADVISOR_CHAT: 0,
-  CEO_CHAT: 1,
-  upcoming: 3,
+  CEO_CHAT: 0,
+  upcoming: 0,
 }
 
 // Stage display names and colors
@@ -233,41 +152,11 @@ export default function InterviewsPage() {
     }
   }
 
-  // State for mock data (only populated on client to avoid hydration mismatch)
-  const [mockData, setMockData] = useState<ReturnType<typeof generateMockInterviews>>([])
+  // Use DB interviews directly
+  const interviews = dbInterviews ?? []
 
-  // Generate mock data only on client side
-  useEffect(() => {
-    if (!dbInterviews || dbInterviews.length === 0) {
-      setMockData(generateMockInterviews())
-    }
-  }, [dbInterviews])
-
-  // Use mock data as fallback when no DB data
-  const interviews = useMemo(() => {
-    if (dbInterviews && dbInterviews.length > 0) return dbInterviews
-
-    // Filter mock data based on active filter and status
-    let filtered = [...mockData]
-    if (activeFilter !== 'all') {
-      filtered = filtered.filter(i => i.stage === activeFilter)
-    }
-    if (statusFilter !== 'all') {
-      filtered = filtered.filter(i => i.status === statusFilter)
-    }
-    if (searchQuery) {
-      const query = searchQuery.toLowerCase()
-      filtered = filtered.filter(i =>
-        i.candidate.name.toLowerCase().includes(query) ||
-        i.candidate.job.title.toLowerCase().includes(query) ||
-        i.candidate.job.department?.toLowerCase().includes(query)
-      )
-    }
-    return filtered
-  }, [dbInterviews, mockData, activeFilter, statusFilter, searchQuery])
-
-  // Use mock counts as fallback
-  const counts = dbCounts && dbCounts.all > 0 ? dbCounts : mockCounts
+  // Use DB counts or default
+  const counts = dbCounts ?? defaultCounts
 
   // Filter stages for display
   const stages = [
