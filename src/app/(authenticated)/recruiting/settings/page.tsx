@@ -34,6 +34,7 @@ import {
   Video,
   Loader2,
   BarChart3,
+  ClipboardList,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -71,6 +72,7 @@ const settingsNav = [
   { id: 'interestForms', name: 'Interest Forms', icon: FileQuestion },
   { id: 'rubrics', name: 'Interview Rubrics', icon: ClipboardCheck },
   { id: 'questions', name: 'Question Bank', icon: FileQuestion },
+  { id: 'assessments', name: 'Assessments', icon: ClipboardList, href: '/recruiting/settings/assessments' },
   { id: 'scoring', name: 'Candidate Scoring', icon: BarChart3 },
   { id: 'webhooks', name: 'Webhooks', icon: Webhook },
   { id: 'recruiters', name: 'External Recruiters', icon: UserCircle2 },
@@ -565,19 +567,33 @@ export default function SettingsPage() {
       <div className="border-b border-border">
         <div className="flex gap-1 overflow-x-auto pb-px">
           {settingsNav.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveSection(item.id)}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px',
-                activeSection === item.id
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-              )}
-            >
-              <item.icon className="h-4 w-4" />
-              {item.name}
-            </button>
+            'href' in item && item.href ? (
+              <Link
+                key={item.id}
+                href={item.href}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px',
+                  'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.name}
+              </Link>
+            ) : (
+              <button
+                key={item.id}
+                onClick={() => setActiveSection(item.id)}
+                className={cn(
+                  'flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px',
+                  activeSection === item.id
+                    ? 'border-primary text-primary'
+                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
+                )}
+              >
+                <item.icon className="h-4 w-4" />
+                {item.name}
+              </button>
+            )
           ))}
         </div>
       </div>
