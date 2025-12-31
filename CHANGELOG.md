@@ -138,7 +138,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Create Job and Save as Draft actions now respond with validation feedback
 - Dashboard hook order now consistent to prevent render mismatch errors
 - Candidate profile hook order now consistent to prevent render mismatch errors
-- Candidate selection in interview scheduling no longer appears disabled
+- Interview scheduling candidate picker is selectable again
 
 ## [December 2024]
 
