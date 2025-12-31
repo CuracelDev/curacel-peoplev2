@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, adminProcedure, protectedProcedure, publicProcedure } from '@/lib/trpc'
+import { generateCandidateAnalysis } from '@/lib/ai/recruiting/analysis'
 
 const questionTypeEnum = z.enum([
   'TEXT',
@@ -371,6 +372,32 @@ export const interestFormRouter = router({
         where: { id: candidate.id },
         data: { interestFormResponseId: formResponse.id },
       })
+
+      // Trigger AI analysis in the background (don't await)
+      generateCandidateAnalysis({
+        candidateId: candidate.id,
+        analysisType: 'APPLICATION_REVIEW',
+        triggerStage: 'APPLIED',
+        triggerEvent: 'interest_form_submission',
+      })
+        .then(async (analysis) => {
+          // Update the form response with AI analysis
+          await ctx.prisma.interestFormResponse.update({
+            where: { id: formResponse.id },
+            data: {
+              aiAnalysis: {
+                analysisId: analysis.id,
+                summary: analysis.summary,
+                overallScore: analysis.overallScore,
+                recommendation: analysis.recommendation,
+              },
+              aiAnalyzedAt: new Date(),
+            },
+          })
+        })
+        .catch((err) => {
+          console.error('Failed to generate AI analysis for interest form:', err)
+        })
 
       return { success: true, candidateId: candidate.id }
     }),
