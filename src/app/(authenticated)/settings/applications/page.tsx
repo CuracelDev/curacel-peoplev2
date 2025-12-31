@@ -203,10 +203,10 @@ export default function ApplicationsSettingsPage() {
       />
 
       <Tabs defaultValue="active" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="active">Active</TabsTrigger>
-          <TabsTrigger value="disabled">Disabled</TabsTrigger>
-          <TabsTrigger value="archived">Archived</TabsTrigger>
+        <TabsList className="w-full">
+          <TabsTrigger value="active" className="flex-1">Active</TabsTrigger>
+          <TabsTrigger value="disabled" className="flex-1">Disabled</TabsTrigger>
+          <TabsTrigger value="archived" className="flex-1">Archived</TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">

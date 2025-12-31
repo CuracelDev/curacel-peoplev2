@@ -8,6 +8,7 @@ import { BitbucketConnector } from './bitbucket'
 import { JiraConnector } from './jira'
 import { HubSpotConnector } from './hubspot'
 import { PassboltConnector, createPassboltConnector } from './passbolt'
+import { FirefliesConnector } from './fireflies'
 import { WebhookConnector, hasWebhookConfig } from './webhook'
 import type { IntegrationConnector, ProvisionResult, DeprovisionResult, DeprovisionOptions } from './types'
 
@@ -18,6 +19,7 @@ export { BitbucketConnector } from './bitbucket'
 export { JiraConnector } from './jira'
 export { HubSpotConnector } from './hubspot'
 export { PassboltConnector, createPassboltConnector } from './passbolt'
+export { FirefliesConnector, getFirefliesConnector, isFirefliesConfigured } from './fireflies'
 
 export async function getConnector(app: App): Promise<IntegrationConnector | null> {
   const connection = await prisma.appConnection.findFirst({
@@ -99,7 +101,11 @@ export async function getConnector(app: App): Promise<IntegrationConnector | nul
       if (connector) return connector
       return webhookConfigured ? webhook : null
     }
-    
+
+    case 'FIREFLIES':
+      if (!config.apiKey || typeof config.apiKey !== 'string') return null
+      return new FirefliesConnector(config.apiKey as string)
+
     default:
       return webhookConfigured ? webhook : null
   }

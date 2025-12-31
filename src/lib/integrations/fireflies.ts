@@ -7,6 +7,9 @@
  * API Documentation: https://docs.fireflies.ai/
  */
 
+import type { Employee, App, AppAccount, AppProvisioningRule } from '@prisma/client'
+import type { IntegrationConnector, ProvisionResult, DeprovisionResult, DeprovisionOptions } from './types'
+
 // Fireflies GraphQL endpoint
 const FIREFLIES_API_URL = 'https://api.fireflies.ai/graphql'
 
@@ -59,11 +62,35 @@ interface SearchParams {
   skip?: number
 }
 
-export class FirefliesConnector {
+export class FirefliesConnector implements IntegrationConnector {
   private apiKey: string
 
   constructor(apiKey: string) {
     this.apiKey = apiKey
+  }
+
+  /**
+   * Fireflies doesn't provision users - this is a no-op
+   */
+  async provisionEmployee(
+    _employee: Employee,
+    _app: App,
+    _rules: AppProvisioningRule[],
+    _existingAccount?: AppAccount | null
+  ): Promise<ProvisionResult> {
+    return { success: true, error: 'Fireflies does not support user provisioning' }
+  }
+
+  /**
+   * Fireflies doesn't deprovision users - this is a no-op
+   */
+  async deprovisionEmployee(
+    _employee: Employee,
+    _app: App,
+    _account: AppAccount,
+    _options?: DeprovisionOptions
+  ): Promise<DeprovisionResult> {
+    return { success: true }
   }
 
   /**

@@ -157,6 +157,8 @@ export default function ApplicationSettingsDetailPage() {
   const [passboltCliUser, setPassboltCliUser] = useState('')
   const [passboltDefaultRole, setPassboltDefaultRole] = useState<'user' | 'admin'>('user')
 
+  const [firefliesApiKey, setFirefliesApiKey] = useState('')
+
   const [didInit, setDidInit] = useState(false)
   useEffect(() => {
     if (didInit) return
@@ -345,6 +347,16 @@ export default function ApplicationSettingsDetailPage() {
       })
       return
     }
+
+    if (type === 'FIREFLIES') {
+      upsert.mutate({
+        appId,
+        config: {
+          apiKey: firefliesApiKey.trim() || undefined,
+        },
+      })
+      return
+    }
   }
 
   const canSave = (() => {
@@ -380,6 +392,9 @@ export default function ApplicationSettingsDetailPage() {
         return Boolean(passboltBaseUrl.trim() && (passboltApiToken.trim() || (secrets as any).apiTokenSet))
       }
       return Boolean(passboltCliPath.trim())
+    }
+    if (type === 'FIREFLIES') {
+      return Boolean(firefliesApiKey.trim() || (secrets as any).apiKeySet)
     }
     return false
   })()
@@ -925,9 +940,32 @@ export default function ApplicationSettingsDetailPage() {
             </div>
           ) : null}
 
-          {type && !['SLACK', 'BITBUCKET', 'JIRA', 'HUBSPOT', 'PASSBOLT'].includes(type) ? (
+          {type === 'FIREFLIES' ? (
+            <div className="grid gap-2">
+              <Label htmlFor="firefliesApiKey">API key *</Label>
+              <Input
+                id="firefliesApiKey"
+                type="password"
+                value={firefliesApiKey}
+                onChange={(e) => setFirefliesApiKey(e.target.value)}
+                placeholder={(secrets as any)?.apiKeySet ? 'Configured (leave blank to keep)' : 'Enter your Fireflies API key'}
+                disabled={!canEdit || busy}
+              />
+              {(secrets as any)?.apiKeySet ? (
+                <p className="text-xs text-muted-foreground">Saved.</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">Not set.</p>
+              )}
+              <p className="text-xs text-muted-foreground mt-2">
+                Get your API key from <a href="https://app.fireflies.ai/integrations/custom" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Fireflies.ai Integrations</a>.
+                This is used to automatically attach meeting transcripts to interviews.
+              </p>
+            </div>
+          ) : null}
+
+          {type && !['SLACK', 'BITBUCKET', 'JIRA', 'HUBSPOT', 'PASSBOLT', 'FIREFLIES', 'GOOGLE_WORKSPACE'].includes(type) ? (
             <p className="text-sm text-foreground/80">
-              This application currently supports webhook-based provisioning via the “View app” page.
+              This application currently supports webhook-based provisioning via the "View app" page.
             </p>
           ) : null}
 

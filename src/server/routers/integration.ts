@@ -194,6 +194,12 @@ function validateConnectionConfig(appType: string, config: Record<string, unknow
 
       return
     }
+    case 'FIREFLIES': {
+      if (!config.apiKey || typeof config.apiKey !== 'string') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Fireflies API key is required' })
+      }
+      return
+    }
     default:
       return
   }
@@ -498,6 +504,16 @@ export const integrationRouter = router({
         }
       }
 
+      if (app.type === 'FIREFLIES') {
+        return {
+          ...baseSummary,
+          config: {},
+          secrets: {
+            apiKeySet: typeof raw.apiKey === 'string' && raw.apiKey.length > 0,
+          },
+        }
+      }
+
       // Default: only indicate there's a connection.
       return { ...baseSummary, config: {}, secrets: {} }
     }),
@@ -587,6 +603,7 @@ export const integrationRouter = router({
         { type: 'PASSBOLT' as const, name: 'Passbolt', description: 'Provision Passbolt password management and secure sharing' },
         { type: 'HUBSPOT' as const, name: 'HubSpot', description: 'Provision HubSpot CRM access and marketing automation' },
         { type: 'STANDUPNINJA' as const, name: 'StandupNinja', description: 'Provision StandupNinja team standup and status management' },
+        { type: 'FIREFLIES' as const, name: 'Fireflies.ai', description: 'Automatically attach meeting transcripts to interviews' },
       ]
 
       for (const app of defaultApps) {
