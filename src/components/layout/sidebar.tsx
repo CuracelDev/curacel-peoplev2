@@ -17,7 +17,6 @@ import {
   LogOut,
   Briefcase,
   UserSearch,
-  HelpCircle,
   FileSignature,
   X,
   BarChart3,
@@ -72,7 +71,6 @@ const navigationSections: NavSection[] = [
       { name: 'Candidates', href: '/recruiting/candidates', icon: UserSearch, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'activeCandidates' },
       { name: 'Interviews', href: '/recruiting/interviews', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'scheduledInterviews' },
       { name: 'Assessments', href: '/recruiting/assessments', icon: ClipboardCheck, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'pendingAssessments' },
-      { name: 'Question Bank', href: '/recruiting/questions', icon: HelpCircle, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'] },
     ],
   },
   {

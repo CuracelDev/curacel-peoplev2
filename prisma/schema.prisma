@@ -1202,6 +1202,7 @@ model Job {
   recruiterAccess     RecruiterJob[]
   interviewQuestions  InterviewQuestion[]
   emailTemplates      EmailTemplate[] @relation("JobEmailTemplates")
+  assessmentTemplates JobAssessmentTemplate[]
 
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
@@ -1406,6 +1407,9 @@ model CandidateInterview {
 
   // Questions used in this interview
   questionUsages InterviewQuestionUsage[]
+
+  // Pre-assigned questions (during scheduling)
+  assignedQuestions InterviewAssignedQuestion[]
 
   // Fireflies integration
   firefliesMeetingId   String?   // Fireflies meeting ID
@@ -1891,11 +1895,25 @@ model AssessmentTemplate {
   // Scoring rubric (JSON)
   scoringRubric   Json?            // { criteria: [{name, weight, maxScore}] }
 
+  // AI Generation
+  aiGenerated     Boolean          @default(false)
+  aiPrompt        String?          @db.Text
+  aiModel         String?
+  questions       Json?            // Array of { id, text, type, options?, maxScore }
+
+  // Integration Config (for multi-platform support)
+  integrationConfig Json?          // Platform-specific config (API keys, etc.)
+
+  // Scoring Config
+  scoringDimensions Json?          // { technical: 40, behavioral: 30, aptitude: 30 }
+  benchmarkData     Json?          // Role-based benchmark scores
+
   isActive        Boolean          @default(true)
   sortOrder       Int              @default(0)
 
   candidateAssessments CandidateAssessment[]
   workTrialTemplate    WorkTrialTemplate?
+  jobAssessments       JobAssessmentTemplate[]
 
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -1929,6 +1947,23 @@ model CandidateAssessment {
   risks           Json?            // Array of strings
   questionsForCandidate Json?      // Array of interview questions
 
+  // Candidate responses (for AI-graded assessments)
+  responses       Json?            // Array of { questionId, response, submittedAt }
+
+  // AI Analysis
+  aiAnalysis      Json?            // Structured AI analysis
+  aiRecommendation String?         // HIRE, HOLD, NO_HIRE with reasoning
+  aiConfidence    Float?           // 0-1 confidence score
+
+  // Detailed Scoring (by dimension)
+  dimensionScores Json?            // { technical: 85, behavioral: 72, aptitude: 90 }
+  benchmarkComparison Json?        // { roleAvg: 75, percentile: 85 }
+  teamFitScore    Float?           // 0-100
+
+  // Predictive Analytics
+  predictedPerformance Float?      // AI predicted job performance (0-100)
+  predictedTenure Int?             // Predicted months at company
+
   // File uploads (PDF/image results)
   fileUrl         String?
   fileName        String?
@@ -1950,6 +1985,10 @@ model CandidateAssessment {
 
   // Invite
   inviteToken     String?          @unique
+
+  // External Platform
+  externalId      String?          // ID from external platform (Kandi, etc.)
+  externalUrl     String?          // URL to external assessment
 
   notes           String?          @db.Text
   evaluatedBy     String?          // Employee ID who reviewed
@@ -1991,6 +2030,27 @@ model WorkTrialTemplate {
   updatedAt            DateTime           @updatedAt
 }
 
+// Job-Assessment Template linking - configure assessments per job
+model JobAssessmentTemplate {
+  id           String             @id @default(uuid())
+  jobId        String
+  job          Job                @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  templateId   String
+  template     AssessmentTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  // Auto-trigger configuration
+  triggerStage String?            // Auto-send at this stage (e.g., "TECHNICAL")
+  isRequired   Boolean            @default(false)
+  sortOrder    Int                @default(0)
+
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+
+  @@unique([jobId, templateId])
+  @@index([jobId])
+  @@index([templateId])
+}
+
 // ============================================
 // RECRUITING - QUESTION BANK
 // ============================================
@@ -2026,6 +2086,7 @@ model InterviewQuestion {
 
   // Relations
   usages          InterviewQuestionUsage[]
+  assignedTo      InterviewAssignedQuestion[]
 
   @@index([category])
   @@index([jobId])
@@ -2054,6 +2115,35 @@ model InterviewQuestionUsage {
   createdAt       DateTime @default(now())
 
   @@unique([questionId, interviewId])
+  @@index([interviewId])
+  @@index([questionId])
+}
+
+// Questions assigned to an interview during scheduling (before the interview)
+model InterviewAssignedQuestion {
+  id              String   @id @default(uuid())
+  interviewId     String
+  interview       CandidateInterview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+
+  // Either a question from the bank or a custom question
+  questionId      String?  // Null if custom question
+  question        InterviewQuestion? @relation(fields: [questionId], references: [id], onDelete: SetNull)
+  customText      String?  @db.Text // For inline custom questions not in bank
+  category        String?  // Category for custom questions
+
+  // Metadata
+  isRequired      Boolean  @default(false)  // Must be asked
+  wasAsked        Boolean  @default(false)  // Tracked after interview
+  rating          Int?     // 1-5 effectiveness (post-interview)
+  notes           String?  @db.Text
+  sortOrder       Int      @default(0)
+
+  // Track if custom question should be saved to bank
+  saveToBank      Boolean  @default(false)
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
   @@index([interviewId])
   @@index([questionId])
 }
@@ -2376,4 +2466,57 @@ model BlueAIInterviewsSettings {
 
   createdAt               DateTime @default(now())
   updatedAt               DateTime @updatedAt
+}
+
+// ============================================
+// INTEGRATION & WEBHOOK SYSTEM
+// ============================================
+
+// Integration Settings - configuration for external platforms
+model IntegrationSettings {
+  id                      String   @id @default(uuid())
+  platform                String   @unique  // "KANDI", "HACKERRANK", "CODILITY", "TESTGORILLA", "WEBHOOK"
+  displayName             String
+
+  // Authentication
+  apiKeyEncrypted         String?  @db.Text
+  apiSecretEncrypted      String?  @db.Text
+  webhookSecretEncrypted  String?  @db.Text
+
+  // Configuration
+  config                  Json?    // Platform-specific config (baseUrl, organizationId, etc.)
+
+  // Status
+  isEnabled               Boolean  @default(false)
+  lastTestedAt            DateTime?
+  lastTestResult          String?  // "success" or error message
+
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
+
+  @@index([platform])
+  @@index([isEnabled])
+}
+
+// Webhook Log - track incoming webhook events
+model WebhookLog {
+  id                String   @id @default(uuid())
+  source            String   // Platform that sent the webhook
+  eventType         String   // Type of event
+  payload           Json     // Full webhook payload
+
+  // Processing
+  status            String   // "SUCCESS", "FAILED", "IGNORED"
+  errorMessage      String?  @db.Text
+  processedAt       DateTime?
+
+  // Related entities
+  assessmentId      String?
+  candidateId       String?
+
+  createdAt         DateTime @default(now())
+
+  @@index([source])
+  @@index([status])
+  @@index([createdAt])
 }
