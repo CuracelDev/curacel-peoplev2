@@ -1,6 +1,6 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
-import { router, protectedProcedure, adminProcedure } from '@/lib/trpc'
+import { router, protectedProcedure, adminProcedure, publicProcedure } from '@/lib/trpc'
 import { randomUUID } from 'crypto'
 
 const assessmentTypeEnum = z.enum([
@@ -1334,5 +1334,144 @@ export const assessmentRouter = router({
       const { analyzeTeamFit } = await import('@/lib/ai/recruiting/assessment-analysis')
       const analysis = await analyzeTeamFit(input)
       return analysis
+    }),
+
+  // ============================================
+  // PUBLIC PROCEDURES (for candidate submission)
+  // ============================================
+
+  // Get assessment by invite token (public - no auth required)
+  getByToken: publicProcedure
+    .input(z.object({ token: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const assessment = await ctx.prisma.candidateAssessment.findFirst({
+        where: { inviteToken: input.token },
+        include: {
+          candidate: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          template: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              type: true,
+              inputMethod: true,
+              candidateSubmissionTypes: true,
+              instructions: true,
+              durationMinutes: true,
+              passingScore: true,
+              externalUrl: true,
+              organization: {
+                select: {
+                  name: true,
+                  logo: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      if (!assessment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Assessment not found or link has expired',
+        })
+      }
+
+      // Check if expired
+      if (assessment.expiresAt && new Date(assessment.expiresAt) < new Date()) {
+        return {
+          ...assessment,
+          isExpired: true,
+          isCompleted: false,
+        }
+      }
+
+      // Check if already completed
+      if (assessment.status === 'COMPLETED') {
+        return {
+          ...assessment,
+          isExpired: false,
+          isCompleted: true,
+        }
+      }
+
+      return {
+        ...assessment,
+        isExpired: false,
+        isCompleted: false,
+      }
+    }),
+
+  // Submit candidate assessment result (public - no auth required)
+  submitCandidateResult: publicProcedure
+    .input(
+      z.object({
+        token: z.string(),
+        submissionText: z.string().optional(),
+        submissionUrl: z.string().url().optional(),
+        submissionFiles: z.array(z.object({
+          url: z.string().url(),
+          name: z.string(),
+          type: z.string(),
+          size: z.number(),
+        })).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Find assessment by token
+      const assessment = await ctx.prisma.candidateAssessment.findFirst({
+        where: { inviteToken: input.token },
+        include: { template: true },
+      })
+
+      if (!assessment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Assessment not found or link has expired',
+        })
+      }
+
+      // Check if expired
+      if (assessment.expiresAt && new Date(assessment.expiresAt) < new Date()) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'This assessment has expired',
+        })
+      }
+
+      // Check if already completed
+      if (assessment.status === 'COMPLETED') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'This assessment has already been submitted',
+        })
+      }
+
+      // Update assessment with submission
+      const updatedAssessment = await ctx.prisma.candidateAssessment.update({
+        where: { id: assessment.id },
+        data: {
+          status: 'COMPLETED',
+          submissionText: input.submissionText,
+          submissionUrl: input.submissionUrl,
+          submissionFiles: input.submissionFiles,
+          submittedAt: new Date(),
+          completedAt: new Date(),
+          submissionMethod: 'CANDIDATE_PORTAL',
+        },
+      })
+
+      return {
+        success: true,
+        message: 'Assessment submitted successfully',
+        assessmentId: updatedAssessment.id,
+      }
     }),
 })
