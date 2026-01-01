@@ -15,6 +15,8 @@ import {
   Clock,
   Users,
   ArrowLeft,
+  X,
+  FileText,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -80,6 +82,9 @@ export default function PublicCareersPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isSubmitted, setIsSubmitted] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
   const [consentChecked, setConsentChecked] = useState(false)
 
   // Fetch job details (preview mode bypasses isPublic check)
@@ -103,6 +108,74 @@ export default function PublicCareersPage() {
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: '' }))
     }
+  }
+
+  const handleFileUpload = async (file: File) => {
+    // Validate file type
+    const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document']
+    if (!allowedTypes.includes(file.type)) {
+      setErrors(prev => ({ ...prev, resume: 'Please upload a PDF, DOC, or DOCX file' }))
+      return
+    }
+
+    // Validate file size (5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, resume: 'File size must be less than 5MB' }))
+      return
+    }
+
+    setIsUploading(true)
+    setErrors(prev => ({ ...prev, resume: '' }))
+
+    try {
+      // For now, convert to base64 data URL (temporary solution)
+      // TODO: Replace with actual file upload to storage service
+      const reader = new FileReader()
+      reader.onload = () => {
+        setFormData(prev => ({ ...prev, resumeUrl: reader.result as string }))
+        setUploadedFile(file)
+        setIsUploading(false)
+      }
+      reader.onerror = () => {
+        setErrors(prev => ({ ...prev, resume: 'Failed to read file' }))
+        setIsUploading(false)
+      }
+      reader.readAsDataURL(file)
+    } catch (error) {
+      setErrors(prev => ({ ...prev, resume: 'Failed to upload file' }))
+      setIsUploading(false)
+    }
+  }
+
+  const handleFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      handleFileUpload(file)
+    }
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const file = e.dataTransfer.files?.[0]
+    if (file) {
+      handleFileUpload(file)
+    }
+  }
+
+  const handleRemoveFile = () => {
+    setUploadedFile(null)
+    setFormData(prev => ({ ...prev, resumeUrl: '' }))
   }
 
   const validateForm = () => {
@@ -417,18 +490,71 @@ export default function PublicCareersPage() {
                 </Select>
               </div>
 
-              {/* Resume Upload Placeholder */}
+              {/* Resume Upload */}
               <div className="space-y-2">
                 <Label>Resume/CV (Optional)</Label>
-                <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer bg-muted/50">
-                  <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-                  <p className="text-sm text-foreground/80">
-                    Drag and drop your resume or <span className="text-indigo-600">browse</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    PDF, DOC, or DOCX (max 5MB)
-                  </p>
-                </div>
+                {uploadedFile ? (
+                  <div className="border rounded-lg p-4 flex items-center justify-between bg-muted/50">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-8 w-8 text-indigo-600" />
+                      <div>
+                        <p className="text-sm font-medium">{uploadedFile.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {(uploadedFile.size / 1024).toFixed(1)} KB
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRemoveFile}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div
+                    className={cn(
+                      "border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer",
+                      isDragging ? "border-indigo-600 bg-indigo-50" : "hover:border-indigo-400 bg-muted/50",
+                      isUploading && "opacity-50 cursor-not-allowed"
+                    )}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    onClick={() => document.getElementById('resume-upload')?.click()}
+                  >
+                    <input
+                      id="resume-upload"
+                      type="file"
+                      accept=".pdf,.doc,.docx"
+                      className="hidden"
+                      onChange={handleFileInput}
+                      disabled={isUploading}
+                    />
+                    {isUploading ? (
+                      <>
+                        <Loader2 className="h-8 w-8 mx-auto mb-2 text-indigo-600 animate-spin" />
+                        <p className="text-sm text-foreground/80">Uploading...</p>
+                      </>
+                    ) : (
+                      <>
+                        <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                        <p className="text-sm text-foreground/80">
+                          Drag and drop your resume or <span className="text-indigo-600">browse</span>
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          PDF, DOC, or DOCX (max 5MB)
+                        </p>
+                      </>
+                    )}
+                  </div>
+                )}
+                {errors.resume && (
+                  <p className="text-red-500 text-sm">{errors.resume}</p>
+                )}
               </div>
 
               {/* Consent */}

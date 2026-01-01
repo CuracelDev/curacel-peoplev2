@@ -176,7 +176,6 @@ export default function SettingsPage() {
   const [showFlowMappingDialog, setShowFlowMappingDialog] = useState(false)
   const [stageMapping, setStageMapping] = useState<Record<string, string | null>>({})
   const [originalStages, setOriginalStages] = useState<string[]>([])
-  const [jobScoreDisplay, setJobScoreDisplay] = useState<'average' | 'max'>('average')
 
   const updateFlowMutation = trpc.hiringFlow.update.useMutation({
     onSuccess: () => {
@@ -337,10 +336,6 @@ export default function SettingsPage() {
     )
   }, [recruitingSettingsQuery.data?.candidateScoreWeights])
 
-  useEffect(() => {
-    if (!recruitingSettingsQuery.data?.jobScoreDisplay) return
-    setJobScoreDisplay(recruitingSettingsQuery.data.jobScoreDisplay)
-  }, [recruitingSettingsQuery.data?.jobScoreDisplay])
 
   // Initialize edited flow when active flow changes
   useEffect(() => {
@@ -399,13 +394,6 @@ export default function SettingsPage() {
   const handleSaveScoreWeights = () => {
     updateSettingsMutation.mutate({
       candidateScoreWeights: scoreComponents,
-    })
-  }
-
-  const handleJobScoreDisplayChange = (value: 'average' | 'max') => {
-    setJobScoreDisplay(value)
-    updateSettingsMutation.mutate({
-      jobScoreDisplay: value,
     })
   }
 
@@ -1319,28 +1307,6 @@ export default function SettingsPage() {
                 <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground">
                   <span>Enabled weight total: {totalScoreWeight}%</span>
                   <span>Weights are normalized when computing scores.</span>
-                </div>
-                <div id="job-score-display" className="rounded-lg border border-border p-4">
-                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <div className="font-medium">Jobs list score display</div>
-                      <p className="text-xs text-muted-foreground">
-                        Choose whether the jobs list donut shows the average or highest candidate score.
-                      </p>
-                    </div>
-                    <Select
-                      value={jobScoreDisplay}
-                      onValueChange={(value) => handleJobScoreDisplayChange(value as 'average' | 'max')}
-                    >
-                      <SelectTrigger className="w-full sm:w-[200px]">
-                        <SelectValue placeholder="Average score" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="average">Average score</SelectItem>
-                        <SelectItem value="max">Max score</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
                 </div>
                 <div className="space-y-4">
                   {scoreComponents.length > 0 ? (
