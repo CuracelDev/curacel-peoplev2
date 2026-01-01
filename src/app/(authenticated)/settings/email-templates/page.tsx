@@ -264,9 +264,9 @@ function TemplateEditor({ template, onClose, onSave }: TemplateEditorProps) {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label>BlueAI Enhancement</Label>
+              <Label>AuntyPelz Enhancement</Label>
               <p className="text-xs text-muted-foreground mt-1">
-                Use BlueAI to personalize this template for each candidate
+                Use AuntyPelz to personalize this template for each candidate
               </p>
             </div>
             <Switch
@@ -277,7 +277,7 @@ function TemplateEditor({ template, onClose, onSave }: TemplateEditorProps) {
 
           {aiEnhancementEnabled && (
             <div className="space-y-2">
-              <Label htmlFor="ai-prompt">BlueAI Enhancement Prompt</Label>
+              <Label htmlFor="ai-prompt">AuntyPelz Enhancement Prompt</Label>
               <Textarea
                 id="ai-prompt"
                 value={aiEnhancementPrompt}

@@ -1812,7 +1812,7 @@ export default function CandidateProfilePage() {
                   )}
                   {typeof candidate.recommendationConfidence === 'number' && (
                     <div className="flex justify-between py-2">
-                      <span className="text-sm text-muted-foreground">BlueAI Confidence</span>
+                      <span className="text-sm text-muted-foreground">AuntyPelz Confidence</span>
                       <span className="font-semibold">{candidate.recommendationConfidence}%</span>
                     </div>
                   )}

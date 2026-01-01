@@ -153,6 +153,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off
 - Candidate profile no longer crashes when BlueAI analysis lists contain object entries
+- Job description editor no longer crashes from an invalid rich text icon import
 
 ## [December 2024]
 

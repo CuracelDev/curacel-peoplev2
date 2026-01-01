@@ -552,9 +552,9 @@ export async function GET(
           <div class="section two-col">
             <div class="summary-box">
               <div class="section-title">
-                <h2>BlueAI Summary</h2>
+                <h2>AuntyPelz Summary</h2>
               </div>
-              <p>${latestAnalysis?.summary ? escapeHtml(latestAnalysis.summary) : 'No BlueAI summary yet.'}</p>
+              <p>${latestAnalysis?.summary ? escapeHtml(latestAnalysis.summary) : 'No AuntyPelz summary yet.'}</p>
               <div style="margin-top: 10px;">
                 <div class="tag">Strengths</div>
                 ${buildList(recommendationStrengths)}

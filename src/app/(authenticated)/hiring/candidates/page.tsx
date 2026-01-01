@@ -591,7 +591,7 @@ export default function CandidatesPage() {
                               <p className="font-medium">Processing file...</p>
                               <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
                                 <Sparkles className="h-4 w-4" />
-                                BlueAI is matching fields automatically
+                                AuntyPelz is matching fields automatically
                               </p>
                             </div>
                           </div>
@@ -634,7 +634,7 @@ export default function CandidatesPage() {
                         <p>Name*, Email*, Phone, LinkedIn URL, Current Role, Current Company, Location, Notes</p>
                         <p className="mt-2 flex items-center gap-1">
                           <Sparkles className="h-3 w-3" />
-                          BlueAI will automatically match your columns to the expected fields
+                          AuntyPelz will automatically match your columns to the expected fields
                         </p>
                       </div>
                     </div>
