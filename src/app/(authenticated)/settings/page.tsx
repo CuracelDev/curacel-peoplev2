@@ -29,6 +29,7 @@ import {
   Layers,
   Globe,
   UserCheck,
+  SlidersHorizontal,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -89,6 +90,12 @@ const settingsSections = [
     title: 'Hiring',
     items: [
       {
+        title: 'General Settings',
+        description: 'Shared hiring defaults and display options.',
+        icon: SlidersHorizontal,
+        href: '/hiring/settings/general',
+      },
+      {
         title: 'Hiring Flows',
         description: 'Define interview stages and pipeline.',
         icon: GitBranch,
@@ -144,9 +151,9 @@ const settingsSections = [
       },
       {
         title: 'Candidate Scoring',
-        description: 'Configure score weighting and jobs list score display.',
+        description: 'Configure score weighting.',
         icon: BarChart3,
-        href: '/hiring/settings/all?section=scoring#job-score-display',
+        href: '/hiring/settings/all?section=scoring',
       },
       {
         title: 'Webhooks',
