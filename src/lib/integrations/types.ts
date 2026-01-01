@@ -85,6 +85,64 @@ export interface PassboltConfig {
   cliUser?: string
 }
 
+export interface WebflowConfig {
+  apiToken: string
+  siteId: string
+  collectionId: string
+  autoPublish?: boolean  // Publish to live site automatically
+  autoSync?: boolean     // Sync on job status change
+}
+
+// Webflow API types
+export interface WebflowSite {
+  id: string
+  name: string
+  shortName: string
+  previewUrl: string
+  createdOn: string
+  lastUpdated: string
+}
+
+export interface WebflowCollection {
+  id: string
+  displayName: string
+  singularName: string
+  slug: string
+  createdOn: string
+  lastUpdated: string
+}
+
+export interface WebflowField {
+  id: string
+  slug: string
+  displayName: string
+  type: string
+  isRequired: boolean
+  isEditable: boolean
+  validations?: {
+    singleLine?: boolean
+    maxLength?: number
+  }
+}
+
+export interface WebflowCollectionSchema {
+  id: string
+  displayName: string
+  slug: string
+  fields: WebflowField[]
+}
+
+export interface WebflowItem {
+  id: string
+  cmsLocaleId?: string
+  lastPublished?: string
+  lastUpdated: string
+  createdOn: string
+  isArchived: boolean
+  isDraft: boolean
+  fieldData: Record<string, unknown>
+}
+
 export interface ProvisioningCondition {
   department?: string
   location?: string

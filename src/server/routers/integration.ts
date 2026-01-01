@@ -200,6 +200,12 @@ function validateConnectionConfig(appType: string, config: Record<string, unknow
       }
       return
     }
+    case 'WEBFLOW': {
+      if (!config.apiToken || typeof config.apiToken !== 'string') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Webflow API token is required' })
+      }
+      return
+    }
     default:
       return
   }
@@ -514,6 +520,21 @@ export const integrationRouter = router({
         }
       }
 
+      if (app.type === 'WEBFLOW') {
+        return {
+          ...baseSummary,
+          config: {
+            siteId: typeof raw.siteId === 'string' ? raw.siteId : undefined,
+            collectionId: typeof raw.collectionId === 'string' ? raw.collectionId : undefined,
+            autoPublish: typeof raw.autoPublish === 'boolean' ? raw.autoPublish : false,
+            autoSync: typeof raw.autoSync === 'boolean' ? raw.autoSync : false,
+          },
+          secrets: {
+            apiTokenSet: typeof raw.apiToken === 'string' && raw.apiToken.length > 0,
+          },
+        }
+      }
+
       // Default: only indicate there's a connection.
       return { ...baseSummary, config: {}, secrets: {} }
     }),
@@ -607,6 +628,7 @@ export const integrationRouter = router({
         { type: 'HUBSPOT' as const, name: 'HubSpot', description: 'Provision HubSpot CRM access and marketing automation' },
         { type: 'STANDUPNINJA' as const, name: 'StandupNinja', description: 'Provision StandupNinja team standup and status management' },
         { type: 'FIREFLIES' as const, name: 'Fireflies.ai', description: 'Automatically attach meeting transcripts to interviews' },
+        { type: 'WEBFLOW' as const, name: 'Webflow', description: 'Publish job postings to your Webflow CMS career page' },
       ]
 
       for (const app of defaultApps) {
@@ -635,6 +657,7 @@ export const integrationRouter = router({
         { type: 'HUBSPOT' as const, name: 'HubSpot', description: 'Provision HubSpot CRM access and marketing automation' },
         { type: 'STANDUPNINJA' as const, name: 'StandupNinja', description: 'Provision StandupNinja team standup and status management' },
         { type: 'FIREFLIES' as const, name: 'Fireflies.ai', description: 'Automatically attach meeting transcripts to interviews' },
+        { type: 'WEBFLOW' as const, name: 'Webflow', description: 'Publish job postings to your Webflow CMS career page' },
       ]
 
       // Get existing app types

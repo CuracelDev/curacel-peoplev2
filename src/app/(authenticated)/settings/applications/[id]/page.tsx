@@ -22,6 +22,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { Loader2, Settings2, TestTubeIcon, Plug } from 'lucide-react'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
+import { WebflowConfigSection } from '@/components/settings/WebflowConfigSection'
 
 // Helper to get app icon based on type
 function getAppIcon(type: string, iconUrl?: string | null) {
@@ -54,6 +55,8 @@ function getAppIcon(type: string, iconUrl?: string | null) {
       return <Image src="/logos/standupninja.png" alt="StandupNinja" {...commonProps} />
     case 'FIREFLIES':
       return <Image src="/logos/fireflies.png" alt="Fireflies.ai" {...commonProps} />
+    case 'WEBFLOW':
+      return <Image src="/logos/webflow.png" alt="Webflow" {...commonProps} />
     default:
       if (iconUrl) {
         return <Image src={iconUrl} alt={type} {...commonProps} />
@@ -397,6 +400,8 @@ export default function ApplicationSettingsDetailPage() {
       })
       return
     }
+
+    // Note: WEBFLOW is handled by WebflowConfigSection component
   }
 
   const canSave = (() => {
@@ -435,6 +440,10 @@ export default function ApplicationSettingsDetailPage() {
     }
     if (type === 'FIREFLIES') {
       return Boolean(firefliesApiKey.trim() || (secrets as any).apiKeySet)
+    }
+    if (type === 'WEBFLOW') {
+      // Webflow uses its own save mechanism via WebflowConfigSection
+      return true
     }
     return false
   })()
@@ -1005,20 +1014,46 @@ export default function ApplicationSettingsDetailPage() {
             </div>
           ) : null}
 
-          {type && !['SLACK', 'BITBUCKET', 'JIRA', 'HUBSPOT', 'PASSBOLT', 'FIREFLIES', 'GOOGLE_WORKSPACE'].includes(type) ? (
+          {type === 'WEBFLOW' ? (
+            <WebflowConfigSection
+              appId={appId}
+              secrets={secrets as Record<string, unknown>}
+              canEdit={canEdit}
+              busy={busy}
+              onSave={(config) => {
+                upsert.mutate({
+                  appId,
+                  config: {
+                    apiToken: config.apiToken,
+                    siteId: config.siteId,
+                    collectionId: config.collectionId,
+                    autoPublish: config.autoPublish,
+                    autoSync: config.autoSync,
+                  },
+                })
+              }}
+              onSaveSuccess={() => {
+                summaryQuery.refetch()
+              }}
+            />
+          ) : null}
+
+          {type && !['SLACK', 'BITBUCKET', 'JIRA', 'HUBSPOT', 'PASSBOLT', 'FIREFLIES', 'WEBFLOW', 'GOOGLE_WORKSPACE'].includes(type) ? (
             <p className="text-sm text-foreground/80">
               This application currently supports webhook-based provisioning via the "View app" page.
             </p>
           ) : null}
 
-          <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => router.push('/settings/applications')} disabled={busy}>
-              Cancel
-            </Button>
-            <Button onClick={save} disabled={!canEdit || !canSave || busy}>
-              {upsert.isPending ? 'Saving…' : 'Save'}
-            </Button>
-          </div>
+          {type !== 'WEBFLOW' && (
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => router.push('/settings/applications')} disabled={busy}>
+                Cancel
+              </Button>
+              <Button onClick={save} disabled={!canEdit || !canSave || busy}>
+                {upsert.isPending ? 'Saving…' : 'Save'}
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

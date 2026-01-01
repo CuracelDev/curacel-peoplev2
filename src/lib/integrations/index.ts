@@ -20,6 +20,7 @@ export { JiraConnector } from './jira'
 export { HubSpotConnector } from './hubspot'
 export { PassboltConnector, createPassboltConnector } from './passbolt'
 export { FirefliesConnector, getFirefliesConnector, isFirefliesConfigured } from './fireflies'
+export { WebflowConnector, createWebflowConnector } from './webflow'
 
 export async function getConnector(app: App): Promise<IntegrationConnector | null> {
   const connection = await prisma.appConnection.findFirst({
