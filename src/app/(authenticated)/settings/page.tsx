@@ -28,6 +28,7 @@ import {
   UserCircle2,
   Layers,
   Globe,
+  UserCheck,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -158,6 +159,12 @@ const settingsSections = [
         description: 'Manage recruiter access.',
         icon: UserCircle2,
         href: '/recruiting/settings/all?section=recruiters',
+      },
+      {
+        title: 'Advisors',
+        description: 'Manage external interview advisors.',
+        icon: UserCheck,
+        href: '/settings/advisors',
       },
       {
         title: 'Source Channels',

@@ -35,6 +35,7 @@ import { candidateEmailRouter } from './candidate-email'
 import { blueAIAnalysisRouter } from './blueai-analysis'
 import { publicPagesRouter } from './public-pages'
 import { webflowRouter } from './webflow'
+import { advisorRouter } from './advisor'
 
 export const appRouter = router({
   employee: employeeRouter,
@@ -73,6 +74,7 @@ export const appRouter = router({
   blueAIAnalysis: blueAIAnalysisRouter,
   publicPages: publicPagesRouter,
   webflow: webflowRouter,
+  advisor: advisorRouter,
 })
 
 export type AppRouter = typeof appRouter
