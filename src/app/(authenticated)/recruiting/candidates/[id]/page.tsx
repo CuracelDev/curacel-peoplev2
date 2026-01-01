@@ -44,7 +44,6 @@ import { normalizeCandidateScoreWeights, type CandidateScoreComponent } from '@/
 import { format } from 'date-fns'
 import { EmailTab } from '@/components/recruiting/email-tab'
 import { BlueAIAnalysisTab } from '@/components/recruiting/blueai-analysis-tab'
-import { ScheduleInterviewDialog } from '@/components/recruiting/schedule-interview-dialog'
 import { toast } from 'sonner'
 
 const normalizeStageKey = (value: string) =>
@@ -56,7 +55,6 @@ export default function CandidateProfilePage() {
   const [activeTab, setActiveTab] = useState('overview')
   const [decisionNotes, setDecisionNotes] = useState('')
   const [selectedDecision, setSelectedDecision] = useState<string | null>(null)
-  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false)
   const [actionInFlight, setActionInFlight] = useState<
     null | 'advance' | 'reject' | 'decision'
   >(null)
@@ -1819,14 +1817,15 @@ export default function CandidateProfilePage() {
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Advance to Offer
                   </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full justify-start"
-                    onClick={() => setScheduleDialogOpen(true)}
-                  >
-                    <Calendar className="h-4 w-4 mr-2" />
-                    Schedule Final Interview
-                  </Button>
+                  <Link href={`/recruiting/interviews/schedule?candidateId=${candidateId}`}>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <Calendar className="h-4 w-4 mr-2" />
+                      Schedule Final Interview
+                    </Button>
+                  </Link>
                   <Button
                     variant="outline"
                     className="w-full justify-start text-red-600 hover:text-red-700"
@@ -1842,13 +1841,6 @@ export default function CandidateProfilePage() {
           </div>
         </TabsContent>
       </Tabs>
-
-      <ScheduleInterviewDialog
-        open={scheduleDialogOpen}
-        onOpenChange={setScheduleDialogOpen}
-        candidateId={candidateId}
-        jobId={candidate.job?.id}
-      />
     </div>
   )
 }

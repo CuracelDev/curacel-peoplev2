@@ -26,7 +26,6 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
 } from '@/components/ui/command'
 import {
@@ -466,15 +465,14 @@ export default function ScheduleInterviewPage() {
                             <CommandEmpty>No candidates found.</CommandEmpty>
                             <CommandGroup>
                               {candidatesData?.candidates?.map((candidate) => (
-                                <CommandItem
+                                <div
                                   key={candidate.id}
-                                  value={`${candidate.name} ${candidate.job?.title || ''}`}
-                                  onSelect={() => {
+                                  onClick={() => {
                                     setSelectedCandidateId(candidate.id)
                                     setCandidateOpen(false)
                                     setCandidateSearch('')
                                   }}
-                                  className="cursor-pointer"
+                                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
                                 >
                                   <div className="flex flex-col">
                                     <span>{candidate.name}</span>
@@ -482,7 +480,7 @@ export default function ScheduleInterviewPage() {
                                       {candidate.job?.title || 'No position'}
                                     </span>
                                   </div>
-                                </CommandItem>
+                                </div>
                               ))}
                             </CommandGroup>
                           </>
@@ -571,11 +569,10 @@ export default function ScheduleInterviewPage() {
                             {employeesData?.employees
                               ?.filter(e => !selectedInterviewers.find(i => i.id === e.id))
                               .map((employee) => (
-                                <CommandItem
+                                <div
                                   key={employee.id}
-                                  value={`${employee.fullName} ${employee.jobTitle || ''}`}
-                                  onSelect={() => addInterviewer(employee)}
-                                  className="cursor-pointer"
+                                  onClick={() => addInterviewer(employee)}
+                                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
                                 >
                                   <div className="flex flex-col">
                                     <span>{employee.fullName}</span>
@@ -583,7 +580,7 @@ export default function ScheduleInterviewPage() {
                                       {employee.jobTitle || 'Employee'}
                                     </span>
                                   </div>
-                                </CommandItem>
+                                </div>
                               ))}
                           </CommandGroup>
                         </>

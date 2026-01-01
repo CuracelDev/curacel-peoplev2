@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { router, protectedProcedure, hrAdminProcedure, managerProcedure } from '@/lib/trpc'
 import { TRPCError } from '@trpc/server'
 import { logEmployeeEvent } from '@/lib/audit'
+import { autoActivateEmployees } from '@/lib/employee-status'
 
 const employeeCreateSchema = z.object({
   fullName: z.string().min(2),
@@ -70,6 +71,7 @@ export const employeeRouter = router({
       limit: z.number().default(20),
     }).optional())
     .query(async ({ ctx, input }) => {
+      await autoActivateEmployees(ctx.prisma)
       const { status, department, managerId, search, page = 1, limit = 20 } = input || {}
       
       const where: any = {}
@@ -110,6 +112,7 @@ export const employeeRouter = router({
   getById: protectedProcedure
     .input(z.string())
     .query(async ({ ctx, input: id }) => {
+      await autoActivateEmployees(ctx.prisma, id)
       const employee = await ctx.prisma.employee.findUnique({
         where: { id },
         include: {
@@ -340,6 +343,7 @@ export const employeeRouter = router({
 
   getManagers: hrAdminProcedure
     .query(async ({ ctx }) => {
+      await autoActivateEmployees(ctx.prisma)
       return ctx.prisma.employee.findMany({
         where: { 
           status: 'ACTIVE',
@@ -352,6 +356,7 @@ export const employeeRouter = router({
 
   getAllActive: hrAdminProcedure
     .query(async ({ ctx }) => {
+      await autoActivateEmployees(ctx.prisma)
       return ctx.prisma.employee.findMany({
         where: { status: 'ACTIVE' },
         select: { id: true, fullName: true, jobTitle: true, department: true, workEmail: true },

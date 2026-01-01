@@ -142,6 +142,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Interview scheduling candidate picker is selectable again
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
+- Employees auto-activate when start date has passed after offer sign-off
 
 ## [December 2024]
 
