@@ -711,3 +711,6 @@ export function createGoogleWorkspaceConnector(): GoogleWorkspaceConnector | nul
     serviceAccountKey,
   })
 }
+
+// Alias for backwards compatibility
+export const getGoogleWorkspaceConnector = createGoogleWorkspaceConnector

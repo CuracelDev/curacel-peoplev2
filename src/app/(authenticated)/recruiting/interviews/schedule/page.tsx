@@ -140,6 +140,13 @@ export default function ScheduleInterviewPage() {
     limit: 20,
   })
 
+  // Fetch advisors for interviewers
+  const { data: advisorsData, isLoading: advisorsLoading } = trpc.advisor.list.useQuery({
+    search: interviewerSearch || undefined,
+    isActive: true,
+    limit: 20,
+  })
+
   // Find available slots for selected interviewers
   const interviewerEmails = selectedInterviewers.map(i => i.email).filter(Boolean)
   const {
@@ -232,12 +239,12 @@ export default function ScheduleInterviewPage() {
     setTime(`${hours}:${minutes}`)
   }
 
-  // Add interviewer
-  const addInterviewer = (employee: { id: string; fullName: string; workEmail?: string | null }) => {
-    if (!selectedInterviewers.find(i => i.id === employee.id)) {
+  // Add interviewer (handles both employees with workEmail and advisors with email)
+  const addInterviewer = (person: { id: string; fullName: string; workEmail?: string | null; email?: string }) => {
+    if (!selectedInterviewers.find(i => i.id === person.id)) {
       setSelectedInterviewers([
         ...selectedInterviewers,
-        { id: employee.id, name: employee.fullName, email: employee.workEmail || '' },
+        { id: person.id, name: person.fullName, email: person.workEmail || person.email || '' },
       ])
     }
     setInterviewerOpen(false)
@@ -502,10 +509,7 @@ export default function ScheduleInterviewPage() {
                 <SelectContent>
                   {interviewTypesData?.map((type) => (
                     <SelectItem key={type.id} value={type.id}>
-                      <div className="flex flex-col">
-                        <span>{type.name}</span>
-                        <span className="text-xs text-muted-foreground">{type.defaultDuration} min</span>
-                      </div>
+                      {type.name}
                     </SelectItem>
                   ))}
                   {(!interviewTypesData || interviewTypesData.length === 0) && !typesLoading && (
@@ -553,36 +557,68 @@ export default function ScheduleInterviewPage() {
                 <PopoverContent className="w-[300px] p-0" align="start">
                   <Command>
                     <CommandInput
-                      placeholder="Search employees..."
+                      placeholder="Search employees or advisors..."
                       value={interviewerSearch}
                       onValueChange={setInterviewerSearch}
                     />
                     <CommandList>
-                      {employeesLoading ? (
+                      {employeesLoading && advisorsLoading ? (
                         <div className="flex items-center justify-center py-6">
                           <Loader2 className="h-4 w-4 animate-spin" />
                         </div>
                       ) : (
                         <>
-                          <CommandEmpty>No employees found.</CommandEmpty>
-                          <CommandGroup>
-                            {employeesData?.employees
-                              ?.filter(e => !selectedInterviewers.find(i => i.id === e.id))
-                              .map((employee) => (
-                                <div
-                                  key={employee.id}
-                                  onClick={() => addInterviewer(employee)}
-                                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                >
-                                  <div className="flex flex-col">
-                                    <span>{employee.fullName}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {employee.jobTitle || 'Employee'}
-                                    </span>
+                          <CommandEmpty>No interviewers found.</CommandEmpty>
+                          {/* Employees Section */}
+                          {employeesData?.employees && employeesData.employees.length > 0 && (
+                            <CommandGroup heading="Employees">
+                              {employeesData.employees
+                                .filter(e => !selectedInterviewers.find(i => i.id === e.id))
+                                .map((employee) => (
+                                  <div
+                                    key={employee.id}
+                                    onClick={() => addInterviewer(employee)}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                  >
+                                    <div className="flex flex-col">
+                                      <span>{employee.fullName}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {employee.jobTitle || 'Employee'}
+                                      </span>
+                                    </div>
                                   </div>
-                                </div>
-                              ))}
-                          </CommandGroup>
+                                ))}
+                            </CommandGroup>
+                          )}
+                          {/* Advisors Section */}
+                          {advisorsData?.advisors && advisorsData.advisors.length > 0 && (
+                            <CommandGroup heading="Advisors (no calendar access)">
+                              {advisorsData.advisors
+                                .filter(a => !selectedInterviewers.find(i => i.id === a.id))
+                                .map((advisor) => (
+                                  <div
+                                    key={advisor.id}
+                                    onClick={() => addInterviewer({
+                                      id: advisor.id,
+                                      fullName: advisor.fullName,
+                                      email: advisor.email,
+                                      jobTitle: advisor.title || 'Advisor',
+                                    })}
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                  >
+                                    <div className="flex flex-col">
+                                      <div className="flex items-center gap-1">
+                                        <span>{advisor.fullName}</span>
+                                        <Badge variant="outline" className="text-[10px] px-1 py-0">Advisor</Badge>
+                                      </div>
+                                      <span className="text-xs text-muted-foreground">
+                                        {advisor.title || advisor.company || 'External Advisor'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                            </CommandGroup>
+                          )}
                         </>
                       )}
                     </CommandList>

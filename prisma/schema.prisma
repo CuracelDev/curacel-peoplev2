@@ -838,6 +838,23 @@ model LegalEntity {
   @@index([organizationId, isActive])
 }
 
+// External advisors who can be assigned as interviewers but aren't employees
+model Advisor {
+  id             String       @id @default(uuid())
+  fullName       String
+  email          String       @unique
+  title          String?      // e.g., "Technical Advisor", "Executive Recruiter"
+  company        String?      // Their company/affiliation
+  phone          String?
+  notes          String?
+  isActive       Boolean      @default(true)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([email])
+  @@index([isActive])
+}
+
 model Team {
   id             String       @id @default(uuid())
   name           String       @unique
