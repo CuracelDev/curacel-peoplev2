@@ -12,9 +12,12 @@ import {
   Palette,
   TrendingUp,
   Loader2,
+  Globe,
+  Lock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 import {
   Select,
   SelectContent,
@@ -101,13 +104,20 @@ function ScoreCircle({ score, label }: { score: number; label: string }) {
 
 export default function PositionsPage() {
   const { data: teams } = trpc.team.listForSelect.useQuery()
-  const { data: jobs, isLoading } = trpc.job.list.useQuery()
+  const { data: jobs, isLoading, refetch } = trpc.job.list.useQuery()
   const { data: counts } = trpc.job.getCounts.useQuery()
   const { data: recruitingSettings } = trpc.hiringSettings.get.useQuery()
 
   const [filter, setFilter] = useState<FilterStatus>('all')
   const [department, setDepartment] = useState('all')
   const scoreDisplay = recruitingSettings?.jobScoreDisplay ?? 'average'
+
+  // Toggle job public status
+  const toggleJobPublicMutation = trpc.hiringSettings.toggleJobPublic.useMutation({
+    onSuccess: () => {
+      refetch()
+    },
+  })
 
   const filteredJobs = (jobs || []).filter((job) => {
     if (filter !== 'all' && job.status !== filter) return false
@@ -195,21 +205,22 @@ export default function PositionsPage() {
             const scoreLabel = scoreDisplay === 'max' ? 'max score' : 'avg score'
 
             return (
-              <Link
+              <div
                 key={job.id}
-                href={`/recruiting/positions/${job.id}/candidates`}
-                className="bg-card border border-border rounded-xl p-5 flex gap-5 transition-all hover:border-indigo-500 hover:shadow-md"
+                className="bg-card border border-border rounded-xl p-5 flex gap-5 transition-all hover:border-indigo-500 hover:shadow-md relative"
               >
                 <div className={cn('hidden sm:flex w-12 h-12 rounded-lg items-center justify-center text-white flex-shrink-0', getJobIconBg(job.department))}>
                   {getJobIcon(job.department)}
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-3">
-                    <h3 className="text-[18px] font-semibold">
-                      {job.title}
-                      {job.hiresCount > 1 ? ` (${job.hiresCount})` : ''}
-                    </h3>
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <Link href={`/recruiting/positions/${job.id}/candidates`}>
+                      <h3 className="text-[18px] font-semibold hover:text-indigo-600 transition-colors">
+                        {job.title}
+                        {job.hiresCount > 1 ? ` (${job.hiresCount})` : ''}
+                      </h3>
+                    </Link>
                     <Badge className={cn(STATUS_BADGES[job.status], 'hover:bg-opacity-100')}>
                       {STATUS_LABELS[job.status]}
                     </Badge>
@@ -218,6 +229,22 @@ export default function PositionsPage() {
                         {PRIORITY_BADGES[job.priority]?.label || 'Medium'}
                       </Badge>
                     )}
+                    <div className="flex items-center gap-2 ml-auto">
+                      {job.isPublic ? (
+                        <Globe className="h-4 w-4 text-green-600" />
+                      ) : (
+                        <Lock className="h-4 w-4 text-muted-foreground" />
+                      )}
+                      <span className="text-sm text-muted-foreground">
+                        {job.isPublic ? 'Public' : 'Private'}
+                      </span>
+                      <Switch
+                        checked={job.isPublic}
+                        onCheckedChange={(checked) => {
+                          toggleJobPublicMutation.mutate({ jobId: job.id, isPublic: checked })
+                        }}
+                      />
+                    </div>
                   </div>
 
                   {/* Job Meta */}
@@ -269,7 +296,7 @@ export default function PositionsPage() {
                 <div className="hidden sm:flex flex-col items-end justify-start">
                   <ScoreCircle score={scoreValue} label={scoreLabel} />
                 </div>
-              </Link>
+              </div>
             )
           })}
 

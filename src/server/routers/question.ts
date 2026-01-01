@@ -376,6 +376,135 @@ export const questionRouter = router({
       }
     }),
 
+  // Get candidate context for AI question generation
+  getCandidateContext: protectedProcedure
+    .input(
+      z.object({
+        candidateId: z.string(),
+        interviewTypeId: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { prisma } = ctx
+      const { candidateId, interviewTypeId } = input
+
+      // Fetch latest BlueAI analysis
+      const blueAIAnalysis = await prisma.candidateAIAnalysis.findFirst({
+        where: { candidateId, isLatest: true },
+        select: {
+          recommendations: true,
+          mustValidatePoints: true,
+          concerns: true,
+          nextStageQuestions: true,
+          strengths: true,
+        },
+      })
+
+      // Fetch candidate with job, red flags, and previous interviews
+      const candidate = await prisma.jobCandidate.findUnique({
+        where: { id: candidateId },
+        select: {
+          name: true,
+          mustValidate: true,
+          redFlags: true,
+          suggestedQuestions: true,
+          job: {
+            select: {
+              id: true,
+              title: true,
+              description: true,
+              requirements: true,
+            },
+          },
+          interviews: {
+            include: {
+              interviewType: {
+                select: { id: true, name: true },
+              },
+              evaluations: {
+                select: {
+                  overallNotes: true,
+                  recommendation: true,
+                  evaluatorName: true,
+                },
+              },
+            },
+            where: {
+              status: { in: ['COMPLETED', 'EVALUATED'] },
+            },
+            orderBy: { scheduledAt: 'desc' },
+            take: 5,
+          },
+        },
+      })
+
+      if (!candidate) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Candidate not found',
+        })
+      }
+
+      // Get interview type categories if specified
+      let interviewTypeCategories: string[] = []
+      if (interviewTypeId) {
+        const interviewType = await prisma.interviewType.findUnique({
+          where: { id: interviewTypeId },
+          select: { questionCategories: true, name: true },
+        })
+        interviewTypeCategories = interviewType?.questionCategories || []
+      }
+
+      // Normalize BlueAI data (handle both array and JSON storage)
+      const normalizeArray = (data: unknown): string[] => {
+        if (!data) return []
+        if (Array.isArray(data)) return data as string[]
+        return []
+      }
+
+      const normalizeConcerns = (data: unknown): Array<{ title: string; description: string; severity?: string }> => {
+        if (!data) return []
+        if (Array.isArray(data)) return data as Array<{ title: string; description: string; severity?: string }>
+        return []
+      }
+
+      const normalizeRedFlags = (data: unknown): Array<{ title: string; description: string }> => {
+        if (!data) return []
+        if (Array.isArray(data)) return data as Array<{ title: string; description: string }>
+        return []
+      }
+
+      return {
+        candidateName: candidate.name,
+        blueAI: blueAIAnalysis ? {
+          recommendations: normalizeArray(blueAIAnalysis.recommendations),
+          mustValidatePoints: normalizeArray(blueAIAnalysis.mustValidatePoints),
+          concerns: normalizeConcerns(blueAIAnalysis.concerns),
+          nextStageQuestions: normalizeArray(blueAIAnalysis.nextStageQuestions),
+          strengths: normalizeArray(blueAIAnalysis.strengths),
+        } : null,
+        candidate: {
+          mustValidate: normalizeArray(candidate.mustValidate),
+          redFlags: normalizeRedFlags(candidate.redFlags),
+          suggestedQuestions: normalizeArray(candidate.suggestedQuestions),
+        },
+        job: candidate.job,
+        previousInterviews: candidate.interviews.map(interview => ({
+          id: interview.id,
+          stageName: interview.stageName || interview.interviewType?.name || 'Interview',
+          scheduledAt: interview.scheduledAt,
+          feedback: interview.evaluations
+            .filter(e => e.overallNotes)
+            .map(e => ({
+              notes: e.overallNotes || '',
+              recommendation: e.recommendation || '',
+              evaluator: e.evaluatorName || 'Unknown',
+            })),
+        })),
+        interviewTypeCategories,
+      }
+    }),
+
   // Track question usage in an interview
   trackUsage: protectedProcedure
     .input(
@@ -514,7 +643,7 @@ export const questionRouter = router({
       return { count: created.count }
     }),
 
-  // AI-powered question generation
+  // AI-powered question generation with context source selection
   generateAIQuestions: protectedProcedure
     .input(
       z.object({
@@ -523,12 +652,23 @@ export const questionRouter = router({
         jobId: z.string().optional(),
         categories: z.array(questionCategoryEnum).optional(),
         count: z.number().min(1).max(20).optional().default(10),
-        focusAreas: z.array(z.string()).optional(), // e.g., ["leadership", "technical depth"]
+        focusAreas: z.array(z.string()).optional(),
+        // Context source selection
+        contextSources: z.object({
+          includeBlueAIRecommendations: z.boolean().default(true),
+          includeBlueAIMustValidate: z.boolean().default(true),
+          includeBlueAIConcerns: z.boolean().default(true),
+          includePreviousInterviews: z.array(z.string()).optional(), // interview IDs to include
+          includeJobRequirements: z.boolean().default(true),
+          includeRedFlags: z.boolean().default(true),
+        }).optional(),
+        // Custom prompt for additional context
+        customPrompt: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const { prisma } = ctx
-      const { candidateId, interviewTypeId, jobId, categories, count, focusAreas } = input
+      const { candidateId, interviewTypeId, jobId, categories, count, focusAreas, contextSources, customPrompt } = input
 
       // Get AI settings
       const aiSettings = await prisma.aISettings.findFirst({
@@ -542,7 +682,7 @@ export const questionRouter = router({
         })
       }
 
-      // Get candidate data
+      // Get candidate data with extended context
       const candidate = await prisma.jobCandidate.findUnique({
         where: { id: candidateId },
         include: {
@@ -553,11 +693,18 @@ export const questionRouter = router({
                 select: {
                   overallNotes: true,
                   recommendation: true,
+                  evaluatorName: true,
                 },
               },
+              interviewType: {
+                select: { name: true },
+              },
+            },
+            where: {
+              status: { in: ['COMPLETED', 'EVALUATED'] },
             },
             orderBy: { scheduledAt: 'desc' },
-            take: 3,
+            take: 5,
           },
         },
       })
@@ -567,6 +714,41 @@ export const questionRouter = router({
           code: 'NOT_FOUND',
           message: 'Candidate not found',
         })
+      }
+
+      // Get BlueAI analysis if context sources include it
+      let blueAIAnalysis: {
+        recommendations: unknown
+        mustValidatePoints: unknown
+        concerns: unknown
+        strengths: unknown
+      } | null = null
+
+      if (contextSources?.includeBlueAIRecommendations ||
+          contextSources?.includeBlueAIMustValidate ||
+          contextSources?.includeBlueAIConcerns) {
+        blueAIAnalysis = await prisma.candidateAIAnalysis.findFirst({
+          where: { candidateId, isLatest: true },
+          select: {
+            recommendations: true,
+            mustValidatePoints: true,
+            concerns: true,
+            strengths: true,
+          },
+        })
+      }
+
+      // Helper to normalize JSON arrays
+      const normalizeArray = (data: unknown): string[] => {
+        if (!data) return []
+        if (Array.isArray(data)) return data.map(String)
+        return []
+      }
+
+      const normalizeConcerns = (data: unknown): Array<{ title: string; description: string; severity?: string }> => {
+        if (!data) return []
+        if (Array.isArray(data)) return data as Array<{ title: string; description: string; severity?: string }>
+        return []
       }
 
       // Get interview type info
