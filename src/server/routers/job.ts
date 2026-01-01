@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure, publicProcedure } from '@/lib/trpc'
+import { onJobStatusChange, syncJobToWebflow, unpublishJobFromWebflow } from '@/lib/integrations/webflow-sync'
 
 const InboundChannelEnum = z.enum(['YC', 'PEOPLEOS', 'COMPANY_SITE', 'OTHER'])
 const OutboundChannelEnum = z.enum(['LINKEDIN', 'JOB_BOARDS', 'GITHUB', 'TWITTER', 'OTHER'])
@@ -318,6 +319,15 @@ export const jobRouter = router({
         }
       }
 
+      // Webflow auto-sync: trigger on status change
+      if (input.status && input.status !== existing.status) {
+        // Fire async - don't wait for completion
+        onJobStatusChange(id, existing.status, input.status).catch(console.error)
+      } else if (job.status === 'ACTIVE' && job.isPublic) {
+        // If job is active and public, sync content changes
+        syncJobToWebflow(id).catch(console.error)
+      }
+
       // Return updated job with relations
       return ctx.prisma.job.findUnique({
         where: { id },
@@ -348,20 +358,32 @@ export const jobRouter = router({
   pause: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.prisma.job.update({
+      const existing = await ctx.prisma.job.findUnique({ where: { id: input.id } })
+      const job = await ctx.prisma.job.update({
         where: { id: input.id },
         data: { status: 'PAUSED' },
       })
+      // Trigger Webflow sync for status change
+      if (existing && existing.status !== 'PAUSED') {
+        onJobStatusChange(input.id, existing.status, 'PAUSED').catch(console.error)
+      }
+      return job
     }),
 
   // Mark a job as hired (all positions filled)
   markHired: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      return ctx.prisma.job.update({
+      const existing = await ctx.prisma.job.findUnique({ where: { id: input.id } })
+      const job = await ctx.prisma.job.update({
         where: { id: input.id },
         data: { status: 'HIRED' },
       })
+      // Trigger Webflow sync for status change
+      if (existing && existing.status !== 'HIRED') {
+        onJobStatusChange(input.id, existing.status, 'HIRED').catch(console.error)
+      }
+      return job
     }),
 
   // Get job counts by status
@@ -577,15 +599,15 @@ export const jobRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { id, webhookUrl, webhookSecret, isPublic } = input
 
-      const job = await ctx.prisma.job.findUnique({ where: { id } })
-      if (!job) {
+      const existing = await ctx.prisma.job.findUnique({ where: { id } })
+      if (!existing) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Job not found',
         })
       }
 
-      return ctx.prisma.job.update({
+      const updatedJob = await ctx.prisma.job.update({
         where: { id },
         data: {
           webhookUrl: webhookUrl || null,
@@ -593,6 +615,19 @@ export const jobRouter = router({
           ...(isPublic !== undefined && { isPublic }),
         },
       })
+
+      // Trigger Webflow sync when isPublic changes
+      if (isPublic !== undefined && isPublic !== existing.isPublic) {
+        if (isPublic && updatedJob.status === 'ACTIVE') {
+          // Job became public, sync to Webflow
+          syncJobToWebflow(id).catch(console.error)
+        } else if (!isPublic && existing.isPublic) {
+          // Job became private, unpublish from Webflow
+          unpublishJobFromWebflow(id).catch(console.error)
+        }
+      }
+
+      return updatedJob
     }),
 
   // =====================

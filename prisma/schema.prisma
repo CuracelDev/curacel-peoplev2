@@ -377,6 +377,7 @@ enum AppType {
   HUBSPOT
   STANDUPNINJA
   FIREFLIES
+  WEBFLOW
   CUSTOM
 }
 
@@ -412,19 +413,22 @@ model AppConnection {
   id              String    @id @default(uuid())
   appId           String
   app             App       @relation(fields: [appId], references: [id])
-  
+
   // Connection config (encrypted)
-  configEncrypted String    
-  
+  configEncrypted String
+
   // Domain/workspace identifier
   domain          String?
-  
+
   isActive        Boolean   @default(true)
   lastSyncAt      DateTime?
   lastTestStatus  ConnectionTestStatus?
   lastTestedAt    DateTime?
   lastTestError   String?
-  
+
+  // Webflow field mapping (for Webflow integrations)
+  webflowFieldMapping WebflowFieldMapping?
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
@@ -469,27 +473,44 @@ model AppAccount {
   employee        Employee        @relation(fields: [employeeId], references: [id])
   appId           String
   app             App             @relation(fields: [appId], references: [id])
-  
+
   // External account info
   externalUserId  String?
   externalEmail   String?
   externalUsername String?
-  
+
   status          AppAccountStatus @default(PENDING)
   statusMessage   String?
-  
+
   // Provisioned resources (JSON) - e.g. { "groups": [...], "channels": [...] }
   provisionedResources Json?
-  
+
   lastSyncAt      DateTime?
   provisionedAt   DateTime?
   deprovisionedAt DateTime?
-  
+
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
   @@unique([employeeId, appId])
   @@index([status])
+}
+
+// Webflow CMS field mapping for job publishing
+model WebflowFieldMapping {
+  id              String        @id @default(uuid())
+  appConnectionId String        @unique
+  appConnection   AppConnection @relation(fields: [appConnectionId], references: [id], onDelete: Cascade)
+
+  // Field mappings: { "title": "name", "department": "category", ... }
+  fieldMappings   Json
+
+  // Cached Webflow collection schema
+  collectionSchema Json?
+  schemaFetchedAt DateTime?
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
 }
 
 // ============================================
@@ -1197,6 +1218,13 @@ model Job {
   webhookUrl          String?     // URL to push job postings to
   webhookSecret       String?     // Optional HMAC secret for verification
   lastWebhookAt       DateTime?   // Last webhook push timestamp
+
+  // Webflow CMS sync
+  webflowItemId       String?     // Webflow collection item ID
+  webflowSyncStatus   String?     // "synced", "pending", "failed", "not_synced"
+  webflowSyncError    String?     // Error message if failed
+  webflowLastSyncAt   DateTime?   // Last successful sync
+  webflowPublishedAt  DateTime?   // When published to live site
 
   // Relations
   followers           JobFollower[]
