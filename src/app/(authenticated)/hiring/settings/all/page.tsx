@@ -63,23 +63,6 @@ import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
 import { normalizeCandidateScoreWeights, type CandidateScoreComponent } from '@/lib/hiring/score-config'
 
-const settingsNav = [
-  { id: 'competencies', name: 'Competencies', icon: Star },
-  { id: 'personality', name: 'Personality Templates', icon: Smile },
-  { id: 'team', name: 'Team Profiles', icon: Users },
-  { id: 'interview', name: 'Hiring Flow', icon: GitBranch },
-  { id: 'interviewTypes', name: 'Interview Types', icon: Video },
-  { id: 'interestForms', name: 'Interest Forms', icon: FileQuestion },
-  { id: 'rubrics', name: 'Interview Rubrics', icon: ClipboardCheck },
-  { id: 'questions', name: 'Question Bank', icon: FileQuestion },
-  { id: 'assessments', name: 'Assessments', icon: ClipboardList, href: '/hiring/settings/assessments' },
-  { id: 'scoring', name: 'Candidate Scoring', icon: BarChart3 },
-  { id: 'webhooks', name: 'Webhooks', icon: Webhook },
-  { id: 'recruiters', name: 'External Recruiters', icon: UserCircle2 },
-  { id: 'sources', name: 'Source Channels', icon: Layers },
-  { id: 'careers', name: 'Public Careers', icon: Globe },
-]
-
 const stageOptions = [
   { value: 'HR_SCREEN', label: 'HR Screen' },
   { value: 'TECHNICAL', label: 'Technical' },
@@ -610,41 +593,6 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      {/* Horizontal Tabs Navigation */}
-      <div className="border-b border-border">
-        <div className="flex gap-1 overflow-x-auto pb-px">
-          {settingsNav.map((item) => (
-            'href' in item && item.href ? (
-              <Link
-                key={item.id}
-                href={item.href}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px',
-                  'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.name}
-              </Link>
-            ) : (
-              <button
-                key={item.id}
-                onClick={() => setActiveSection(item.id)}
-                className={cn(
-                  'flex items-center gap-2 px-4 py-2.5 text-sm font-medium whitespace-nowrap transition-all border-b-2 -mb-px',
-                  activeSection === item.id
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-muted-foreground hover:text-foreground hover:border-border'
-                )}
-              >
-                <item.icon className="h-4 w-4" />
-                {item.name}
-              </button>
-            )
-          ))}
-        </div>
-      </div>
-
       {/* Settings Content */}
       <div className="space-y-6">
           {/* Competency Framework */}

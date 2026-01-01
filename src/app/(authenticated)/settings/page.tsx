@@ -18,18 +18,15 @@ import {
   Users,
   GitBranch,
   FileQuestion,
-  ClipboardCheck,
-  Video,
-  MessageSquare,
   Star,
   Brain,
-  BarChart3,
   Webhook,
   UserCircle2,
   Layers,
   Globe,
   UserCheck,
   SlidersHorizontal,
+  Settings,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -102,28 +99,16 @@ const settingsSections = [
         href: '/hiring/settings/all?section=interview',
       },
       {
-        title: 'Interview Types',
-        description: 'Configure types, formats, durations.',
-        icon: Video,
-        href: '/hiring/settings/interview-types',
-      },
-      {
-        title: 'Interview Rubrics',
-        description: 'Set evaluation criteria and scoring.',
-        icon: ClipboardCheck,
-        href: '/hiring/settings/rubrics',
+        title: 'Interview Settings',
+        description: 'Manage interview types, rubrics, scoring, and question bank.',
+        icon: Settings,
+        href: '/hiring/settings/interview',
       },
       {
         title: 'Interest Forms',
         description: 'Create candidate application forms.',
         icon: FileQuestion,
         href: '/hiring/settings/interest-forms',
-      },
-      {
-        title: 'Question Bank',
-        description: 'Manage reusable interview questions.',
-        icon: MessageSquare,
-        href: '/hiring/settings/all?section=questions',
       },
       {
         title: 'Assessments',
@@ -148,12 +133,6 @@ const settingsSections = [
         description: 'Team-specific settings and preferences.',
         icon: Users,
         href: '/hiring/settings/all?section=team',
-      },
-      {
-        title: 'Candidate Scoring',
-        description: 'Configure score weighting.',
-        icon: BarChart3,
-        href: '/hiring/settings/all?section=scoring',
       },
       {
         title: 'Webhooks',
