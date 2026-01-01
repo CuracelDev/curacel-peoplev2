@@ -82,8 +82,9 @@ export default function NewJDPage() {
   const fromId = searchParams.get('from') // If creating new version from existing JD
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Fetch real hiring flows from database
+  // Fetch real hiring flows and teams from database
   const { data: hiringFlows, isLoading: flowsLoading } = trpc.hiringFlow.list.useQuery()
+  const { data: teams, isLoading: teamsLoading } = trpc.team.listForSelect.useQuery()
 
   const [activeTab, setActiveTab] = useState('manual')
   const [isSaving, setIsSaving] = useState(false)
@@ -326,18 +327,19 @@ export default function NewJDPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="department">Department *</Label>
+                  <Label htmlFor="department">Team *</Label>
                   <Select
                     value={formData.department}
                     onValueChange={(value) => setFormData({ ...formData, department: value })}
+                    disabled={teamsLoading}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select department" />
+                      <SelectValue placeholder={teamsLoading ? "Loading teams..." : "Select team"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {DEPARTMENTS.map((dept) => (
-                        <SelectItem key={dept.value} value={dept.value}>
-                          {dept.value}
+                      {teams?.map((team) => (
+                        <SelectItem key={team.id} value={team.name}>
+                          {team.displayName}
                         </SelectItem>
                       ))}
                     </SelectContent>

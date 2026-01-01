@@ -122,8 +122,9 @@ export default function EditJDPage() {
   const params = useParams()
   const id = params.id as string
 
-  // Fetch real hiring flows from database
+  // Fetch real hiring flows and teams from database
   const { data: hiringFlows, isLoading: flowsLoading } = trpc.hiringFlow.list.useQuery()
+  const { data: teams, isLoading: teamsLoading } = trpc.team.listForSelect.useQuery()
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -293,19 +294,19 @@ export default function EditJDPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="department">Department *</Label>
+              <Label htmlFor="department">Team *</Label>
               <Select
                 value={formData.department}
                 onValueChange={(value) => setFormData({ ...formData, department: value })}
-                disabled={isArchived}
+                disabled={isArchived || teamsLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select department" />
+                  <SelectValue placeholder={teamsLoading ? "Loading teams..." : "Select team"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {DEPARTMENTS.map((dept) => (
-                    <SelectItem key={dept.value} value={dept.value}>
-                      {dept.value}
+                  {teams?.map((team) => (
+                    <SelectItem key={team.id} value={team.name}>
+                      {team.displayName}
                     </SelectItem>
                   ))}
                 </SelectContent>
