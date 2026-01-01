@@ -165,7 +165,7 @@ export function Sidebar({
           <Logo className="h-8 w-8" />
           {(!collapsed || mobileOpen) && (
             <span className="ml-3 flex items-center gap-2 text-lg font-semibold text-primary whitespace-nowrap">
-              Curacel People
+              PeopleOS
               <span className="text-[10px] font-semibold bg-primary/10 text-primary px-1.5 py-0.5 rounded">v2</span>
             </span>
           )}
