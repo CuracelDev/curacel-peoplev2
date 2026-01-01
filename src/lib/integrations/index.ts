@@ -107,6 +107,18 @@ export async function getConnector(app: App): Promise<IntegrationConnector | nul
       if (!config.apiKey || typeof config.apiKey !== 'string') return null
       return new FirefliesConnector(config.apiKey as string)
 
+    case 'WEBFLOW': {
+      if (!config.apiToken || typeof config.apiToken !== 'string') return null
+      const { WebflowConnector } = await import('./webflow')
+      return new WebflowConnector({
+        apiToken: config.apiToken as string,
+        siteId: (config.siteId as string) || '',
+        collectionId: (config.collectionId as string) || '',
+        autoPublish: config.autoPublish as boolean | undefined,
+        autoSync: config.autoSync as boolean | undefined,
+      })
+    }
+
     default:
       return webhookConfigured ? webhook : null
   }

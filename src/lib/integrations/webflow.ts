@@ -1,3 +1,4 @@
+import type { Employee, App, AppAccount, AppProvisioningRule } from '@prisma/client'
 import type {
   WebflowConfig,
   WebflowSite,
@@ -5,6 +6,10 @@ import type {
   WebflowCollectionSchema,
   WebflowItem,
   WebflowField,
+  IntegrationConnector,
+  ProvisionResult,
+  DeprovisionResult,
+  DeprovisionOptions,
 } from './types'
 
 const WEBFLOW_API_BASE = 'https://api.webflow.com/v2'
@@ -50,16 +55,44 @@ async function webflowRequest<T>(
   return res.json() as Promise<T>
 }
 
-export class WebflowConnector {
+export class WebflowConnector implements IntegrationConnector {
   private config: WebflowConfig
 
   constructor(config: WebflowConfig) {
     this.config = config
   }
 
+  /**
+   * Webflow doesn't provision users - this is a no-op
+   */
+  async provisionEmployee(
+    _employee: Employee,
+    _app: App,
+    _rules: AppProvisioningRule[],
+    _existingAccount?: AppAccount | null
+  ): Promise<ProvisionResult> {
+    return { success: true, error: 'Webflow does not support user provisioning' }
+  }
+
+  /**
+   * Webflow doesn't deprovision users - this is a no-op
+   */
+  async deprovisionEmployee(
+    _employee: Employee,
+    _app: App,
+    _account: AppAccount,
+    _options?: DeprovisionOptions
+  ): Promise<DeprovisionResult> {
+    return { success: true }
+  }
+
   async testConnection(): Promise<{ success: boolean; error?: string }> {
     try {
-      await webflowRequest<{ id: string }>('/user', this.config.apiToken)
+      // Use /sites endpoint which works with both site tokens (ws-) and workspace tokens
+      const response = await webflowRequest<{ sites: WebflowSite[] }>('/sites', this.config.apiToken)
+      if (!response.sites || response.sites.length === 0) {
+        return { success: false, error: 'No sites found. Check your API token permissions.' }
+      }
       return { success: true }
     } catch (error) {
       return {
