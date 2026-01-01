@@ -38,6 +38,33 @@ const recommendationEnum = z.enum([
   'NO_HIRE',
 ])
 
+// Lenient URL schema that auto-prefixes https:// if missing
+const lenientUrlSchema = z.string()
+  .transform((val) => {
+    if (!val || val.trim() === '') return undefined
+    const trimmed = val.trim()
+    // Auto-prefix https:// if no protocol
+    if (trimmed && !trimmed.match(/^https?:\/\//i)) {
+      return `https://${trimmed}`
+    }
+    return trimmed
+  })
+  .pipe(z.string().url().optional())
+
+// Nullable version for updates
+const lenientUrlSchemaNullable = z.union([
+  z.null(),
+  z.literal(''),
+  z.string().transform((val) => {
+    if (!val || val.trim() === '') return null
+    const trimmed = val.trim()
+    if (!trimmed.match(/^https?:\/\//i)) {
+      return `https://${trimmed}`
+    }
+    return trimmed
+  }),
+]).pipe(z.string().url().nullable().optional())
+
 // Type display names
 const typeDisplayNames: Record<string, string> = {
   'CODING_TEST': 'Coding Test',
@@ -220,11 +247,11 @@ export const assessmentRouter = router({
         durationMinutes: z.number().optional(),
         passingScore: z.number().min(0).max(100).optional(),
         instructions: z.string().optional(),
-        externalUrl: z.string().url().optional(),
+        externalUrl: lenientUrlSchema.optional(),
         externalPlatform: z.string().optional(),
         emailSubject: z.string().optional(),
         emailBody: z.string().optional(),
-        webhookUrl: z.string().url().optional(),
+        webhookUrl: lenientUrlSchema.optional(),
         webhookSecret: z.string().optional(),
         scoringRubric: z.any().optional(),
         sortOrder: z.number().optional(),
@@ -310,11 +337,11 @@ export const assessmentRouter = router({
         durationMinutes: z.number().optional().nullable(),
         passingScore: z.number().min(0).max(100).optional().nullable(),
         instructions: z.string().optional().nullable(),
-        externalUrl: z.string().url().optional().nullable(),
+        externalUrl: lenientUrlSchemaNullable,
         externalPlatform: z.string().optional().nullable(),
         emailSubject: z.string().optional().nullable(),
         emailBody: z.string().optional().nullable(),
-        webhookUrl: z.string().url().optional().nullable(),
+        webhookUrl: lenientUrlSchemaNullable,
         webhookSecret: z.string().optional().nullable(),
         scoringRubric: z.any().optional(),
         sortOrder: z.number().optional(),
