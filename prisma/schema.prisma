@@ -789,6 +789,10 @@ model Organization {
   notificationEmailRecipientMode NotificationRecipientMode @default(ALL_ADMINS)
   sidebarBadgesEnabled  Boolean  @default(true)
   sidebarBadgeSettings  Json?    // { openJobs: true, activeCandidates: true, activeEmployees: true, pendingContracts: true, inProgressOnboarding: true, inProgressOffboarding: true }
+
+  // Public Pages Settings - controls which public portals are enabled
+  publicPageSettings    Json?    // { careers: { enabled: true }, apply: { enabled: true }, assessment: { enabled: true }, recruiter: { enabled: true }, interview: { enabled: true }, offer: { enabled: true }, onboarding: { enabled: true }, apiDocs: { enabled: true }, auth: { enabled: true } }
+
   legalEntities         LegalEntity[]
   onboardingTaskTemplates OnboardingTaskTemplate[]
   offboardingTaskTemplates OffboardingTaskTemplate[]

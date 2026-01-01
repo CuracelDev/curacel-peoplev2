@@ -51,19 +51,20 @@ const lenientUrlSchema = z.string()
   })
   .pipe(z.string().url().optional())
 
-// Nullable version for updates
-const lenientUrlSchemaNullable = z.union([
-  z.null(),
-  z.literal(''),
-  z.string().transform((val) => {
-    if (!val || val.trim() === '') return null
+// Nullable version for updates - handles undefined, null, empty string, and URLs without protocol
+const lenientUrlSchemaNullable = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((val) => {
+    if (val === null || val === undefined || val.trim() === '') return null
     const trimmed = val.trim()
     if (!trimmed.match(/^https?:\/\//i)) {
       return `https://${trimmed}`
     }
     return trimmed
-  }),
-]).pipe(z.string().url().nullable().optional())
+  })
+  .refine((val) => val === null || z.string().url().safeParse(val).success, {
+    message: 'Invalid URL format',
+  })
 
 // Type display names
 const typeDisplayNames: Record<string, string> = {

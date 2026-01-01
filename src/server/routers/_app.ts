@@ -33,6 +33,7 @@ import { hiringFlowRouter } from './hiringFlow'
 import { questionRouter } from './question'
 import { candidateEmailRouter } from './candidate-email'
 import { blueAIAnalysisRouter } from './blueai-analysis'
+import { publicPagesRouter } from './public-pages'
 
 export const appRouter = router({
   employee: employeeRouter,
@@ -69,6 +70,7 @@ export const appRouter = router({
   question: questionRouter,
   candidateEmail: candidateEmailRouter,
   blueAIAnalysis: blueAIAnalysisRouter,
+  publicPages: publicPagesRouter,
 })
 
 export type AppRouter = typeof appRouter
