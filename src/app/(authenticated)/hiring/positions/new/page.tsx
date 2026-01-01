@@ -568,7 +568,7 @@ export default function CreateJobPage() {
                   <p className="text-sm text-muted-foreground flex items-center gap-1">
                     <Info className="h-3.5 w-3.5" />
                     Select from your JD library in{' '}
-                    <Link href="/settings/jd-templates" className="text-indigo-600 hover:underline">
+                    <Link href="/hiring/settings/jd-templates" className="text-indigo-600 hover:underline">
                       Job Settings
                     </Link>
                   </p>
@@ -833,7 +833,7 @@ export default function CreateJobPage() {
               <p className="text-sm text-muted-foreground flex items-center gap-1 mt-4">
                 <Info className="h-3.5 w-3.5" />
                 Manage competencies in{' '}
-                <Link href="/settings/job-settings/competencies" className="text-indigo-600 hover:underline">
+                <Link href="/hiring/settings/competencies" className="text-indigo-600 hover:underline">
                   Job Settings &rarr; Role Competencies
                 </Link>
               </p>

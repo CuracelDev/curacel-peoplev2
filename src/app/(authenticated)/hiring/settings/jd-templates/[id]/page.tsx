@@ -185,14 +185,14 @@ export default function EditJDPage() {
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     setIsSaving(false)
-    router.push('/settings/jd-templates')
+    router.push('/hiring/settings/jd-templates')
   }
 
   const handleDelete = async () => {
     setDeleteDialogOpen(false)
     // Simulate delete
     await new Promise(resolve => setTimeout(resolve, 500))
-    router.push('/settings/jd-templates')
+    router.push('/hiring/settings/jd-templates')
   }
 
   const deptInfo = getDepartmentInfo(formData.department)
@@ -212,7 +212,7 @@ export default function EditJDPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <Button variant="ghost" size="icon" asChild>
-            <Link href="/settings/jd-templates">
+            <Link href="/hiring/settings/jd-templates">
               <ArrowLeft className="h-5 w-5" />
             </Link>
           </Button>
@@ -243,7 +243,7 @@ export default function EditJDPage() {
         <div className="flex items-center gap-3">
           {!isArchived && (
             <Button variant="outline" asChild>
-              <Link href={`/settings/jd-templates/new?from=${id}`}>
+              <Link href={`/hiring/settings/jd-templates/new?from=${id}`}>
                 <GitBranch className="h-4 w-4 mr-2" />
                 New Version
               </Link>
@@ -266,7 +266,7 @@ export default function EditJDPage() {
           <History className="h-5 w-5" />
           <span className="text-sm">
             This is an archived version. You can view the details but cannot edit.
-            <Link href={`/settings/jd-templates/new?from=${id}`} className="ml-1 text-primary underline">
+            <Link href={`/hiring/settings/jd-templates/new?from=${id}`} className="ml-1 text-primary underline">
               Create a new version from this
             </Link>
           </span>
@@ -410,7 +410,7 @@ export default function EditJDPage() {
           {!isArchived && (
             <div className="flex items-center justify-end gap-4 pt-4 border-t">
               <Button variant="outline" asChild>
-                <Link href="/settings/jd-templates">Cancel</Link>
+                <Link href="/hiring/settings/jd-templates">Cancel</Link>
               </Button>
               <Button
                 onClick={handleSave}
