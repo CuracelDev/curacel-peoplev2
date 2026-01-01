@@ -434,8 +434,8 @@ export default function PublicCareersPage() {
                   <Label htmlFor="linkedin">LinkedIn Profile URL</Label>
                   <Input
                     id="linkedin"
-                    type="url"
-                    placeholder="https://linkedin.com/in/yourprofile"
+                    type="text"
+                    placeholder="linkedin.com/in/yourprofile"
                     value={formData.linkedinUrl}
                     onChange={(e) => handleInputChange('linkedinUrl', e.target.value)}
                   />
