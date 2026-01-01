@@ -274,22 +274,34 @@ export default function PositionsPage() {
 
                   {/* Job Stats */}
                   <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:gap-6 mt-4 pt-4 border-t border-border">
-                    <div className="text-center">
-                      <div className="text-[20px] font-semibold leading-none text-foreground">{stats.applicants}</div>
+                    <Link
+                      href={`/hiring/positions/${job.id}/candidates?stage=all`}
+                      className="text-center transition-colors hover:text-indigo-600"
+                    >
+                      <div className="text-[20px] font-semibold leading-none">{stats.applicants}</div>
                       <div className="mt-0.5 text-[12px] text-muted-foreground">Applicants</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-[20px] font-semibold leading-none text-foreground">{stats.inReview}</div>
+                    </Link>
+                    <Link
+                      href={`/hiring/positions/${job.id}/candidates?stage=applied`}
+                      className="text-center transition-colors hover:text-indigo-600"
+                    >
+                      <div className="text-[20px] font-semibold leading-none">{stats.inReview}</div>
                       <div className="mt-0.5 text-[12px] text-muted-foreground">In Review</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-[20px] font-semibold leading-none text-foreground">{stats.interviewing}</div>
+                    </Link>
+                    <Link
+                      href={`/hiring/positions/${job.id}/candidates?stage=interviewing`}
+                      className="text-center transition-colors hover:text-indigo-600"
+                    >
+                      <div className="text-[20px] font-semibold leading-none">{stats.interviewing}</div>
                       <div className="mt-0.5 text-[12px] text-muted-foreground">Interviewing</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-[20px] font-semibold leading-none text-foreground">{stats.offerStage}</div>
+                    </Link>
+                    <Link
+                      href={`/hiring/positions/${job.id}/candidates?stage=offer`}
+                      className="text-center transition-colors hover:text-indigo-600"
+                    >
+                      <div className="text-[20px] font-semibold leading-none">{stats.offerStage}</div>
                       <div className="mt-0.5 text-[12px] text-muted-foreground">Offer Stage</div>
-                    </div>
+                    </Link>
                   </div>
                 </div>
 

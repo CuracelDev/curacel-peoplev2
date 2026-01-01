@@ -399,37 +399,14 @@ export default function ScheduleInterviewPage() {
   }, [availableSlots])
 
   return (
-    <div className="container max-w-4xl py-6">
-      {/* Header */}
-      <div className="flex items-center gap-4 mb-6">
+    <div className="px-3 py-4 max-w-5xl mx-auto">
+      {/* Back Button */}
+      <div className="mb-4">
         <Link href="/hiring/interviews">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-4 w-4" />
           </Button>
         </Link>
-        <div>
-          <h1 className="text-2xl font-semibold">Schedule Interview</h1>
-          <p className="text-sm text-muted-foreground">
-            Step {currentStep} of 2: {currentStep === 1 ? 'Interview Details' : 'Select Questions'}
-          </p>
-        </div>
-      </div>
-
-      {/* Progress Steps */}
-      <div className="flex items-center gap-2 mb-8">
-        <div className={cn(
-          'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium',
-          currentStep >= 1 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-        )}>
-          1
-        </div>
-        <div className={cn('flex-1 h-1 rounded', currentStep >= 2 ? 'bg-primary' : 'bg-muted')} />
-        <div className={cn(
-          'flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium',
-          currentStep >= 2 ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
-        )}>
-          2
-        </div>
       </div>
 
       {/* Step 1: Interview Details */}
