@@ -139,6 +139,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Dashboard hook order now consistent to prevent render mismatch errors
 - Candidate profile hook order now consistent to prevent render mismatch errors
 - Interview scheduling candidate picker is selectable again
+- Assessment selection tiles now keep readable text in dark mode
 
 ## [December 2024]
 
