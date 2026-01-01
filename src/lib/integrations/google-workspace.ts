@@ -701,7 +701,7 @@ export function createGoogleWorkspaceConnector(): GoogleWorkspaceConnector | nul
   const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
 
   if (!domain || !adminEmail || !serviceAccountKey) {
-    console.warn('Google Workspace integration not configured')
+    console.warn('Google Workspace integration not configured via environment variables')
     return null
   }
 
@@ -712,5 +712,63 @@ export function createGoogleWorkspaceConnector(): GoogleWorkspaceConnector | nul
   })
 }
 
-// Alias for backwards compatibility
-export const getGoogleWorkspaceConnector = createGoogleWorkspaceConnector
+// Get Google Workspace connector from database AppConnection
+export async function getGoogleWorkspaceConnector(): Promise<GoogleWorkspaceConnector | null> {
+  // First try environment variables (for backwards compatibility)
+  const envConnector = createGoogleWorkspaceConnector()
+  if (envConnector) {
+    return envConnector
+  }
+
+  // Fall back to database-stored credentials
+  try {
+    const { prisma } = await import('@/lib/prisma')
+    const { decrypt } = await import('@/lib/encryption')
+
+    // Find Google Workspace app and its active connection
+    const app = await prisma.app.findFirst({
+      where: { type: 'GOOGLE_WORKSPACE' },
+    })
+
+    if (!app) {
+      console.warn('Google Workspace app not found in database')
+      return null
+    }
+
+    const connection = await prisma.appConnection.findFirst({
+      where: { appId: app.id, isActive: true },
+    })
+
+    if (!connection) {
+      console.warn('No active Google Workspace connection found')
+      return null
+    }
+
+    // Parse and decrypt the config
+    let config: Record<string, unknown>
+    try {
+      config = JSON.parse(decrypt(connection.configEncrypted)) as Record<string, unknown>
+    } catch {
+      try {
+        config = JSON.parse(connection.configEncrypted) as Record<string, unknown>
+      } catch {
+        console.warn('Failed to parse Google Workspace config')
+        return null
+      }
+    }
+
+    const domain = typeof config.domain === 'string' ? config.domain : ''
+    const adminEmail = typeof config.adminEmail === 'string' ? config.adminEmail : ''
+    const serviceAccountKey = typeof config.serviceAccountKey === 'string' ? config.serviceAccountKey : ''
+
+    if (!domain || !adminEmail || !serviceAccountKey) {
+      console.warn('Google Workspace connection is missing required configuration')
+      return null
+    }
+
+    return new GoogleWorkspaceConnector({ domain, adminEmail, serviceAccountKey })
+  } catch (error) {
+    console.error('Error getting Google Workspace connector from database:', error)
+    return null
+  }
+}
