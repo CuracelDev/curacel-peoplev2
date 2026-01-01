@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import Link from 'next/link'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import {
   Download,
   Plus,
@@ -120,6 +120,7 @@ export default function CandidatesListPage() {
   const params = useParams()
   const jobId = params.id as string
   const utils = trpc.useUtils()
+  const searchParams = useSearchParams()
   const { data: job, isLoading: jobLoading } = trpc.job.get.useQuery({ id: jobId })
   const { data: candidatesData, isLoading: candidatesLoading } = trpc.job.listCandidates.useQuery({ jobId })
   const upgradeFlowMutation = trpc.hiringFlow.upgradeJobFlow.useMutation({
@@ -158,26 +159,26 @@ export default function CandidatesListPage() {
     return ['Apply', 'People Chat', 'Assessment', 'Team Chat', 'Trial', 'CEO Chat', 'Offer']
   }, [job?.hiringFlowSnapshot?.stages])
 
-  // Build stages array from hiring flow
-  const stages = useMemo(() => {
-    const baseStages = [{ id: 'all', label: 'All', count: counts.all }]
-
-    // Add stages from hiring flow
-    hiringFlowStages.forEach((stage, index) => {
-      baseStages.push({
-        id: `STAGE_${index}`,
-        label: stage,
-        count: 0, // Will be calculated from candidates
-      })
-    })
-
-    return baseStages
-  }, [hiringFlowStages, counts.all])
+  const stages = useMemo(() => ([
+    { id: 'all', label: 'Applicants', count: counts.all },
+    { id: 'applied', label: 'In Review', count: counts.applied },
+    {
+      id: 'interviewing',
+      label: 'Interviewing',
+      count: counts.hrScreen + counts.technical + counts.panel,
+    },
+    { id: 'offer', label: 'Offer Stage', count: counts.offer },
+  ]), [counts])
 
   // Filter candidates by stage
   const stageFilteredCandidates = useMemo(() => {
     let filtered = allCandidates.filter((c) => {
       if (selectedStage === 'all') return true
+      if (selectedStage === 'applied') return c.stage === 'APPLIED'
+      if (selectedStage === 'interviewing') {
+        return ['HR_SCREEN', 'TECHNICAL', 'PANEL'].includes(c.stage)
+      }
+      if (selectedStage === 'offer') return c.stage === 'OFFER'
       return c.stage === selectedStage
     })
 
@@ -214,6 +215,26 @@ export default function CandidatesListPage() {
     setSelectedStage(stage)
     setCurrentPage(1)
   }
+
+  useEffect(() => {
+    const stageParam = searchParams.get('stage')
+    if (!stageParam) return
+    const normalized = stageParam.toLowerCase()
+    const stageMap: Record<string, string> = {
+      all: 'all',
+      applicants: 'all',
+      applied: 'applied',
+      'in-review': 'applied',
+      interviewing: 'interviewing',
+      offer: 'offer',
+      'offer-stage': 'offer',
+    }
+    const nextStage = stageMap[normalized]
+    if (nextStage && nextStage !== selectedStage) {
+      setSelectedStage(nextStage)
+      setCurrentPage(1)
+    }
+  }, [searchParams, selectedStage])
 
   const handlePageSizeChange = (size: string) => {
     setPageSize(Number(size))
