@@ -325,9 +325,9 @@ export function WebflowConfigSection({
                     <ArrowRight className="h-4 w-4 text-muted-foreground shrink-0" />
                     <div className="flex-1 min-w-[200px]">
                       <Select
-                        value={mappings[field.key] || ''}
+                        value={mappings[field.key] || '__none__'}
                         onValueChange={(value) =>
-                          setMappings((prev) => ({ ...prev, [field.key]: value }))
+                          setMappings((prev) => ({ ...prev, [field.key]: value === '__none__' ? '' : value }))
                         }
                         disabled={!canEdit || busy}
                       >
@@ -335,7 +335,7 @@ export function WebflowConfigSection({
                           <SelectValue placeholder="Select Webflow field" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">-- Not mapped --</SelectItem>
+                          <SelectItem value="__none__">-- Not mapped --</SelectItem>
                           {webflowFields.map((wf) => (
                             <SelectItem key={wf.id} value={wf.slug}>
                               {wf.displayName} ({wf.type})
