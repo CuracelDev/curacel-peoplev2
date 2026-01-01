@@ -42,6 +42,8 @@ function getAppIcon(type: string, iconUrl?: string | null) {
       return <Image src="/logos/standupninja.png" alt="StandupNinja" {...commonProps} />
     case 'FIREFLIES':
       return <Image src="/logos/fireflies.png" alt="Fireflies.ai" {...commonProps} />
+    case 'WEBFLOW':
+      return <Image src="/logos/webflow.svg" alt="Webflow" {...commonProps} />
     default:
       if (iconUrl) return <Image src={iconUrl} alt={type} {...commonProps} />
       return <Plug className="h-8 w-8 text-muted-foreground" />
