@@ -24,7 +24,7 @@ const jobSettingsOptions = [
     title: 'Interview Settings',
     description: 'Edit hiring flows and interview stages used across recruiting.',
     icon: GitBranch,
-    href: '/recruiting/settings',
+    href: '/hiring/settings',
     iconBg: 'bg-indigo-100',
   },
   {

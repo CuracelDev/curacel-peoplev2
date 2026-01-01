@@ -1246,7 +1246,7 @@ export const assessmentRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { generateAssessmentQuestions } = await import('@/lib/ai/recruiting/assessment-analysis')
+      const { generateAssessmentQuestions } = await import('@/lib/ai/hiring/assessment-analysis')
       const questions = await generateAssessmentQuestions(input)
       return questions
     }),
@@ -1284,7 +1284,7 @@ export const assessmentRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { gradeAssessmentResponses } = await import('@/lib/ai/recruiting/assessment-analysis')
+      const { gradeAssessmentResponses } = await import('@/lib/ai/hiring/assessment-analysis')
 
       // Save responses first
       await ctx.prisma.candidateAssessment.update({
@@ -1329,7 +1329,7 @@ export const assessmentRouter = router({
   analyzeResults: protectedProcedure
     .input(z.object({ assessmentId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const { analyzeAssessmentResults } = await import('@/lib/ai/recruiting/assessment-analysis')
+      const { analyzeAssessmentResults } = await import('@/lib/ai/hiring/assessment-analysis')
       const analysis = await analyzeAssessmentResults(input.assessmentId)
       return analysis
     }),
@@ -1343,7 +1343,7 @@ export const assessmentRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const { getRecommendedAssessments } = await import('@/lib/ai/recruiting/assessment-analysis')
+      const { getRecommendedAssessments } = await import('@/lib/ai/hiring/assessment-analysis')
       const recommendations = await getRecommendedAssessments(input)
       return recommendations
     }),
@@ -1352,7 +1352,7 @@ export const assessmentRouter = router({
   predictPerformance: protectedProcedure
     .input(z.object({ candidateId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const { predictJobPerformance } = await import('@/lib/ai/recruiting/assessment-analysis')
+      const { predictJobPerformance } = await import('@/lib/ai/hiring/assessment-analysis')
       const insights = await predictJobPerformance(input.candidateId)
       return insights
     }),
@@ -1367,7 +1367,7 @@ export const assessmentRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { analyzeTeamFit } = await import('@/lib/ai/recruiting/assessment-analysis')
+      const { analyzeTeamFit } = await import('@/lib/ai/hiring/assessment-analysis')
       const analysis = await analyzeTeamFit(input)
       return analysis
     }),

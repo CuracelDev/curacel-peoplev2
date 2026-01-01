@@ -1620,10 +1620,10 @@ model RecruiterCandidate {
 }
 
 // ============================================
-// RECRUITING - SETTINGS
+// HIRING - SETTINGS
 // ============================================
 
-model RecruitingSettings {
+model HiringSettings {
   id                 String   @id @default(uuid())
   organizationId     String   @unique
 

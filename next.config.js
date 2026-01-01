@@ -10,6 +10,15 @@ module.exports = (phase) => {
     experimental: {
       serverComponentsExternalPackages: ['pg-boss'],
     },
+    async redirects() {
+      return [
+        {
+          source: '/recruiting/:path*',
+          destination: '/hiring/:path*',
+          permanent: true,
+        },
+      ]
+    },
   }
 
   return nextConfig

@@ -5,7 +5,7 @@ import {
   generateCandidateAnalysis,
   generateTabSummary,
   getSentimentHistory,
-} from '@/lib/ai/recruiting/analysis'
+} from '@/lib/ai/hiring/analysis'
 import type { AnalysisType } from '@prisma/client'
 
 const AnalysisTypeEnum = z.enum([

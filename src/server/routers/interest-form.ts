@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, adminProcedure, protectedProcedure, publicProcedure } from '@/lib/trpc'
-import { generateCandidateAnalysis } from '@/lib/ai/recruiting/analysis'
+import { generateCandidateAnalysis } from '@/lib/ai/hiring/analysis'
 
 const questionTypeEnum = z.enum([
   'TEXT',
