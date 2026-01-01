@@ -44,7 +44,6 @@ interface FirefliesMeeting {
 }
 
 interface FirefliesUser {
-  id: string
   email: string
   name: string
   integrations: string[]
@@ -128,7 +127,6 @@ export class FirefliesConnector implements IntegrationConnector {
       const data = await this.query<{ user: FirefliesUser }>(`
         query {
           user {
-            id
             email
             name
             integrations
@@ -154,7 +152,6 @@ export class FirefliesConnector implements IntegrationConnector {
     const data = await this.query<{ user: FirefliesUser }>(`
       query {
         user {
-          id
           email
           name
           integrations

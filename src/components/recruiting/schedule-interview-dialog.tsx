@@ -331,7 +331,7 @@ export function ScheduleInterviewDialog({
                   <>
                     {candidatesData?.candidates?.map((candidate) => (
                       <SelectItem key={candidate.id} value={candidate.id}>
-                        {candidate.name} — {candidate.job?.title || 'No position'}
+                        {candidate.name} - {candidate.job?.title || 'No position'}
                       </SelectItem>
                     ))}
                     {(!candidatesData?.candidates || candidatesData.candidates.length === 0) && (

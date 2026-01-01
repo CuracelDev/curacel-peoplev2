@@ -442,9 +442,9 @@ export default function ScheduleInterviewPage() {
                   ) : (
                     <>
                       {candidatesData?.candidates?.map((candidate) => (
-                        <SelectItem key={candidate.id} value={candidate.id}>
-                          {candidate.name} — {candidate.job?.title || 'No position'}
-                        </SelectItem>
+                      <SelectItem key={candidate.id} value={candidate.id}>
+                        {candidate.name} - {candidate.job?.title || 'No position'}
+                      </SelectItem>
                       ))}
                       {(!candidatesData?.candidates || candidatesData.candidates.length === 0) && (
                         <div className="px-2 py-4 text-center text-sm text-muted-foreground">

@@ -172,7 +172,7 @@ export default function NewAssessmentPage() {
                     onClick={() => setFormData({ ...formData, type: key as AssessmentType })}
                     className={`p-4 rounded-lg border-2 text-center transition-all ${
                       isSelected
-                        ? 'border-indigo-600 bg-indigo-50'
+                        ? 'border-indigo-600 bg-indigo-50 text-foreground dark:border-indigo-400 dark:bg-indigo-500/20'
                         : 'border-border hover:border-indigo-300 hover:bg-muted/50'
                     }`}
                   >
@@ -208,7 +208,7 @@ export default function NewAssessmentPage() {
                     onClick={() => setFormData({ ...formData, inputMethod: key as InputMethod })}
                     className={`p-4 rounded-lg border-2 text-left transition-all ${
                       isSelected
-                        ? 'border-indigo-600 bg-indigo-50'
+                        ? 'border-indigo-600 bg-indigo-50 text-foreground dark:border-indigo-400 dark:bg-indigo-500/20'
                         : 'border-border hover:border-indigo-300 hover:bg-muted/50'
                     }`}
                   >
@@ -237,7 +237,7 @@ export default function NewAssessmentPage() {
                         onClick={() => toggleSubmissionType(key as SubmissionType)}
                         className={`p-3 rounded-lg border-2 text-left transition-all ${
                           isSelected
-                            ? 'border-indigo-600 bg-indigo-50'
+                            ? 'border-indigo-600 bg-indigo-50 text-foreground dark:border-indigo-400 dark:bg-indigo-500/20'
                             : 'border-border hover:border-indigo-300 hover:bg-muted/50'
                         }`}
                       >
