@@ -1877,7 +1877,7 @@ export const interviewRouter = router({
         interview.stageName ||
         interview.stage
 
-      const prompt = `You are BlueAI, an expert recruiting analyst at Curacel. Analyze this interview transcript and provide detailed feedback.
+      const prompt = `You are AuntyPelz, an expert recruiting analyst at Curacel. Analyze this interview transcript and provide detailed feedback.
 
 ## Company Values (PRESS)
 - Passionate Work: Deep love for what we do

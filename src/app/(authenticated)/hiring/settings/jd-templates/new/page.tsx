@@ -55,6 +55,7 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { trpc } from '@/lib/trpc-client'
 
 // Mock existing JDs for duplicate detection
 const existingJDs = [
@@ -75,18 +76,14 @@ const DEPARTMENTS = [
   { value: 'Finance', icon: Briefcase, color: 'text-emerald-500 bg-emerald-50' },
 ]
 
-const FLOW_TYPES = [
-  { value: 'STANDARD', label: 'Standard', description: 'Interest → HR Screen → Panel → Trial → Offer' },
-  { value: 'ENGINEERING', label: 'Engineering', description: 'Interest → HR Screen → Technical → Panel → Trial' },
-  { value: 'SALES', label: 'Sales', description: 'Interest → HR Screen → Panel → Trial with POC → Offer' },
-  { value: 'EXECUTIVE', label: 'Executive', description: 'Interest → HR Screen → Multiple Panels → Case Study → CEO' },
-]
-
 export default function NewJDPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const fromId = searchParams.get('from') // If creating new version from existing JD
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Fetch real hiring flows from database
+  const { data: hiringFlows, isLoading: flowsLoading } = trpc.hiringFlow.list.useQuery()
 
   const [activeTab, setActiveTab] = useState('manual')
   const [isSaving, setIsSaving] = useState(false)
@@ -354,16 +351,19 @@ export default function NewJDPage() {
                   <Select
                     value={formData.flowType}
                     onValueChange={(value) => setFormData({ ...formData, flowType: value })}
+                    disabled={flowsLoading}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Select hiring flow type" />
+                      <SelectValue placeholder={flowsLoading ? "Loading flows..." : "Select hiring flow type"} />
                     </SelectTrigger>
                     <SelectContent>
-                      {FLOW_TYPES.map((flow) => (
-                        <SelectItem key={flow.value} value={flow.value}>
+                      {hiringFlows?.map((flow) => (
+                        <SelectItem key={flow.id} value={flow.id}>
                           <div>
-                            <div className="font-medium">{flow.label}</div>
-                            <div className="text-xs text-muted-foreground">{flow.description}</div>
+                            <div className="font-medium">{flow.name}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {flow.stages.map(s => s.name).join(' → ')}
+                            </div>
                           </div>
                         </SelectItem>
                       ))}

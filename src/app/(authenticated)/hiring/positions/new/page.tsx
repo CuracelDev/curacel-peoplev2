@@ -840,13 +840,13 @@ export default function CreateJobPage() {
             </div>
           </div>
 
-          {/* BlueAI Actions */}
+          {/* AuntyPelz Actions */}
           <div className="bg-card border border-border rounded-xl">
             <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                 6
               </div>
-              <h2 className="font-semibold">BlueAI Actions</h2>
+              <h2 className="font-semibold">AuntyPelz Actions</h2>
             </div>
             <div className="p-5">
               <p className="text-sm text-muted-foreground mb-4">Auto-archive applicants that do not meet your requirements.</p>
@@ -1095,10 +1095,10 @@ export default function CreateJobPage() {
           <div className="mt-4 p-4 bg-indigo-50 border border-indigo-100 rounded-xl">
             <div className="flex items-center gap-2 text-indigo-600 mb-2">
               <Info className="h-4 w-4" />
-              <span className="font-medium text-sm">BlueAI-Ready</span>
+              <span className="font-medium text-sm">AuntyPelz-Ready</span>
             </div>
             <p className="text-sm text-foreground/80">
-              Once created, BlueAI will use this job profile to score candidates and generate personalized interview questions.
+              Once created, AuntyPelz will use this job profile to score candidates and generate personalized interview questions.
             </p>
           </div>
         </div>

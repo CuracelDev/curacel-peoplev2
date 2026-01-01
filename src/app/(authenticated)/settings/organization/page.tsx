@@ -327,7 +327,7 @@ export default function OrganizationProfilePage() {
           <Card>
             <CardHeader className="p-5 border-b">
               <h2 className="text-lg font-semibold">Company Values (PRESS)</h2>
-              <p className="text-sm text-muted-foreground">Define the core values that guide your hiring decisions. These are used by BlueAI to evaluate cultural fit.</p>
+              <p className="text-sm text-muted-foreground">Define the core values that guide your hiring decisions. These are used by AuntyPelz to evaluate cultural fit.</p>
             </CardHeader>
             <CardContent className="p-5 space-y-3">
               {pressValues.map((value, i) => (

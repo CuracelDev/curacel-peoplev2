@@ -476,7 +476,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Generate Questions</p>
-                    <p className="text-xs text-muted-foreground">BlueAI interview questions</p>
+                    <p className="text-xs text-muted-foreground">AuntyPelz interview questions</p>
                   </div>
                 </div>
               </Link>

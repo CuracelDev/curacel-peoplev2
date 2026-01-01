@@ -1,5 +1,5 @@
 /**
- * BlueAI Candidate Analysis Service
+ * AuntyPelz Candidate Analysis Service
  *
  * Generates versioned AI analysis for candidates at various hiring stages
  */
@@ -108,7 +108,7 @@ function buildAnalysisPrompt(
   analysisType: AnalysisType,
   additionalContext?: string
 ): string {
-  const basePrompt = `You are BlueAI, an expert recruiting analyst at Curacel. Analyze this candidate and provide a detailed assessment.
+  const basePrompt = `You are AuntyPelz, an expert recruiting analyst at Curacel. Analyze this candidate and provide a detailed assessment.
 
 ## Company Values (PRESS)
 - Passionate Work: Deep love for what we do

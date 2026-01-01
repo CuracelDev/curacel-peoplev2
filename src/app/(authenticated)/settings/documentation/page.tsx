@@ -56,10 +56,10 @@ const docSections: DocSection[] = [
       {
         title: 'Navigation basics',
         items: [
-          'Use the left sidebar to switch between Dashboard, Employees, Contracts, Onboarding, Offboarding, Integrations, BlueAI, Notifications, and Settings.',
+          'Use the left sidebar to switch between Dashboard, Employees, Contracts, Onboarding, Offboarding, Integrations, AuntyPelz, Notifications, and Settings.',
           'Use the menu button in the top bar to collapse or expand the sidebar.',
           'Use the bell icon in the top-right to open recent notifications (admin roles only).',
-          'Use the BlueAI button at the bottom of the sidebar for quick questions.',
+          'Use the AuntyPelz button at the bottom of the sidebar for quick questions.',
           'Use the profile menu at the bottom of the sidebar for My Profile and sign out.',
           'Most list pages include filters, search, and pagination to narrow results.',
         ],
@@ -67,9 +67,9 @@ const docSections: DocSection[] = [
       {
         title: 'Role-based access',
         items: [
-          'SUPER_ADMIN: full access to HR, IT, BlueAI, settings, and system data.',
-          'HR_ADMIN: employees, contracts, onboarding, BlueAI, notifications, and most settings.',
-          'IT_ADMIN: applications, provisioning, BlueAI, onboarding and offboarding automation, and settings.',
+          'SUPER_ADMIN: full access to HR, IT, AuntyPelz, settings, and system data.',
+          'HR_ADMIN: employees, contracts, onboarding, AuntyPelz, notifications, and most settings.',
+          'IT_ADMIN: applications, provisioning, AuntyPelz, onboarding and offboarding automation, and settings.',
           'MANAGER: dashboard plus onboarding and offboarding visibility.',
           'EMPLOYEE: basic access, typically My Profile only.',
         ],
@@ -257,14 +257,14 @@ const docSections: DocSection[] = [
   },
   {
     id: 'ai-agent',
-    title: 'BlueAI',
-    description: 'Chat with BlueAI that understands your HR data and can help with tasks.',
+    title: 'AuntyPelz',
+    description: 'Chat with AuntyPelz that understands your HR data and can help with tasks.',
     blocks: [
       {
-        title: 'Access BlueAI',
+        title: 'Access AuntyPelz',
         ordered: true,
         items: [
-          'Click BlueAI in the left sidebar (available to SUPER_ADMIN, HR_ADMIN, and IT_ADMIN roles).',
+          'Click AuntyPelz in the left sidebar (available to SUPER_ADMIN, HR_ADMIN, and IT_ADMIN roles).',
           'Start a new conversation or select a previous chat from the sidebar.',
           'Type your question or request in the text area at the bottom.',
           'Press Enter or click the send button to submit.',
@@ -282,7 +282,7 @@ const docSections: DocSection[] = [
         ],
       },
       {
-        title: 'What BlueAI can do',
+        title: 'What AuntyPelz can do',
         items: [
           'Answer questions about employees, contracts, and onboarding status.',
           'Summarize HR metrics and provide insights.',
@@ -669,7 +669,7 @@ const docSections: DocSection[] = [
           'Candidate contact details, stage, and position.',
           'Weighted score breakdown and overall score.',
           'Stage progress, interviews, and assessments.',
-          'BlueAI summary, strengths, and areas to explore.',
+          'AuntyPelz summary, strengths, and areas to explore.',
           'Must-validate items and resume summary when available.',
         ],
       },
@@ -770,11 +770,11 @@ const docSections: DocSection[] = [
         ],
       },
       {
-        title: 'BlueAI Settings',
+        title: 'AuntyPelz Settings',
         items: [
-          'Configure BlueAI behavior and capabilities.',
+          'Configure AuntyPelz behavior and capabilities.',
           'View chat history and usage statistics.',
-          'Manage BlueAI access by role.',
+          'Manage AuntyPelz access by role.',
         ],
       },
       {

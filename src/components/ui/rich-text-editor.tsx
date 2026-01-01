@@ -15,7 +15,7 @@ import {
   Undo,
   Redo,
   Link as LinkIcon,
-  LinkOff,
+  Link2Off,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { Button } from './button'
@@ -226,7 +226,7 @@ export function RichTextEditor({
           disabled={!editor.isActive('link') || disabled}
           className="h-8 w-8 p-0"
         >
-          <LinkOff className="h-4 w-4" />
+          <Link2Off className="h-4 w-4" />
         </Button>
 
         <div className="w-px h-8 bg-border mx-1" />

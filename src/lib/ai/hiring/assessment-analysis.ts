@@ -384,7 +384,7 @@ export async function analyzeAssessmentResults(assessmentId: string): Promise<As
   // Get benchmark data if available
   const benchmarkData = assessment.template.benchmarkData as Record<string, number> | null
 
-  const prompt = `You are BlueAI, an expert recruiting analyst. Analyze this assessment result and provide recommendations.
+  const prompt = `You are AuntyPelz, an expert recruiting analyst. Analyze this assessment result and provide recommendations.
 
 ## Assessment Information
 Type: ${assessment.template.name} (${assessment.template.type})
