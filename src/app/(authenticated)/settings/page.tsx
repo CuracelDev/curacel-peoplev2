@@ -177,6 +177,12 @@ const settingsSections = [
     title: 'System',
     items: [
       {
+        title: 'Public Pages',
+        description: 'Manage public portals and links.',
+        icon: Globe,
+        href: '/settings/public-pages',
+      },
+      {
         title: 'Integrations',
         description: 'Add and manage integrations.',
         icon: AppWindow,
