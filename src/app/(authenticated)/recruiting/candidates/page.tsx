@@ -34,6 +34,7 @@ import {
   Download,
   Plus,
   MoreHorizontal,
+  MoreVertical,
   ChevronLeft,
   ChevronRight,
   Loader2,
@@ -45,7 +46,14 @@ import {
   XCircle,
   AlertCircle,
   Sparkles,
+  GraduationCap,
 } from 'lucide-react'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn, getInitials } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
 import { format, formatDistanceToNow, subDays, subMonths, startOfDay, endOfDay } from 'date-fns'
@@ -63,6 +71,7 @@ const stageStyles: Record<string, string> = {
   'CEO_CHAT': 'bg-purple-100 text-purple-700',
   'OFFER': 'bg-pink-100 text-pink-700',
   'HIRED': 'bg-emerald-100 text-emerald-700',
+  'ALUMNI': 'bg-slate-100 text-slate-700',
 }
 
 function getScoreColor(score: number | null) {
@@ -144,6 +153,7 @@ export default function CandidatesPage() {
   const { data: candidatesData, isLoading } = trpc.job.getAllCandidates.useQuery({
     stage: stageFilter,
     search: searchQuery || undefined,
+    includeAlumni: searchQuery ? true : undefined, // Include alumni when searching
     sortBy,
     sortOrder,
     limit: 50,
@@ -365,6 +375,21 @@ export default function CandidatesPage() {
     <div className="space-y-6">
       <PageActions>
         <div className="flex flex-wrap items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href="/recruiting/candidates/alumni" className="flex items-center">
+                  <GraduationCap className="mr-2 h-4 w-4" />
+                  Alumni (Talent Pool)
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <Select value={teamFilter} onValueChange={setTeamFilter}>
             <SelectTrigger className="w-[160px]">
               <Users className="h-4 w-4 mr-2" />

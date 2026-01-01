@@ -678,6 +678,7 @@ export const jobRouter = router({
         source: CandidateSourceEnum.optional(),
         search: z.string().optional(),
         jobId: z.string().optional(),
+        includeAlumni: z.boolean().optional(),
         sortBy: z.enum(['score', 'appliedAt', 'name', 'updatedAt']).default('appliedAt'),
         sortOrder: z.enum(['asc', 'desc']).default('desc'),
         limit: z.number().min(1).max(100).default(20),
@@ -693,8 +694,11 @@ export const jobRouter = router({
       if (filters.stage) {
         where.stage = filters.stage
       } else {
-        // Exclude rejected/withdrawn by default
-        where.stage = { notIn: ['REJECTED', 'WITHDRAWN'] }
+        // Exclude rejected/withdrawn/alumni by default, unless includeAlumni is true (for search)
+        const excludedStages = filters.includeAlumni
+          ? ['REJECTED', 'WITHDRAWN']
+          : ['REJECTED', 'WITHDRAWN', 'ALUMNI']
+        where.stage = { notIn: excludedStages }
       }
 
       if (filters.source) {
@@ -754,6 +758,7 @@ export const jobRouter = router({
         HIRED: 'Hired',
         REJECTED: 'Rejected',
         WITHDRAWN: 'Withdrawn',
+        ALUMNI: 'Alumni',
       }
 
       const byStageCounts = stageCounts.reduce((acc, item) => {
@@ -887,6 +892,7 @@ export const jobRouter = router({
         HIRED: 'Hired',
         REJECTED: 'Rejected',
         WITHDRAWN: 'Withdrawn',
+        ALUMNI: 'Alumni',
       }
 
       // Build evaluation summary

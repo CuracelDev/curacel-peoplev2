@@ -119,7 +119,6 @@ export const employeeStatusLabels: Record<string, string> = {
   ACTIVE: 'Active',
   OFFBOARDING: 'Offboarding',
   EXITED: 'Exited',
-  ARCHIVED: 'Archived',
 }
 
 export const employeeStatusColors: Record<string, string> = {
@@ -130,7 +129,6 @@ export const employeeStatusColors: Record<string, string> = {
   ACTIVE: 'bg-green-100 text-green-800',
   OFFBOARDING: 'bg-orange-100 text-orange-800',
   EXITED: 'bg-red-100 text-red-800',
-  ARCHIVED: 'bg-slate-100 text-slate-800',
 }
 
 export const offerStatusLabels: Record<string, string> = {
