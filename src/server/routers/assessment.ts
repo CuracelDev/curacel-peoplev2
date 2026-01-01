@@ -1374,12 +1374,7 @@ export const assessmentRouter = router({
               durationMinutes: true,
               passingScore: true,
               externalUrl: true,
-              organization: {
-                select: {
-                  name: true,
-                  logo: true,
-                },
-              },
+              organizationId: true,
             },
           },
         },
@@ -1392,10 +1387,27 @@ export const assessmentRouter = router({
         })
       }
 
+      // Fetch organization data separately
+      const organization = await ctx.prisma.organization.findUnique({
+        where: { id: assessment.template.organizationId },
+        select: { name: true, logo: true },
+      })
+
+      // Build the response with organization data in template
+      const templateWithOrg = {
+        ...assessment.template,
+        organization,
+      }
+
+      const assessmentWithOrg = {
+        ...assessment,
+        template: templateWithOrg,
+      }
+
       // Check if expired
       if (assessment.expiresAt && new Date(assessment.expiresAt) < new Date()) {
         return {
-          ...assessment,
+          ...assessmentWithOrg,
           isExpired: true,
           isCompleted: false,
         }
@@ -1404,14 +1416,14 @@ export const assessmentRouter = router({
       // Check if already completed
       if (assessment.status === 'COMPLETED') {
         return {
-          ...assessment,
+          ...assessmentWithOrg,
           isExpired: false,
           isCompleted: true,
         }
       }
 
       return {
-        ...assessment,
+        ...assessmentWithOrg,
         isExpired: false,
         isCompleted: false,
       }
