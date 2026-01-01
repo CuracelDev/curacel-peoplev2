@@ -111,11 +111,6 @@ export default function PublicAssessmentPage() {
             <p className="text-muted-foreground">
               This assessment link is invalid or has expired. Please contact your recruiter for a new link.
             </p>
-            {error && (
-              <p className="text-xs text-red-400 mt-4 font-mono">
-                Debug: {error.message}
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>
