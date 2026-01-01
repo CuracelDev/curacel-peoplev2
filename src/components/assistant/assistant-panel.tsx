@@ -221,7 +221,7 @@ export function AssistantPanel({ open, onOpenChange }: AssistantPanelProps) {
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary">
                 <Sparkles className="h-4 w-4 text-primary-foreground" />
               </div>
-              <SheetTitle className="text-base font-semibold">BlueAI</SheetTitle>
+              <SheetTitle className="text-base font-semibold">AuntyPelz</SheetTitle>
             </div>
             {messages.length > 0 && (
               <Button

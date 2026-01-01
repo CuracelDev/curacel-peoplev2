@@ -414,7 +414,7 @@ export default function AIAgentPage() {
               </div>
             </SheetContent>
           </Sheet>
-          <h1 className="text-xl md:text-2xl font-semibold text-foreground">BlueAI</h1>
+          <h1 className="text-xl md:text-2xl font-semibold text-foreground">AuntyPelz</h1>
         </div>
       </div>
       <div className="flex min-h-0 flex-1">
@@ -563,7 +563,7 @@ export default function AIAgentPage() {
                 value={input}
                 onChange={(event) => setInput(event.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={isRecording ? 'Recording...' : isTranscribing ? 'Transcribing...' : 'Ask BlueAI...'}
+                placeholder={isRecording ? 'Recording...' : isTranscribing ? 'Transcribing...' : 'Ask AuntyPelz...'}
                 disabled={isBusy || isRecording || isTranscribing}
                 rows={1}
                 className="min-h-[52px] flex-1 resize-none"

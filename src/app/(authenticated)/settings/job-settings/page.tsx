@@ -5,11 +5,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
   Briefcase,
-  GitBranch,
   ChevronRight,
   ArrowLeft,
-  ClipboardList,
   Target,
+  FileQuestion,
+  UserCircle2,
+  Layers,
+  Globe,
 } from 'lucide-react'
 
 const jobSettingsOptions = [
@@ -21,17 +23,10 @@ const jobSettingsOptions = [
     iconBg: 'bg-indigo-100',
   },
   {
-    title: 'Interview Settings',
-    description: 'Edit hiring flows and interview stages used across recruiting.',
-    icon: GitBranch,
-    href: '/hiring/settings',
-    iconBg: 'bg-indigo-100',
-  },
-  {
-    title: 'Hiring Rubrics',
-    description: 'Create evaluation rubrics with weighted criteria for consistent candidate assessment.',
-    icon: ClipboardList,
-    href: '/hiring/settings/rubrics',
+    title: 'Interest Forms',
+    description: 'Create candidate application forms.',
+    icon: FileQuestion,
+    href: '/hiring/settings/interest-forms',
     iconBg: 'bg-indigo-100',
   },
   {
@@ -39,6 +34,27 @@ const jobSettingsOptions = [
     description: 'Define competencies that can be selected when creating job positions.',
     icon: Target,
     href: '/hiring/settings/competencies',
+    iconBg: 'bg-indigo-100',
+  },
+  {
+    title: 'External Recruiters',
+    description: 'Manage recruiter access.',
+    icon: UserCircle2,
+    href: '/hiring/settings/all?section=recruiters',
+    iconBg: 'bg-indigo-100',
+  },
+  {
+    title: 'Source Channels',
+    description: 'Inbound/outbound candidate sources.',
+    icon: Layers,
+    href: '/hiring/settings/all?section=sources',
+    iconBg: 'bg-indigo-100',
+  },
+  {
+    title: 'Careers Page',
+    description: 'Public careers page settings.',
+    icon: Globe,
+    href: '/hiring/settings/all?section=careers',
     iconBg: 'bg-indigo-100',
   },
 ]
@@ -55,7 +71,7 @@ export default function JobSettingsPage() {
         <div>
           <h1 className="text-2xl font-bold text-foreground">Job Settings</h1>
           <p className="text-sm text-foreground/80">
-            Manage job descriptions, interview flows, and hiring configurations
+            Manage job postings, application forms, external recruiters, and public careers page
           </p>
         </div>
       </div>

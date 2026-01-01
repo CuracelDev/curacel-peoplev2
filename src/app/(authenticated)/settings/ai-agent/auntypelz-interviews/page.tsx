@@ -41,7 +41,7 @@ const REFRESH_OPTIONS = [
   { value: 'daily', label: 'Daily', description: 'Once per day' },
 ]
 
-export default function BlueAIInterviewsPage() {
+export default function AuntyPelzInterviewsPage() {
   // Auto-analysis triggers
   const [analyzeOnApplication, setAnalyzeOnApplication] = useState(true)
   const [analyzeOnStageComplete, setAnalyzeOnStageComplete] = useState(true)
@@ -74,8 +74,8 @@ export default function BlueAIInterviewsPage() {
   return (
     <div className="space-y-6">
       <SettingsPageHeader
-        title="BlueAI Interviews"
-        description="Configure BlueAI analysis for recruiting interviews and candidate assessments"
+        title="AuntyPelz Interviews"
+        description="Configure AuntyPelz analysis for recruiting interviews and candidate assessments"
       />
 
       {/* Auto-Analysis Triggers */}
@@ -86,7 +86,7 @@ export default function BlueAIInterviewsPage() {
             Auto-Analysis Triggers
           </CardTitle>
           <CardDescription>
-            Choose when BlueAI should automatically generate candidate analysis
+            Choose when AuntyPelz should automatically generate candidate analysis
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -253,7 +253,7 @@ export default function BlueAIInterviewsPage() {
             Tab Summaries
           </CardTitle>
           <CardDescription>
-            BlueAI-generated summaries shown at the bottom of candidate profile tabs
+            AuntyPelz-generated summaries shown at the bottom of candidate profile tabs
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -261,7 +261,7 @@ export default function BlueAIInterviewsPage() {
             <div>
               <Label>Enable Tab Summaries</Label>
               <p className="text-xs text-muted-foreground mt-1">
-                Show BlueAI insights on each candidate profile tab
+                Show AuntyPelz insights on each candidate profile tab
               </p>
             </div>
             <Switch checked={enableTabSummaries} onCheckedChange={setEnableTabSummaries} />
@@ -301,7 +301,7 @@ export default function BlueAIInterviewsPage() {
             Custom Analysis Prompt
           </CardTitle>
           <CardDescription>
-            Add custom instructions for BlueAI when generating candidate analyses
+            Add custom instructions for AuntyPelz when generating candidate analyses
           </CardDescription>
         </CardHeader>
         <CardContent>

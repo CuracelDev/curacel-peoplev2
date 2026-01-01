@@ -180,7 +180,7 @@ export default function AIAgentSettingsPage() {
   return (
     <div className="space-y-6">
       <SettingsPageHeader
-        title="BlueAI"
+        title="AuntyPelz"
         actions={
           <Button
             onClick={() => testConnection.mutate()}
@@ -204,7 +204,7 @@ export default function AIAgentSettingsPage() {
           <CardContent className="flex items-center gap-3 py-4">
             <XCircle className="h-5 w-5 text-red-600" />
             <span className="text-red-800">
-              {settingsError?.message || updateSettings.error?.message || 'Failed to load BlueAI settings.'}
+              {settingsError?.message || updateSettings.error?.message || 'Failed to load AuntyPelz settings.'}
             </span>
           </CardContent>
         </Card>
@@ -229,9 +229,9 @@ export default function AIAgentSettingsPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Enable BlueAI</CardTitle>
+              <CardTitle>Enable AuntyPelz</CardTitle>
               <CardDescription>
-                Allow BlueAI to help with contracts, onboarding, and employee management.
+                Allow AuntyPelz to help with contracts, onboarding, and employee management.
               </CardDescription>
             </div>
             <Switch
@@ -245,9 +245,9 @@ export default function AIAgentSettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>BlueAI Provider</CardTitle>
+          <CardTitle>AuntyPelz Provider</CardTitle>
           <CardDescription>
-            Choose which provider BlueAI uses for assistance.
+            Choose which provider AuntyPelz uses for assistance.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
@@ -510,7 +510,7 @@ export default function AIAgentSettingsPage() {
         <CardHeader>
           <CardTitle>Capabilities</CardTitle>
           <CardDescription>
-            BlueAI can help with the following tasks:
+            AuntyPelz can help with the following tasks:
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -255,7 +255,7 @@ export function Sidebar({
           )
         })}
 
-        {/* BlueAI - Special styling */}
+        {/* AuntyPelz - Special styling */}
         <div className="mt-6">
           <div className="mx-2 mb-2 border-t border-border" />
           <Link
@@ -267,10 +267,10 @@ export function Sidebar({
                 : 'bg-primary/10 text-primary hover:bg-primary hover:text-white',
               collapsed && !mobileOpen && 'justify-center px-2'
             )}
-            title="Open BlueAI"
+            title="Open AuntyPelz"
           >
             <Bot className="h-5 w-5 flex-shrink-0" />
-            {(!collapsed || mobileOpen) && <span>BlueAI</span>}
+            {(!collapsed || mobileOpen) && <span>AuntyPelz</span>}
           </Link>
         </div>
       </nav>
