@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
-import { BarChart3, ChevronRight, ClipboardCheck, MessageSquare, Video } from 'lucide-react'
+import { BarChart3, ChevronRight, ClipboardCheck, MessageSquare, Video, UserCheck } from 'lucide-react'
 
 const interviewSettingsOptions = [
   {
@@ -29,6 +29,12 @@ const interviewSettingsOptions = [
     description: 'Manage reusable interview questions and categories.',
     icon: MessageSquare,
     href: '/hiring/questions',
+  },
+  {
+    title: 'Advisors',
+    description: 'Manage external interview advisors.',
+    icon: UserCheck,
+    href: '/settings/advisors',
   },
 ]
 

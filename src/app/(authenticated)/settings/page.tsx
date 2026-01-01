@@ -24,7 +24,6 @@ import {
   UserCircle2,
   Layers,
   Globe,
-  UserCheck,
   SlidersHorizontal,
   Settings,
   Briefcase,
@@ -159,12 +158,6 @@ const settingsSections = [
         description: 'Manage recruiter access.',
         icon: UserCircle2,
         href: '/hiring/settings/all?section=recruiters',
-      },
-      {
-        title: 'Advisors',
-        description: 'Manage external interview advisors.',
-        icon: UserCheck,
-        href: '/settings/advisors',
       },
       {
         title: 'Source Channels',

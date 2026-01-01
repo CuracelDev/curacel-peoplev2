@@ -91,9 +91,9 @@ export function AIQuestionGenerator({
 }: AIQuestionGeneratorProps) {
   // State for context sources
   const [contextSources, setContextSources] = useState({
-    includeBlueAIRecommendations: true,
-    includeBlueAIMustValidate: true,
-    includeBlueAIConcerns: true,
+    includeAuntyPelzRecommendations: true,
+    includeAuntyPelzMustValidate: true,
+    includeAuntyPelzConcerns: true,
     includePreviousInterviews: [] as string[],
     includeJobRequirements: true,
     includeRedFlags: true,
@@ -133,9 +133,9 @@ export function AIQuestionGenerator({
   const contextCounts = useMemo(() => {
     if (!context) return null
     return {
-      recommendations: context.blueAI?.recommendations?.length || 0,
-      mustValidate: (context.blueAI?.mustValidatePoints?.length || 0) + (context.candidate?.mustValidate?.length || 0),
-      concerns: context.blueAI?.concerns?.length || 0,
+      recommendations: context.auntyPelz?.recommendations?.length || 0,
+      mustValidate: (context.auntyPelz?.mustValidatePoints?.length || 0) + (context.candidate?.mustValidate?.length || 0),
+      concerns: context.auntyPelz?.concerns?.length || 0,
       redFlags: context.candidate?.redFlags?.length || 0,
       previousInterviews: context.previousInterviews?.length || 0,
       hasJobRequirements: !!context.job?.description,
@@ -266,7 +266,7 @@ export function AIQuestionGenerator({
               <Sparkles className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <CardTitle className="text-lg">Generate with BlueAI</CardTitle>
+              <CardTitle className="text-lg">Generate with AuntyPelz</CardTitle>
               <CardDescription>
                 AI-powered questions based on candidate context
               </CardDescription>
@@ -309,25 +309,25 @@ export function AIQuestionGenerator({
               </div>
             ) : context ? (
               <div className="space-y-3">
-                {/* BlueAI Recommendations */}
+                {/* AuntyPelz Recommendations */}
                 {contextCounts && contextCounts.recommendations > 0 && (
                   <div className="flex items-start gap-3 p-2 rounded-lg hover:bg-muted/50">
                     <Checkbox
-                      id="blueai-recommendations"
-                      checked={contextSources.includeBlueAIRecommendations}
+                      id="auntypelz-recommendations"
+                      checked={contextSources.includeAuntyPelzRecommendations}
                       onCheckedChange={(checked) =>
-                        setContextSources({ ...contextSources, includeBlueAIRecommendations: !!checked })
+                        setContextSources({ ...contextSources, includeAuntyPelzRecommendations: !!checked })
                       }
                     />
                     <div className="flex-1">
-                      <Label htmlFor="blueai-recommendations" className="flex items-center gap-2 cursor-pointer">
+                      <Label htmlFor="auntypelz-recommendations" className="flex items-center gap-2 cursor-pointer">
                         <Brain className="h-4 w-4 text-blue-500" />
-                        BlueAI Recommendations
+                        AuntyPelz Recommendations
                         <Badge variant="secondary" className="text-xs">{contextCounts.recommendations}</Badge>
                       </Label>
-                      {context.blueAI?.recommendations && context.blueAI.recommendations.length > 0 && (
+                      {context.auntyPelz?.recommendations && context.auntyPelz.recommendations.length > 0 && (
                         <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                          {context.blueAI.recommendations[0]}...
+                          {context.auntyPelz.recommendations[0]}...
                         </p>
                       )}
                     </div>
@@ -339,9 +339,9 @@ export function AIQuestionGenerator({
                   <div className="flex items-start gap-3 p-2 rounded-lg bg-amber-50/50 hover:bg-amber-50">
                     <Checkbox
                       id="must-validate"
-                      checked={contextSources.includeBlueAIMustValidate}
+                      checked={contextSources.includeAuntyPelzMustValidate}
                       onCheckedChange={(checked) =>
-                        setContextSources({ ...contextSources, includeBlueAIMustValidate: !!checked })
+                        setContextSources({ ...contextSources, includeAuntyPelzMustValidate: !!checked })
                       }
                     />
                     <div className="flex-1">
@@ -364,9 +364,9 @@ export function AIQuestionGenerator({
                   <div className="flex items-start gap-3 p-2 rounded-lg bg-amber-50/50 hover:bg-amber-50">
                     <Checkbox
                       id="concerns"
-                      checked={contextSources.includeBlueAIConcerns}
+                      checked={contextSources.includeAuntyPelzConcerns}
                       onCheckedChange={(checked) =>
-                        setContextSources({ ...contextSources, includeBlueAIConcerns: !!checked })
+                        setContextSources({ ...contextSources, includeAuntyPelzConcerns: !!checked })
                       }
                     />
                     <div className="flex-1">
@@ -456,12 +456,12 @@ export function AIQuestionGenerator({
                   </div>
                 )}
 
-                {/* No BlueAI Analysis Warning */}
-                {!context.blueAI && (
+                {/* No AuntyPelz Analysis Warning */}
+                {!context.auntyPelz && (
                   <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/50 text-muted-foreground">
                     <Info className="h-4 w-4" />
                     <span className="text-sm">
-                      No BlueAI analysis available. Generate one from the candidate profile for better suggestions.
+                      No AuntyPelz analysis available. Generate one from the candidate profile for better suggestions.
                     </span>
                   </div>
                 )}
