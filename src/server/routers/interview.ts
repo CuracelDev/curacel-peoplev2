@@ -104,11 +104,50 @@ export const interviewRouter = router({
         ],
       })
 
-      // Add display names to interviews
-      return interviews.map((interview) => ({
-        ...interview,
-        stageDisplayName: stageDisplayNames[interview.stage] || interview.stageName || interview.stage,
-      }))
+      // Extract all unique employee IDs from interviewers
+      const employeeIds = new Set<string>()
+      interviews.forEach((interview) => {
+        if (interview.interviewers && Array.isArray(interview.interviewers)) {
+          ;(interview.interviewers as Array<{ employeeId?: string }>).forEach((interviewer) => {
+            if (interviewer.employeeId) {
+              employeeIds.add(interviewer.employeeId)
+            }
+          })
+        }
+      })
+
+      // Fetch employee data for all interviewers
+      const employees = await ctx.prisma.employee.findMany({
+        where: {
+          id: { in: Array.from(employeeIds) },
+        },
+        select: {
+          id: true,
+          profileImageUrl: true,
+        },
+      })
+
+      // Create a map of employeeId to profileImageUrl
+      const employeeImageMap = new Map(
+        employees.map((emp) => [emp.id, emp.profileImageUrl])
+      )
+
+      // Add display names and employee images to interviews
+      return interviews.map((interview) => {
+        // Enrich interviewers with profile images
+        const enrichedInterviewers = interview.interviewers && Array.isArray(interview.interviewers)
+          ? (interview.interviewers as Array<{ employeeId?: string; name: string; email?: string }>).map((interviewer) => ({
+              ...interviewer,
+              profileImageUrl: interviewer.employeeId ? employeeImageMap.get(interviewer.employeeId) : null,
+            }))
+          : interview.interviewers
+
+        return {
+          ...interview,
+          interviewers: enrichedInterviewers,
+          stageDisplayName: stageDisplayNames[interview.stage] || interview.stageName || interview.stage,
+        }
+      })
     }),
 
   // Get interview counts by stage

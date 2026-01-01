@@ -50,7 +50,9 @@ import {
   XCircle,
   AlertCircle,
   Plus,
+  Play,
 } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { format, isPast, isToday, isTomorrow } from 'date-fns'
 import Link from 'next/link'
@@ -320,14 +322,19 @@ export default function InterviewsPage() {
                       <TableCell>
                         {interview.interviewers && Array.isArray(interview.interviewers) ? (
                           <div className="flex -space-x-2">
-                            {(interview.interviewers as Array<{ name: string; email?: string }>).slice(0, 3).map((interviewer, i) => (
-                              <div
+                            {(interview.interviewers as Array<{ name: string; email?: string; profileImageUrl?: string | null }>).slice(0, 3).map((interviewer, i) => (
+                              <Avatar
                                 key={i}
-                                className="h-7 w-7 rounded-full bg-muted border-2 border-white flex items-center justify-center text-xs font-medium"
+                                className="h-7 w-7 border-2 border-white"
                                 title={interviewer.name}
                               >
-                                {interviewer.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
-                              </div>
+                                {interviewer.profileImageUrl && (
+                                  <AvatarImage src={interviewer.profileImageUrl} alt={interviewer.name} />
+                                )}
+                                <AvatarFallback className="bg-muted text-xs font-medium">
+                                  {interviewer.name?.split(' ').map(n => n[0]).join('').slice(0, 2)}
+                                </AvatarFallback>
+                              </Avatar>
                             ))}
                             {(interview.interviewers as unknown[]).length > 3 && (
                               <div className="h-7 w-7 rounded-full bg-muted border-2 border-white flex items-center justify-center text-xs text-muted-foreground">
@@ -400,15 +407,28 @@ export default function InterviewsPage() {
                               </>
                             )}
                             {interview.status === 'COMPLETED' && (
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  router.push(`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}`)
-                                }}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                View Feedback
-                              </DropdownMenuItem>
+                              <>
+                                {interview.recordingUrl && (
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      window.open(interview.recordingUrl as string, '_blank')
+                                    }}
+                                  >
+                                    <Play className="h-4 w-4 mr-2" />
+                                    View Meeting
+                                  </DropdownMenuItem>
+                                )}
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    router.push(`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}`)
+                                  }}
+                                >
+                                  <CheckCircle className="h-4 w-4 mr-2" />
+                                  View Feedback
+                                </DropdownMenuItem>
+                              </>
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
