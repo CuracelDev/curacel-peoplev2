@@ -159,7 +159,7 @@ export default function ScheduleInterviewPage() {
     dateFrom: dateRangeStart.toISOString(),
     dateTo: dateRangeEnd.toISOString(),
     workingHoursStart: 9,
-    workingHoursEnd: 17,
+    workingHoursEnd: 19, // 7pm - extended hours for busy periods
   }, {
     enabled: calendarConfig?.configured && interviewerEmails.length > 0 && schedulingMode === 'suggested',
   })
