@@ -412,8 +412,9 @@ export const questionRouter = router({
             select: {
               id: true,
               title: true,
-              description: true,
-              requirements: true,
+              jobDescription: {
+                select: { content: true },
+              },
             },
           },
           interviews: {
@@ -488,7 +489,11 @@ export const questionRouter = router({
           redFlags: normalizeRedFlags(candidate.redFlags),
           suggestedQuestions: normalizeArray(candidate.suggestedQuestions),
         },
-        job: candidate.job,
+        job: candidate.job ? {
+          id: candidate.job.id,
+          title: candidate.job.title,
+          description: candidate.job.jobDescription?.content || null,
+        } : null,
         previousInterviews: candidate.interviews.map(interview => ({
           id: interview.id,
           stageName: interview.stageName || interview.interviewType?.name || 'Interview',
@@ -675,7 +680,32 @@ export const questionRouter = router({
         orderBy: { updatedAt: 'desc' },
       })
 
-      if (!aiSettings?.apiKey) {
+      // Get the API key based on provider
+      const getApiKey = () => {
+        if (!aiSettings) return null
+        switch (aiSettings.provider) {
+          case 'ANTHROPIC': return aiSettings.anthropicKeyEncrypted
+          case 'OPENAI': return aiSettings.openaiKeyEncrypted
+          case 'GEMINI': return aiSettings.geminiKeyEncrypted
+          default: return null
+        }
+      }
+
+      // Get the model based on provider
+      const getModel = () => {
+        if (!aiSettings) return null
+        switch (aiSettings.provider) {
+          case 'ANTHROPIC': return aiSettings.anthropicModel
+          case 'OPENAI': return aiSettings.openaiModel
+          case 'GEMINI': return aiSettings.geminiModel
+          default: return null
+        }
+      }
+
+      const encryptedApiKey = getApiKey()
+      const aiModel = getModel()
+
+      if (!encryptedApiKey) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
           message: 'AI settings not configured. Please configure in Settings → AI Configuration.',
@@ -686,7 +716,11 @@ export const questionRouter = router({
       const candidate = await prisma.jobCandidate.findUnique({
         where: { id: candidateId },
         include: {
-          job: true,
+          job: {
+            include: {
+              jobDescription: true,
+            },
+          },
           interviews: {
             include: {
               evaluations: {
@@ -769,18 +803,114 @@ export const questionRouter = router({
 
       // Get job info if not from candidate
       let jobTitle = candidate.job?.title || 'Unknown Position'
-      let jobDescription = candidate.job?.description || ''
+      let jobDescription = candidate.job?.jobDescription?.content || ''
 
       if (jobId && !candidate.job) {
         const job = await prisma.job.findUnique({
           where: { id: jobId },
-          select: { title: true, description: true },
+          select: {
+            title: true,
+            jobDescription: { select: { content: true } },
+          },
         })
         if (job) {
           jobTitle = job.title
-          jobDescription = job.description || ''
+          jobDescription = job.jobDescription?.content || ''
         }
       }
+
+      // Build context sections based on selected sources
+      const contextSections: string[] = []
+
+      // BlueAI Recommendations
+      if (contextSources?.includeBlueAIRecommendations && blueAIAnalysis?.recommendations) {
+        const recommendations = normalizeArray(blueAIAnalysis.recommendations)
+        if (recommendations.length > 0) {
+          contextSections.push(`## BlueAI Recommendations\n${recommendations.map(r => `- ${r}`).join('\n')}`)
+        }
+      }
+
+      // BlueAI Must-Validate Points (CRITICAL)
+      const mustValidatePoints: string[] = []
+      if (contextSources?.includeBlueAIMustValidate) {
+        if (blueAIAnalysis?.mustValidatePoints) {
+          mustValidatePoints.push(...normalizeArray(blueAIAnalysis.mustValidatePoints))
+        }
+        if (candidate.mustValidate) {
+          mustValidatePoints.push(...normalizeArray(candidate.mustValidate))
+        }
+      }
+      if (mustValidatePoints.length > 0) {
+        contextSections.push(`## ⚠️ CRITICAL: Points to Validate\nThese are high-priority areas that MUST be explored:\n${mustValidatePoints.map(p => `- ${p}`).join('\n')}`)
+      }
+
+      // BlueAI Concerns (CRITICAL)
+      if (contextSources?.includeBlueAIConcerns && blueAIAnalysis?.concerns) {
+        const concerns = normalizeConcerns(blueAIAnalysis.concerns)
+        if (concerns.length > 0) {
+          contextSections.push(`## ⚠️ CRITICAL: Concerns from Analysis\n${concerns.map(c => `- ${c.title}: ${c.description}${c.severity ? ` (${c.severity})` : ''}`).join('\n')}`)
+        }
+      }
+
+      // Red Flags (CRITICAL)
+      if (contextSources?.includeRedFlags && candidate.redFlags) {
+        const redFlags = normalizeArray(candidate.redFlags).length > 0
+          ? normalizeArray(candidate.redFlags)
+          : (Array.isArray(candidate.redFlags) ? candidate.redFlags as Array<{ title: string; description: string }> : [])
+
+        if (Array.isArray(redFlags) && redFlags.length > 0) {
+          const flagText = typeof redFlags[0] === 'string'
+            ? (redFlags as string[]).map(f => `- 🚩 ${f}`).join('\n')
+            : (redFlags as Array<{ title: string; description: string }>).map(f => `- 🚩 ${f.title}: ${f.description}`).join('\n')
+          contextSections.push(`## 🚩 CRITICAL: Red Flags Identified\nQuestions MUST address these concerns:\n${flagText}`)
+        }
+      }
+
+      // Previous Interview Feedback
+      if (contextSources?.includePreviousInterviews?.length && candidate.interviews?.length) {
+        const relevantInterviews = candidate.interviews.filter(
+          i => contextSources.includePreviousInterviews?.includes(i.id)
+        )
+        if (relevantInterviews.length > 0) {
+          const interviewInsights = relevantInterviews.map(interview => {
+            const feedback = interview.evaluations
+              .filter(e => e.overallNotes)
+              .map(e => `  - ${e.evaluatorName || 'Evaluator'}: ${e.overallNotes}${e.recommendation ? ` (${e.recommendation})` : ''}`)
+              .join('\n')
+            return `### ${interview.interviewType?.name || interview.stageName || 'Interview'}\n${feedback || '  No feedback recorded'}`
+          }).join('\n\n')
+          contextSections.push(`## Previous Interview Feedback\n${interviewInsights}`)
+        }
+      } else if (candidate.interviews?.length && !contextSources?.includePreviousInterviews) {
+        // Include all interviews if no specific selection
+        const interviewInsights = candidate.interviews.slice(0, 3).map(interview => {
+          const feedback = interview.evaluations
+            .filter(e => e.overallNotes)
+            .map(e => e.overallNotes)
+            .join('; ')
+          return feedback
+        }).filter(Boolean).join('\n')
+        if (interviewInsights) {
+          contextSections.push(`## Previous Interview Insights\n${interviewInsights.slice(0, 500)}`)
+        }
+      }
+
+      // Job Requirements
+      if (contextSources?.includeJobRequirements && jobDescription) {
+        if (jobDescription) {
+          contextSections.push(`## Job Requirements\n${jobDescription.slice(0, 800)}`)
+        }
+      }
+
+      // Custom Prompt from user
+      if (customPrompt?.trim()) {
+        contextSections.push(`## Additional Instructions from Hiring Team\n${customPrompt}`)
+      }
+
+      // Determine if we have critical areas to address
+      const hasCriticalAreas = mustValidatePoints.length > 0 ||
+        (contextSources?.includeBlueAIConcerns && blueAIAnalysis?.concerns) ||
+        (contextSources?.includeRedFlags && candidate.redFlags)
 
       // Build AI prompt
       const prompt = `You are an expert interviewer at Curacel, an insurtech company. Generate ${count} insightful interview questions for a candidate.
@@ -798,13 +928,13 @@ export const questionRouter = router({
 - Current Company: ${candidate.currentCompany || 'Not specified'}
 - Years of Experience: ${candidate.yearsOfExperience || 'Not specified'}
 - Location: ${candidate.location || 'Not specified'}
-- Skills: ${candidate.skills?.join(', ') || 'Not specified'}
+- Skills: ${Array.isArray(candidate.skills) ? (candidate.skills as string[]).join(', ') : 'Not specified'}
 ${candidate.bio ? `- Bio: ${candidate.bio}` : ''}
 ${candidate.resumeSummary ? `- Resume Summary: ${candidate.resumeSummary.slice(0, 500)}...` : ''}
 
 ## Position
 - Title: ${jobTitle}
-${jobDescription ? `- Description: ${jobDescription.slice(0, 500)}...` : ''}
+${jobDescription && contextSources?.includeJobRequirements ? `- Description: ${jobDescription.slice(0, 500)}...` : ''}
 
 ## Interview Type
 ${interviewTypeName}
@@ -814,9 +944,7 @@ ${targetCategories?.join(', ') || 'behavioral, situational, technical, motivatio
 
 ${focusAreas?.length ? `## Specific Focus Areas\n${focusAreas.join(', ')}` : ''}
 
-${candidate.mustValidate?.length ? `## Points to Validate (from previous analysis)\n${(candidate.mustValidate as string[]).join('\n')}` : ''}
-
-${candidate.interviews?.length ? `## Previous Interview Insights\n${candidate.interviews.map(i => i.evaluations.map(e => e.overallNotes).filter(Boolean).join('\n')).join('\n').slice(0, 500)}` : ''}
+${contextSections.join('\n\n')}
 
 ## Response Format (JSON array)
 Return ONLY a valid JSON array of questions. Each question must have:
@@ -825,15 +953,17 @@ Return ONLY a valid JSON array of questions. Each question must have:
   "followUp": "A follow-up question to dig deeper",
   "category": "situational|behavioral|technical|motivational|culture",
   "tags": ["Tag1", "Tag2", "Tag3"],
-  "reasoning": "Why this question is relevant for this candidate (2-3 sentences)"
+  "reasoning": "Why this question is relevant for this candidate (2-3 sentences)",
+  "addressesCritical": true/false // Set to true if this question addresses a must-validate point, concern, or red flag
 }
 
 Generate questions that:
 1. Are tailored to this specific candidate's background
-2. Probe areas that need validation
+2. ${hasCriticalAreas ? 'PRIORITIZE questions that address the CRITICAL areas marked with ⚠️ or 🚩' : 'Probe areas that need validation'}
 3. Assess cultural fit with PRESS values
 4. Uncover both strengths and potential concerns
 5. Allow the candidate to demonstrate relevant experience
+${hasCriticalAreas ? '6. At least 30% of questions MUST address the critical areas (must-validate points, concerns, or red flags)' : ''}
 
 Respond ONLY with a valid JSON array, no additional text.`
 
@@ -844,19 +974,20 @@ Respond ONLY with a valid JSON array, no additional text.`
         category: string
         tags: string[]
         reasoning: string
+        addressesCritical?: boolean
       }> = []
 
       try {
         const { decrypt } = await import('@/lib/encryption')
-        const apiKey = decrypt(aiSettings.apiKey)
+        const apiKey = decrypt(encryptedApiKey)
 
-        switch (aiSettings.provider) {
+        switch (aiSettings!.provider) {
           case 'ANTHROPIC': {
             const { default: Anthropic } = await import('@anthropic-ai/sdk')
             const client = new Anthropic({ apiKey })
 
             const response = await client.messages.create({
-              model: aiSettings.model,
+              model: aiModel || 'claude-sonnet-4-20250514',
               max_tokens: 4096,
               messages: [{ role: 'user', content: prompt }],
             })
@@ -875,7 +1006,7 @@ Respond ONLY with a valid JSON array, no additional text.`
             const client = new OpenAI({ apiKey })
 
             const response = await client.chat.completions.create({
-              model: aiSettings.model,
+              model: aiModel || 'gpt-4o',
               messages: [{ role: 'user', content: prompt }],
               response_format: { type: 'json_object' },
             })
@@ -892,7 +1023,7 @@ Respond ONLY with a valid JSON array, no additional text.`
 
           case 'GEMINI': {
             const response = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/${aiSettings.model}:generateContent?key=${apiKey}`,
+              `https://generativelanguage.googleapis.com/v1beta/models/${aiModel || 'gemini-2.0-flash'}:generateContent?key=${apiKey}`,
               {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -914,7 +1045,7 @@ Respond ONLY with a valid JSON array, no additional text.`
           }
 
           default:
-            throw new Error(`Unsupported AI provider: ${aiSettings.provider}`)
+            throw new Error(`Unsupported AI provider: ${aiSettings!.provider}`)
         }
       } catch (error) {
         console.error('AI question generation failed:', error)
