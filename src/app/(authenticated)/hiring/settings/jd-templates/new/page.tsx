@@ -82,9 +82,18 @@ export default function NewJDPage() {
   const fromId = searchParams.get('from') // If creating new version from existing JD
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // Fetch real hiring flows and teams from database
-  const { data: hiringFlows, isLoading: flowsLoading } = trpc.hiringFlow.list.useQuery()
-  const { data: teams, isLoading: teamsLoading } = trpc.team.listForSelect.useQuery()
+  // Fetch teams from database
+  const { data: teams, isLoading: teamsLoading} = trpc.team.listForSelect.useQuery()
+
+  // Create mutation
+  const createMutation = trpc.jobDescription.create.useMutation({
+    onSuccess: () => {
+      router.push('/hiring/settings/jd-templates')
+    },
+    onError: (error) => {
+      alert(`Failed to create JD: ${error.message}`)
+    },
+  })
 
   const [activeTab, setActiveTab] = useState('manual')
   const [isSaving, setIsSaving] = useState(false)
@@ -95,11 +104,7 @@ export default function NewJDPage() {
   const [formData, setFormData] = useState({
     name: '',
     department: '',
-    description: '',
-    flowType: '',
-    requirements: '',
-    responsibilities: '',
-    isActive: true,
+    content: '',
   })
 
   // Upload state
@@ -121,11 +126,7 @@ export default function NewJDPage() {
         setFormData({
           name: existing.name,
           department: 'Engineering',
-          description: 'Loaded from previous version...',
-          flowType: 'ENGINEERING',
-          requirements: '- Loaded requirements...',
-          responsibilities: '- Loaded responsibilities...',
-          isActive: false,
+          content: 'Loaded from previous version...',
         })
       }
     }
@@ -145,18 +146,22 @@ export default function NewJDPage() {
   }
 
   const handleSave = async () => {
-    if (!formData.name.trim() || !formData.department) return
+    if (!formData.name.trim() || !formData.department || !formData.content.trim()) return
 
     // Check for duplicates
     if (checkDuplicate()) return
 
     setIsSaving(true)
 
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000))
-
-    setIsSaving(false)
-    router.push('/hiring/settings/jd-templates')
+    try {
+      await createMutation.mutateAsync({
+        name: formData.name,
+        department: formData.department,
+        content: formData.content,
+      })
+    } catch (error) {
+      setIsSaving(false)
+    }
   }
 
   const handleCreateAsNewVersion = async () => {
@@ -239,14 +244,13 @@ export default function NewJDPage() {
 - Use AI tools to enhance productivity and decision-making`,
     }
 
+    const content = `${mockParsedData.description}\n\n<h2>Key Responsibilities</h2>\n${mockParsedData.responsibilities}\n\n<h2>Requirements</h2>\n${mockParsedData.requirements}`
+
     setFormData({
       ...formData,
       name: mockParsedData.name,
       department: mockParsedData.department,
-      description: mockParsedData.description,
-      flowType: mockParsedData.flowType,
-      requirements: mockParsedData.requirements,
-      responsibilities: mockParsedData.responsibilities,
+      content: content,
     })
 
     setImportStatus('success')
@@ -347,79 +351,13 @@ export default function NewJDPage() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <Label htmlFor="flowType">Hiring Flow</Label>
-                  <Select
-                    value={formData.flowType}
-                    onValueChange={(value) => setFormData({ ...formData, flowType: value })}
-                    disabled={flowsLoading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder={flowsLoading ? "Loading flows..." : "Select hiring flow type"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {hiringFlows?.map((flow) => (
-                        <SelectItem key={flow.id} value={flow.id}>
-                          <div>
-                            <div className="font-medium">{flow.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {flow.stages.map(s => s.name).join(' → ')}
-                            </div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Status</Label>
-                  <div className="flex items-center justify-between rounded-md border border-input px-3 py-2 h-10">
-                    <span className="text-sm">
-                      {formData.isActive ? (
-                        <span className="flex items-center gap-2 text-green-600">
-                          <Eye className="h-4 w-4" />
-                          Publish immediately
-                        </span>
-                      ) : (
-                        <span className="flex items-center gap-2 text-amber-600">
-                          <EyeOff className="h-4 w-4" />
-                          Save as draft
-                        </span>
-                      )}
-                    </span>
-                    <Switch
-                      checked={formData.isActive}
-                      onCheckedChange={(checked) => setFormData({ ...formData, isActive: checked })}
-                    />
-                  </div>
-                </div>
-              </div>
-
               <div className="space-y-2">
-                <Label htmlFor="description">Job Summary</Label>
+                <Label htmlFor="content">Job Description</Label>
                 <RichTextEditor
-                  content={formData.description}
-                  onChange={(content) => setFormData({ ...formData, description: content })}
-                  placeholder="Brief overview of the role and its impact..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="responsibilities">Key Responsibilities</Label>
-                <RichTextEditor
-                  content={formData.responsibilities}
-                  onChange={(content) => setFormData({ ...formData, responsibilities: content })}
-                  placeholder="List the main responsibilities..."
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="requirements">Requirements</Label>
-                <RichTextEditor
-                  content={formData.requirements}
-                  onChange={(content) => setFormData({ ...formData, requirements: content })}
-                  placeholder="List required qualifications and skills..."
+                  content={formData.content}
+                  onChange={(content) => setFormData({ ...formData, content })}
+                  placeholder="Enter the full job description including overview, responsibilities, requirements, etc..."
+                  className="min-h-[400px]"
                 />
               </div>
 
@@ -430,7 +368,7 @@ export default function NewJDPage() {
                 </Button>
                 <Button
                   onClick={handleSave}
-                  disabled={!formData.name.trim() || !formData.department || isSaving}
+                  disabled={!formData.name.trim() || !formData.department || !formData.content.trim() || isSaving}
                 >
                   {isSaving ? (
                     <>
@@ -440,7 +378,7 @@ export default function NewJDPage() {
                   ) : fromId ? (
                     'Create New Version'
                   ) : (
-                    formData.isActive ? 'Publish JD' : 'Save as Draft'
+                    'Save JD Template'
                   )}
                 </Button>
               </div>
