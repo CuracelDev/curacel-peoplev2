@@ -96,7 +96,7 @@ export interface WebflowConfig {
 // Webflow API types
 export interface WebflowSite {
   id: string
-  name: string
+  displayName: string  // Webflow API v2 uses displayName
   shortName: string
   previewUrl: string
   createdOn: string

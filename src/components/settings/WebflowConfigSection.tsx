@@ -193,7 +193,7 @@ export function WebflowConfigSection({
                   <SelectContent>
                     {sitesQuery.data?.map((site) => (
                       <SelectItem key={site.id} value={site.id}>
-                        {site.name}
+                        {site.displayName || site.shortName || site.id}
                       </SelectItem>
                     ))}
                   </SelectContent>

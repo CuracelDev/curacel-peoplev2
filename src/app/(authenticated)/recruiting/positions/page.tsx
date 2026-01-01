@@ -82,35 +82,39 @@ const PRIORITY_BADGES: Record<number, { label: string; className: string }> = {
 
 // Score circle component for displaying average candidate score
 function ScoreCircle({ score }: { score: number }) {
-  const circumference = 2 * Math.PI * 24 // radius = 24 (adjusted for thicker stroke)
-  const strokeDashoffset = circumference - (score / 100) * circumference
+  const size = 128
+  const strokeWidth = 12
+  const radius = 44
+  const normalizedScore = Math.min(Math.max(score, 0), 100)
+  const circumference = 2 * Math.PI * radius
+  const strokeDashoffset = circumference - (normalizedScore / 100) * circumference
 
   return (
-    <div className="relative w-[72px] h-[72px] flex-shrink-0">
-      <svg className="w-full h-full -rotate-90" viewBox="0 0 64 64">
+    <div className="relative w-32 h-32 flex-shrink-0">
+      <svg className="w-full h-full -rotate-90" viewBox={`0 0 ${size} ${size}`}>
         <circle
-          cx="32"
-          cy="32"
-          r="24"
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
           fill="none"
           stroke="#e5e7eb"
-          strokeWidth="8"
+          strokeWidth={strokeWidth}
         />
         <circle
-          cx="32"
-          cy="32"
-          r="24"
+          cx={size / 2}
+          cy={size / 2}
+          r={radius}
           fill="none"
           stroke="#4f46e5"
-          strokeWidth="8"
+          strokeWidth={strokeWidth}
           strokeLinecap="round"
           strokeDasharray={circumference}
           strokeDashoffset={strokeDashoffset}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-lg font-semibold text-foreground">{score}</span>
-        <span className="text-[10px] text-muted-foreground">avg score</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+        <span className="text-3xl font-semibold text-foreground">{score}</span>
+        <span className="text-sm text-muted-foreground">avg score</span>
       </div>
     </div>
   )
