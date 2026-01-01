@@ -25,8 +25,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Label } from '@/components/ui/label'
-import { Plus, Search, Users } from 'lucide-react'
+import { Plus, Search, Users, MoreHorizontal, Archive } from 'lucide-react'
 import { employeeStatusLabels, employeeStatusColors, formatDate, getInitials } from '@/lib/utils'
 import { useForm } from 'react-hook-form'
 import { PageActions } from '@/components/layout/page-actions'
@@ -43,6 +49,7 @@ export default function EmployeesPage() {
     search: search || undefined,
     status: statusFilter || undefined,
     department: departmentFilter || undefined,
+    includeArchived: search ? true : undefined, // Include archived when searching
     page,
     limit: 20,
   })
@@ -75,6 +82,21 @@ export default function EmployeesPage() {
   return (
     <div className="space-y-4">
       <PageActions>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" size="icon">
+              <MoreHorizontal className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuItem asChild>
+              <Link href="/employees/archived" className="flex items-center">
+                <Archive className="mr-2 h-4 w-4" />
+                Archived Employees
+              </Link>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
