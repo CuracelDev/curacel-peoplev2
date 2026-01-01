@@ -7,9 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { Progress } from '@/components/ui/progress'
 import { Switch } from '@/components/ui/switch'
-import Image from 'next/image'
 import {
-  Plug,
   Settings,
   CheckCircle2,
   XCircle,
@@ -17,9 +15,11 @@ import {
   ChevronRight,
   Users,
   GitBranch,
+  Plug,
 } from 'lucide-react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { AppIcon } from '@/components/ui/app-icon'
 
 export default function IntegrationsPage() {
   const { data: apps, isLoading, refetch } = trpc.integration.listApps.useQuery()
@@ -75,34 +75,6 @@ export default function IntegrationsPage() {
       initApps.mutate()
     }
   }, [apps, isLoading, initApps])
-
-  const getAppIcon = (type: string, iconUrl?: string | null) => {
-    const commonProps = { width: 32, height: 32, className: 'h-8 w-8 object-contain' }
-
-    switch (type) {
-      case 'GOOGLE_WORKSPACE':
-        return <Image src="/logos/google-workspace.png" alt="Google Workspace" {...commonProps} />
-      case 'SLACK':
-        return <Image src="/logos/slack.png" alt="Slack" {...commonProps} />
-      case 'BITBUCKET':
-        return <Image src="/logos/bitbucket.png" alt="Bitbucket" {...commonProps} />
-      case 'JIRA':
-        return <Image src="/logos/jira.png" alt="Jira" {...commonProps} />
-      case 'PASSBOLT':
-        return <Image src="/logos/passbolt.png" alt="Passbolt" {...commonProps} />
-      case 'HUBSPOT':
-        return <Image src="/logos/hubspot.png" alt="HubSpot" {...commonProps} />
-      case 'STANDUPNINJA':
-        return <Image src="/logos/standupninja.png" alt="StandupNinja" {...commonProps} />
-      case 'FIREFLIES':
-        return <Image src="/logos/fireflies.png" alt="Fireflies.ai" {...commonProps} />
-      default:
-        if (iconUrl) {
-          return <Image src={iconUrl} alt={type} {...commonProps} />
-        }
-        return <Plug className={commonProps.className + ' text-muted-foreground'} />
-    }
-  }
 
   const getStatusInfo = (app: NonNullable<typeof apps>[0]) => {
     const hasConnection = app.connections.length > 0
@@ -179,7 +151,7 @@ export default function IntegrationsPage() {
                 >
                   <div className="flex items-center gap-4 min-w-0 flex-1">
                     <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center">
-                      {getAppIcon(app.type, app.iconUrl)}
+                      <AppIcon type={app.type} iconUrl={app.iconUrl} />
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2">

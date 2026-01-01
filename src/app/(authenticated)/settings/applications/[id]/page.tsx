@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { useParams, useRouter } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
 import { Button } from '@/components/ui/button'
@@ -20,50 +19,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
-import { Loader2, Settings2, TestTubeIcon, Plug } from 'lucide-react'
+import { Loader2, Settings2, TestTubeIcon } from 'lucide-react'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import { WebflowConfigSection } from '@/components/settings/WebflowConfigSection'
-
-// Helper to get app icon based on type
-function getAppIcon(type: string, iconUrl?: string | null) {
-  const commonProps = { width: 24, height: 24, className: 'w-6 h-6' }
-
-  switch (type) {
-    case 'SLACK':
-      return <Image src="/logos/slack.png" alt="Slack" {...commonProps} />
-    case 'GOOGLE_WORKSPACE':
-      return <Image src="/logos/google.png" alt="Google Workspace" {...commonProps} />
-    case 'GITHUB':
-      return <Image src="/logos/github.png" alt="GitHub" {...commonProps} />
-    case 'NOTION':
-      return <Image src="/logos/notion.png" alt="Notion" {...commonProps} />
-    case 'FIGMA':
-      return <Image src="/logos/figma.png" alt="Figma" {...commonProps} />
-    case 'LINEAR':
-      return <Image src="/logos/linear.png" alt="Linear" {...commonProps} />
-    case 'JIRA':
-      return <Image src="/logos/jira.png" alt="Jira" {...commonProps} />
-    case 'CONFLUENCE':
-      return <Image src="/logos/confluence.png" alt="Confluence" {...commonProps} />
-    case 'BITBUCKET':
-      return <Image src="/logos/bitbucket.png" alt="Bitbucket" {...commonProps} />
-    case 'PASSBOLT':
-      return <Image src="/logos/passbolt.png" alt="Passbolt" {...commonProps} />
-    case 'HUBSPOT':
-      return <Image src="/logos/hubspot.png" alt="HubSpot" {...commonProps} />
-    case 'STANDUPNINJA':
-      return <Image src="/logos/standupninja.png" alt="StandupNinja" {...commonProps} />
-    case 'FIREFLIES':
-      return <Image src="/logos/fireflies.png" alt="Fireflies.ai" {...commonProps} />
-    case 'WEBFLOW':
-      return <Image src="/logos/webflow.svg" alt="Webflow" {...commonProps} />
-    default:
-      if (iconUrl) {
-        return <Image src={iconUrl} alt={type} {...commonProps} />
-      }
-      return <Plug className="w-6 h-6 text-muted-foreground" />
-  }
-}
+import { AppIcon } from '@/components/ui/app-icon'
 
 function csvToList(value: string) {
   return value
@@ -454,7 +413,7 @@ export default function ApplicationSettingsDetailPage() {
         title={app.name}
         description={app.description || 'Configure connection and provisioning.'}
         titleClassName="text-2xl font-bold text-foreground truncate"
-        icon={getAppIcon(app.type, app.iconUrl)}
+        icon={<AppIcon type={app.type} iconUrl={app.iconUrl} size="sm" />}
         backHref="/settings/applications"
         actions={
           <>
