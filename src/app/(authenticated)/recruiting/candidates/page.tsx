@@ -884,16 +884,13 @@ export default function CandidatesPage() {
                       </Link>
                     </td>
                     <td className="py-3 px-4">
-                      <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-3">
-                        <Avatar className={cn("h-9 w-9", getAvatarColor(candidate.name))}>
-                          <AvatarFallback className={cn("text-white text-xs font-medium", getAvatarColor(candidate.name))}>
+                      <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-2">
+                        <Avatar className={cn("h-7 w-7", getAvatarColor(candidate.name))}>
+                          <AvatarFallback className={cn("text-white text-[10px] font-medium", getAvatarColor(candidate.name))}>
                             {getInitials(candidate.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <div>
-                          <div className="font-medium text-foreground">{candidate.name}</div>
-                          <div className="text-xs text-muted-foreground">{candidate.email}</div>
-                        </div>
+                        <span className="font-medium text-foreground">{candidate.name}</span>
                       </Link>
                     </td>
                     <td className="py-3 px-4">

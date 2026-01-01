@@ -440,7 +440,6 @@ export default function CandidatesListPage() {
                 <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Last Updated
                 </th>
-                <th className="py-3 px-4 w-24"></th>
               </tr>
             </thead>
             <tbody>
@@ -467,16 +466,13 @@ export default function CandidatesListPage() {
                     {candidate.score ?? '-'}
                   </td>
                   <td className="py-4 px-4">
-                    <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-3">
-                      <Avatar className="h-9 w-9">
-                        <AvatarFallback className={cn(getAvatarColor(candidate.name), 'text-white text-xs')}>
+                    <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-2">
+                      <Avatar className="h-7 w-7">
+                        <AvatarFallback className={cn(getAvatarColor(candidate.name), 'text-white text-[10px]')}>
                           {getInitials(candidate.name)}
                         </AvatarFallback>
                       </Avatar>
-                      <div>
-                        <div className="font-medium text-sm">{candidate.name}</div>
-                        <div className="text-xs text-muted-foreground">{candidate.email}</div>
-                      </div>
+                      <span className="font-medium text-sm">{candidate.name}</span>
                     </Link>
                   </td>
                   <td className="py-4 px-4">{getStageBadge(candidate.stage)}</td>
@@ -485,11 +481,6 @@ export default function CandidatesListPage() {
                   </td>
                   <td className="py-4 px-4 text-sm text-foreground/80">
                     {getRelativeTime(candidate.updatedAt)}
-                  </td>
-                  <td className="py-4 px-4">
-                    <Button variant="ghost" size="sm">
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
                   </td>
                 </tr>
               ))}
