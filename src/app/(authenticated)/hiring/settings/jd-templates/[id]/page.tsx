@@ -44,6 +44,7 @@ import {
   History,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { trpc } from '@/lib/trpc-client'
 
 // Mock JD data
 const mockJDs: Record<string, {
@@ -112,13 +113,6 @@ const DEPARTMENTS = [
   { value: 'Finance', icon: Briefcase, color: 'text-emerald-500 bg-emerald-50' },
 ]
 
-const FLOW_TYPES = [
-  { value: 'STANDARD', label: 'Standard', description: 'Interest → HR Screen → Panel → Trial → Offer' },
-  { value: 'ENGINEERING', label: 'Engineering', description: 'Interest → HR Screen → Technical → Panel → Trial' },
-  { value: 'SALES', label: 'Sales', description: 'Interest → HR Screen → Panel → Trial with POC → Offer' },
-  { value: 'EXECUTIVE', label: 'Executive', description: 'Interest → HR Screen → Multiple Panels → Case Study → CEO' },
-]
-
 function getDepartmentInfo(department: string) {
   return DEPARTMENTS.find(d => d.value === department) || { icon: Briefcase, color: 'text-muted-foreground bg-muted/50' }
 }
@@ -127,6 +121,9 @@ export default function EditJDPage() {
   const router = useRouter()
   const params = useParams()
   const id = params.id as string
+
+  // Fetch real hiring flows from database
+  const { data: hiringFlows, isLoading: flowsLoading } = trpc.hiringFlow.list.useQuery()
 
   const [isLoading, setIsLoading] = useState(true)
   const [isSaving, setIsSaving] = useState(false)
@@ -322,17 +319,19 @@ export default function EditJDPage() {
               <Select
                 value={formData.flowType}
                 onValueChange={(value) => setFormData({ ...formData, flowType: value })}
-                disabled={isArchived}
+                disabled={isArchived || flowsLoading}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select hiring flow type" />
+                  <SelectValue placeholder={flowsLoading ? "Loading flows..." : "Select hiring flow type"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {FLOW_TYPES.map((flow) => (
-                    <SelectItem key={flow.value} value={flow.value}>
+                  {hiringFlows?.map((flow) => (
+                    <SelectItem key={flow.id} value={flow.id}>
                       <div>
-                        <div className="font-medium">{flow.label}</div>
-                        <div className="text-xs text-muted-foreground">{flow.description}</div>
+                        <div className="font-medium">{flow.name}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {flow.stages.map(s => s.name).join(' → ')}
+                        </div>
                       </div>
                     </SelectItem>
                   ))}
