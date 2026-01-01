@@ -1,8 +1,10 @@
 import { router, protectedProcedure, hrAdminProcedure } from '@/lib/trpc'
+import { autoActivateEmployees } from '@/lib/employee-status'
 
 export const dashboardRouter = router({
   // Get all sidebar badge counts with settings
   getSidebarCounts: protectedProcedure.query(async ({ ctx }) => {
+    await autoActivateEmployees(ctx.prisma)
     // Get badge settings from organization
     const org = await ctx.prisma.organization.findFirst({
       select: {
@@ -121,6 +123,7 @@ export const dashboardRouter = router({
 
   getStats: hrAdminProcedure
     .query(async ({ ctx }) => {
+      await autoActivateEmployees(ctx.prisma)
       const [
         totalEmployees,
         activeEmployees,
