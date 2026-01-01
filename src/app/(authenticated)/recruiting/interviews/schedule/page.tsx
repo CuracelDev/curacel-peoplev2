@@ -246,6 +246,8 @@ export default function ScheduleInterviewPage() {
         ...selectedInterviewers,
         { id: person.id, name: person.fullName, email: person.workEmail || person.email || '' },
       ])
+      // Clear selected slot when interviewers change - availability needs to be rechecked
+      setSelectedSlot(null)
     }
     setInterviewerOpen(false)
     setInterviewerSearch('')
@@ -357,12 +359,20 @@ export default function ScheduleInterviewPage() {
     })
   }
 
-  // Effect to refetch slots when duration or date range changes
+  // Effect to refetch slots when interviewers, duration, or date range changes
+  // Using JSON.stringify to create a stable dependency for the emails array
+  const interviewerEmailsKey = JSON.stringify(interviewerEmails.sort())
+  const isCalendarConfigured = calendarConfig?.configured ?? false
   useEffect(() => {
-    if (calendarConfig?.configured && interviewerEmails.length > 0 && schedulingMode === 'suggested') {
-      refetchSlots()
+    if (isCalendarConfigured && interviewerEmails.length > 0 && schedulingMode === 'suggested') {
+      // Small delay to ensure state is updated before refetching
+      const timer = setTimeout(() => {
+        refetchSlots()
+      }, 100)
+      return () => clearTimeout(timer)
     }
-  }, [duration, dateRangeStart, dateRangeEnd])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [duration, dateRangeStart, dateRangeEnd, interviewerEmailsKey, schedulingMode, isCalendarConfigured])
 
   // Group available slots by date
   const slotsByDate = useMemo(() => {
