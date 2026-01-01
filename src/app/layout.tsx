@@ -8,7 +8,7 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Curacel People v001',
+  title: 'Curacel PeopleOS',
   description: 'Internal HR and People Operations Platform',
 }
 
