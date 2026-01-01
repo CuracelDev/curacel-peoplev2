@@ -1019,7 +1019,16 @@ export const jobRouter = router({
         name: z.string().min(2, 'Name is required'),
         email: z.string().email('Invalid email address'),
         phone: z.string().optional(),
-        linkedinUrl: z.string().url().optional().or(z.literal('')),
+        linkedinUrl: z.string()
+          .transform((val) => {
+            if (!val || val === '') return ''
+            // Add https:// if no protocol is present
+            if (!val.startsWith('http://') && !val.startsWith('https://')) {
+              return `https://${val}`
+            }
+            return val
+          })
+          .pipe(z.string().url().optional().or(z.literal(''))),
         bio: z.string().optional(),
         coverLetter: z.string().min(10, 'Please write a cover letter'),
         resumeUrl: z.string().optional(),
