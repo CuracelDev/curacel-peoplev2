@@ -28,7 +28,7 @@ const employeeUpdateSchema = z.object({
   managerId: z.string().nullable().optional(),
   location: z.string().nullable().optional(),
   employmentType: z.enum(['FULL_TIME', 'PART_TIME', 'CONTRACTOR']).optional(),
-  status: z.enum(['CANDIDATE', 'OFFER_SENT', 'OFFER_SIGNED', 'HIRED_PENDING_START', 'ACTIVE', 'OFFBOARDING', 'EXITED', 'ARCHIVED']).optional(),
+  status: z.enum(['CANDIDATE', 'OFFER_SENT', 'OFFER_SIGNED', 'HIRED_PENDING_START', 'ACTIVE', 'OFFBOARDING', 'EXITED']).optional(),
   startDate: z.string().nullable().optional(),
   endDate: z.string().nullable().optional(),
   salaryAmount: z.number().nullable().optional(),
@@ -67,22 +67,16 @@ export const employeeRouter = router({
       department: z.string().optional(),
       managerId: z.string().optional(),
       search: z.string().optional(),
-      includeArchived: z.boolean().optional(),
       page: z.number().default(1),
       limit: z.number().default(20),
     }).optional())
     .query(async ({ ctx, input }) => {
       await autoActivateEmployees(ctx.prisma)
-      const { status, department, managerId, search, includeArchived, page = 1, limit = 20 } = input || {}
+      const { status, department, managerId, search, page = 1, limit = 20 } = input || {}
 
       const where: any = {}
 
-      if (status && status.trim()) {
-        where.status = status
-      } else if (!includeArchived) {
-        // By default, exclude archived employees unless explicitly included
-        where.status = { not: 'ARCHIVED' }
-      }
+      if (status && status.trim()) where.status = status
       if (department && department.trim()) where.department = department
       if (managerId && managerId.trim()) where.managerId = managerId
       if (search && search.trim()) {
