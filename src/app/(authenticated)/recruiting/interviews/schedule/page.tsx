@@ -718,28 +718,33 @@ export default function ScheduleInterviewPage() {
                       </div>
                     </div>
 
-                    {/* Calendar Access Warnings */}
-                    {hasCalendarErrors && (
-                      <div className="flex items-start gap-2 p-3 mb-4 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-                        <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                        <div className="text-amber-800">
-                          <p className="font-medium">Cannot access some calendars</p>
-                          <ul className="text-xs mt-1 space-y-0.5">
-                            {Object.entries(calendarErrors).map(([email, error]) => (
-                              <li key={email}>
-                                <span className="font-medium">{email}</span>: {error === 'notFound' ? 'Calendar not accessible (external email or no permission)' : error}
-                              </li>
+                    {/* Calendar Access Errors - Block smart scheduling */}
+                    {hasCalendarErrors ? (
+                      <div className="flex flex-col items-center justify-center py-8 border border-amber-200 rounded-lg bg-amber-50">
+                        <AlertCircle className="h-8 w-8 text-amber-600 mb-3" />
+                        <p className="text-sm font-medium text-amber-800">Cannot access all calendars</p>
+                        <div className="text-xs text-amber-700 mt-2 text-center max-w-sm">
+                          <p className="mb-2">The following interviewers have inaccessible calendars:</p>
+                          <ul className="space-y-1">
+                            {Object.entries(calendarErrors).map(([email]) => (
+                              <li key={email} className="font-medium">{email}</li>
                             ))}
                           </ul>
-                          <p className="text-xs mt-2">
-                            Slots shown are only based on accessible calendars. You may need to manually confirm availability with these interviewers.
+                          <p className="mt-3">
+                            Smart scheduling requires calendar access for all interviewers.
+                            Please use <strong>Manual</strong> scheduling instead, or remove interviewers without calendar access.
                           </p>
                         </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="mt-4"
+                          onClick={() => setSchedulingMode('manual')}
+                        >
+                          Switch to Manual Scheduling
+                        </Button>
                       </div>
-                    )}
-
-                    {/* Available Slots */}
-                    {slotsLoading ? (
+                    ) : slotsLoading ? (
                       <div className="flex items-center justify-center py-8 border rounded-lg bg-muted/30">
                         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                         <span className="ml-2 text-muted-foreground">Finding available times...</span>
