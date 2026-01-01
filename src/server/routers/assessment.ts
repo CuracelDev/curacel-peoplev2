@@ -1390,7 +1390,7 @@ export const assessmentRouter = router({
       // Fetch organization data separately
       const organization = await ctx.prisma.organization.findUnique({
         where: { id: assessment.template.organizationId },
-        select: { name: true, logo: true },
+        select: { name: true, logoUrl: true },
       })
 
       // Build the response with organization data in template

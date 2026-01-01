@@ -101,6 +101,7 @@ export default function PublicAssessmentPage() {
 
   // Error state
   if (error || !assessment) {
+    console.error('Assessment error:', error)
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
@@ -110,6 +111,11 @@ export default function PublicAssessmentPage() {
             <p className="text-muted-foreground">
               This assessment link is invalid or has expired. Please contact your recruiter for a new link.
             </p>
+            {error && (
+              <p className="text-xs text-red-400 mt-4 font-mono">
+                Debug: {error.message}
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
@@ -164,9 +170,9 @@ export default function PublicAssessmentPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center">
-          {assessment.template.organization?.logo ? (
+          {assessment.template.organization?.logoUrl ? (
             <img
-              src={assessment.template.organization.logo}
+              src={assessment.template.organization.logoUrl}
               alt={assessment.template.organization.name || 'Company'}
               className="h-12 mx-auto mb-4"
             />
