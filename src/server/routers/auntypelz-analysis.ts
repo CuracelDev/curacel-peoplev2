@@ -26,7 +26,7 @@ const GenerateAnalysisSchema = z.object({
   assessmentId: z.string().optional(),
 })
 
-export const blueAIAnalysisRouter = router({
+export const auntyPelzAnalysisRouter = router({
   // Generate new analysis
   generateAnalysis: protectedProcedure
     .input(GenerateAnalysisSchema)
