@@ -213,6 +213,12 @@ export default function SettingsPage() {
   const [rubricCriteria, setRubricCriteria] = useState<Criteria[]>([])
   const [expandedCriteria, setExpandedCriteria] = useState<string | null>(null)
 
+  // Recruiter state
+  const [recruiterDialogOpen, setRecruiterDialogOpen] = useState(false)
+  const [recruiterName, setRecruiterName] = useState('')
+  const [recruiterEmail, setRecruiterEmail] = useState('')
+  const [recruiterOrg, setRecruiterOrg] = useState('')
+
   // API queries
   const interestFormsQuery = trpc.interestForm.list.useQuery()
   const rubricTemplatesQuery = trpc.interviewStage.listTemplates.useQuery()
@@ -224,6 +230,19 @@ export default function SettingsPage() {
   const jobWebhooksQuery = trpc.recruitingSettings.getJobWebhooks.useQuery()
   const sourceChannelsQuery = trpc.recruitingSettings.getSourceChannels.useQuery()
   const publicJobsQuery = trpc.recruitingSettings.getPublicJobs.useQuery()
+
+  const resetRecruiterForm = () => {
+    setRecruiterName('')
+    setRecruiterEmail('')
+    setRecruiterOrg('')
+  }
+
+  const handleRecruiterDialogChange = (open: boolean) => {
+    setRecruiterDialogOpen(open)
+    if (!open) {
+      resetRecruiterForm()
+    }
+  }
 
   // API mutations
   const createFormMutation = trpc.interestForm.create.useMutation({
@@ -276,7 +295,10 @@ export default function SettingsPage() {
   })
   const testWebhookMutation = trpc.recruitingSettings.testWebhook.useMutation()
   const createRecruiterMutation = trpc.recruiter.create.useMutation({
-    onSuccess: () => recruitersQuery.refetch(),
+    onSuccess: () => {
+      recruitersQuery.refetch()
+      handleRecruiterDialogChange(false)
+    },
   })
   const updateRecruiterMutation = trpc.recruiter.update.useMutation({
     onSuccess: () => recruitersQuery.refetch(),
@@ -333,6 +355,7 @@ export default function SettingsPage() {
     (sum, item) => sum + (item.enabled ? item.weight : 0),
     0
   )
+  const canCreateRecruiter = recruiterName.trim().length > 0 && recruiterEmail.trim().length > 0
 
   const updateEditedFlow = (updates: Partial<typeof editedFlow>) => {
     if (!editedFlow) return
@@ -356,6 +379,15 @@ export default function SettingsPage() {
     setScoreComponents((prev) =>
       prev.map((component) => (component.id === id ? { ...component, ...updates } : component))
     )
+  }
+
+  const handleCreateRecruiter = () => {
+    if (!canCreateRecruiter || createRecruiterMutation.isPending) return
+    createRecruiterMutation.mutate({
+      name: recruiterName.trim(),
+      email: recruiterEmail.trim(),
+      organizationName: recruiterOrg.trim() || undefined,
+    })
   }
 
   const handleSaveScoreWeights = () => {
@@ -1445,14 +1477,7 @@ export default function SettingsPage() {
                       Manage external recruiters and their access to job postings. Recruiters get unique portal links.
                     </p>
                   </div>
-                  <Button onClick={() => {
-                    const name = prompt('Recruiter name:')
-                    if (!name) return
-                    const email = prompt('Recruiter email:')
-                    if (!email) return
-                    const org = prompt('Organization name (optional):')
-                    createRecruiterMutation.mutate({ name, email, organizationName: org || undefined })
-                  }}>
+                  <Button onClick={() => handleRecruiterDialogChange(true)}>
                     <Plus className="h-4 w-4 mr-2" />
                     Add Recruiter
                   </Button>
@@ -1739,6 +1764,66 @@ export default function SettingsPage() {
             </Card>
           )}
         </div>
+
+      {/* Add Recruiter Dialog */}
+      <Dialog open={recruiterDialogOpen} onOpenChange={handleRecruiterDialogChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Recruiter</DialogTitle>
+            <DialogDescription>
+              Create an external recruiter with a portal link to submit candidates.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="recruiter-name">Recruiter Name *</Label>
+              <Input
+                id="recruiter-name"
+                value={recruiterName}
+                onChange={(e) => setRecruiterName(e.target.value)}
+                placeholder="e.g., Ada Lovelace"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="recruiter-email">Recruiter Email *</Label>
+              <Input
+                id="recruiter-email"
+                type="email"
+                value={recruiterEmail}
+                onChange={(e) => setRecruiterEmail(e.target.value)}
+                placeholder="recruiter@agency.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="recruiter-org">Organization Name</Label>
+              <Input
+                id="recruiter-org"
+                value={recruiterOrg}
+                onChange={(e) => setRecruiterOrg(e.target.value)}
+                placeholder="Optional agency or firm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => handleRecruiterDialogChange(false)}
+              disabled={createRecruiterMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateRecruiter}
+              disabled={!canCreateRecruiter || createRecruiterMutation.isPending}
+            >
+              {createRecruiterMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              Add Recruiter
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Interest Form Dialog */}
       <Dialog open={formDialogOpen} onOpenChange={setFormDialogOpen}>

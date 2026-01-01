@@ -126,6 +126,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added job deadline field and Start/Deadline labels in job views
 - Added number of hires field on job creation and multi-hire badge in job list
 - Added priority badge to job list cards
+- Adjusted job list avg score donut sizing/padding to match updated design
 - Updated remote policy label to Hybrid and added freeform multi-city office locations with Lagos suggestion
 - Replaced Remote OK with Location input, added region support and Nairobi suggestion
 - Removed Role Objectives from Create Job (handled in JD instead)
@@ -140,6 +141,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Candidate profile hook order now consistent to prevent render mismatch errors
 - Interview scheduling candidate picker is selectable again
 - Assessment selection tiles now keep readable text in dark mode
+- External recruiter creation uses a dialog instead of unsupported prompt calls
 
 ## [December 2024]
 
