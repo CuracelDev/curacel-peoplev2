@@ -20,7 +20,7 @@ export const PUBLIC_PAGES = [
     key: 'careers',
     name: 'Careers Portal',
     description: 'Public job posting with application form. Shows job title, description, salary, requirements.',
-    route: '/careers/[jobId]',
+    route: '/careers/[id]',
     category: 'candidate',
     icon: 'Globe',
   },
@@ -168,40 +168,43 @@ export const publicPagesRouter = router({
     const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
 
     // Find first available data for each page type
-    const [job, assessment, recruiterJob, interview, offer, onboarding] = await Promise.all([
-      // First open job for careers/apply
+    const [job, assessment, recruiterJob, interviewToken, offer, onboarding] = await Promise.all([
+      // First active job for careers/apply (preview mode bypasses isPublic check)
       ctx.prisma.job.findFirst({
-        where: { status: 'OPEN' },
+        where: { status: 'ACTIVE' },
         select: { id: true },
         orderBy: { createdAt: 'desc' },
       }),
-      // First assessment with token
+      // First assessment with invite token (inviteToken is optional, so filter for non-empty)
       ctx.prisma.candidateAssessment.findFirst({
-        where: { accessToken: { not: null } },
-        select: { accessToken: true },
+        where: {
+          inviteToken: { not: '' },
+        },
+        select: { inviteToken: true },
         orderBy: { createdAt: 'desc' },
       }),
-      // First recruiter job with token
+      // First recruiter job (accessToken is required with default, so all records have one)
       ctx.prisma.recruiterJob.findFirst({
-        where: { accessToken: { not: null } },
         select: { accessToken: true },
         orderBy: { createdAt: 'desc' },
       }),
-      // First interview with token
-      ctx.prisma.candidateInterview.findFirst({
-        where: { token: { not: null } },
+      // First interview token (from InterviewerToken table)
+      ctx.prisma.interviewerToken.findFirst({
+        where: {
+          isRevoked: false,
+          expiresAt: { gt: new Date() },
+        },
         select: { token: true },
         orderBy: { createdAt: 'desc' },
       }),
-      // First sent offer
+      // First sent offer (uses offer ID directly, no token needed)
       ctx.prisma.offer.findFirst({
         where: { status: 'SENT' },
-        select: { id: true, accessToken: true },
+        select: { id: true },
         orderBy: { createdAt: 'desc' },
       }),
-      // First onboarding workflow with token
+      // First onboarding workflow (accessToken is required with default, so all records have one)
       ctx.prisma.onboardingWorkflow.findFirst({
-        where: { accessToken: { not: null } },
         select: { accessToken: true },
         orderBy: { createdAt: 'desc' },
       }),
@@ -210,10 +213,10 @@ export const publicPagesRouter = router({
     return {
       careers: job ? `${baseUrl}/careers/${job.id}?preview=true` : null,
       apply: job ? `${baseUrl}/apply/${job.id}?preview=true` : null,
-      assessment: assessment?.accessToken ? `${baseUrl}/assessment/${assessment.accessToken}?preview=true` : null,
+      assessment: assessment?.inviteToken ? `${baseUrl}/assessment/${assessment.inviteToken}?preview=true` : null,
       recruiter: recruiterJob?.accessToken ? `${baseUrl}/recruiter/${recruiterJob.accessToken}?preview=true` : null,
-      interview: interview?.token ? `${baseUrl}/interview/${interview.token}?preview=true` : null,
-      offer: offer ? `${baseUrl}/offer/${offer.id}/sign?preview=true${offer.accessToken ? `&token=${offer.accessToken}` : ''}` : null,
+      interview: interviewToken?.token ? `${baseUrl}/interview/${interviewToken.token}?preview=true` : null,
+      offer: offer ? `${baseUrl}/offer/${offer.id}/sign?preview=true` : null,
       onboarding: onboarding?.accessToken ? `${baseUrl}/welcome/${onboarding.accessToken}?preview=true` : null,
       apiDocs: `${baseUrl}/api-docs?preview=true`,
       auth: `${baseUrl}/auth/signin?preview=true`,

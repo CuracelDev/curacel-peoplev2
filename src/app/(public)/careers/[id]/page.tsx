@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useSearchParams } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
 import {
   Briefcase,
@@ -63,7 +63,9 @@ function formatEmploymentType(type: string) {
 
 export default function PublicCareersPage() {
   const params = useParams()
+  const searchParams = useSearchParams()
   const jobId = params.id as string
+  const isPreview = searchParams.get('preview') === 'true'
 
   const [formData, setFormData] = useState({
     name: '',
@@ -80,9 +82,9 @@ export default function PublicCareersPage() {
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [consentChecked, setConsentChecked] = useState(false)
 
-  // Fetch job details
+  // Fetch job details (preview mode bypasses isPublic check)
   const { data: job, isLoading, error } = trpc.job.getPublicJob.useQuery(
-    { id: jobId },
+    { id: jobId, preview: isPreview },
     { enabled: !!jobId }
   )
 
