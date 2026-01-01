@@ -231,7 +231,7 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-indigo-600" />
-            <h2 className="text-lg font-semibold">BlueAI Analysis</h2>
+            <h2 className="text-lg font-semibold">AuntyPelz Analysis</h2>
           </div>
           {versions && versions.length > 1 && (
             <Select
@@ -596,7 +596,7 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
                 </div>
                 {displayAnalysis.aiProvider && (
                   <div className="flex justify-between">
-                  <span>BlueAI Provider</span>
+                  <span>AuntyPelz Provider</span>
                     <span className="font-medium">{displayAnalysis.aiProvider}</span>
                   </div>
                 )}

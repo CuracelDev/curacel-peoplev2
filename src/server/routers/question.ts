@@ -388,8 +388,8 @@ export const questionRouter = router({
       const { prisma } = ctx
       const { candidateId, interviewTypeId } = input
 
-      // Fetch latest BlueAI analysis
-      const blueAIAnalysis = await prisma.candidateAIAnalysis.findFirst({
+      // Fetch latest AuntyPelz analysis
+      const auntyPelzAnalysis = await prisma.candidateAIAnalysis.findFirst({
         where: { candidateId, isLatest: true },
         select: {
           recommendations: true,
@@ -456,7 +456,7 @@ export const questionRouter = router({
         interviewTypeCategories = interviewType?.questionCategories || []
       }
 
-      // Normalize BlueAI data (handle both array and JSON storage)
+      // Normalize AuntyPelz data (handle both array and JSON storage)
       const normalizeArray = (data: unknown): string[] => {
         if (!data) return []
         if (Array.isArray(data)) return data as string[]
@@ -477,12 +477,12 @@ export const questionRouter = router({
 
       return {
         candidateName: candidate.name,
-        blueAI: blueAIAnalysis ? {
-          recommendations: normalizeArray(blueAIAnalysis.recommendations),
-          mustValidatePoints: normalizeArray(blueAIAnalysis.mustValidatePoints),
-          concerns: normalizeConcerns(blueAIAnalysis.concerns),
-          nextStageQuestions: normalizeArray(blueAIAnalysis.nextStageQuestions),
-          strengths: normalizeArray(blueAIAnalysis.strengths),
+        auntyPelz: auntyPelzAnalysis ? {
+          recommendations: normalizeArray(auntyPelzAnalysis.recommendations),
+          mustValidatePoints: normalizeArray(auntyPelzAnalysis.mustValidatePoints),
+          concerns: normalizeConcerns(auntyPelzAnalysis.concerns),
+          nextStageQuestions: normalizeArray(auntyPelzAnalysis.nextStageQuestions),
+          strengths: normalizeArray(auntyPelzAnalysis.strengths),
         } : null,
         candidate: {
           mustValidate: normalizeArray(candidate.mustValidate),
@@ -660,9 +660,9 @@ export const questionRouter = router({
         focusAreas: z.array(z.string()).optional(),
         // Context source selection
         contextSources: z.object({
-          includeBlueAIRecommendations: z.boolean().default(true),
-          includeBlueAIMustValidate: z.boolean().default(true),
-          includeBlueAIConcerns: z.boolean().default(true),
+          includeAuntyPelzRecommendations: z.boolean().default(true),
+          includeAuntyPelzMustValidate: z.boolean().default(true),
+          includeAuntyPelzConcerns: z.boolean().default(true),
           includePreviousInterviews: z.array(z.string()).optional(), // interview IDs to include
           includeJobRequirements: z.boolean().default(true),
           includeRedFlags: z.boolean().default(true),
@@ -750,18 +750,18 @@ export const questionRouter = router({
         })
       }
 
-      // Get BlueAI analysis if context sources include it
-      let blueAIAnalysis: {
+      // Get AuntyPelz analysis if context sources include it
+      let auntyPelzAnalysis: {
         recommendations: unknown
         mustValidatePoints: unknown
         concerns: unknown
         strengths: unknown
       } | null = null
 
-      if (contextSources?.includeBlueAIRecommendations ||
-          contextSources?.includeBlueAIMustValidate ||
-          contextSources?.includeBlueAIConcerns) {
-        blueAIAnalysis = await prisma.candidateAIAnalysis.findFirst({
+      if (contextSources?.includeAuntyPelzRecommendations ||
+          contextSources?.includeAuntyPelzMustValidate ||
+          contextSources?.includeAuntyPelzConcerns) {
+        auntyPelzAnalysis = await prisma.candidateAIAnalysis.findFirst({
           where: { candidateId, isLatest: true },
           select: {
             recommendations: true,
@@ -822,19 +822,19 @@ export const questionRouter = router({
       // Build context sections based on selected sources
       const contextSections: string[] = []
 
-      // BlueAI Recommendations
-      if (contextSources?.includeBlueAIRecommendations && blueAIAnalysis?.recommendations) {
-        const recommendations = normalizeArray(blueAIAnalysis.recommendations)
+      // AuntyPelz Recommendations
+      if (contextSources?.includeAuntyPelzRecommendations && auntyPelzAnalysis?.recommendations) {
+        const recommendations = normalizeArray(auntyPelzAnalysis.recommendations)
         if (recommendations.length > 0) {
-          contextSections.push(`## BlueAI Recommendations\n${recommendations.map(r => `- ${r}`).join('\n')}`)
+          contextSections.push(`## AuntyPelz Recommendations\n${recommendations.map(r => `- ${r}`).join('\n')}`)
         }
       }
 
-      // BlueAI Must-Validate Points (CRITICAL)
+      // AuntyPelz Must-Validate Points (CRITICAL)
       const mustValidatePoints: string[] = []
-      if (contextSources?.includeBlueAIMustValidate) {
-        if (blueAIAnalysis?.mustValidatePoints) {
-          mustValidatePoints.push(...normalizeArray(blueAIAnalysis.mustValidatePoints))
+      if (contextSources?.includeAuntyPelzMustValidate) {
+        if (auntyPelzAnalysis?.mustValidatePoints) {
+          mustValidatePoints.push(...normalizeArray(auntyPelzAnalysis.mustValidatePoints))
         }
         if (candidate.mustValidate) {
           mustValidatePoints.push(...normalizeArray(candidate.mustValidate))
@@ -844,9 +844,9 @@ export const questionRouter = router({
         contextSections.push(`## ⚠️ CRITICAL: Points to Validate\nThese are high-priority areas that MUST be explored:\n${mustValidatePoints.map(p => `- ${p}`).join('\n')}`)
       }
 
-      // BlueAI Concerns (CRITICAL)
-      if (contextSources?.includeBlueAIConcerns && blueAIAnalysis?.concerns) {
-        const concerns = normalizeConcerns(blueAIAnalysis.concerns)
+      // AuntyPelz Concerns (CRITICAL)
+      if (contextSources?.includeAuntyPelzConcerns && auntyPelzAnalysis?.concerns) {
+        const concerns = normalizeConcerns(auntyPelzAnalysis.concerns)
         if (concerns.length > 0) {
           contextSections.push(`## ⚠️ CRITICAL: Concerns from Analysis\n${concerns.map(c => `- ${c.title}: ${c.description}${c.severity ? ` (${c.severity})` : ''}`).join('\n')}`)
         }
@@ -909,7 +909,7 @@ export const questionRouter = router({
 
       // Determine if we have critical areas to address
       const hasCriticalAreas = mustValidatePoints.length > 0 ||
-        (contextSources?.includeBlueAIConcerns && blueAIAnalysis?.concerns) ||
+        (contextSources?.includeAuntyPelzConcerns && auntyPelzAnalysis?.concerns) ||
         (contextSources?.includeRedFlags && candidate.redFlags)
 
       // Build AI prompt
