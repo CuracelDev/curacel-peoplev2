@@ -126,7 +126,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added job deadline field and Start/Deadline labels in job views
 - Added number of hires field on job creation and multi-hire badge in job list
 - Added priority badge to job list cards
-- Aligned job list card spacing, typography, and avg score donut sizing with the jobs list mockup
+- Aligned job list card spacing, typography, and avg score donut styling with the jobs list mockup
 - Updated remote policy label to Hybrid and added freeform multi-city office locations with Lagos suggestion
 - Replaced Remote OK with Location input, added region support and Nairobi suggestion
 - Removed Role Objectives from Create Job (handled in JD instead)
