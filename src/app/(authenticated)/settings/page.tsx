@@ -27,6 +27,8 @@ import {
   UserCheck,
   SlidersHorizontal,
   Settings,
+  Briefcase,
+  Target,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -93,6 +95,12 @@ const settingsSections = [
         href: '/hiring/settings/general',
       },
       {
+        title: 'Job Descriptions',
+        description: 'Manage job descriptions and templates.',
+        icon: Briefcase,
+        href: '/hiring/settings/jd-templates',
+      },
+      {
         title: 'Hiring Flows',
         description: 'Define interview stages and pipeline.',
         icon: GitBranch,
@@ -103,6 +111,12 @@ const settingsSections = [
         description: 'Manage interview types, rubrics, scoring, and question bank.',
         icon: Settings,
         href: '/hiring/settings/interview',
+      },
+      {
+        title: 'Hiring Rubrics',
+        description: 'Create evaluation rubrics for consistent assessment.',
+        icon: Target,
+        href: '/hiring/settings/rubrics',
       },
       {
         title: 'Interest Forms',

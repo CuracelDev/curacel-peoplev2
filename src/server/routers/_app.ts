@@ -32,7 +32,7 @@ import { hiringSettingsRouter } from './hiring-settings'
 import { hiringFlowRouter } from './hiringFlow'
 import { questionRouter } from './question'
 import { candidateEmailRouter } from './candidate-email'
-import { blueAIAnalysisRouter } from './blueai-analysis'
+import { auntyPelzAnalysisRouter } from './auntypelz-analysis'
 import { publicPagesRouter } from './public-pages'
 import { webflowRouter } from './webflow'
 import { advisorRouter } from './advisor'
@@ -71,7 +71,7 @@ export const appRouter = router({
   hiringFlow: hiringFlowRouter,
   question: questionRouter,
   candidateEmail: candidateEmailRouter,
-  blueAIAnalysis: blueAIAnalysisRouter,
+  auntyPelzAnalysis: auntyPelzAnalysisRouter,
   publicPages: publicPagesRouter,
   webflow: webflowRouter,
   advisor: advisorRouter,

@@ -48,29 +48,29 @@ import {
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
 
-interface BlueAIAnalysisTabProps {
+interface AuntyPelzAnalysisTabProps {
   candidateId: string
   candidateName: string
 }
 
-export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysisTabProps) {
+export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAnalysisTabProps) {
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null)
   const [showAllVersions, setShowAllVersions] = useState(false)
 
   // Fetch latest analysis
   const { data: latestAnalysis, isLoading: latestLoading, refetch: refetchLatest } =
-    trpc.blueAIAnalysis.getLatestAnalysis.useQuery({ candidateId })
+    trpc.auntyPelzAnalysis.getLatestAnalysis.useQuery({ candidateId })
 
   // Fetch all versions
   const { data: versions, refetch: refetchVersions } =
-    trpc.blueAIAnalysis.listVersions.useQuery({ candidateId, limit: 20 })
+    trpc.auntyPelzAnalysis.listVersions.useQuery({ candidateId, limit: 20 })
 
   // Fetch sentiment history
   const { data: sentimentHistory } =
-    trpc.blueAIAnalysis.getSentimentHistory.useQuery({ candidateId })
+    trpc.auntyPelzAnalysis.getSentimentHistory.useQuery({ candidateId })
 
   // Regenerate mutation
-  const regenerate = trpc.blueAIAnalysis.regenerateLatest.useMutation({
+  const regenerate = trpc.auntyPelzAnalysis.regenerateLatest.useMutation({
     onSuccess: () => {
       refetchLatest()
       refetchVersions()
@@ -78,7 +78,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
   })
 
   // Generate new analysis mutation
-  const generateAnalysis = trpc.blueAIAnalysis.generateAnalysis.useMutation({
+  const generateAnalysis = trpc.auntyPelzAnalysis.generateAnalysis.useMutation({
     onSuccess: () => {
       refetchLatest()
       refetchVersions()
@@ -91,7 +91,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
     : latestAnalysis
 
   // Get full analysis if version selected
-  const { data: fullAnalysis } = trpc.blueAIAnalysis.getById.useQuery(
+  const { data: fullAnalysis } = trpc.auntyPelzAnalysis.getById.useQuery(
     { id: selectedVersionId! },
     { enabled: !!selectedVersionId }
   )
@@ -180,7 +180,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
           <Sparkles className="h-12 w-12 text-indigo-300 mb-4" />
           <h3 className="font-medium text-lg mb-2">No Analysis Yet</h3>
           <p className="text-sm text-muted-foreground text-center mb-4 max-w-md">
-            Generate a BlueAI analysis of {candidateName}'s candidacy to get insights,
+            Generate an AuntyPelz analysis of {candidateName}'s candidacy to get insights,
             recommendations, and scoring.
           </p>
           <div className="flex gap-2">
