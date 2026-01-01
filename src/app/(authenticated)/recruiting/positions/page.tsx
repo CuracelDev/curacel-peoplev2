@@ -29,15 +29,15 @@ import { PageActions } from '@/components/layout/page-actions'
 function getJobIcon(department?: string | null) {
   const dept = department?.toLowerCase() || ''
   if (dept.includes('engineer') || dept.includes('tech') || dept.includes('dev')) {
-    return <Code className="h-6 w-6" />
+    return <Code className="h-7 w-7" />
   }
   if (dept.includes('design') || dept.includes('product')) {
-    return <Palette className="h-6 w-6" />
+    return <Palette className="h-7 w-7" />
   }
   if (dept.includes('growth') || dept.includes('sales') || dept.includes('market')) {
-    return <TrendingUp className="h-6 w-6" />
+    return <TrendingUp className="h-7 w-7" />
   }
-  return <Briefcase className="h-6 w-6" />
+  return <Briefcase className="h-7 w-7" />
 }
 
 function getJobIconBg(department?: string | null) {
@@ -82,15 +82,15 @@ const PRIORITY_BADGES: Record<number, { label: string; className: string }> = {
 
 // Score circle component for displaying average candidate score
 function ScoreCircle({ score }: { score: number }) {
-  const size = 128
+  const size = 112
   const strokeWidth = 12
-  const radius = 44
+  const radius = 42
   const normalizedScore = Math.min(Math.max(score, 0), 100)
   const circumference = 2 * Math.PI * radius
   const strokeDashoffset = circumference - (normalizedScore / 100) * circumference
 
   return (
-    <div className="relative w-32 h-32 flex-shrink-0">
+    <div className="relative w-28 h-28 flex-shrink-0">
       <svg className="w-full h-full -rotate-90" viewBox={`0 0 ${size} ${size}`}>
         <circle
           cx={size / 2}
@@ -112,9 +112,9 @@ function ScoreCircle({ score }: { score: number }) {
           strokeDashoffset={strokeDashoffset}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-        <span className="text-3xl font-semibold text-foreground">{score}</span>
-        <span className="text-sm text-muted-foreground">avg score</span>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-[28px] font-semibold leading-none text-foreground">{score}</span>
+        <span className="mt-1 text-sm leading-none text-muted-foreground">avg score</span>
       </div>
     </div>
   )
@@ -214,15 +214,15 @@ export default function PositionsPage() {
               <Link
                 key={job.id}
                 href={`/recruiting/positions/${job.id}/candidates`}
-                className="bg-card border border-border rounded-xl p-4 sm:p-5 flex gap-3 sm:gap-5 transition-all hover:border-indigo-500 hover:shadow-md"
+                className="bg-card border border-border rounded-xl p-5 sm:p-6 flex gap-4 sm:gap-6 transition-all hover:border-indigo-500 hover:shadow-md"
               >
-                <div className={cn('hidden sm:flex w-12 h-12 rounded-lg items-center justify-center text-white flex-shrink-0', getJobIconBg(job.department))}>
+                <div className={cn('hidden sm:flex w-14 h-14 rounded-xl items-center justify-center text-white flex-shrink-0', getJobIconBg(job.department))}>
                   {getJobIcon(job.department)}
                 </div>
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
-                    <h3 className="text-lg font-semibold">
+                    <h3 className="text-xl sm:text-[22px] font-semibold tracking-tight">
                       {job.title}
                       {job.hiresCount > 1 ? ` (${job.hiresCount})` : ''}
                     </h3>
@@ -237,52 +237,52 @@ export default function PositionsPage() {
                   </div>
 
                   {/* Job Meta */}
-                  <div className="flex gap-4 mt-3 flex-wrap">
+                  <div className="flex gap-5 mt-2.5 flex-wrap">
                     {job.department && (
-                      <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                        <Briefcase className="h-3.5 w-3.5" />
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Briefcase className="h-4 w-4" />
                         {job.department}
                       </div>
                     )}
-                    <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                      <MapPin className="h-3.5 w-3.5" />
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
                       {getLocationSummary(job.locations)}
                     </div>
-                    <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                      <Calendar className="h-3.5 w-3.5" />
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="h-4 w-4" />
                       Posted {formatDate(job.createdAt)}
                     </div>
                     {job.deadline && (
-                      <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                        <Clock className="h-3.5 w-3.5" />
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="h-4 w-4" />
                         Deadline {formatDate(job.deadline)}
                       </div>
                     )}
                   </div>
 
                   {/* Job Stats */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-6 mt-4 pt-4 border-t border-border">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 sm:gap-10 mt-5 pt-5 border-t border-border">
                     <div className="text-center">
-                      <div className="text-lg sm:text-xl font-semibold text-foreground">{stats.applicants}</div>
-                      <div className="text-xs text-muted-foreground">Applicants</div>
+                      <div className="text-xl sm:text-2xl font-semibold leading-none text-foreground">{stats.applicants}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">Applicants</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg sm:text-xl font-semibold text-foreground">{stats.inReview}</div>
-                      <div className="text-xs text-muted-foreground">In Review</div>
+                      <div className="text-xl sm:text-2xl font-semibold leading-none text-foreground">{stats.inReview}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">In Review</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg sm:text-xl font-semibold text-foreground">{stats.interviewing}</div>
-                      <div className="text-xs text-muted-foreground">Interviewing</div>
+                      <div className="text-xl sm:text-2xl font-semibold leading-none text-foreground">{stats.interviewing}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">Interviewing</div>
                     </div>
                     <div className="text-center">
-                      <div className="text-lg sm:text-xl font-semibold text-foreground">{stats.offerStage}</div>
-                      <div className="text-xs text-muted-foreground">Offer Stage</div>
+                      <div className="text-xl sm:text-2xl font-semibold leading-none text-foreground">{stats.offerStage}</div>
+                      <div className="mt-1 text-sm text-muted-foreground">Offer Stage</div>
                     </div>
                   </div>
                 </div>
 
                 {/* Score Circle */}
-                <div className="hidden sm:flex flex-col items-end justify-center">
+                <div className="hidden sm:flex flex-col items-end justify-start self-start pt-1">
                   <ScoreCircle score={stats.avgScore} />
                 </div>
               </Link>
