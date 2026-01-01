@@ -97,6 +97,7 @@ export function ScheduleInterviewDialog({
 
   // Popover states
   const [interviewerOpen, setInterviewerOpen] = useState(false)
+  const [candidateOpen, setCandidateOpen] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [candidateSearch, setCandidateSearch] = useState('')
   const [interviewerSearch, setInterviewerSearch] = useState('')
@@ -145,6 +146,18 @@ export function ScheduleInterviewDialog({
     enabled: open && calendarConfig?.configured && interviewerEmails.length > 0 && schedulingMode === 'suggested',
   })
 
+  // Get busy times for visual calendar (when 2+ interviewers selected)
+  const {
+    data: busyTimesData,
+    isLoading: busyTimesLoading,
+  } = trpc.interview.getInterviewerAvailability.useQuery({
+    emails: interviewerEmails,
+    dateFrom: dateRangeStart.toISOString(),
+    dateTo: dateRangeEnd.toISOString(),
+  }, {
+    enabled: open && calendarConfig?.configured && interviewerEmails.length >= 2 && schedulingMode === 'suggested',
+  })
+
   // Schedule interview mutation
   const utils = trpc.useUtils()
   const scheduleMutation = trpc.interview.schedule.useMutation({
@@ -183,6 +196,11 @@ export function ScheduleInterviewDialog({
   const selectedType = useMemo(() => {
     return interviewTypesData?.find(t => t.id === interviewTypeId)
   }, [interviewTypesData, interviewTypeId])
+
+  // Get selected candidate info
+  const selectedCandidate = useMemo(() => {
+    return candidatesData?.candidates?.find(c => c.id === selectedCandidateId)
+  }, [candidatesData?.candidates, selectedCandidateId])
 
   // Update duration when interview type changes
   const handleInterviewTypeChange = (value: string) => {
@@ -301,48 +319,79 @@ export function ScheduleInterviewDialog({
         <div className="grid gap-4 py-4">
           {/* Candidate Selection */}
           <div className="grid gap-2">
-            <Label htmlFor="candidate">Candidate *</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="candidateSearch"
-                placeholder="Search candidates..."
-                className="pl-9"
-                value={candidateSearch}
-                onChange={(e) => setCandidateSearch(e.target.value)}
-                disabled={!!preselectedCandidateId}
-              />
-            </div>
-            <Select
-              value={selectedCandidateId}
-              onValueChange={setSelectedCandidateId}
-              disabled={!!preselectedCandidateId}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder={candidatesLoading ? 'Loading candidates...' : 'Select candidate...'} />
-              </SelectTrigger>
-              <SelectContent>
-                {candidatesLoading ? (
-                  <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading candidates...
-                  </div>
-                ) : (
-                  <>
-                    {candidatesData?.candidates?.map((candidate) => (
-                      <SelectItem key={candidate.id} value={candidate.id}>
-                        {candidate.name} - {candidate.job?.title || 'No position'}
-                      </SelectItem>
-                    ))}
-                    {(!candidatesData?.candidates || candidatesData.candidates.length === 0) && (
-                      <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                        {candidateSearch ? 'No candidates found' : 'No candidates available'}
-                      </div>
-                    )}
-                  </>
-                )}
-              </SelectContent>
-            </Select>
+            <Label>Candidate *</Label>
+            {selectedCandidate ? (
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary" className="gap-1 py-1.5 px-3">
+                  <span>{selectedCandidate.name}</span>
+                  <span className="text-muted-foreground">-</span>
+                  <span className="text-muted-foreground text-xs">{selectedCandidate.job?.title || 'No position'}</span>
+                  {!preselectedCandidateId && (
+                    <button
+                      type="button"
+                      onClick={() => setSelectedCandidateId('')}
+                      className="ml-1 hover:text-destructive"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  )}
+                </Badge>
+              </div>
+            ) : (
+              <Popover open={candidateOpen} onOpenChange={setCandidateOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className="justify-start"
+                    disabled={!!preselectedCandidateId}
+                  >
+                    <Search className="mr-2 h-4 w-4" />
+                    {candidatesLoading ? 'Loading...' : 'Select candidate...'}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[350px] p-0" align="start">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search candidates..."
+                      value={candidateSearch}
+                      onValueChange={setCandidateSearch}
+                    />
+                    <CommandList>
+                      {candidatesLoading ? (
+                        <div className="flex items-center justify-center py-6">
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        </div>
+                      ) : (
+                        <>
+                          <CommandEmpty>No candidates found.</CommandEmpty>
+                          <CommandGroup>
+                            {candidatesData?.candidates?.map((candidate) => (
+                              <CommandItem
+                                key={candidate.id}
+                                value={`${candidate.name} ${candidate.job?.title || ''}`}
+                                onSelect={() => {
+                                  setSelectedCandidateId(candidate.id)
+                                  setCandidateOpen(false)
+                                  setCandidateSearch('')
+                                }}
+                                className="cursor-pointer"
+                              >
+                                <div className="flex flex-col">
+                                  <span>{candidate.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {candidate.job?.title || 'No position'}
+                                  </span>
+                                </div>
+                              </CommandItem>
+                            ))}
+                          </CommandGroup>
+                        </>
+                      )}
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            )}
           </div>
 
           {/* Interview Type */}
@@ -418,8 +467,9 @@ export function ScheduleInterviewDialog({
                             .map((employee) => (
                               <CommandItem
                                 key={employee.id}
-                                value={employee.id}
+                                value={`${employee.fullName} ${employee.jobTitle || ''}`}
                                 onSelect={() => addInterviewer(employee)}
+                                className="cursor-pointer"
                               >
                                 <div className="flex flex-col">
                                   <span>{employee.fullName}</span>
@@ -513,6 +563,35 @@ export function ScheduleInterviewDialog({
                       </Popover>
                     </div>
                   </div>
+
+                  {/* Visual Availability Calendar - shows when 2+ interviewers selected */}
+                  {interviewerEmails.length >= 2 && (
+                    <div className="border rounded-lg p-3 mb-4">
+                      <h4 className="text-sm font-medium mb-3 flex items-center gap-2">
+                        <CalendarCheckIcon className="h-4 w-4" />
+                        Availability Overview
+                      </h4>
+                      {busyTimesLoading ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          <span className="ml-2 text-sm text-muted-foreground">Loading calendars...</span>
+                        </div>
+                      ) : busyTimesData ? (
+                        <AvailabilityTimeline
+                          busyTimes={busyTimesData}
+                          interviewers={selectedInterviewers}
+                          dateRangeStart={dateRangeStart}
+                          dateRangeEnd={dateRangeEnd}
+                          onSelectSlot={(start) => {
+                            setDate(start)
+                            const hours = start.getHours().toString().padStart(2, '0')
+                            const minutes = start.getMinutes().toString().padStart(2, '0')
+                            setTime(`${hours}:${minutes}`)
+                          }}
+                        />
+                      ) : null}
+                    </div>
+                  )}
 
                   {/* Available Slots */}
                   {slotsLoading ? (
@@ -675,20 +754,27 @@ export function ScheduleInterviewDialog({
             </div>
           )}
 
-          {/* Meeting Link */}
-          <div className="grid gap-2">
-            <Label htmlFor="meetingLink">Meeting Link</Label>
-            <div className="relative">
-              <Video className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="meetingLink"
-                placeholder="https://meet.google.com/..."
-                className="pl-9"
-                value={meetingLink}
-                onChange={(e) => setMeetingLink(e.target.value)}
-              />
+          {/* Meeting Link - only show when auto-create is disabled or calendar not configured */}
+          {(!calendarConfig?.configured || !syncToCalendar || !createGoogleMeet) ? (
+            <div className="grid gap-2">
+              <Label htmlFor="meetingLink">Meeting Link</Label>
+              <div className="relative">
+                <Video className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="meetingLink"
+                  placeholder="https://meet.google.com/..."
+                  className="pl-9"
+                  value={meetingLink}
+                  onChange={(e) => setMeetingLink(e.target.value)}
+                />
+              </div>
             </div>
-          </div>
+          ) : (
+            <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm">
+              <Video className="h-4 w-4 text-green-600 dark:text-green-400" />
+              <span className="text-green-700 dark:text-green-300">Google Meet link will be auto-generated</span>
+            </div>
+          )}
 
           {/* Calendar Integration Options */}
           {calendarConfig?.configured && (
@@ -757,5 +843,182 @@ export function ScheduleInterviewDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  )
+}
+
+// Visual Availability Timeline Component
+interface AvailabilityTimelineProps {
+  busyTimes: Record<string, Array<{ start: Date | string; end: Date | string }>>
+  interviewers: Array<{ id: string; name: string; email: string }>
+  dateRangeStart: Date
+  dateRangeEnd: Date
+  onSelectSlot: (start: Date) => void
+}
+
+function AvailabilityTimeline({
+  busyTimes,
+  interviewers,
+  dateRangeStart,
+  dateRangeEnd,
+  onSelectSlot,
+}: AvailabilityTimelineProps) {
+  const hours = useMemo(() => {
+    // Generate hours from 9am to 5pm
+    const result = []
+    for (let h = 9; h <= 17; h++) {
+      result.push(h)
+    }
+    return result
+  }, [])
+
+  const days = useMemo(() => {
+    const result: Date[] = []
+    const current = new Date(dateRangeStart)
+    current.setHours(0, 0, 0, 0)
+    const end = new Date(dateRangeEnd)
+    end.setHours(23, 59, 59, 999)
+
+    while (current <= end) {
+      // Only include weekdays
+      if (current.getDay() !== 0 && current.getDay() !== 6) {
+        result.push(new Date(current))
+      }
+      current.setDate(current.getDate() + 1)
+    }
+    return result.slice(0, 5) // Limit to 5 days
+  }, [dateRangeStart, dateRangeEnd])
+
+  const isSlotBusy = (email: string, day: Date, hour: number): boolean => {
+    const busy = busyTimes[email] || []
+    const slotStart = new Date(day)
+    slotStart.setHours(hour, 0, 0, 0)
+    const slotEnd = new Date(day)
+    slotEnd.setHours(hour + 1, 0, 0, 0)
+
+    return busy.some((period) => {
+      const periodStart = new Date(period.start)
+      const periodEnd = new Date(period.end)
+      return (
+        (slotStart >= periodStart && slotStart < periodEnd) ||
+        (slotEnd > periodStart && slotEnd <= periodEnd) ||
+        (slotStart <= periodStart && slotEnd >= periodEnd)
+      )
+    })
+  }
+
+  const isSlotAvailableForAll = (day: Date, hour: number): boolean => {
+    return interviewers.every((i) => !isSlotBusy(i.email, day, hour))
+  }
+
+  const handleSlotClick = (day: Date, hour: number) => {
+    if (isSlotAvailableForAll(day, hour)) {
+      const selectedDate = new Date(day)
+      selectedDate.setHours(hour, 0, 0, 0)
+      onSelectSlot(selectedDate)
+    }
+  }
+
+  if (days.length === 0) {
+    return (
+      <div className="text-sm text-muted-foreground text-center py-2">
+        Select a date range to see availability
+      </div>
+    )
+  }
+
+  return (
+    <div className="overflow-x-auto">
+      <div className="min-w-[500px]">
+        {/* Header row with days */}
+        <div className="flex border-b">
+          <div className="w-24 shrink-0 text-xs font-medium text-muted-foreground p-1">
+            Time
+          </div>
+          {days.map((day) => (
+            <div
+              key={day.toISOString()}
+              className="flex-1 text-center text-xs font-medium p-1 border-l"
+            >
+              {format(day, 'EEE d')}
+            </div>
+          ))}
+        </div>
+
+        {/* Interviewer rows */}
+        {interviewers.map((interviewer) => (
+          <div key={interviewer.id} className="flex border-b">
+            <div className="w-24 shrink-0 text-xs p-1 truncate" title={interviewer.name}>
+              {interviewer.name.split(' ')[0]}
+            </div>
+            {days.map((day) => (
+              <div key={day.toISOString()} className="flex-1 flex border-l">
+                {hours.map((hour) => {
+                  const busy = isSlotBusy(interviewer.email, day, hour)
+                  return (
+                    <div
+                      key={hour}
+                      className={cn(
+                        "flex-1 h-4",
+                        busy
+                          ? "bg-red-200 dark:bg-red-900/40"
+                          : "bg-green-100 dark:bg-green-900/30"
+                      )}
+                      title={`${interviewer.name}: ${hour}:00 - ${busy ? 'Busy' : 'Free'}`}
+                    />
+                  )
+                })}
+              </div>
+            ))}
+          </div>
+        ))}
+
+        {/* Available slots row */}
+        <div className="flex">
+          <div className="w-24 shrink-0 text-xs font-medium p-1 text-green-700 dark:text-green-400">
+            All Free
+          </div>
+          {days.map((day) => (
+            <div key={day.toISOString()} className="flex-1 flex border-l">
+              {hours.map((hour) => {
+                const allFree = isSlotAvailableForAll(day, hour)
+                return (
+                  <button
+                    key={hour}
+                    type="button"
+                    onClick={() => handleSlotClick(day, hour)}
+                    disabled={!allFree}
+                    className={cn(
+                      "flex-1 h-6 text-[10px] transition-colors",
+                      allFree
+                        ? "bg-green-500 hover:bg-green-600 text-white cursor-pointer"
+                        : "bg-muted text-muted-foreground cursor-not-allowed"
+                    )}
+                    title={allFree ? `Book ${format(day, 'EEE')} at ${hour}:00` : 'Not available'}
+                  >
+                    {allFree && hour}
+                  </button>
+                )
+              })}
+            </div>
+          ))}
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center gap-4 mt-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-green-100 dark:bg-green-900/30 rounded" />
+            <span>Free</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-red-200 dark:bg-red-900/40 rounded" />
+            <span>Busy</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-3 h-3 bg-green-500 rounded" />
+            <span>Click to select</span>
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
