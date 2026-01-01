@@ -45,6 +45,7 @@ export function WebflowConfigSection({
   const [collectionId, setCollectionId] = useState('')
   const [autoPublish, setAutoPublish] = useState(false)
   const [autoSync, setAutoSync] = useState(false)
+  const [saveStatus, setSaveStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
 
   // Webflow queries
   const statusQuery = trpc.webflow.getStatus.useQuery()
@@ -67,11 +68,21 @@ export function WebflowConfigSection({
     onSuccess: () => {
       statusQuery.refetch()
       onSaveSuccess()
+      setSaveStatus({ type: 'success', message: 'Settings saved successfully!' })
+      setTimeout(() => setSaveStatus(null), 3000)
+    },
+    onError: (error) => {
+      setSaveStatus({ type: 'error', message: error.message || 'Failed to save settings' })
     },
   })
   const saveMappingsMutation = trpc.webflow.saveFieldMappings.useMutation({
     onSuccess: () => {
       mappingsQuery.refetch()
+      setSaveStatus({ type: 'success', message: 'Field mappings saved successfully!' })
+      setTimeout(() => setSaveStatus(null), 3000)
+    },
+    onError: (error) => {
+      setSaveStatus({ type: 'error', message: error.message || 'Failed to save field mappings' })
     },
   })
 
@@ -124,6 +135,18 @@ export function WebflowConfigSection({
 
   return (
     <div className="space-y-6">
+      {/* Save Status Feedback */}
+      {saveStatus && (
+        <div className={`flex items-center gap-2 p-3 rounded-lg ${saveStatus.type === 'success' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'}`}>
+          {saveStatus.type === 'success' ? (
+            <CheckCircle2 className="h-4 w-4" />
+          ) : (
+            <AlertCircle className="h-4 w-4" />
+          )}
+          <span className="text-sm">{saveStatus.message}</span>
+        </div>
+      )}
+
       {/* API Token Configuration */}
       <div className="grid gap-4">
         <div className="grid gap-2">
