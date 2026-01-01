@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { trpc } from '@/lib/trpc-client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -20,35 +19,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Archive, CheckCircle2, ExternalLink, Plus, Plug, RotateCcw, XCircle } from 'lucide-react'
+import { Archive, CheckCircle2, ExternalLink, Plus, RotateCcw, XCircle } from 'lucide-react'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
-
-function getAppIcon(type: string, iconUrl?: string | null) {
-  const commonProps = { width: 32, height: 32, className: 'h-8 w-8 object-contain' }
-  switch (type) {
-    case 'GOOGLE_WORKSPACE':
-      return <Image src="/logos/google-workspace.png" alt="Google Workspace" {...commonProps} />
-    case 'SLACK':
-      return <Image src="/logos/slack.png" alt="Slack" {...commonProps} />
-    case 'BITBUCKET':
-      return <Image src="/logos/bitbucket.png" alt="Bitbucket" {...commonProps} />
-    case 'JIRA':
-      return <Image src="/logos/jira.png" alt="Jira" {...commonProps} />
-    case 'PASSBOLT':
-      return <Image src="/logos/passbolt.png" alt="Passbolt" {...commonProps} />
-    case 'HUBSPOT':
-      return <Image src="/logos/hubspot.png" alt="HubSpot" {...commonProps} />
-    case 'STANDUPNINJA':
-      return <Image src="/logos/standupninja.png" alt="StandupNinja" {...commonProps} />
-    case 'FIREFLIES':
-      return <Image src="/logos/fireflies.png" alt="Fireflies.ai" {...commonProps} />
-    case 'WEBFLOW':
-      return <Image src="/logos/webflow.svg" alt="Webflow" {...commonProps} />
-    default:
-      if (iconUrl) return <Image src={iconUrl} alt={type} {...commonProps} />
-      return <Plug className="h-8 w-8 text-muted-foreground" />
-  }
-}
+import { AppIcon } from '@/components/ui/app-icon'
 
 function statusBadge(hasConnection: boolean, isEnabled: boolean) {
   if (!hasConnection) return <Badge variant="secondary">Not connected</Badge>
@@ -236,7 +209,7 @@ export default function ApplicationsSettingsPage() {
                   return (
                     <div key={app.id} className="flex items-center justify-between gap-4 rounded-lg border p-4">
                       <div className="flex items-center gap-3 min-w-0">
-                        {getAppIcon(app.type, app.iconUrl)}
+                        <AppIcon type={app.type} iconUrl={app.iconUrl} />
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="font-medium text-foreground truncate">{app.name}</p>
@@ -299,7 +272,7 @@ export default function ApplicationsSettingsPage() {
                   return (
                     <div key={app.id} className="flex items-center justify-between gap-4 rounded-lg border p-4">
                       <div className="flex items-center gap-3 min-w-0">
-                        {getAppIcon(app.type, app.iconUrl)}
+                        <AppIcon type={app.type} iconUrl={app.iconUrl} />
                         <div className="min-w-0">
                           <div className="flex items-center gap-2">
                             <p className="font-medium text-foreground truncate">{app.name}</p>
@@ -383,7 +356,7 @@ export default function ApplicationsSettingsPage() {
                 archivedApps.map((app) => (
                   <div key={app.id} className="flex items-center justify-between gap-4 rounded-lg border p-4">
                     <div className="flex items-center gap-3 min-w-0">
-                      {getAppIcon(app.type, app.iconUrl)}
+                      <AppIcon type={app.type} iconUrl={app.iconUrl} />
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="font-medium text-foreground truncate">{app.name}</p>
