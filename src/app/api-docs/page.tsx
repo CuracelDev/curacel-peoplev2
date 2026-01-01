@@ -450,16 +450,16 @@ export default function ApiDocsPage() {
               </div>
 
               <div className="space-y-2">
-                <h4 className="font-semibold">Recruiting Settings (tRPC)</h4>
+                <h4 className="font-semibold">Hiring Settings (tRPC)</h4>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-amber-600">POST</Badge>
-                  <code>/api/trpc/recruitingSettings.update</code>
-                  <span className="text-muted-foreground">— update recruiting settings</span>
+                  <code>/api/trpc/hiringSettings.update</code>
+                  <span className="text-muted-foreground">— update hiring settings (General Settings)</span>
                 </div>
               </div>
 
               <div className="rounded bg-gray-900 p-3 text-xs text-gray-100">
-                <pre>{`// Recruiting settings update (tRPC input)
+                <pre>{`// Hiring settings update (tRPC input)
 {
   "jobScoreDisplay": "average", // "average" | "max"
   "candidateScoreWeights": [

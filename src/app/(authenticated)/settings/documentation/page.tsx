@@ -562,7 +562,7 @@ const docSections: DocSection[] = [
       {
         title: 'Where to configure',
         items: [
-          'Go to Recruiting > Settings > Candidate Scoring.',
+          'Go to Settings > Hiring > Candidate Scoring.',
           'Enable or disable score inputs based on your process.',
         ],
       },

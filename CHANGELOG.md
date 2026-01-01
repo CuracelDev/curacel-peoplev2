@@ -22,7 +22,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Configure weighted inputs for overall candidate scores in Recruiting Settings
   - Missing profile data is excluded from the weighted calculation
 - **Job List Score Display**
-  - Toggle between average and max score for the jobs list donut in Recruiting Settings
+  - Toggle between average and max score for the jobs list donut in Hiring General Settings
+- **Hiring General Settings**
+  - New Hiring settings page for shared defaults like jobs list score display
 - **Job Settings section in Administration**
   - New parent settings page (`/settings/job-settings`) grouping job-related configurations
   - Contains Job Descriptions and Interview Settings
@@ -134,7 +136,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Removed Role Objectives from Create Job (handled in JD instead)
 - Renamed Automation section to Blue AI Actions in Create Job
 - Candidates list now filters by team and date, and Alumni is renamed to Archived (including stage value and route)
-- Candidate scoring settings now deep-link to the jobs list score display control from Hiring settings
 
 ### Fixed
 - Voice transcription now works on Node.js versions below 20 (uses temp file approach)
