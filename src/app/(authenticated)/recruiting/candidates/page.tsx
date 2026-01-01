@@ -46,7 +46,8 @@ import {
   XCircle,
   AlertCircle,
   Sparkles,
-  GraduationCap,
+  Archive,
+  ExternalLink,
 } from 'lucide-react'
 import {
   DropdownMenu,
@@ -56,7 +57,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { cn, getInitials } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
-import { format, formatDistanceToNow, subDays, subMonths, startOfDay, endOfDay } from 'date-fns'
+import { format, formatDistanceToNow, startOfDay, endOfDay, startOfWeek, startOfMonth, startOfQuarter } from 'date-fns'
 
 type SortOption = 'score-desc' | 'score-asc' | 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc'
 type DateFilter = 'all' | 'today' | 'week' | 'month' | 'quarter'
@@ -71,8 +72,17 @@ const stageStyles: Record<string, string> = {
   'CEO_CHAT': 'bg-purple-100 text-purple-700',
   'OFFER': 'bg-pink-100 text-pink-700',
   'HIRED': 'bg-emerald-100 text-emerald-700',
-  'ALUMNI': 'bg-slate-100 text-slate-700',
+  'ARCHIVED': 'bg-slate-100 text-slate-700',
 }
+
+const defaultStageCards = [
+  { key: 'all', label: 'All', stageKeys: [] as string[] },
+  { key: 'applied', label: 'Applied', stageKeys: ['APPLIED'] },
+  { key: 'hrScreen', label: 'People Chat', stageKeys: ['HR_SCREEN'] },
+  { key: 'technical', label: 'Coding Test', stageKeys: ['TECHNICAL'] },
+  { key: 'panel', label: 'Team Chat', stageKeys: ['TEAM_CHAT', 'PANEL'] },
+  { key: 'offer', label: 'Offer', stageKeys: ['OFFER'] },
+]
 
 function getScoreColor(score: number | null) {
   if (!score) return 'text-muted-foreground bg-muted/50'
@@ -130,8 +140,7 @@ export default function CandidatesPage() {
   const searchParams = useSearchParams()
   const addParam = searchParams.get('add')
 
-  // Fetch hiring flows for team filter
-  const { data: hiringFlows } = trpc.hiringFlow.list.useQuery()
+  const { data: teams } = trpc.team.listForSelect.useQuery()
   const parseUpload = trpc.job.parseUploadForBulkImport.useMutation()
   const bulkImport = trpc.job.bulkImportCandidates.useMutation()
 
@@ -149,11 +158,32 @@ export default function CandidatesPage() {
                       activeFilter === 'panel' ? 'TEAM_CHAT' as const :
                       activeFilter === 'offer' ? 'OFFER' as const : undefined
 
+  const dateRange = useMemo(() => {
+    if (dateFilter === 'all') return null
+    const now = new Date()
+
+    switch (dateFilter) {
+      case 'today':
+        return { from: startOfDay(now), to: endOfDay(now) }
+      case 'week':
+        return { from: startOfWeek(now, { weekStartsOn: 1 }), to: endOfDay(now) }
+      case 'month':
+        return { from: startOfMonth(now), to: endOfDay(now) }
+      case 'quarter':
+        return { from: startOfQuarter(now), to: endOfDay(now) }
+      default:
+        return null
+    }
+  }, [dateFilter])
+
   // Fetch candidates from database
   const { data: candidatesData, isLoading } = trpc.job.getAllCandidates.useQuery({
     stage: stageFilter,
     search: searchQuery || undefined,
-    includeAlumni: searchQuery ? true : undefined, // Include alumni when searching
+    department: teamFilter === 'all' ? undefined : teamFilter,
+    appliedFrom: dateRange?.from,
+    appliedTo: dateRange?.to,
+    includeArchived: searchQuery ? true : undefined, // Include archived when searching
     sortBy,
     sortOrder,
     limit: 50,
@@ -164,56 +194,7 @@ export default function CandidatesPage() {
   const total = candidatesData?.total || 0
   const byStageCounts = candidatesData?.byStageCounts || {}
 
-  // Get the selected hiring flow stages
-  const selectedFlow = useMemo(() => {
-    if (teamFilter === 'all' || !hiringFlows) return null
-    return hiringFlows.find((f) => f.id === teamFilter)
-  }, [teamFilter, hiringFlows])
-
-  // Stage name to key mapping
-  const stageNameToKey: Record<string, string> = {
-    'Applied': 'APPLIED',
-    'People Chat': 'HR_SCREEN',
-    'HR Screen': 'HR_SCREEN',
-    'Coding Test': 'TECHNICAL',
-    'Technical': 'TECHNICAL',
-    'Team Chat': 'TEAM_CHAT',
-    'Panel': 'PANEL',
-    'Trial': 'TRIAL',
-    'CEO Chat': 'CEO_CHAT',
-    'Offer': 'OFFER',
-    'Hired': 'HIRED',
-  }
-
-  // Build dynamic stage cards based on selected flow or default
-  const stageCards = useMemo(() => {
-    const defaultCards = [
-      { key: 'all', label: 'All', stageKeys: [] as string[] },
-      { key: 'applied', label: 'Applied', stageKeys: ['APPLIED'] },
-      { key: 'hrScreen', label: 'People Chat', stageKeys: ['HR_SCREEN'] },
-      { key: 'technical', label: 'Coding Test', stageKeys: ['TECHNICAL'] },
-      { key: 'panel', label: 'Team Chat', stageKeys: ['TEAM_CHAT', 'PANEL'] },
-      { key: 'offer', label: 'Offer', stageKeys: ['OFFER'] },
-    ]
-
-    if (!selectedFlow) return defaultCards
-
-    // Build cards from the selected flow's stages
-    const cards: { key: string; label: string; stageKeys: string[] }[] = [
-      { key: 'all', label: 'All', stageKeys: [] },
-    ]
-
-    for (const stageName of selectedFlow.stages) {
-      const stageKey = stageNameToKey[stageName] || stageName.toUpperCase().replace(/\s+/g, '_')
-      cards.push({
-        key: stageKey.toLowerCase(),
-        label: stageName,
-        stageKeys: [stageKey],
-      })
-    }
-
-    return cards
-  }, [selectedFlow])
+  const stageCards = useMemo(() => defaultStageCards, [])
 
   // Calculate stage counts dynamically
   const stageCounts = useMemo(() => {
@@ -375,21 +356,6 @@ export default function CandidatesPage() {
     <div className="space-y-6">
       <PageActions>
         <div className="flex flex-wrap items-center gap-3">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="icon">
-                <MoreVertical className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem asChild>
-                <Link href="/recruiting/candidates/alumni" className="flex items-center">
-                  <GraduationCap className="mr-2 h-4 w-4" />
-                  Alumni (Talent Pool)
-                </Link>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
           <Select value={teamFilter} onValueChange={setTeamFilter}>
             <SelectTrigger className="w-[160px]">
               <Users className="h-4 w-4 mr-2" />
@@ -397,9 +363,9 @@ export default function CandidatesPage() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Teams</SelectItem>
-              {hiringFlows?.map((flow) => (
-                <SelectItem key={flow.id} value={flow.id}>
-                  {flow.name}
+              {(teams || []).map((team) => (
+                <SelectItem key={team.id} value={team.name}>
+                  {team.displayName}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -417,6 +383,21 @@ export default function CandidatesPage() {
               <SelectItem value="quarter">This Quarter</SelectItem>
             </SelectContent>
           </Select>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="icon">
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href="/recruiting/candidates/archived" className="flex items-center">
+                  <Archive className="mr-2 h-4 w-4" />
+                  Archived (Talent Pool)
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </PageActions>
 
@@ -915,7 +896,25 @@ export default function CandidatesPage() {
                             {getInitials(candidate.name)}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="font-medium text-foreground">{candidate.name}</span>
+                        <div className="flex flex-col">
+                          <span className="font-medium text-foreground">{candidate.name}</span>
+                          {candidate.email && (
+                            candidate.linkedinUrl ? (
+                              <a
+                                href={candidate.linkedinUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
+                                onClick={(e) => e.stopPropagation()}
+                              >
+                                {candidate.email}
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">{candidate.email}</span>
+                            )
+                          )}
+                        </div>
                       </Link>
                     </td>
                     <td className="py-3 px-4">

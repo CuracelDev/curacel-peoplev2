@@ -21,6 +21,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Candidate Scoring Settings**
   - Configure weighted inputs for overall candidate scores in Recruiting Settings
   - Missing profile data is excluded from the weighted calculation
+- **Job List Score Display**
+  - Toggle between average and max score for the jobs list donut in Recruiting Settings
 - **Job Settings section in Administration**
   - New parent settings page (`/settings/job-settings`) grouping job-related configurations
   - Contains Job Descriptions and Interview Settings
@@ -131,6 +133,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Replaced Remote OK with Location input, added region support and Nairobi suggestion
 - Removed Role Objectives from Create Job (handled in JD instead)
 - Renamed Automation section to Blue AI Actions in Create Job
+- Candidates list now filters by team and date, and Alumni is renamed to Archived (including stage value and route)
 
 ### Fixed
 - Voice transcription now works on Node.js versions below 20 (uses temp file approach)
@@ -143,6 +146,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off
+- Candidate profile no longer crashes when BlueAI analysis lists contain object entries
 
 ## [December 2024]
 

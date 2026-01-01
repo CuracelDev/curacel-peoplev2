@@ -98,6 +98,37 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
 
   const displayAnalysis = selectedVersionId ? fullAnalysis : latestAnalysis
 
+  const normalizeTextList = (items: unknown): string[] => {
+    if (!Array.isArray(items)) return []
+
+    return items
+      .map((item) => {
+        if (typeof item === 'string') return item
+        if (item && typeof item === 'object') {
+          const record = item as Record<string, unknown>
+          const primary =
+            (typeof record.title === 'string' && record.title) ||
+            (typeof record.name === 'string' && record.name) ||
+            (typeof record.label === 'string' && record.label) ||
+            (typeof record.question === 'string' && record.question) ||
+            (typeof record.risk === 'string' && record.risk) ||
+            (typeof record.text === 'string' && record.text) ||
+            ''
+          const secondary =
+            (typeof record.description === 'string' && record.description) ||
+            (typeof record.mitigation === 'string' && record.mitigation) ||
+            ''
+
+          if (primary && secondary) return `${primary}: ${secondary}`
+          return primary || secondary
+        }
+
+        return ''
+      })
+      .map((value) => value.trim())
+      .filter(Boolean)
+  }
+
   // Get recommendation styling
   const getRecommendationStyle = (rec: string) => {
     switch (rec) {
@@ -187,6 +218,11 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
 
   const recStyle = getRecommendationStyle(displayAnalysis.recommendation)
   const RecIcon = recStyle.icon
+  const strengths = normalizeTextList(displayAnalysis.strengths)
+  const concerns = normalizeTextList(displayAnalysis.concerns)
+  const mustValidatePoints = normalizeTextList(displayAnalysis.mustValidatePoints)
+  const nextStageQuestions = normalizeTextList(displayAnalysis.nextStageQuestions)
+  const recommendations = normalizeTextList(displayAnalysis.recommendations)
 
   return (
     <div className="space-y-6">
@@ -274,7 +310,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {(displayAnalysis.strengths as string[] || []).map((strength, i) => (
+                  {strengths.map((strength, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
                       <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-green-500 flex-shrink-0" />
                       <span>{strength}</span>
@@ -293,7 +329,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {(displayAnalysis.concerns as string[] || []).map((concern, i) => (
+                  {concerns.map((concern, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
                       <AlertTriangle className="h-3.5 w-3.5 mt-0.5 text-amber-500 flex-shrink-0" />
                       <span>{concern}</span>
@@ -305,7 +341,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
           </div>
 
           {/* Must Validate Points */}
-          {displayAnalysis.mustValidatePoints && (displayAnalysis.mustValidatePoints as string[]).length > 0 && (
+          {mustValidatePoints.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -316,7 +352,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {(displayAnalysis.mustValidatePoints as string[]).map((point, i) => (
+                  {mustValidatePoints.map((point, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
                       <ArrowRight className="h-3.5 w-3.5 mt-0.5 text-blue-500 flex-shrink-0" />
                       <span>{point}</span>
@@ -328,7 +364,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
           )}
 
           {/* Next Stage Questions */}
-          {displayAnalysis.nextStageQuestions && (displayAnalysis.nextStageQuestions as string[]).length > 0 && (
+          {nextStageQuestions.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -338,7 +374,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {(displayAnalysis.nextStageQuestions as string[]).map((question, i) => (
+                  {nextStageQuestions.map((question, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
                       <span className="font-mono text-xs text-muted-foreground w-4">{i + 1}.</span>
                       <span>{question}</span>
@@ -350,7 +386,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
           )}
 
           {/* Recommendations */}
-          {displayAnalysis.recommendations && (displayAnalysis.recommendations as string[]).length > 0 && (
+          {recommendations.length > 0 && (
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm flex items-center gap-2">
@@ -360,7 +396,7 @@ export function BlueAIAnalysisTab({ candidateId, candidateName }: BlueAIAnalysis
               </CardHeader>
               <CardContent>
                 <ul className="space-y-2">
-                  {(displayAnalysis.recommendations as string[]).map((rec, i) => (
+                  {recommendations.map((rec, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
                       <Lightbulb className="h-3.5 w-3.5 mt-0.5 text-indigo-500 flex-shrink-0" />
                       <span>{rec}</span>

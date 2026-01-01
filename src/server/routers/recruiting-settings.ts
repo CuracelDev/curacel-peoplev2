@@ -11,6 +11,7 @@ export const recruitingSettingsRouter = router({
     const normalizedScoreWeights = normalizeCandidateScoreWeights(
       settings?.candidateScoreWeights as ReturnType<typeof normalizeCandidateScoreWeights> | null
     )
+    const jobScoreDisplay = settings?.jobScoreDisplay || 'average'
 
     // Create if doesn't exist
     if (!settings) {
@@ -18,13 +19,15 @@ export const recruitingSettingsRouter = router({
         data: {
           organizationId: 'default',
           candidateScoreWeights: normalizedScoreWeights,
+          jobScoreDisplay,
         },
       })
-    } else if (!settings.candidateScoreWeights) {
+    } else if (!settings.candidateScoreWeights || !settings.jobScoreDisplay) {
       settings = await ctx.prisma.recruitingSettings.update({
         where: { id: settings.id },
         data: {
           candidateScoreWeights: normalizedScoreWeights,
+          jobScoreDisplay,
         },
       })
     }
@@ -32,6 +35,7 @@ export const recruitingSettingsRouter = router({
     return {
       ...settings,
       candidateScoreWeights: normalizedScoreWeights,
+      jobScoreDisplay,
     }
   }),
 
@@ -59,6 +63,7 @@ export const recruitingSettingsRouter = router({
             enabled: z.boolean(),
           })
         ).optional(),
+        jobScoreDisplay: z.enum(['average', 'max']).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

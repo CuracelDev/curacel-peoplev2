@@ -81,7 +81,7 @@ const PRIORITY_BADGES: Record<number, { label: string; className: string }> = {
 }
 
 // Score circle component for displaying average candidate score
-function ScoreCircle({ score }: { score: number }) {
+function ScoreCircle({ score, label }: { score: number; label: string }) {
   const normalizedScore = Math.min(Math.max(score, 0), 100)
 
   return (
@@ -93,7 +93,7 @@ function ScoreCircle({ score }: { score: number }) {
     >
       <div className="flex h-[100px] w-[100px] flex-col items-center justify-center rounded-full bg-white">
         <span className="text-[32px] font-bold leading-none text-foreground">{score}</span>
-        <span className="mt-0.5 text-[12px] leading-none text-muted-foreground">avg score</span>
+        <span className="mt-0.5 text-[12px] leading-none text-muted-foreground">{label}</span>
       </div>
     </div>
   )
@@ -103,9 +103,11 @@ export default function PositionsPage() {
   const { data: teams } = trpc.team.listForSelect.useQuery()
   const { data: jobs, isLoading } = trpc.job.list.useQuery()
   const { data: counts } = trpc.job.getCounts.useQuery()
+  const { data: recruitingSettings } = trpc.recruitingSettings.get.useQuery()
 
   const [filter, setFilter] = useState<FilterStatus>('all')
   const [department, setDepartment] = useState('all')
+  const scoreDisplay = recruitingSettings?.jobScoreDisplay ?? 'average'
 
   const filteredJobs = (jobs || []).filter((job) => {
     if (filter !== 'all' && job.status !== filter) return false
@@ -187,7 +189,10 @@ export default function PositionsPage() {
               interviewing: 0,
               offerStage: 0,
               avgScore: 0,
+              maxScore: 0,
             }
+            const scoreValue = scoreDisplay === 'max' ? stats.maxScore : stats.avgScore
+            const scoreLabel = scoreDisplay === 'max' ? 'max score' : 'avg score'
 
             return (
               <Link
@@ -262,7 +267,7 @@ export default function PositionsPage() {
 
                 {/* Score Circle */}
                 <div className="hidden sm:flex flex-col items-end justify-start">
-                  <ScoreCircle score={stats.avgScore} />
+                  <ScoreCircle score={scoreValue} label={scoreLabel} />
                 </div>
               </Link>
             )

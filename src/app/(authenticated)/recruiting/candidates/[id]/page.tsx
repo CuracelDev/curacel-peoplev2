@@ -49,6 +49,35 @@ import { toast } from 'sonner'
 const normalizeStageKey = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, '')
 
+const normalizeTextList = (items: unknown): string[] => {
+  if (!Array.isArray(items)) return []
+
+  return items
+    .map((item) => {
+      if (typeof item === 'string') return item
+      if (item && typeof item === 'object') {
+        const record = item as Record<string, unknown>
+        const primary =
+          (typeof record.title === 'string' && record.title) ||
+          (typeof record.name === 'string' && record.name) ||
+          (typeof record.label === 'string' && record.label) ||
+          (typeof record.question === 'string' && record.question) ||
+          (typeof record.text === 'string' && record.text) ||
+          ''
+        const secondary =
+          (typeof record.description === 'string' && record.description) ||
+          ''
+
+        if (primary && secondary) return `${primary}: ${secondary}`
+        return primary || secondary
+      }
+
+      return ''
+    })
+    .map((value) => value.trim())
+    .filter(Boolean)
+}
+
 export default function CandidateProfilePage() {
   const params = useParams()
   const candidateId = params.id as string
@@ -121,7 +150,7 @@ export default function CandidateProfilePage() {
     const pressValuesScores = c.pressValuesScores as Record<string, number> | null
     const competencyScores = (c.competencyScores as Record<string, number> | null) || null
     const personalityProfile = (c.personalityProfile as Record<string, number> | null) || null
-    const teamFitAnalysis = c.teamFitAnalysis as { strengths?: string[]; considerations?: string[] } | null
+    const teamFitAnalysis = c.teamFitAnalysis as { strengths?: unknown; considerations?: unknown } | null
 
     const normalizePressScore = (value?: number | null) => {
       if (typeof value !== 'number') return null
@@ -214,11 +243,9 @@ export default function CandidateProfilePage() {
       ? average(Object.values(personalityProfile).filter((score) => typeof score === 'number'))
       : null
 
-    const recommendationStrengths = Array.isArray(evalSummary?.aiRecommendation?.strengths)
-      ? (evalSummary?.aiRecommendation?.strengths as string[])
-      : Array.isArray(c.recommendationStrengths)
-        ? (c.recommendationStrengths as string[])
-        : []
+    const recommendationStrengths = normalizeTextList(
+      evalSummary?.aiRecommendation?.strengths ?? c.recommendationStrengths
+    )
 
     const recommendationRisks = Array.isArray(evalSummary?.aiRecommendation?.risks)
       ? (evalSummary?.aiRecommendation?.risks as Array<{ risk: string; mitigation: string }>)
@@ -380,10 +407,10 @@ export default function CandidateProfilePage() {
       personalityAverage,
       interviewAverage,
       assessmentAverage,
-      teamFitStrengths: teamFitAnalysis?.strengths || [],
-      teamFitConsiderations: teamFitAnalysis?.considerations || [],
+      teamFitStrengths: normalizeTextList(teamFitAnalysis?.strengths),
+      teamFitConsiderations: normalizeTextList(teamFitAnalysis?.considerations),
       stageTimeline,
-      mustValidate: Array.isArray(c.mustValidate) ? c.mustValidate : [],
+      mustValidate: normalizeTextList(c.mustValidate),
       documents: (profileData.documents as Array<{
         id: string
         name: string
@@ -484,14 +511,8 @@ export default function CandidateProfilePage() {
   }
 
   const displayScore = overallScore
-  const analysisStrengths = Array.isArray(latestAnalysis?.strengths)
-    ? (latestAnalysis?.strengths as string[])
-    : []
-  const analysisConcerns = Array.isArray(latestAnalysis?.concerns)
-    ? (latestAnalysis?.concerns as Array<string | { title?: string; description?: string }>)
-        .map((item) => (typeof item === 'string' ? item : item.title || item.description || ''))
-        .filter(Boolean)
-    : []
+  const analysisStrengths = normalizeTextList(latestAnalysis?.strengths)
+  const analysisConcerns = normalizeTextList(latestAnalysis?.concerns)
 
   const handleExportProfile = async () => {
     if (!candidateId) return
