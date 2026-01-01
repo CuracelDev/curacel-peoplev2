@@ -481,6 +481,37 @@ const docSections: DocSection[] = [
     ],
   },
   {
+    id: 'interview-settings',
+    title: 'Interview settings',
+    description: 'Centralize interview configuration and scoring tools.',
+    blocks: [
+      {
+        title: 'Where to configure',
+        items: [
+          'Go to Settings > Hiring > Interview Settings.',
+        ],
+      },
+      {
+        title: 'What you can manage',
+        items: [
+          'Interview Types for format, duration, and question category defaults.',
+          'Interview Rubrics for evaluator criteria and weights.',
+          'Candidate Scoring to control weighted inputs.',
+          'Question Bank to curate reusable interview questions.',
+        ],
+      },
+      {
+        title: 'Step-by-step',
+        ordered: true,
+        items: [
+          'Open Interview Settings and choose the area you want to update.',
+          'Make your edits or additions in the selected screen.',
+          'Save changes to apply them across the hiring workflow.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'recruiting-interest-forms',
     title: 'Interest forms',
     description: 'Create application forms that candidates fill out when applying.',
@@ -562,7 +593,8 @@ const docSections: DocSection[] = [
       {
         title: 'Where to configure',
         items: [
-          'Go to Settings > Hiring > Candidate Scoring.',
+          'Go to Settings > Hiring > Interview Settings.',
+          'Select Candidate Scoring.',
           'Enable or disable score inputs based on your process.',
         ],
       },

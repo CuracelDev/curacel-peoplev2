@@ -25,6 +25,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Toggle between average and max score for the jobs list donut in Hiring General Settings
 - **Hiring General Settings**
   - New Hiring settings page for shared defaults like jobs list score display
+- **Interview Settings**
+  - New Hiring settings page grouping interview types, rubrics, scoring, and question bank
 - **Job Settings section in Administration**
   - New parent settings page (`/settings/job-settings`) grouping job-related configurations
   - Contains Job Descriptions and Interview Settings
@@ -112,6 +114,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Candidate profile actions now live inline (Export Profile under Generate Questions; Advance to Offer in Decision quick actions)
 - Updated AI copy to use BlueAI across the app UI and documentation
 - Candidate profile now renders DB-only data with hiring flow-aligned stage progress and weighted overall scoring
+- Hiring settings no longer use tabbed navigation; sections are accessed from dedicated settings pages
 - **Recruiting Assessments Page Improvements**
   - Enhanced UI and layout for assessments management
 - **Interviews Page Enhancements**
