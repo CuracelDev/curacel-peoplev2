@@ -40,6 +40,8 @@ function getAppIcon(type: string, iconUrl?: string | null) {
       return <Image src="/logos/hubspot.png" alt="HubSpot" {...commonProps} />
     case 'STANDUPNINJA':
       return <Image src="/logos/standupninja.png" alt="StandupNinja" {...commonProps} />
+    case 'FIREFLIES':
+      return <Image src="/logos/fireflies.png" alt="Fireflies.ai" {...commonProps} />
     default:
       if (iconUrl) return <Image src={iconUrl} alt={type} {...commonProps} />
       return <Plug className="h-8 w-8 text-muted-foreground" />
