@@ -17,17 +17,12 @@ import {
   Bot,
   Users,
   GitBranch,
-  FileQuestion,
-  Star,
   Brain,
   Webhook,
-  UserCircle2,
-  Layers,
   Globe,
   SlidersHorizontal,
   Settings,
   Briefcase,
-  Target,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -94,10 +89,10 @@ const settingsSections = [
         href: '/hiring/settings/general',
       },
       {
-        title: 'Job Descriptions',
-        description: 'Manage job descriptions and templates.',
+        title: 'Job Settings',
+        description: 'Manage job postings, forms, recruiters, and careers page.',
         icon: Briefcase,
-        href: '/hiring/settings/jd-templates',
+        href: '/settings/job-settings',
       },
       {
         title: 'Hiring Flows',
@@ -112,28 +107,10 @@ const settingsSections = [
         href: '/hiring/settings/interview',
       },
       {
-        title: 'Hiring Rubrics',
-        description: 'Create evaluation rubrics for consistent assessment.',
-        icon: Target,
-        href: '/hiring/settings/rubrics',
-      },
-      {
-        title: 'Interest Forms',
-        description: 'Create candidate application forms.',
-        icon: FileQuestion,
-        href: '/hiring/settings/interest-forms',
-      },
-      {
         title: 'Assessments',
         description: 'Configure tests and assessments.',
         icon: ClipboardList,
         href: '/hiring/settings/assessments',
-      },
-      {
-        title: 'Competencies',
-        description: 'Define expected hire competencies.',
-        icon: Star,
-        href: '/hiring/settings/all?section=competencies',
       },
       {
         title: 'Personality Profiles',
@@ -152,24 +129,6 @@ const settingsSections = [
         description: 'External integration endpoints.',
         icon: Webhook,
         href: '/hiring/settings/all?section=webhooks',
-      },
-      {
-        title: 'External Recruiters',
-        description: 'Manage recruiter access.',
-        icon: UserCircle2,
-        href: '/hiring/settings/all?section=recruiters',
-      },
-      {
-        title: 'Source Channels',
-        description: 'Inbound/outbound candidate sources.',
-        icon: Layers,
-        href: '/hiring/settings/all?section=sources',
-      },
-      {
-        title: 'Careers Page',
-        description: 'Public careers page settings.',
-        icon: Globe,
-        href: '/hiring/settings/all?section=careers',
       },
     ],
   },
@@ -195,8 +154,8 @@ const settingsSections = [
         href: '/settings/api',
       },
       {
-        title: 'BlueAI',
-        description: 'Configure BlueAI API keys.',
+        title: 'AuntyPelz',
+        description: 'Configure AuntyPelz API keys.',
         icon: Bot,
         href: '/settings/ai-agent',
       },

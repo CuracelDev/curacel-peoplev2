@@ -43,7 +43,7 @@ import { trpc } from '@/lib/trpc-client'
 import { normalizeCandidateScoreWeights, type CandidateScoreComponent } from '@/lib/hiring/score-config'
 import { format } from 'date-fns'
 import { EmailTab } from '@/components/hiring/email-tab'
-import { BlueAIAnalysisTab } from '@/components/hiring/blueai-analysis-tab'
+import { AuntyPelzAnalysisTab } from '@/components/hiring/auntypelz-analysis-tab'
 import { toast } from 'sonner'
 
 const normalizeStageKey = (value: string) =>
@@ -97,7 +97,7 @@ export default function CandidateProfilePage() {
   )
 
   const { data: scoreSettings } = trpc.hiringSettings.get.useQuery()
-  const { data: latestAnalysis } = trpc.blueAIAnalysis.getLatestAnalysis.useQuery(
+  const { data: latestAnalysis } = trpc.auntyPelzAnalysis.getLatestAnalysis.useQuery(
     { candidateId },
     { enabled: !!candidateId }
   )
@@ -691,7 +691,7 @@ export default function CandidateProfilePage() {
             <TabsTrigger value="assessments" className="flex-1 justify-center text-xs sm:text-sm">Assessments</TabsTrigger>
             <TabsTrigger value="values" className="flex-1 justify-center text-xs sm:text-sm">Values</TabsTrigger>
             <TabsTrigger value="email" className="flex-1 justify-center text-xs sm:text-sm">Email</TabsTrigger>
-            <TabsTrigger value="blueai" className="flex-1 justify-center text-xs sm:text-sm">BlueAI</TabsTrigger>
+            <TabsTrigger value="auntypelz" className="flex-1 justify-center text-xs sm:text-sm">AuntyPelz</TabsTrigger>
             <TabsTrigger value="decision" className="flex-1 justify-center text-xs sm:text-sm">Decision</TabsTrigger>
           </TabsList>
         </div>
@@ -701,12 +701,12 @@ export default function CandidateProfilePage() {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
             {/* Main Column */}
             <div className="space-y-4">
-              {/* BlueAI Summary */}
+              {/* AuntyPelz Summary */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Star className="h-4 w-4 text-indigo-600" />
-                    BlueAI's Summary
+                    AuntyPelz's Summary
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -743,7 +743,7 @@ export default function CandidateProfilePage() {
                       </div>
                     </>
                   ) : (
-                    <div className="text-sm text-muted-foreground">No BlueAI summary yet.</div>
+                    <div className="text-sm text-muted-foreground">No AuntyPelz summary yet.</div>
                   )}
                 </CardContent>
               </Card>
@@ -806,12 +806,12 @@ export default function CandidateProfilePage() {
                 </CardContent>
               </Card>
 
-              {/* BlueAI Recommendation */}
+              {/* AuntyPelz Recommendation */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <CheckCircle className="h-4 w-4" />
-                    BlueAI Recommendation
+                    AuntyPelz Recommendation
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -831,7 +831,7 @@ export default function CandidateProfilePage() {
                       </div>
                     </div>
                   ) : (
-                    <div className="text-sm text-muted-foreground">No BlueAI recommendation yet.</div>
+                    <div className="text-sm text-muted-foreground">No AuntyPelz recommendation yet.</div>
                   )}
                 </CardContent>
               </Card>
@@ -1637,9 +1637,9 @@ export default function CandidateProfilePage() {
           />
         </TabsContent>
 
-        {/* BlueAI Analysis Tab */}
-        <TabsContent value="blueai" className="mt-6">
-          <BlueAIAnalysisTab
+        {/* AuntyPelz Analysis Tab */}
+        <TabsContent value="auntypelz" className="mt-6">
+          <AuntyPelzAnalysisTab
             candidateId={candidate.id}
             candidateName={candidate.name}
           />
@@ -1649,12 +1649,12 @@ export default function CandidateProfilePage() {
         <TabsContent value="decision" className="mt-6">
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
             <div className="space-y-6">
-              {/* BlueAI Recommendation */}
+              {/* AuntyPelz Recommendation */}
               <Card className="border-2 border-green-300 bg-green-50">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <Sparkles className="h-4 w-4" />
-                    BlueAI Recommendation
+                    AuntyPelz Recommendation
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1679,7 +1679,7 @@ export default function CandidateProfilePage() {
                       )}
                     </>
                   ) : (
-                    <p className="text-sm text-muted-foreground">No BlueAI recommendation yet.</p>
+                    <p className="text-sm text-muted-foreground">No AuntyPelz recommendation yet.</p>
                   )}
                 </CardContent>
               </Card>
