@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Switch } from '@/components/ui/switch'
 import {
   Select,
@@ -396,34 +396,28 @@ export default function NewJDPage() {
 
               <div className="space-y-2">
                 <Label htmlFor="description">Job Summary</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                <RichTextEditor
+                  content={formData.description}
+                  onChange={(content) => setFormData({ ...formData, description: content })}
                   placeholder="Brief overview of the role and its impact..."
-                  rows={4}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="responsibilities">Key Responsibilities</Label>
-                <Textarea
-                  id="responsibilities"
-                  value={formData.responsibilities}
-                  onChange={(e) => setFormData({ ...formData, responsibilities: e.target.value })}
-                  placeholder="List the main responsibilities (one per line)..."
-                  rows={6}
+                <RichTextEditor
+                  content={formData.responsibilities}
+                  onChange={(content) => setFormData({ ...formData, responsibilities: content })}
+                  placeholder="List the main responsibilities..."
                 />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="requirements">Requirements</Label>
-                <Textarea
-                  id="requirements"
-                  value={formData.requirements}
-                  onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-                  placeholder="List required qualifications and skills (one per line)..."
-                  rows={6}
+                <RichTextEditor
+                  content={formData.requirements}
+                  onChange={(content) => setFormData({ ...formData, requirements: content })}
+                  placeholder="List required qualifications and skills..."
                 />
               </div>
 
