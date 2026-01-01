@@ -82,38 +82,18 @@ const PRIORITY_BADGES: Record<number, { label: string; className: string }> = {
 
 // Score circle component for displaying average candidate score
 function ScoreCircle({ score }: { score: number }) {
-  const size = 80
-  const strokeWidth = 8
-  const radius = 36
   const normalizedScore = Math.min(Math.max(score, 0), 100)
-  const circumference = 2 * Math.PI * radius
-  const strokeDashoffset = circumference - (normalizedScore / 100) * circumference
 
   return (
-    <div className="relative w-20 h-20 flex-shrink-0">
-      <svg className="w-full h-full -rotate-90" viewBox={`0 0 ${size} ${size}`}>
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="hsl(var(--muted))"
-          strokeWidth={strokeWidth}
-        />
-        <circle
-          cx={size / 2}
-          cy={size / 2}
-          r={radius}
-          fill="none"
-          stroke="hsl(var(--primary))"
-          strokeWidth={strokeWidth}
-          strokeDasharray={circumference}
-          strokeDashoffset={strokeDashoffset}
-        />
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[20px] font-semibold leading-none text-foreground">{score}</span>
-        <span className="mt-0.5 text-[10px] leading-none text-muted-foreground">avg score</span>
+    <div
+      className="relative flex h-[120px] w-[120px] flex-shrink-0 items-center justify-center rounded-full"
+      style={{
+        background: `conic-gradient(hsl(var(--primary)) ${normalizedScore * 3.6}deg, hsl(var(--muted)) ${normalizedScore * 3.6}deg)`,
+      }}
+    >
+      <div className="flex h-[100px] w-[100px] flex-col items-center justify-center rounded-full bg-white">
+        <span className="text-[32px] font-bold leading-none text-foreground">{score}</span>
+        <span className="mt-0.5 text-[12px] leading-none text-muted-foreground">avg score</span>
       </div>
     </div>
   )

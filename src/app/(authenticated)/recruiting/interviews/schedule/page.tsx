@@ -117,6 +117,7 @@ export default function ScheduleInterviewPage() {
 
   // Popover states
   const [interviewerOpen, setInterviewerOpen] = useState(false)
+  const [candidateOpen, setCandidateOpen] = useState(false)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [candidateSearch, setCandidateSearch] = useState('')
   const [interviewerSearch, setInterviewerSearch] = useState('')
@@ -161,6 +162,11 @@ export default function ScheduleInterviewPage() {
   const selectedType = useMemo(() => {
     return interviewTypesData?.find(t => t.id === interviewTypeId)
   }, [interviewTypesData, interviewTypeId])
+
+  // Get selected candidate info
+  const selectedCandidate = useMemo(() => {
+    return candidatesData?.candidates?.find(c => c.id === selectedCandidateId)
+  }, [candidatesData?.candidates, selectedCandidateId])
 
   // Fetch questions filtered by interview type's categories
   const questionCategories = selectedType?.questionCategories || []
@@ -413,48 +419,79 @@ export default function ScheduleInterviewPage() {
           <CardContent className="space-y-6">
             {/* Candidate Selection */}
             <div className="grid gap-2">
-              <Label htmlFor="candidate">Candidate *</Label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="candidateSearch"
-                  placeholder="Search candidates..."
-                  className="pl-9"
-                  value={candidateSearch}
-                  onChange={(e) => setCandidateSearch(e.target.value)}
-                  disabled={!!preselectedCandidateId}
-                />
-              </div>
-              <Select
-                value={selectedCandidateId}
-                onValueChange={setSelectedCandidateId}
-                disabled={!!preselectedCandidateId}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder={candidatesLoading ? 'Loading candidates...' : 'Select candidate...'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {candidatesLoading ? (
-                    <div className="flex items-center justify-center py-4 text-sm text-muted-foreground">
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading candidates...
-                    </div>
-                  ) : (
-                    <>
-                      {candidatesData?.candidates?.map((candidate) => (
-                      <SelectItem key={candidate.id} value={candidate.id}>
-                        {candidate.name} - {candidate.job?.title || 'No position'}
-                      </SelectItem>
-                      ))}
-                      {(!candidatesData?.candidates || candidatesData.candidates.length === 0) && (
-                        <div className="px-2 py-4 text-center text-sm text-muted-foreground">
-                          {candidateSearch ? 'No candidates found' : 'No candidates available'}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </SelectContent>
-              </Select>
+              <Label>Candidate *</Label>
+              {selectedCandidate ? (
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary" className="gap-1 py-1.5 px-3">
+                    <span>{selectedCandidate.name}</span>
+                    <span className="text-muted-foreground">-</span>
+                    <span className="text-muted-foreground text-xs">{selectedCandidate.job?.title || 'No position'}</span>
+                    {!preselectedCandidateId && (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedCandidateId('')}
+                        className="ml-1 hover:text-destructive"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    )}
+                  </Badge>
+                </div>
+              ) : (
+                <Popover open={candidateOpen} onOpenChange={setCandidateOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="justify-start"
+                      disabled={!!preselectedCandidateId}
+                    >
+                      <Search className="mr-2 h-4 w-4" />
+                      {candidatesLoading ? 'Loading...' : 'Select candidate...'}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[350px] p-0" align="start">
+                    <Command>
+                      <CommandInput
+                        placeholder="Search candidates..."
+                        value={candidateSearch}
+                        onValueChange={setCandidateSearch}
+                      />
+                      <CommandList>
+                        {candidatesLoading ? (
+                          <div className="flex items-center justify-center py-6">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          </div>
+                        ) : (
+                          <>
+                            <CommandEmpty>No candidates found.</CommandEmpty>
+                            <CommandGroup>
+                              {candidatesData?.candidates?.map((candidate) => (
+                                <CommandItem
+                                  key={candidate.id}
+                                  value={`${candidate.name} ${candidate.job?.title || ''}`}
+                                  onSelect={() => {
+                                    setSelectedCandidateId(candidate.id)
+                                    setCandidateOpen(false)
+                                    setCandidateSearch('')
+                                  }}
+                                  className="cursor-pointer"
+                                >
+                                  <div className="flex flex-col">
+                                    <span>{candidate.name}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {candidate.job?.title || 'No position'}
+                                    </span>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          </>
+                        )}
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              )}
             </div>
 
             {/* Interview Type */}
@@ -536,8 +573,9 @@ export default function ScheduleInterviewPage() {
                               .map((employee) => (
                                 <CommandItem
                                   key={employee.id}
-                                  value={employee.id}
+                                  value={`${employee.fullName} ${employee.jobTitle || ''}`}
                                   onSelect={() => addInterviewer(employee)}
+                                  className="cursor-pointer"
                                 >
                                   <div className="flex flex-col">
                                     <span>{employee.fullName}</span>
@@ -792,20 +830,27 @@ export default function ScheduleInterviewPage() {
               </div>
             )}
 
-            {/* Meeting Link */}
-            <div className="grid gap-2">
-              <Label htmlFor="meetingLink">Meeting Link</Label>
-              <div className="relative">
-                <Video className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="meetingLink"
-                  placeholder="https://meet.google.com/..."
-                  className="pl-9"
-                  value={meetingLink}
-                  onChange={(e) => setMeetingLink(e.target.value)}
-                />
+            {/* Meeting Link - only show when auto-create is disabled or calendar not configured */}
+            {(!calendarConfig?.configured || !syncToCalendar || !createGoogleMeet) ? (
+              <div className="grid gap-2">
+                <Label htmlFor="meetingLink">Meeting Link</Label>
+                <div className="relative">
+                  <Video className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="meetingLink"
+                    placeholder="https://meet.google.com/..."
+                    className="pl-9"
+                    value={meetingLink}
+                    onChange={(e) => setMeetingLink(e.target.value)}
+                  />
+                </div>
               </div>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm">
+                <Video className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <span className="text-green-700 dark:text-green-300">Google Meet link will be auto-generated</span>
+              </div>
+            )}
 
             {/* Calendar Integration Options */}
             {calendarConfig?.configured && (
