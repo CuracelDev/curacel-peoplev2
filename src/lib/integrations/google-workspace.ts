@@ -422,12 +422,16 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
 
   /**
    * Get free/busy information for a list of users
+   * Returns both busy times and any errors for calendars we can't access
    */
   async getFreeBusy(params: {
     emails: string[]
     timeMin: Date
     timeMax: Date
-  }): Promise<Record<string, Array<{ start: Date; end: Date }>>> {
+  }): Promise<{
+    busy: Record<string, Array<{ start: Date; end: Date }>>
+    errors: Record<string, string>
+  }> {
     const calendar = await this.getCalendarClient()
 
     const response = await calendar.freebusy.query({
@@ -438,21 +442,31 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
       },
     })
 
-    const result: Record<string, Array<{ start: Date; end: Date }>> = {}
+    const busy: Record<string, Array<{ start: Date; end: Date }>> = {}
+    const errors: Record<string, string> = {}
 
     for (const email of params.emails) {
       const calendarData = response.data.calendars?.[email]
-      result[email] = (calendarData?.busy || []).map(slot => ({
-        start: new Date(slot.start || ''),
-        end: new Date(slot.end || ''),
-      }))
+
+      // Check for errors (e.g., notFound for calendars we can't access)
+      if (calendarData?.errors && calendarData.errors.length > 0) {
+        const errorReasons = calendarData.errors.map(e => e.reason).join(', ')
+        errors[email] = errorReasons || 'Unknown error'
+        busy[email] = [] // No busy data available
+      } else {
+        busy[email] = (calendarData?.busy || []).map(slot => ({
+          start: new Date(slot.start || ''),
+          end: new Date(slot.end || ''),
+        }))
+      }
     }
 
-    return result
+    return { busy, errors }
   }
 
   /**
    * Find available time slots when all attendees are free
+   * Returns slots and any calendar access errors
    */
   async findAvailableSlots(params: {
     requiredAttendees: string[]
@@ -460,12 +474,15 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
     duration: number // minutes
     dateRange: { start: Date; end: Date }
     workingHours?: { start: number; end: number } // e.g., 9-17 for 9am-5pm
-  }): Promise<Array<{ start: Date; end: Date; allAvailable: boolean }>> {
+  }): Promise<{
+    slots: Array<{ start: Date; end: Date; allAvailable: boolean }>
+    calendarErrors: Record<string, string>
+  }> {
     const { requiredAttendees, optionalAttendees = [], duration, dateRange, workingHours } = params
     const allAttendees = [...requiredAttendees, ...optionalAttendees]
 
     // Get free/busy info for all attendees
-    const busyTimes = await this.getFreeBusy({
+    const { busy: busyTimes, errors: calendarErrors } = await this.getFreeBusy({
       emails: allAttendees,
       timeMin: dateRange.start,
       timeMax: dateRange.end,
@@ -540,7 +557,7 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
       currentDate.setDate(currentDate.getDate() + 1)
     }
 
-    return slots
+    return { slots, calendarErrors }
   }
 
   /**

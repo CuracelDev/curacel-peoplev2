@@ -150,7 +150,7 @@ export default function ScheduleInterviewPage() {
   // Find available slots for selected interviewers
   const interviewerEmails = selectedInterviewers.map(i => i.email).filter(Boolean)
   const {
-    data: availableSlots,
+    data: slotsData,
     isLoading: slotsLoading,
     refetch: refetchSlots,
   } = trpc.interview.findAvailableSlots.useQuery({
@@ -163,6 +163,11 @@ export default function ScheduleInterviewPage() {
   }, {
     enabled: calendarConfig?.configured && interviewerEmails.length > 0 && schedulingMode === 'suggested',
   })
+
+  // Extract slots and calendar errors from response
+  const availableSlots = slotsData?.slots || []
+  const calendarErrors = slotsData?.calendarErrors || {}
+  const hasCalendarErrors = Object.keys(calendarErrors).length > 0
 
   // Get selected interview type info
   const selectedType = useMemo(() => {
@@ -712,6 +717,26 @@ export default function ScheduleInterviewPage() {
                         </Popover>
                       </div>
                     </div>
+
+                    {/* Calendar Access Warnings */}
+                    {hasCalendarErrors && (
+                      <div className="flex items-start gap-2 p-3 mb-4 bg-amber-50 border border-amber-200 rounded-lg text-sm">
+                        <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                        <div className="text-amber-800">
+                          <p className="font-medium">Cannot access some calendars</p>
+                          <ul className="text-xs mt-1 space-y-0.5">
+                            {Object.entries(calendarErrors).map(([email, error]) => (
+                              <li key={email}>
+                                <span className="font-medium">{email}</span>: {error === 'notFound' ? 'Calendar not accessible (external email or no permission)' : error}
+                              </li>
+                            ))}
+                          </ul>
+                          <p className="text-xs mt-2">
+                            Slots shown are only based on accessible calendars. You may need to manually confirm availability with these interviewers.
+                          </p>
+                        </div>
+                      </div>
+                    )}
 
                     {/* Available Slots */}
                     {slotsLoading ? (

@@ -1468,7 +1468,7 @@ export const interviewRouter = router({
         })
       }
 
-      const slots = await connector.findAvailableSlots({
+      const { slots, calendarErrors } = await connector.findAvailableSlots({
         requiredAttendees: input.interviewerEmails,
         duration: input.duration,
         dateRange: {
@@ -1481,7 +1481,7 @@ export const interviewRouter = router({
         },
       })
 
-      return slots
+      return { slots, calendarErrors }
     }),
 
   // Create calendar event for an interview
