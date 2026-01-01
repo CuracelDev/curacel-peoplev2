@@ -395,7 +395,7 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-lg font-semibold">Top Candidates</CardTitle>
-            <Link href="/recruiting/candidates" className="text-sm text-primary hover:underline">
+            <Link href="/hiring/candidates" className="text-sm text-primary hover:underline">
               View all
             </Link>
           </CardHeader>
@@ -445,7 +445,7 @@ export default function DashboardPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <Link href="/recruiting/positions/new">
+              <Link href="/hiring/positions/new">
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary hover:bg-primary/5 transition-colors cursor-pointer">
                   <div className="p-2 rounded-lg bg-primary/10">
                     <Plus className="h-5 w-5 text-primary" />
@@ -457,7 +457,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              <Link href="/recruiting/candidates?add=1">
+              <Link href="/hiring/candidates?add=1">
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors cursor-pointer">
                   <div className="p-2 rounded-lg bg-muted">
                     <UserPlus className="h-5 w-5 text-foreground/80" />
@@ -469,7 +469,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              <Link href="/recruiting/questions">
+              <Link href="/hiring/questions">
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors cursor-pointer">
                   <div className="p-2 rounded-lg bg-green-100">
                     <MessageSquare className="h-5 w-5 text-green-600" />
@@ -481,7 +481,7 @@ export default function DashboardPage() {
                 </div>
               </Link>
 
-              <Link href="/recruiting/interviews">
+              <Link href="/hiring/interviews">
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors cursor-pointer">
                   <div className="p-2 rounded-lg bg-blue-100">
                     <Calendar className="h-5 w-5 text-blue-600" />
@@ -502,7 +502,7 @@ export default function DashboardPage() {
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <CardTitle className="text-lg font-semibold">Upcoming Interviews</CardTitle>
           <Button asChild variant="outline" size="sm" className="gap-2">
-            <Link href="/recruiting/interviews">
+            <Link href="/hiring/interviews">
               <Calendar className="h-4 w-4" />
               View Calendar
             </Link>

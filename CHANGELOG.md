@@ -134,6 +134,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Removed Role Objectives from Create Job (handled in JD instead)
 - Renamed Automation section to Blue AI Actions in Create Job
 - Candidates list now filters by team and date, and Alumni is renamed to Archived (including stage value and route)
+- Candidate scoring settings now deep-link to the jobs list score display control from Hiring settings
 
 ### Fixed
 - Voice transcription now works on Node.js versions below 20 (uses temp file approach)

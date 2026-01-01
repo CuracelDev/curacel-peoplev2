@@ -6,7 +6,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
-import { gradeAssessmentResponses, analyzeAssessmentResults } from '@/lib/ai/recruiting/assessment-analysis'
+import { gradeAssessmentResponses, analyzeAssessmentResults } from '@/lib/ai/hiring/assessment-analysis'
 
 interface RouteParams {
   params: Promise<{ token: string }>

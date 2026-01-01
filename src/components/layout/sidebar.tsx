@@ -67,10 +67,10 @@ const navigationSections: NavSection[] = [
   {
     title: 'HIRING',
     items: [
-      { name: 'Jobs', href: '/recruiting/positions', icon: Briefcase, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'openJobs' },
-      { name: 'Candidates', href: '/recruiting/candidates', icon: UserSearch, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'activeCandidates' },
-      { name: 'Interviews', href: '/recruiting/interviews', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'scheduledInterviews' },
-      { name: 'Assessments', href: '/recruiting/assessments', icon: ClipboardCheck, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'pendingAssessments' },
+      { name: 'Jobs', href: '/hiring/positions', icon: Briefcase, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'openJobs' },
+      { name: 'Candidates', href: '/hiring/candidates', icon: UserSearch, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'activeCandidates' },
+      { name: 'Interviews', href: '/hiring/interviews', icon: Calendar, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'scheduledInterviews' },
+      { name: 'Assessments', href: '/hiring/assessments', icon: ClipboardCheck, roles: ['SUPER_ADMIN', 'HR_ADMIN', 'MANAGER'], badgeKey: 'pendingAssessments' },
     ],
   },
   {

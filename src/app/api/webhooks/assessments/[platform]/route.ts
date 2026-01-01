@@ -8,7 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { getConnector } from '@/lib/integrations/assessments'
-import { analyzeAssessmentResults } from '@/lib/ai/recruiting/assessment-analysis'
+import { analyzeAssessmentResults } from '@/lib/ai/hiring/assessment-analysis'
 import { decrypt } from '@/lib/encryption'
 
 interface RouteParams {
