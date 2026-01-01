@@ -23,6 +23,7 @@ const JobCandidateStageEnum = z.enum([
   'HIRED',
   'REJECTED',
   'WITHDRAWN',
+  'ARCHIVED',
 ])
 
 export const jobRouter = router({
@@ -72,6 +73,7 @@ export const jobRouter = router({
         )
         const scores = job.candidates.filter((c) => c.score != null).map((c) => c.score as number)
         const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0
+        const maxScore = scores.length > 0 ? Math.max(...scores) : 0
 
         const stats = {
           applicants: job._count.candidates,
@@ -82,6 +84,7 @@ export const jobRouter = router({
           offerStage: job.candidates.filter((c) => c.stage === 'OFFER').length,
           hired: job.candidates.filter((c) => c.stage === 'HIRED').length,
           avgScore,
+          maxScore,
         }
 
         const { candidates, ...jobWithoutCandidates } = job
@@ -678,7 +681,10 @@ export const jobRouter = router({
         source: CandidateSourceEnum.optional(),
         search: z.string().optional(),
         jobId: z.string().optional(),
-        includeAlumni: z.boolean().optional(),
+        department: z.string().optional(),
+        appliedFrom: z.date().optional(),
+        appliedTo: z.date().optional(),
+        includeArchived: z.boolean().optional(),
         sortBy: z.enum(['score', 'appliedAt', 'name', 'updatedAt']).default('appliedAt'),
         sortOrder: z.enum(['asc', 'desc']).default('desc'),
         limit: z.number().min(1).max(100).default(20),
@@ -689,33 +695,50 @@ export const jobRouter = router({
       const filters = input || {}
 
       // Build where clause
-      const where: Record<string, unknown> = {}
-
-      if (filters.stage) {
-        where.stage = filters.stage
-      } else {
-        // Exclude rejected/withdrawn/alumni by default, unless includeAlumni is true (for search)
-        const excludedStages = filters.includeAlumni
-          ? ['REJECTED', 'WITHDRAWN']
-          : ['REJECTED', 'WITHDRAWN', 'ALUMNI']
-        where.stage = { notIn: excludedStages }
-      }
+      const baseWhere: Record<string, unknown> = {}
 
       if (filters.source) {
-        where.source = filters.source
+        baseWhere.source = filters.source
       }
 
       if (filters.jobId) {
-        where.jobId = filters.jobId
+        baseWhere.jobId = filters.jobId
+      }
+
+      if (filters.department) {
+        baseWhere.job = { department: filters.department }
+      }
+
+      if (filters.appliedFrom || filters.appliedTo) {
+        baseWhere.appliedAt = {
+          ...(filters.appliedFrom ? { gte: filters.appliedFrom } : {}),
+          ...(filters.appliedTo ? { lte: filters.appliedTo } : {}),
+        }
       }
 
       if (filters.search) {
-        where.OR = [
+        baseWhere.OR = [
           { name: { contains: filters.search, mode: 'insensitive' } },
           { email: { contains: filters.search, mode: 'insensitive' } },
           { currentCompany: { contains: filters.search, mode: 'insensitive' } },
           { currentRole: { contains: filters.search, mode: 'insensitive' } },
         ]
+      }
+
+      const excludedStages = filters.includeArchived
+        ? ['REJECTED', 'WITHDRAWN']
+        : ['REJECTED', 'WITHDRAWN', 'ARCHIVED']
+
+      const where: Record<string, unknown> = { ...baseWhere }
+      if (filters.stage) {
+        where.stage = filters.stage
+      } else {
+        where.stage = { notIn: excludedStages }
+      }
+
+      const countsWhere: Record<string, unknown> = {
+        ...baseWhere,
+        stage: { notIn: excludedStages },
       }
 
       // Get candidates with pagination
@@ -742,7 +765,7 @@ export const jobRouter = router({
       const stageCounts = await ctx.prisma.jobCandidate.groupBy({
         by: ['stage'],
         _count: { id: true },
-        where: filters.jobId ? { jobId: filters.jobId } : undefined,
+        where: countsWhere,
       })
 
       const stageDisplayNames: Record<string, string> = {
@@ -758,7 +781,7 @@ export const jobRouter = router({
         HIRED: 'Hired',
         REJECTED: 'Rejected',
         WITHDRAWN: 'Withdrawn',
-        ALUMNI: 'Alumni',
+        ARCHIVED: 'Archived',
       }
 
       const byStageCounts = stageCounts.reduce((acc, item) => {
@@ -892,7 +915,7 @@ export const jobRouter = router({
         HIRED: 'Hired',
         REJECTED: 'Rejected',
         WITHDRAWN: 'Withdrawn',
-        ALUMNI: 'Alumni',
+        ARCHIVED: 'Archived',
       }
 
       // Build evaluation summary

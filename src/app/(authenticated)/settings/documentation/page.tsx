@@ -586,6 +586,36 @@ const docSections: DocSection[] = [
     ],
   },
   {
+    id: 'recruiting-job-score-display',
+    title: 'Job score display',
+    description: 'Control the score shown in the jobs list donut.',
+    blocks: [
+      {
+        title: 'Where to configure',
+        items: [
+          'Go to Recruiting > Settings > Candidate Scoring.',
+          'Locate Jobs list score display.',
+        ],
+      },
+      {
+        title: 'Step-by-step',
+        ordered: true,
+        items: [
+          'Choose Average score to show the mean candidate score.',
+          'Choose Max score to highlight the top candidate score.',
+          'Return to Recruiting > Positions to see the updated donut value and label.',
+        ],
+      },
+      {
+        title: 'Notes',
+        items: [
+          'Only candidates with a score contribute to the metrics.',
+          'The display choice does not change candidate scores, only the jobs list summary.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'candidate-profile-export',
     title: 'Candidate profile export',
     description: 'Download a structured PDF summary of a candidate profile.',

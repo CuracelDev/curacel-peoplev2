@@ -459,8 +459,9 @@ export default function ApiDocsPage() {
               </div>
 
               <div className="rounded bg-gray-900 p-3 text-xs text-gray-100">
-                <pre>{`// Candidate score weights (tRPC input)
+                <pre>{`// Recruiting settings update (tRPC input)
 {
+  "jobScoreDisplay": "average", // "average" | "max"
   "candidateScoreWeights": [
     { "id": "experienceMatchScore", "label": "Experience Match", "weight": 20, "enabled": true },
     { "id": "skillsMatchScore", "label": "Skills Match", "weight": 20, "enabled": true },
