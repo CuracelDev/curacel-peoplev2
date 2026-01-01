@@ -245,11 +245,14 @@ export default function ScheduleInterviewPage() {
   }
 
   // Add interviewer (handles both employees with workEmail and advisors with email)
+  // Only workEmail is used for calendar availability - personal emails don't have calendar access
   const addInterviewer = (person: { id: string; fullName: string; workEmail?: string | null; email?: string }) => {
     if (!selectedInterviewers.find(i => i.id === person.id)) {
+      // workEmail for employees (Google Workspace calendar access), email for advisors
+      const interviewerEmail = person.workEmail || person.email || ''
       setSelectedInterviewers([
         ...selectedInterviewers,
-        { id: person.id, name: person.fullName, email: person.workEmail || person.email || '' },
+        { id: person.id, name: person.fullName, email: interviewerEmail },
       ])
       // Clear selected slot when interviewers change - availability needs to be rechecked
       setSelectedSlot(null)
