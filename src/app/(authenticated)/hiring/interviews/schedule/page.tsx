@@ -56,6 +56,7 @@ import {
 } from 'lucide-react'
 import { format, addDays, startOfDay, endOfDay } from 'date-fns'
 import { toast } from 'sonner'
+import { AIQuestionGenerator } from '@/components/hiring/ai-question-generator'
 
 interface AvailableSlot {
   start: Date
@@ -1054,6 +1055,27 @@ export default function ScheduleInterviewPage() {
                   </div>
                 )}
               </div>
+
+              {/* AI Question Generator */}
+              {selectedCandidateId && (
+                <AIQuestionGenerator
+                  candidateId={selectedCandidateId}
+                  interviewTypeId={interviewTypeId || undefined}
+                  jobId={selectedCandidate?.job?.id || undefined}
+                  onQuestionsAdded={(questions) => {
+                    setSelectedQuestions(prev => [
+                      ...prev,
+                      ...questions.map(q => ({
+                        ...q,
+                        isCustom: q.isCustom ?? true,
+                        saveToBank: q.saveToBank ?? true,
+                        isRequired: q.isRequired ?? false,
+                      }))
+                    ])
+                  }}
+                  existingQuestionIds={selectedQuestions.filter(q => q.id).map(q => q.id!)}
+                />
+              )}
 
               {/* Add Custom Question */}
               <div className="space-y-3 p-4 border rounded-lg">

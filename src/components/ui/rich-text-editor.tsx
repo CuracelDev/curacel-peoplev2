@@ -1,249 +1,259 @@
 'use client'
 
-import * as React from 'react'
-import { cn } from '@/lib/utils'
-import { 
-  Bold, 
-  Italic, 
-  List, 
-  Link as LinkIcon,
-  Type,
-  Quote,
-  Code,
+import { useEditor, EditorContent } from '@tiptap/react'
+import StarterKit from '@tiptap/starter-kit'
+import Placeholder from '@tiptap/extension-placeholder'
+import Link from '@tiptap/extension-link'
+import {
+  Bold,
+  Italic,
+  List,
   ListOrdered,
-  AlignLeft,
-  AlignCenter,
-  AlignRight,
-  Eraser,
+  Quote,
+  Heading2,
+  Heading3,
   Undo,
-  Redo
+  Redo,
+  Link as LinkIcon,
+  LinkOff,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { Button } from './button'
+import { useCallback, useEffect } from 'react'
 
-export interface RichTextEditorProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'onChange'> {
-  value?: string
-  onChange?: (value: string) => void
+interface RichTextEditorProps {
+  content: string
+  onChange: (content: string) => void
   placeholder?: string
+  disabled?: boolean
+  className?: string
 }
 
-const RichTextEditor = React.forwardRef<HTMLDivElement, RichTextEditorProps>(
-  ({ className, value = '', onChange, placeholder, ...props }, ref) => {
-    const editorRef = React.useRef<HTMLDivElement>(null)
-    const [internalValue, setInternalValue] = React.useState(value)
+export function RichTextEditor({
+  content,
+  onChange,
+  placeholder = 'Start typing...',
+  disabled = false,
+  className,
+}: RichTextEditorProps) {
+  const editor = useEditor({
+    extensions: [
+      StarterKit.configure({
+        heading: {
+          levels: [2, 3],
+        },
+      }),
+      Placeholder.configure({
+        placeholder,
+      }),
+      Link.configure({
+        openOnClick: false,
+        HTMLAttributes: {
+          class: 'text-indigo-600 underline',
+        },
+      }),
+    ],
+    content,
+    editable: !disabled,
+    onUpdate: ({ editor }) => {
+      onChange(editor.getHTML())
+    },
+    editorProps: {
+      attributes: {
+        class: cn(
+          'prose prose-sm max-w-none focus:outline-none min-h-[150px] px-3 py-2',
+          disabled && 'opacity-50 cursor-not-allowed'
+        ),
+      },
+    },
+  })
 
-    React.useImperativeHandle(ref, () => editorRef.current!)
+  // Update editor content when prop changes
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content)
+    }
+  }, [content, editor])
 
-    React.useEffect(() => {
-      if (value !== undefined && editorRef.current) {
-        if (editorRef.current.innerHTML !== value) {
-          editorRef.current.innerHTML = value
-          setInternalValue(value)
-        }
-      }
-    }, [value])
+  const setLink = useCallback(() => {
+    if (!editor) return
 
-    const handleInput = () => {
-      if (editorRef.current) {
-        const html = editorRef.current.innerHTML
-        setInternalValue(html)
-        onChange?.(html)
-      }
+    const previousUrl = editor.getAttributes('link').href
+    const url = window.prompt('URL', previousUrl)
+
+    // cancelled
+    if (url === null) {
+      return
     }
 
-    const execCommand = (command: string, value?: string) => {
-      document.execCommand(command, false, value)
-      editorRef.current?.focus()
-      handleInput()
+    // empty
+    if (url === '') {
+      editor.chain().focus().extendMarkRange('link').unsetLink().run()
+      return
     }
 
-    const handleBold = () => execCommand('bold')
-    const handleItalic = () => execCommand('italic')
-    const handleLink = () => {
-      const url = prompt('Enter URL:')
-      if (url) {
-        execCommand('createLink', url)
-      }
-    }
-    const handleHeading = () => execCommand('formatBlock', '<h2>')
-    const handleQuote = () => execCommand('formatBlock', '<blockquote>')
-    const handleCode = () => execCommand('formatBlock', '<pre>')
-    const handleUnorderedList = () => execCommand('insertUnorderedList')
-    const handleOrderedList = () => execCommand('insertOrderedList')
-    const handleAlignLeft = () => execCommand('justifyLeft')
-    const handleAlignCenter = () => execCommand('justifyCenter')
-    const handleAlignRight = () => execCommand('justifyRight')
-    const handleRemoveFormat = () => execCommand('removeFormat')
-    const handleUndo = () => execCommand('undo')
-    const handleRedo = () => execCommand('redo')
+    // update link
+    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run()
+  }, [editor])
 
-    return (
-      <div className={cn('border border-border rounded-lg focus-within:ring-2 focus-within:ring-primary', className)}>
-        {/* Toolbar */}
-        <div className="flex items-center gap-1 p-2 border-b border-border bg-muted/50 rounded-t-lg flex-wrap">
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleBold}
-            title="Bold"
-          >
-            <Bold className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleItalic}
-            title="Italic"
-          >
-            <Italic className="h-4 w-4" />
-          </Button>
-          <div className="w-px h-6 bg-border mx-1" />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleLink}
-            title="Insert Link"
-          >
-            <LinkIcon className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleHeading}
-            title="Heading"
-          >
-            <Type className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleQuote}
-            title="Quote"
-          >
-            <Quote className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleCode}
-            title="Code Block"
-          >
-            <Code className="h-4 w-4" />
-          </Button>
-          <div className="w-px h-6 bg-border mx-1" />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleUnorderedList}
-            title="Bullet List"
-          >
-            <List className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleOrderedList}
-            title="Numbered List"
-          >
-            <ListOrdered className="h-4 w-4" />
-          </Button>
-          <div className="w-px h-6 bg-border mx-1" />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleAlignLeft}
-            title="Align Left"
-          >
-            <AlignLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleAlignCenter}
-            title="Align Center"
-          >
-            <AlignCenter className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleAlignRight}
-            title="Align Right"
-          >
-            <AlignRight className="h-4 w-4" />
-          </Button>
-          <div className="w-px h-6 bg-border mx-1" />
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleRemoveFormat}
-            title="Clear Formatting"
-          >
-            <Eraser className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleUndo}
-            title="Undo"
-          >
-            <Undo className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="h-8 w-8 p-0"
-            onClick={handleRedo}
-            title="Redo"
-          >
-            <Redo className="h-4 w-4" />
-          </Button>
-        </div>
-        
-        {/* ContentEditable Editor */}
-        <div
-          ref={editorRef}
-          contentEditable
-          onInput={handleInput}
-          className="min-h-[200px] p-4 rounded-b-lg focus:outline-none prose prose-sm max-w-none rich-text-editor-content"
-          style={{
-            whiteSpace: 'pre-wrap',
-            wordBreak: 'break-word',
-          }}
-          data-placeholder={placeholder}
-          suppressContentEditableWarning
-          {...props}
-        />
-      </div>
-    )
+  if (!editor) {
+    return null
   }
-)
-RichTextEditor.displayName = 'RichTextEditor'
 
-export { RichTextEditor }
+  return (
+    <div className={cn('border rounded-md bg-white', className)}>
+      {/* Toolbar */}
+      <div className="border-b p-2 flex flex-wrap gap-1">
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          disabled={!editor.can().chain().focus().toggleBold().run() || disabled}
+          className={cn(
+            'h-8 w-8 p-0',
+            editor.isActive('bold') && 'bg-muted'
+          )}
+        >
+          <Bold className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          disabled={!editor.can().chain().focus().toggleItalic().run() || disabled}
+          className={cn(
+            'h-8 w-8 p-0',
+            editor.isActive('italic') && 'bg-muted'
+          )}
+        >
+          <Italic className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px h-8 bg-border mx-1" />
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()}
+          disabled={disabled}
+          className={cn(
+            'h-8 w-8 p-0',
+            editor.isActive('heading', { level: 2 }) && 'bg-muted'
+          )}
+        >
+          <Heading2 className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()}
+          disabled={disabled}
+          className={cn(
+            'h-8 w-8 p-0',
+            editor.isActive('heading', { level: 3 }) && 'bg-muted'
+          )}
+        >
+          <Heading3 className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px h-8 bg-border mx-1" />
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          disabled={disabled}
+          className={cn(
+            'h-8 w-8 p-0',
+            editor.isActive('bulletList') && 'bg-muted'
+          )}
+        >
+          <List className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          disabled={disabled}
+          className={cn(
+            'h-8 w-8 p-0',
+            editor.isActive('orderedList') && 'bg-muted'
+          )}
+        >
+          <ListOrdered className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().toggleBlockquote().run()}
+          disabled={disabled}
+          className={cn(
+            'h-8 w-8 p-0',
+            editor.isActive('blockquote') && 'bg-muted'
+          )}
+        >
+          <Quote className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px h-8 bg-border mx-1" />
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={setLink}
+          disabled={disabled}
+          className={cn(
+            'h-8 w-8 p-0',
+            editor.isActive('link') && 'bg-muted'
+          )}
+        >
+          <LinkIcon className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().unsetLink().run()}
+          disabled={!editor.isActive('link') || disabled}
+          className="h-8 w-8 p-0"
+        >
+          <LinkOff className="h-4 w-4" />
+        </Button>
+
+        <div className="w-px h-8 bg-border mx-1" />
+
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().undo().run()}
+          disabled={!editor.can().chain().focus().undo().run() || disabled}
+          className="h-8 w-8 p-0"
+        >
+          <Undo className="h-4 w-4" />
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => editor.chain().focus().redo().run()}
+          disabled={!editor.can().chain().focus().redo().run() || disabled}
+          className="h-8 w-8 p-0"
+        >
+          <Redo className="h-4 w-4" />
+        </Button>
+      </div>
+
+      {/* Editor Content */}
+      <EditorContent editor={editor} />
+    </div>
+  )
+}
