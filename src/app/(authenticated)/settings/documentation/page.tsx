@@ -455,8 +455,8 @@ const docSections: DocSection[] = [
       {
         title: 'Where to edit',
         items: [
-          'Go to Recruiting > Settings > Hiring Flow.',
-          'Or open Settings > Hiring > Hiring Flows to jump into the same page.',
+          'Go to Settings > Hiring > Hiring Flows.',
+          'Use the Hiring Flows tile in Settings to jump into the same page.',
           'Pick the role flow you want to manage.',
         ],
       },
@@ -566,7 +566,8 @@ const docSections: DocSection[] = [
         title: 'Create or edit a rubric',
         ordered: true,
         items: [
-          'Go to Recruiting > Settings > Interview Rubrics.',
+          'Go to Settings > Hiring > Interview Settings.',
+          'Select Interview Rubrics.',
           'Click Create Rubric or Edit on an existing rubric.',
           'Enter a rubric name and select the interview stage.',
           'Add scoring criteria with names, descriptions, and weights.',

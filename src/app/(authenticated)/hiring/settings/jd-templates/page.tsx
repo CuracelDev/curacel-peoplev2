@@ -256,7 +256,7 @@ export default function JDsPage() {
         description="Manage job descriptions for your hiring pipeline. Create new JDs or new versions of existing ones."
         actions={
           <Button asChild>
-            <Link href="/settings/jd-templates/new">
+            <Link href="/hiring/settings/jd-templates/new">
               <Plus className="h-4 w-4 mr-2" />
               Create JD
             </Link>
@@ -347,7 +347,7 @@ export default function JDsPage() {
                           </div>
                           <div>
                             <Link
-                              href={`/settings/jd-templates/${jd.id}`}
+                              href={`/hiring/settings/jd-templates/${jd.id}`}
                               className="font-medium text-foreground hover:text-primary hover:underline"
                             >
                               {jd.name}
@@ -402,13 +402,13 @@ export default function JDsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/settings/jd-templates/${jd.id}`}>
+                              <Link href={`/hiring/settings/jd-templates/${jd.id}`}>
                                 <Pencil className="h-4 w-4 mr-2" />
                                 Edit
                               </Link>
                             </DropdownMenuItem>
                             <DropdownMenuItem asChild>
-                              <Link href={`/settings/jd-templates/new?from=${jd.id}`}>
+                              <Link href={`/hiring/settings/jd-templates/new?from=${jd.id}`}>
                                 <GitBranch className="h-4 w-4 mr-2" />
                                 Create New Version
                               </Link>
@@ -455,7 +455,7 @@ export default function JDsPage() {
                           <div className="flex items-center gap-3 pl-12">
                             <div className="w-0.5 h-8 bg-muted -ml-3" />
                             <Link
-                              href={`/settings/jd-templates/${version.id}`}
+                              href={`/hiring/settings/jd-templates/${version.id}`}
                               className="text-sm text-foreground/80 hover:text-primary hover:underline"
                             >
                               {version.name}
@@ -491,13 +491,13 @@ export default function JDsPage() {
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem asChild>
-                                <Link href={`/settings/jd-templates/${version.id}`}>
+                                <Link href={`/hiring/settings/jd-templates/${version.id}`}>
                                   <Eye className="h-4 w-4 mr-2" />
                                   View
                                 </Link>
                               </DropdownMenuItem>
                               <DropdownMenuItem asChild>
-                                <Link href={`/settings/jd-templates/new?from=${version.id}`}>
+                                <Link href={`/hiring/settings/jd-templates/new?from=${version.id}`}>
                                   <Copy className="h-4 w-4 mr-2" />
                                   Restore as New
                                 </Link>
@@ -528,7 +528,7 @@ export default function JDsPage() {
           </p>
           {!searchQuery && departmentFilter === 'all' && statusFilter === 'all' && (
             <Button asChild>
-              <Link href="/settings/jd-templates/new">
+              <Link href="/hiring/settings/jd-templates/new">
                 <Plus className="h-4 w-4 mr-2" />
                 Create JD
               </Link>

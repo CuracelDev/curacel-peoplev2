@@ -2,7 +2,6 @@
 
 import Link from 'next/link'
 import { Card, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import { BarChart3, ChevronRight, ClipboardCheck, MessageSquare, Video } from 'lucide-react'
 

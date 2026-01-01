@@ -6,9 +6,7 @@ import Link from 'next/link'
 import {
   Save,
   Star,
-  Smile,
   Users,
-  GitBranch,
   Plus,
   Eye,
   Trash2,
@@ -33,8 +31,6 @@ import {
   Layers,
   Video,
   Loader2,
-  BarChart3,
-  ClipboardList,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'

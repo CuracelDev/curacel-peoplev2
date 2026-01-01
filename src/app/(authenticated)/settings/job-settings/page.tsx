@@ -17,7 +17,7 @@ const jobSettingsOptions = [
     title: 'Job Descriptions',
     description: 'Manage job descriptions for different roles. Create, version, and organize JDs for your hiring pipeline.',
     icon: Briefcase,
-    href: '/settings/jd-templates',
+    href: '/hiring/settings/jd-templates',
     iconBg: 'bg-indigo-100',
   },
   {
@@ -31,14 +31,14 @@ const jobSettingsOptions = [
     title: 'Hiring Rubrics',
     description: 'Create evaluation rubrics with weighted criteria for consistent candidate assessment.',
     icon: ClipboardList,
-    href: '/settings/job-settings/rubrics',
+    href: '/hiring/settings/rubrics',
     iconBg: 'bg-indigo-100',
   },
   {
     title: 'Role Competencies',
     description: 'Define competencies that can be selected when creating job positions.',
     icon: Target,
-    href: '/settings/job-settings/competencies',
+    href: '/hiring/settings/competencies',
     iconBg: 'bg-indigo-100',
   },
 ]

@@ -158,7 +158,7 @@ export default function NewJDPage() {
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     setIsSaving(false)
-    router.push('/settings/jd-templates')
+    router.push('/hiring/settings/jd-templates')
   }
 
   const handleCreateAsNewVersion = async () => {
@@ -171,7 +171,7 @@ export default function NewJDPage() {
     await new Promise(resolve => setTimeout(resolve, 1000))
 
     setIsSaving(false)
-    router.push('/settings/jd-templates')
+    router.push('/hiring/settings/jd-templates')
   }
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -201,7 +201,7 @@ export default function NewJDPage() {
 
     // Redirect after success
     setTimeout(() => {
-      router.push('/settings/jd-templates')
+      router.push('/hiring/settings/jd-templates')
     }, 1500)
   }
 
@@ -265,7 +265,7 @@ export default function NewJDPage() {
       {/* Header */}
       <div className="flex items-center gap-4">
         <Button variant="ghost" size="icon" asChild>
-          <Link href="/settings/jd-templates">
+          <Link href="/hiring/settings/jd-templates">
             <ArrowLeft className="h-5 w-5" />
           </Link>
         </Button>
@@ -424,7 +424,7 @@ export default function NewJDPage() {
               {/* Actions */}
               <div className="flex items-center justify-end gap-4 pt-4 border-t">
                 <Button variant="outline" asChild>
-                  <Link href="/settings/jd-templates">Cancel</Link>
+                  <Link href="/hiring/settings/jd-templates">Cancel</Link>
                 </Button>
                 <Button
                   onClick={handleSave}
@@ -524,7 +524,7 @@ export default function NewJDPage() {
               {/* Actions */}
               <div className="flex items-center justify-end gap-4 pt-4 border-t">
                 <Button variant="outline" asChild>
-                  <Link href="/settings/jd-templates">Cancel</Link>
+                  <Link href="/hiring/settings/jd-templates">Cancel</Link>
                 </Button>
                 <Button
                   onClick={handleBulkUpload}
@@ -601,7 +601,7 @@ export default function NewJDPage() {
               {/* Actions */}
               <div className="flex items-center justify-end gap-4 pt-4 border-t">
                 <Button variant="outline" asChild>
-                  <Link href="/settings/jd-templates">Cancel</Link>
+                  <Link href="/hiring/settings/jd-templates">Cancel</Link>
                 </Button>
                 <Button
                   onClick={handleImportFromUrl}
