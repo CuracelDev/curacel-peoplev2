@@ -229,13 +229,13 @@ export default function PositionsPage() {
                         {PRIORITY_BADGES[job.priority]?.label || 'Medium'}
                       </Badge>
                     )}
-                    <div className="flex items-center gap-2 ml-auto">
+                    <div className="flex items-center gap-2">
                       {job.isPublic ? (
-                        <Globe className="h-4 w-4 text-green-600" />
+                        <Globe className="h-3.5 w-3.5 text-green-600" />
                       ) : (
-                        <Lock className="h-4 w-4 text-muted-foreground" />
+                        <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                       )}
-                      <span className="text-sm text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {job.isPublic ? 'Public' : 'Private'}
                       </span>
                       <Switch
@@ -243,6 +243,7 @@ export default function PositionsPage() {
                         onCheckedChange={(checked) => {
                           toggleJobPublicMutation.mutate({ jobId: job.id, isPublic: checked })
                         }}
+                        className="h-5 w-9 [&>span]:h-4 [&>span]:w-4 [&>span]:data-[state=checked]:translate-x-4"
                       />
                     </div>
                   </div>
