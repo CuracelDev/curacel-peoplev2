@@ -385,21 +385,25 @@ export default function ScheduleInterviewPage() {
       saveToBank: q.saveToBank,
     }))
 
-    await scheduleMutation.mutateAsync({
-      candidateId: selectedCandidateId,
-      interviewTypeId,
-      scheduledAt: scheduledAt.toISOString(),
-      duration,
-      interviewers: selectedInterviewers.map(i => ({
-        employeeId: i.id,
-        name: i.name,
-        email: i.email,
-      })),
-      meetingLink: meetingLink || undefined,
-      notes: notes || undefined,
-      questionIds: questionIds.length > 0 ? questionIds : undefined,
-      customQuestions: customQuestions.length > 0 ? customQuestions : undefined,
-    })
+    try {
+      await scheduleMutation.mutateAsync({
+        candidateId: selectedCandidateId,
+        interviewTypeId,
+        scheduledAt: scheduledAt.toISOString(),
+        duration,
+        interviewers: selectedInterviewers.map(i => ({
+          employeeId: i.id,
+          name: i.name,
+          email: i.email,
+        })),
+        meetingLink: meetingLink || undefined,
+        notes: notes || undefined,
+        questionIds: questionIds.length > 0 ? questionIds : undefined,
+        customQuestions: customQuestions.length > 0 ? customQuestions : undefined,
+      })
+    } catch {
+      // Error is already handled by onError callback in the mutation
+    }
   }
 
   // Effect to refetch slots when interviewers, duration, or date range changes

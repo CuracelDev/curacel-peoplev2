@@ -27,6 +27,7 @@ const ROUTE_LABELS: Record<string, string> = {
   general: 'General',
   integrations: 'Integrations',
   teams: 'Teams',
+  'jd-templates': 'JD Templates',
   'job-description-templates': 'JD Templates',
   competencies: 'Competencies',
   'hiring-rubrics': 'Hiring Rubrics',
