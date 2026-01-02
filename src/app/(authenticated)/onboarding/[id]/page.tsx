@@ -160,7 +160,7 @@ export default function OnboardingDetailPage() {
   const { data: bitbucketRules } = trpc.integration.listRules.useQuery(bitbucketApp?.id, {
     enabled: Boolean(bitbucketApp?.id),
   })
-  const { data: bitbucketOptions } = trpc.integration.listBitbucketOptions.useQuery(bitbucketApp?.id, {
+  const { data: bitbucketOptions } = trpc.integration.listBitbucketOptions.useQuery(bitbucketApp?.id ?? '', {
     enabled: Boolean(bitbucketApp?.id),
   })
   const employeeSheetQuery = trpc.onboarding.getEmployeeSheetData.useQuery(

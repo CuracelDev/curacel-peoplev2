@@ -19,8 +19,10 @@ export default function HiringGeneralSettingsPage() {
   const [jobScoreDisplay, setJobScoreDisplay] = useState<'average' | 'max'>('average')
 
   useEffect(() => {
-    if (!hiringSettings?.jobScoreDisplay) return
-    setJobScoreDisplay(hiringSettings.jobScoreDisplay)
+    const value = hiringSettings?.jobScoreDisplay
+    if (value === 'average' || value === 'max') {
+      setJobScoreDisplay(value)
+    }
   }, [hiringSettings?.jobScoreDisplay])
 
   const handleJobScoreDisplayChange = (value: 'average' | 'max') => {

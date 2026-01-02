@@ -434,22 +434,42 @@ export default function SettingsPage() {
     })
   }
 
+  const normalizeQuestionOptions = (options: unknown) => {
+    if (!options) return ''
+    if (typeof options === 'string') return options
+    if (!Array.isArray(options)) return ''
+    return options
+      .map((option) => {
+        if (typeof option === 'string') return option
+        if (option && typeof option === 'object') {
+          const { label, value } = option as { label?: unknown; value?: unknown }
+          if (typeof label === 'string') return label
+          if (typeof value === 'string' || typeof value === 'number') return String(value)
+        }
+        return ''
+      })
+      .filter(Boolean)
+      .join('\n')
+  }
+
+  type InterestForm = NonNullable<typeof interestFormsQuery.data>[number]
+
   // Form dialog helpers
-  const openFormDialog = (form?: typeof interestFormsQuery.data extends (infer T)[] ? T : never) => {
+  const openFormDialog = (form?: InterestForm) => {
     if (form) {
       setEditingFormId(form.id)
       setFormName(form.name)
       setFormDescription(form.description || '')
       setFormIsDefault(form.isDefault)
       setFormQuestions(
-        form.questions.map((q: { id: string; label: string; type: string; placeholder?: string | null; helpText?: string | null; isRequired: boolean; options?: string | null }) => ({
+        form.questions.map((q) => ({
           id: q.id,
-          label: q.label,
+          label: q.question,
           type: q.type,
-          placeholder: q.placeholder || '',
-          helpText: q.helpText || '',
-          isRequired: q.isRequired,
-          options: q.options || '',
+          placeholder: '',
+          helpText: q.description || '',
+          isRequired: q.required,
+          options: normalizeQuestionOptions(q.options),
         }))
       )
     } else {
@@ -511,7 +531,9 @@ export default function SettingsPage() {
   }
 
   // Rubric dialog helpers
-  const openRubricDialog = (rubric?: typeof rubricTemplatesQuery.data extends (infer T)[] ? T : never) => {
+  type RubricTemplate = NonNullable<typeof rubricTemplatesQuery.data>[number]
+
+  const openRubricDialog = (rubric?: RubricTemplate) => {
     if (rubric) {
       setEditingRubricId(rubric.id)
       setRubricName(rubric.name)
@@ -1039,8 +1061,8 @@ export default function SettingsPage() {
                               </div>
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium">{q.label}</span>
-                                  {q.isRequired && <span className="text-red-500 text-xs">*</span>}
+                                  <span className="text-sm font-medium">{q.question}</span>
+                                  {q.required && <span className="text-red-500 text-xs">*</span>}
                                 </div>
                                 <div className="text-xs text-muted-foreground mt-1">{q.type}</div>
                               </div>

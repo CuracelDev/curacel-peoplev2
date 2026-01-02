@@ -67,6 +67,24 @@ export default function EditInterestFormPage() {
     },
   })
 
+  const normalizeQuestionOptions = (options: unknown) => {
+    if (!options) return ''
+    if (typeof options === 'string') return options
+    if (!Array.isArray(options)) return ''
+    return options
+      .map((option) => {
+        if (typeof option === 'string') return option
+        if (option && typeof option === 'object') {
+          const { label, value } = option as { label?: unknown; value?: unknown }
+          if (typeof label === 'string') return label
+          if (typeof value === 'string' || typeof value === 'number') return String(value)
+        }
+        return ''
+      })
+      .filter(Boolean)
+      .join('\n')
+  }
+
   // Load form data
   useEffect(() => {
     if (formQuery.data && !isLoaded) {
@@ -75,15 +93,15 @@ export default function EditInterestFormPage() {
       setFormDescription(form.description || '')
       setFormIsDefault(form.isDefault || false)
       setFormQuestions(
-        (form.questions as Array<{ id?: string; label: string; type: string; placeholder?: string; helpText?: string; isRequired: boolean; options?: string }>)?.map((q) => ({
+        form.questions.map((q) => ({
           id: q.id,
-          label: q.label,
+          label: q.question,
           type: q.type,
-          placeholder: q.placeholder || '',
-          helpText: q.helpText || '',
-          isRequired: q.isRequired,
-          options: q.options || '',
-        })) || []
+          placeholder: '',
+          helpText: q.description || '',
+          isRequired: q.required,
+          options: normalizeQuestionOptions(q.options),
+        }))
       )
       setIsLoaded(true)
     }
