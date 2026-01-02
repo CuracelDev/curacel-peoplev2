@@ -23,7 +23,6 @@ import {
   Settings,
   Briefcase,
   Zap,
-  FileType,
   Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
@@ -95,12 +94,6 @@ const settingsSections = [
         description: 'Manage job postings, forms, recruiters, and careers page.',
         icon: Briefcase,
         href: '/settings/job-settings',
-      },
-      {
-        title: 'JD Templates',
-        description: 'Job description templates.',
-        icon: FileType,
-        href: '/hiring/settings/jd-templates',
       },
       {
         title: 'Hiring Flows',
