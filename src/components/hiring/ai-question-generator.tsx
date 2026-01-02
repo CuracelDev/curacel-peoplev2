@@ -80,6 +80,7 @@ interface AIQuestionGeneratorProps {
   jobId?: string
   onQuestionsAdded: (questions: SelectedQuestion[]) => void
   existingQuestionIds?: string[]
+  compact?: boolean // For embedding in tabs/panels without card wrapper
 }
 
 export function AIQuestionGenerator({
@@ -88,6 +89,7 @@ export function AIQuestionGenerator({
   jobId,
   onQuestionsAdded,
   existingQuestionIds = [],
+  compact = false,
 }: AIQuestionGeneratorProps) {
   // State for context sources
   const [contextSources, setContextSources] = useState({
@@ -247,6 +249,14 @@ export function AIQuestionGenerator({
   }
 
   if (!candidateId) {
+    if (compact) {
+      return (
+        <div className="py-8 text-center text-muted-foreground">
+          <Brain className="h-8 w-8 mx-auto mb-2 opacity-50" />
+          <p>Select a candidate to generate AI-powered questions</p>
+        </div>
+      )
+    }
     return (
       <Card className="border-dashed">
         <CardContent className="py-8 text-center text-muted-foreground">
@@ -257,30 +267,9 @@ export function AIQuestionGenerator({
     )
   }
 
-  return (
-    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Sparkles className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">Generate with AuntyPelz</CardTitle>
-              <CardDescription>
-                AI-powered questions based on candidate context
-              </CardDescription>
-            </div>
-          </div>
-          {context && (
-            <Badge variant="outline" className="text-xs">
-              {context.candidateName}
-            </Badge>
-          )}
-        </div>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
+  // Content for both compact and full modes
+  const content = (
+    <div className="space-y-4">
         {/* Context Sources Panel */}
         <Collapsible open={showContextPanel} onOpenChange={setShowContextPanel}>
           <CollapsibleTrigger asChild>
@@ -336,7 +325,7 @@ export function AIQuestionGenerator({
 
                 {/* Must-Validate Points */}
                 {contextCounts && contextCounts.mustValidate > 0 && (
-                  <div className="flex items-start gap-3 p-2 rounded-lg bg-amber-50/50 hover:bg-amber-50">
+                  <div className="flex items-start gap-3 p-2 rounded-lg bg-warning/5 hover:bg-warning/10">
                     <Checkbox
                       id="must-validate"
                       checked={contextSources.includeAuntyPelzMustValidate}
@@ -346,9 +335,9 @@ export function AIQuestionGenerator({
                     />
                     <div className="flex-1">
                       <Label htmlFor="must-validate" className="flex items-center gap-2 cursor-pointer">
-                        <AlertTriangle className="h-4 w-4 text-amber-500" />
+                        <AlertTriangle className="h-4 w-4 text-warning" />
                         Must-Validate Points
-                        <Badge variant="outline" className="text-xs border-amber-300 text-amber-700">
+                        <Badge variant="outline" className="text-xs border-warning/30 text-warning">
                           {contextCounts.mustValidate} critical
                         </Badge>
                       </Label>
@@ -361,7 +350,7 @@ export function AIQuestionGenerator({
 
                 {/* Concerns */}
                 {contextCounts && contextCounts.concerns > 0 && (
-                  <div className="flex items-start gap-3 p-2 rounded-lg bg-amber-50/50 hover:bg-amber-50">
+                  <div className="flex items-start gap-3 p-2 rounded-lg bg-warning/5 hover:bg-warning/10">
                     <Checkbox
                       id="concerns"
                       checked={contextSources.includeAuntyPelzConcerns}
@@ -371,9 +360,9 @@ export function AIQuestionGenerator({
                     />
                     <div className="flex-1">
                       <Label htmlFor="concerns" className="flex items-center gap-2 cursor-pointer">
-                        <AlertTriangle className="h-4 w-4 text-amber-500" />
+                        <AlertTriangle className="h-4 w-4 text-warning" />
                         Concerns from Analysis
-                        <Badge variant="outline" className="text-xs border-amber-300 text-amber-700">
+                        <Badge variant="outline" className="text-xs border-warning/30 text-warning">
                           {contextCounts.concerns}
                         </Badge>
                       </Label>
@@ -522,9 +511,9 @@ export function AIQuestionGenerator({
 
         {/* Critical Areas Notice */}
         {hasCriticalData && !generatedQuestions.length && (
-          <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 border border-amber-200">
-            <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5" />
-            <div className="text-sm text-amber-800">
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/10 border border-warning/20">
+            <AlertTriangle className="h-4 w-4 text-warning mt-0.5" />
+            <div className="text-sm text-warning-foreground">
               <p className="font-medium">Critical areas detected</p>
               <p className="text-xs mt-1">
                 Generated questions will prioritize addressing red flags and must-validate points.
@@ -550,7 +539,7 @@ export function AIQuestionGenerator({
               </div>
             </div>
 
-            <div className="space-y-2 max-h-[400px] overflow-y-auto pr-2">
+            <div className={cn("space-y-2 overflow-y-auto pr-2", compact ? "max-h-[300px]" : "max-h-[400px]")}>
               {generatedQuestions.map((question) => (
                 <div
                   key={question.id}
@@ -559,7 +548,7 @@ export function AIQuestionGenerator({
                     selectedIds.has(question.id)
                       ? 'border-primary/50 bg-primary/5'
                       : 'border-border hover:border-primary/30',
-                    question.addressesCritical && 'ring-1 ring-amber-300'
+                    question.addressesCritical && 'ring-1 ring-warning/30'
                   )}
                 >
                   <div className="flex items-start gap-3">
@@ -575,7 +564,7 @@ export function AIQuestionGenerator({
                             {question.category}
                           </Badge>
                           {question.addressesCritical && (
-                            <Badge variant="outline" className="text-xs border-amber-300 text-amber-700">
+                            <Badge variant="outline" className="text-xs border-warning/30 text-warning">
                               <Flag className="h-3 w-3 mr-1" />
                               Critical
                             </Badge>
@@ -648,6 +637,7 @@ export function AIQuestionGenerator({
               onClick={handleAddSelected}
               disabled={selectedIds.size === 0 || saveQuestionsMutation.isPending}
               className="w-full"
+              size={compact ? "sm" : "default"}
             >
               {saveQuestionsMutation.isPending ? (
                 <>
@@ -663,6 +653,55 @@ export function AIQuestionGenerator({
             </Button>
           </div>
         )}
+    </div>
+  )
+
+  // Return compact version (no card wrapper)
+  if (compact) {
+    return (
+      <div>
+        {/* Compact header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium">Generate with AuntyPelz</span>
+          </div>
+          {context && (
+            <Badge variant="outline" className="text-xs">
+              {context.candidateName}
+            </Badge>
+          )}
+        </div>
+        {content}
+      </div>
+    )
+  }
+
+  // Return full card version
+  return (
+    <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Sparkles className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle className="text-lg">Generate with AuntyPelz</CardTitle>
+              <CardDescription>
+                AI-powered questions based on candidate context
+              </CardDescription>
+            </div>
+          </div>
+          {context && (
+            <Badge variant="outline" className="text-xs">
+              {context.candidateName}
+            </Badge>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent>
+        {content}
       </CardContent>
     </Card>
   )

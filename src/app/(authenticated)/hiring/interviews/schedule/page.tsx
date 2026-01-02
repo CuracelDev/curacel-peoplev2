@@ -692,10 +692,10 @@ export default function ScheduleInterviewPage() {
 
                     {/* Calendar Access Errors - Block smart scheduling */}
                     {hasCalendarErrors ? (
-                      <div className="flex flex-col items-center justify-center py-8 border border-amber-200 rounded-lg bg-amber-50">
-                        <AlertCircle className="h-8 w-8 text-amber-600 mb-3" />
-                        <p className="text-sm font-medium text-amber-800">Cannot access all calendars</p>
-                        <div className="text-xs text-amber-700 mt-2 text-center max-w-sm">
+                      <div className="flex flex-col items-center justify-center py-8 border border-warning/20 rounded-lg bg-warning/5">
+                        <AlertCircle className="h-8 w-8 text-warning mb-3" />
+                        <p className="text-sm font-medium text-warning-foreground">Cannot access all calendars</p>
+                        <div className="text-xs text-warning-foreground/80 mt-2 text-center max-w-sm">
                           <p className="mb-2">The following interviewers have inaccessible calendars:</p>
                           <ul className="space-y-1">
                             {Object.entries(calendarErrors).map(([email]) => (
@@ -950,219 +950,269 @@ export default function ScheduleInterviewPage() {
         </Card>
       )}
 
-      {/* Step 2: Question Selection */}
+      {/* Step 2: Question Selection - Two Column Layout */}
       {currentStep === 2 && (
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5" />
-                Select Interview Questions
-              </CardTitle>
-              <CardDescription>
-                Choose questions for this interview from the bank or add custom ones.
-                {selectedType && (
-                  <span className="block mt-1">
-                    Showing questions for: {selectedType.questionCategories?.map(c => categoryConfig[c]?.name || c).join(', ')}
-                  </span>
-                )}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Selected Questions */}
-              <div>
-                <Label className="mb-2 block">Selected Questions ({selectedQuestions.length})</Label>
-                {selectedQuestions.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 border border-dashed rounded-lg">
-                    <MessageSquare className="h-8 w-8 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">No questions selected yet</p>
-                    <p className="text-xs text-muted-foreground mt-1">Add questions from the bank below or create custom ones</p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {selectedQuestions.map((q, index) => (
-                      <div
-                        key={index}
-                        className="flex items-start gap-3 p-3 border rounded-lg bg-muted/30"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <Badge className={categoryConfig[q.category]?.color || 'bg-gray-100 text-gray-700'}>
-                              {categoryConfig[q.category]?.name || q.category}
-                            </Badge>
-                            {q.isCustom && <Badge variant="outline">Custom</Badge>}
-                            {q.isRequired && <Badge variant="secondary">Required</Badge>}
-                            {q.saveToBank && <Badge variant="secondary">Save to Bank</Badge>}
-                          </div>
-                          <p className="text-sm">{q.text}</p>
-                          {q.followUp && (
-                            <p className="text-xs text-muted-foreground mt-1 italic">Follow-up: {q.followUp}</p>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8"
-                            onClick={() => toggleQuestionRequired(index)}
-                            title={q.isRequired ? 'Mark as optional' : 'Mark as required'}
-                          >
-                            <Star className={cn('h-4 w-4', q.isRequired && 'fill-amber-400 text-amber-400')} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-destructive"
-                            onClick={() => removeQuestion(index)}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
+        <div className="grid grid-cols-[400px_1fr] gap-6">
+          {/* Left Panel: Question Sources (Bank or AI) */}
+          <div className="space-y-4">
+            <Card className="sticky top-4">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  Question Sources
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  {selectedType && `Showing: ${selectedType.questionCategories?.map(c => categoryConfig[c]?.name || c).join(', ')}`}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <Tabs defaultValue="bank" className="w-full">
+                  <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
+                    <TabsTrigger value="bank" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      Question Bank
+                    </TabsTrigger>
+                    <TabsTrigger value="ai" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      AuntyPelz AI
+                    </TabsTrigger>
+                  </TabsList>
+
+                  {/* Question Bank Tab */}
+                  <TabsContent value="bank" className="p-4 mt-0 space-y-4">
+                    <Input
+                      placeholder="Search questions..."
+                      value={questionSearch}
+                      onChange={(e) => setQuestionSearch(e.target.value)}
+                      className="w-full"
+                    />
+                    {questionsLoading ? (
+                      <div className="flex items-center justify-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                       </div>
-                    ))}
+                    ) : filteredQuestions.length === 0 ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <BookOpen className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">No questions found</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {questionCategories.length > 0
+                            ? 'Try searching or seed defaults in Settings'
+                            : 'No categories configured for this type'}
+                        </p>
+                      </div>
+                    ) : (
+                      <ScrollArea className="h-[400px]">
+                        <div className="space-y-2 pr-3">
+                          {filteredQuestions.map((question) => {
+                            const isSelected = selectedQuestions.some(q => q.id === question.id)
+                            return (
+                              <div
+                                key={question.id}
+                                className={cn(
+                                  'p-3 border rounded-lg cursor-pointer transition-colors',
+                                  isSelected ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'
+                                )}
+                                onClick={() => {
+                                  if (isSelected) {
+                                    setSelectedQuestions(selectedQuestions.filter(q => q.id !== question.id))
+                                  } else {
+                                    addQuestion(question)
+                                  }
+                                }}
+                              >
+                                <div className="flex items-start gap-2">
+                                  <div className={cn(
+                                    'w-4 h-4 rounded border flex items-center justify-center flex-shrink-0 mt-0.5',
+                                    isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground'
+                                  )}>
+                                    {isSelected && <Check className="h-2.5 w-2.5" />}
+                                  </div>
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5 mb-1">
+                                      <Badge className={cn('text-[10px] px-1.5 py-0', categoryConfig[question.category]?.color || 'bg-gray-100 text-gray-700')}>
+                                        {categoryConfig[question.category]?.name || question.category}
+                                      </Badge>
+                                      {question.isFavorite && (
+                                        <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                      )}
+                                    </div>
+                                    <p className="text-sm leading-snug">{question.text}</p>
+                                    {question.followUp && (
+                                      <p className="text-xs text-muted-foreground mt-1 italic line-clamp-1">
+                                        Follow-up: {question.followUp}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </ScrollArea>
+                    )}
+                  </TabsContent>
+
+                  {/* AI Generator Tab */}
+                  <TabsContent value="ai" className="p-4 mt-0">
+                    {selectedCandidateId ? (
+                      <AIQuestionGenerator
+                        candidateId={selectedCandidateId}
+                        interviewTypeId={interviewTypeId || undefined}
+                        jobId={selectedCandidate?.job?.id || undefined}
+                        onQuestionsAdded={(questions) => {
+                          setSelectedQuestions(prev => [
+                            ...prev,
+                            ...questions.map(q => ({
+                              ...q,
+                              isCustom: q.isCustom ?? true,
+                              saveToBank: q.saveToBank ?? true,
+                              isRequired: q.isRequired ?? false,
+                            }))
+                          ])
+                        }}
+                        existingQuestionIds={selectedQuestions.filter(q => q.id).map(q => q.id!)}
+                        compact
+                      />
+                    ) : (
+                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                        <Sparkles className="h-8 w-8 text-muted-foreground mb-2" />
+                        <p className="text-sm text-muted-foreground">Select a candidate first</p>
+                      </div>
+                    )}
+                  </TabsContent>
+                </Tabs>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Panel: Selected Questions */}
+          <div className="space-y-4">
+            <Card>
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4" />
+                      Selected Questions
+                      <Badge variant="secondary" className="ml-1">{selectedQuestions.length}</Badge>
+                    </CardTitle>
+                    <CardDescription className="text-xs">
+                      Questions that will be used in this interview
+                    </CardDescription>
                   </div>
-                )}
-              </div>
-
-              {/* AI Question Generator */}
-              {selectedCandidateId && (
-                <AIQuestionGenerator
-                  candidateId={selectedCandidateId}
-                  interviewTypeId={interviewTypeId || undefined}
-                  jobId={selectedCandidate?.job?.id || undefined}
-                  onQuestionsAdded={(questions) => {
-                    setSelectedQuestions(prev => [
-                      ...prev,
-                      ...questions.map(q => ({
-                        ...q,
-                        isCustom: q.isCustom ?? true,
-                        saveToBank: q.saveToBank ?? true,
-                        isRequired: q.isRequired ?? false,
-                      }))
-                    ])
-                  }}
-                  existingQuestionIds={selectedQuestions.filter(q => q.id).map(q => q.id!)}
-                />
-              )}
-
-              {/* Add Custom Question */}
-              <div className="space-y-3 p-4 border rounded-lg">
-                <Label>Add Custom Question</Label>
-                <div className="flex gap-2">
-                  <Select value={customQuestionCategory} onValueChange={setCustomQuestionCategory}>
-                    <SelectTrigger className="w-40">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(categoryConfig).map(([key, val]) => (
-                        <SelectItem key={key} value={key}>{val.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Input
-                    placeholder="Type your custom question..."
-                    value={customQuestionText}
-                    onChange={(e) => setCustomQuestionText(e.target.value)}
-                    className="flex-1"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' && customQuestionText.trim()) {
-                        addCustomQuestion()
-                      }
-                    }}
-                  />
-                  <Button onClick={addCustomQuestion} disabled={!customQuestionText.trim()}>
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add
-                  </Button>
+                  {selectedQuestions.length > 0 && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => setSelectedQuestions([])}
+                    >
+                      Clear All
+                    </Button>
+                  )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="save-to-bank"
-                    checked={saveCustomToBank}
-                    onCheckedChange={(v) => setSaveCustomToBank(v as boolean)}
-                  />
-                  <Label htmlFor="save-to-bank" className="text-sm text-muted-foreground">
-                    Save this question to the question bank for future use
-                  </Label>
-                </div>
-              </div>
-
-              {/* Question Bank */}
-              <div>
-                <div className="flex items-center justify-between mb-3">
-                  <Label>Question Bank</Label>
-                  <Input
-                    placeholder="Search questions..."
-                    value={questionSearch}
-                    onChange={(e) => setQuestionSearch(e.target.value)}
-                    className="w-64"
-                  />
-                </div>
-                {questionsLoading ? (
-                  <div className="flex items-center justify-center py-8">
-                    <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                  </div>
-                ) : filteredQuestions.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-8 border border-dashed rounded-lg">
-                    <BookOpen className="h-8 w-8 text-muted-foreground mb-2" />
-                    <p className="text-sm text-muted-foreground">No questions found</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {questionCategories.length > 0
-                        ? `Try searching or seed default questions in Settings`
-                        : 'This interview type has no question categories configured'}
+              </CardHeader>
+              <CardContent>
+                {selectedQuestions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 border border-dashed rounded-lg">
+                    <MessageSquare className="h-10 w-10 text-muted-foreground mb-3" />
+                    <p className="text-sm text-muted-foreground font-medium">No questions selected</p>
+                    <p className="text-xs text-muted-foreground mt-1 max-w-[200px] text-center">
+                      Add questions from the Question Bank or generate with AuntyPelz AI
                     </p>
                   </div>
                 ) : (
-                  <ScrollArea className="h-[300px] border rounded-lg">
-                    <div className="p-3 space-y-2">
-                      {filteredQuestions.map((question) => {
-                        const isSelected = selectedQuestions.some(q => q.id === question.id)
-                        return (
-                          <div
-                            key={question.id}
-                            className={cn(
-                              'flex items-start gap-3 p-3 border rounded-lg cursor-pointer transition-colors',
-                              isSelected ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'
-                            )}
-                            onClick={() => {
-                              if (isSelected) {
-                                setSelectedQuestions(selectedQuestions.filter(q => q.id !== question.id))
-                              } else {
-                                addQuestion(question)
-                              }
-                            }}
-                          >
-                            <div className={cn(
-                              'w-5 h-5 rounded border flex items-center justify-center flex-shrink-0 mt-0.5',
-                              isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground'
-                            )}>
-                              {isSelected && <Check className="h-3 w-3" />}
-                            </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <Badge className={categoryConfig[question.category]?.color || 'bg-gray-100 text-gray-700'}>
-                                  {categoryConfig[question.category]?.name || question.category}
-                                </Badge>
-                                {question.isFavorite && (
-                                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
-                                )}
-                              </div>
-                              <p className="text-sm">{question.text}</p>
-                              {question.followUp && (
-                                <p className="text-xs text-muted-foreground mt-1 italic">
-                                  Follow-up: {question.followUp}
-                                </p>
-                              )}
-                            </div>
+                  <ScrollArea className="h-[350px]">
+                    <div className="space-y-2 pr-3">
+                      {selectedQuestions.map((q, index) => (
+                        <div
+                          key={index}
+                          className="flex items-start gap-3 p-3 border rounded-lg bg-muted/20 hover:bg-muted/40 transition-colors group"
+                        >
+                          <div className="w-6 h-6 rounded-full bg-primary/10 text-primary flex items-center justify-center text-xs font-medium flex-shrink-0">
+                            {index + 1}
                           </div>
-                        )
-                      })}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-1.5 mb-1 flex-wrap">
+                              <Badge className={cn('text-[10px] px-1.5 py-0', categoryConfig[q.category]?.color || 'bg-gray-100 text-gray-700')}>
+                                {categoryConfig[q.category]?.name || q.category}
+                              </Badge>
+                              {q.isCustom && <Badge variant="outline" className="text-[10px] px-1.5 py-0">Custom</Badge>}
+                              {q.isRequired && <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Required</Badge>}
+                            </div>
+                            <p className="text-sm leading-snug">{q.text}</p>
+                            {q.followUp && (
+                              <p className="text-xs text-muted-foreground mt-1 italic">Follow-up: {q.followUp}</p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={() => toggleQuestionRequired(index)}
+                              title={q.isRequired ? 'Mark as optional' : 'Mark as required'}
+                            >
+                              <Star className={cn('h-3.5 w-3.5', q.isRequired && 'fill-amber-400 text-amber-400')} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-destructive hover:text-destructive"
+                              onClick={() => removeQuestion(index)}
+                            >
+                              <X className="h-3.5 w-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
                     </div>
                   </ScrollArea>
                 )}
-              </div>
-            </CardContent>
-          </Card>
+
+                {/* Add Custom Question */}
+                <div className="mt-4 pt-4 border-t space-y-3">
+                  <Label className="text-sm font-medium">Add Custom Question</Label>
+                  <div className="flex gap-2">
+                    <Select value={customQuestionCategory} onValueChange={setCustomQuestionCategory}>
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(categoryConfig).map(([key, val]) => (
+                          <SelectItem key={key} value={key}>{val.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      placeholder="Type your custom question..."
+                      value={customQuestionText}
+                      onChange={(e) => setCustomQuestionText(e.target.value)}
+                      className="flex-1"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && customQuestionText.trim()) {
+                          addCustomQuestion()
+                        }
+                      }}
+                    />
+                    <Button onClick={addCustomQuestion} disabled={!customQuestionText.trim()} size="sm">
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Checkbox
+                      id="save-to-bank"
+                      checked={saveCustomToBank}
+                      onCheckedChange={(v) => setSaveCustomToBank(v as boolean)}
+                    />
+                    <Label htmlFor="save-to-bank" className="text-xs text-muted-foreground">
+                      Save to question bank for future use
+                    </Label>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       )}
 
