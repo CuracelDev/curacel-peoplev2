@@ -176,13 +176,18 @@ export function AIQuestionGenerator({
 
   // Handle adding selected questions
   const handleAddSelected = async () => {
+    console.log('handleAddSelected called', { selectedIds: Array.from(selectedIds), addedQuestionIds: Array.from(addedQuestionIds) })
+
     const selectedQuestions = generatedQuestions.filter(q => selectedIds.has(q.id) && !addedQuestionIds.has(q.id))
+    console.log('Selected questions to add:', selectedQuestions.length)
+
     if (selectedQuestions.length === 0) {
       toast.error('No new questions selected')
       return
     }
 
     try {
+      console.log('Saving to question bank...')
       // Save to question bank first (auto-save requirement)
       await saveQuestionsMutation.mutateAsync({
         questions: selectedQuestions.map(q => ({
@@ -195,15 +200,19 @@ export function AIQuestionGenerator({
         interviewTypeId,
       })
 
-      // Add to interview
-      onQuestionsAdded(selectedQuestions.map(q => ({
+      console.log('Saved to question bank, now adding to interview...')
+
+      // Add to interview via callback
+      const questionsToAdd = selectedQuestions.map(q => ({
         text: q.text,
         category: q.category,
         followUp: q.followUp,
         isCustom: true,
         saveToBank: true,
         isRequired: q.addressesCritical || false,
-      })))
+      }))
+
+      onQuestionsAdded(questionsToAdd)
 
       // Mark these questions as added (don't clear generated questions)
       const newAddedIds = new Set(addedQuestionIds)
@@ -214,8 +223,9 @@ export function AIQuestionGenerator({
       setSelectedIds(new Set())
 
       toast.success(`Added ${selectedQuestions.length} questions to interview`)
-    } catch {
-      toast.error('Failed to save questions')
+    } catch (error) {
+      console.error('Failed to add questions:', error)
+      toast.error('Failed to save questions to bank')
     }
   }
 
