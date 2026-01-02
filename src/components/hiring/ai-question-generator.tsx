@@ -269,7 +269,7 @@ export function AIQuestionGenerator({
 
   // Content for both compact and full modes
   const content = (
-    <div className="space-y-4">
+    <div className="space-y-2">
         {/* Context Sources Panel */}
         <Collapsible open={showContextPanel} onOpenChange={setShowContextPanel}>
           <CollapsibleTrigger asChild>
@@ -473,7 +473,7 @@ export function AIQuestionGenerator({
             placeholder="E.g., Focus on their startup experience, probe their leadership style, verify technical depth in system design..."
             value={customPrompt}
             onChange={(e) => setCustomPrompt(e.target.value)}
-            className="min-h-[60px] resize-none"
+            className="min-h-[100px] resize-none"
           />
         </div>
 
@@ -661,7 +661,7 @@ export function AIQuestionGenerator({
     return (
       <div className="h-full flex flex-col">
         {/* Compact header */}
-        <div className="flex items-center justify-between mb-3 flex-shrink-0">
+        <div className="flex items-center justify-between mb-1 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium">Generate with AuntyPelz</span>
