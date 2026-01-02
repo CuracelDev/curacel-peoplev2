@@ -1334,6 +1334,7 @@ export const onboardingRouter = router({
         cleanedSheetId?: string | null
         foundSheets?: string[]
         apiError?: string
+        serviceAccountEmail?: string | null
       }
     }> => {
       const debug: {
@@ -1341,6 +1342,7 @@ export const onboardingRouter = router({
         cleanedSheetId?: string | null
         foundSheets?: string[]
         apiError?: string
+        serviceAccountEmail?: string | null
       } = {}
 
       try {
@@ -1366,6 +1368,10 @@ export const onboardingRouter = router({
 
         const sheetsService = getGoogleSheetsService({ spreadsheetId: sheetId })
 
+        // Get service account email for debugging
+        const serviceAccountEmail = await sheetsService.getServiceAccountEmail()
+        debug.serviceAccountEmail = serviceAccountEmail
+
         let sheetNames: string[] = []
         try {
           sheetNames = await sheetsService.getSheetNames()
@@ -1375,11 +1381,20 @@ export const onboardingRouter = router({
           const errorMsg = apiError?.response?.data?.error?.message || apiError?.message || String(apiError)
           debug.apiError = errorMsg
           console.error('[syncTaskCatalog] API error getting sheet names:', errorMsg)
+
+          // Provide helpful error message for permission issues
+          let helpText = ''
+          if (errorMsg.includes('unauthorized_client') || errorMsg.includes('403') || errorMsg.includes('permission')) {
+            helpText = serviceAccountEmail
+              ? ` Share the sheet with: ${serviceAccountEmail}`
+              : ' Check Google Workspace domain-wide delegation settings.'
+          }
+
           return {
             success: false,
             taskCount: ONBOARDING_TASKS.length,
             source: 'static',
-            error: `Google Sheets API error: ${errorMsg}`,
+            error: `Google Sheets API error: ${errorMsg}${helpText}`,
             debug,
           }
         }

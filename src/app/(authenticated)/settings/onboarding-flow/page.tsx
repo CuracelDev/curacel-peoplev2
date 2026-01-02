@@ -451,6 +451,9 @@ export default function OnboardingFlowSettingsPage() {
                   {syncTaskCatalog.data.debug.apiError && (
                     <div className="text-red-600">API Error: {syncTaskCatalog.data.debug.apiError}</div>
                   )}
+                  {syncTaskCatalog.data.debug.serviceAccountEmail && (
+                    <div className="text-blue-600 mt-1">Share sheet with: {syncTaskCatalog.data.debug.serviceAccountEmail}</div>
+                  )}
                 </div>
               )}
             </div>

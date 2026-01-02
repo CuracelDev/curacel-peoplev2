@@ -83,7 +83,12 @@ export function Breadcrumb({ className, customLabels = {} }: BreadcrumbProps) {
         }
       } else {
         // Format segment: replace-hyphens and capitalize
-        label = segment
+        const prevSegment = segments[index - 1]
+        const normalizedSegment =
+          prevSegment === 'jd-templates' && segment.startsWith('jd-')
+            ? segment.slice(3)
+            : segment
+        label = normalizedSegment
           .split('-')
           .map(word => word.charAt(0).toUpperCase() + word.slice(1))
           .join(' ')
