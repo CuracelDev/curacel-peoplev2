@@ -151,7 +151,7 @@ export default function RubricsPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/hiring/settings/rubrics/${rubric.id}`}>
+                          <Link href={`/hiring/settings/rubrics/${rubric.id}/edit`}>
                             <Pencil className="h-4 w-4 mr-2" />
                             Edit
                           </Link>
