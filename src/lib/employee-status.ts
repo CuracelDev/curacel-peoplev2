@@ -8,7 +8,7 @@ export async function autoActivateEmployees(
 ): Promise<number> {
   const now = new Date()
   const where = {
-    status: { in: AUTO_ACTIVE_STATUSES },
+    status: { in: [...AUTO_ACTIVE_STATUSES] },
     startDate: { lte: now },
     ...(employeeId ? { id: employeeId } : {}),
   }

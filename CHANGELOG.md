@@ -198,6 +198,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Onboarding app account rendering now uses explicit account typing
 - Onboarding app account details now include external account fields in typing
 - Integration settings now guard optional connection test status
+- Notification email admin filtering now uses role guard helper for type safety
+- Hiring analytics pipeline stage ordering now uses typed stage enums
+- Assessment grading now casts score payloads to JSON input types
+- Integration connection tests now return a clear error when connectors cannot be created
+- Bulk onboarding now validates approval tokens before execution
+- Bulk deprovisioning now enforces non-empty approval tokens before execution
+- Assistant chat history typing now avoids implicit-any errors
+- AI agent chat list now relies on inferred chat typing to allow null titles
+- AI agent chat sidebar rendering now accepts nullable chat titles
+- Candidate AI analysis comparisons now guard nullable scores
+- Hiring overview interview stage filters now use typed stage enums
+- Hiring settings now cast candidate score weights to JSON input types safely
+- Interest form public payload now includes team data for department labels
+- Interest form submissions now store denormalized candidate name and email
+- Interest form submission no longer attempts to write a non-existent candidate response link
 - Public careers application now always sends a linkedin URL string
 - Public careers detail page now safely accesses job description content
 - Public recruiter submissions now always send a linkedin URL string
@@ -231,6 +246,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - AuntyPelz analysis now guards missing sentiment deltas
 - AuntyPelz analysis now renders sentiment score fallbacks
 - AuntyPelz analysis version list now guards missing sentiment data
+- Candidate table optional columns now use typed keys
+- Slider now accepts optional onChange handlers alongside onValueChange
+- AI analysis now uses candidate interview and overall assessment scores
+- AI analysis now labels assessment context from templates
+- Predictive assessment insights now store performance and tenure on candidates
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off

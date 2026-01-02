@@ -982,29 +982,65 @@ Respond ONLY with a valid JSON array, no additional text.`
         return cleaned.trim()
       }
 
+      // Helper to check if an object looks like a question
+      const isQuestionObject = (obj: unknown): boolean => {
+        if (!obj || typeof obj !== 'object') return false
+        const q = obj as Record<string, unknown>
+        return typeof q.text === 'string' && typeof q.category === 'string'
+      }
+
       // Helper to parse AI response with better error handling
       const parseAIResponse = (text: string): unknown[] => {
         const cleaned = cleanJsonResponse(text)
+        console.log('Parsing AI response, length:', cleaned.length)
+        console.log('First 500 chars:', cleaned.slice(0, 500))
 
         try {
           const parsed = JSON.parse(cleaned)
+          console.log('Parsed JSON type:', Array.isArray(parsed) ? 'array' : typeof parsed)
+          if (typeof parsed === 'object' && parsed !== null && !Array.isArray(parsed)) {
+            console.log('Object keys:', Object.keys(parsed))
+          }
 
-          // Handle direct array response
+          // Handle direct array response (array of questions)
           if (Array.isArray(parsed)) {
-            return parsed
+            // Verify it's an array of question objects
+            if (parsed.length > 0 && isQuestionObject(parsed[0])) {
+              console.log('Found direct array of questions with', parsed.length, 'items')
+              return parsed
+            }
           }
-          // Handle wrapped response like { questions: [...] }
-          if (parsed && typeof parsed === 'object' && Array.isArray(parsed.questions)) {
-            return parsed.questions
+
+          // Handle wrapped response like { questions: [...] } or { data: [...] } etc
+          if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+            // FIRST: Check if this IS a single question object
+            if (isQuestionObject(parsed)) {
+              console.log('Found single question object, wrapping in array')
+              return [parsed]
+            }
+
+            // Then look for arrays that contain question objects
+            for (const key of ['questions', 'data', 'items', 'results', 'interview_questions']) {
+              if (Array.isArray(parsed[key]) && parsed[key].length > 0 && isQuestionObject(parsed[key][0])) {
+                console.log(`Found array of questions in '${key}' with`, parsed[key].length, 'items')
+                return parsed[key]
+              }
+            }
+
+            // Check other array properties for question objects
+            for (const key of Object.keys(parsed)) {
+              if (Array.isArray(parsed[key]) && parsed[key].length > 0 && isQuestionObject(parsed[key][0])) {
+                console.log(`Found array of questions in '${key}' with`, parsed[key].length, 'items')
+                return parsed[key]
+              }
+            }
           }
-          // Handle single question object (AI returned one question instead of array)
-          if (parsed && typeof parsed === 'object' && 'text' in parsed && 'category' in parsed) {
-            return [parsed]
-          }
+
           console.error('AI response format unexpected:', Object.keys(parsed || {}))
           return []
         } catch (parseError) {
           console.error('Failed to parse AI response:', parseError)
+          console.error('Raw response:', cleaned.slice(0, 1000))
           return []
         }
       }
@@ -1020,19 +1056,36 @@ Respond ONLY with a valid JSON array, no additional text.`
       }> = []
 
       try {
+        console.log('Starting AI question generation...')
+        console.log('AI Provider:', aiSettings!.provider)
+        console.log('AI Model:', aiModel)
+
         const { decrypt } = await import('@/lib/encryption')
-        const apiKey = decrypt(encryptedApiKey)
+        let apiKey: string
+        try {
+          apiKey = decrypt(encryptedApiKey)
+          console.log('API key decrypted successfully, length:', apiKey.length)
+        } catch (decryptError) {
+          console.error('Decryption failed:', decryptError)
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to decrypt API key. Please re-save your AI settings.',
+          })
+        }
 
         switch (aiSettings!.provider) {
           case 'ANTHROPIC': {
+            console.log('Initializing Anthropic client...')
             const { default: Anthropic } = await import('@anthropic-ai/sdk')
             const client = new Anthropic({ apiKey })
 
+            console.log('Calling Anthropic API with model:', aiModel || 'claude-sonnet-4-20250514')
             const response = await client.messages.create({
               model: aiModel || 'claude-sonnet-4-20250514',
               max_tokens: 4096,
               messages: [{ role: 'user', content: prompt }],
             })
+            console.log('Anthropic response received')
 
             const textContent = response.content.find(c => c.type === 'text')
             if (!textContent || textContent.type !== 'text') {

@@ -11,7 +11,7 @@
 
 import { prisma } from '@/lib/prisma'
 import { decrypt } from '@/lib/encryption'
-import type { AssessmentTemplate, CandidateAssessment, JobCandidate, Job } from '@prisma/client'
+import type { AssessmentTemplate, CandidateAssessment, JobCandidate, Job, Prisma } from '@prisma/client'
 
 // Types
 export type AssessmentAnalysisType =
@@ -428,11 +428,11 @@ Respond ONLY with valid JSON.
     await prisma.candidateAssessment.update({
       where: { id: assessmentId },
       data: {
-        aiAnalysis: result as unknown as Record<string, unknown>,
+        aiAnalysis: JSON.parse(JSON.stringify(result)) as Prisma.InputJsonValue,
         aiRecommendation: result.recommendation,
         aiConfidence: result.confidence,
-        dimensionScores: result.dimensionScores as unknown as Record<string, unknown>,
-        benchmarkComparison: result.benchmarkComparison as unknown as Record<string, unknown>,
+        dimensionScores: JSON.parse(JSON.stringify(result.dimensionScores)) as Prisma.InputJsonValue,
+        benchmarkComparison: JSON.parse(JSON.stringify(result.benchmarkComparison)) as Prisma.InputJsonValue,
       },
     })
 
@@ -517,18 +517,8 @@ Respond ONLY with valid JSON.
   try {
     const result = await callAI<PredictiveInsights>(prompt)
 
-    // Update candidate with predictive data
-    await prisma.jobCandidate.update({
-      where: { id: candidateId },
-      data: {
-        // Store in meta field if needed
-        meta: {
-          ...(candidate.meta as Record<string, unknown> || {}),
-          predictiveInsights: result,
-          predictiveUpdatedAt: new Date().toISOString(),
-        },
-      },
-    })
+    // Note: Predictive insights are computed on-demand and returned
+    // These can be stored in CandidateAssessment if needed for specific assessments
 
     return result
   } catch (error) {
@@ -560,7 +550,7 @@ export async function analyzeTeamFit(params: {
       assessments: {
         where: {
           template: {
-            type: { in: ['PERSONALITY_MBTI', 'PERSONALITY_BIG5'] },
+            type: 'PERSONALITY_TEST',
           },
           status: 'COMPLETED',
         },

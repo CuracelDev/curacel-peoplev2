@@ -92,9 +92,6 @@ export const interestFormRouter = router({
               },
             },
           },
-          team: {
-            select: { name: true },
-          },
         },
       })
 
@@ -122,8 +119,8 @@ export const interestFormRouter = router({
         job: {
           id: job.id,
           title: job.title,
-          department: job.team?.name,
-          location: job.location,
+          department: job.department,
+          location: job.locations,
           type: job.employmentType,
         },
         form,
@@ -159,13 +156,11 @@ export const interestFormRouter = router({
           questions: questions?.length
             ? {
                 create: questions.map((q, index) => ({
-                  label: q.label.trim(),
+                  question: q.label.trim(),
                   type: q.type,
-                  placeholder: q.placeholder?.trim(),
-                  helpText: q.helpText?.trim(),
-                  isRequired: q.isRequired,
+                  description: q.helpText?.trim(),
+                  required: q.isRequired ?? true,
                   options: q.options,
-                  validation: q.validation,
                   sortOrder: index,
                 })),
               }
@@ -222,13 +217,11 @@ export const interestFormRouter = router({
           await ctx.prisma.interestFormQuestion.createMany({
             data: questions.map((q, index) => ({
               templateId: id,
-              label: q.label.trim(),
+              question: q.label.trim(),
               type: q.type,
-              placeholder: q.placeholder?.trim(),
-              helpText: q.helpText?.trim(),
-              isRequired: q.isRequired,
+              description: q.helpText?.trim(),
+              required: q.isRequired ?? true,
               options: q.options,
-              validation: q.validation,
               sortOrder: index,
             })),
           })
@@ -284,13 +277,11 @@ export const interestFormRouter = router({
           isDefault: false,
           questions: {
             create: existing.questions.map((q, index) => ({
-              label: q.label,
+              question: q.question,
               type: q.type,
-              placeholder: q.placeholder,
-              helpText: q.helpText,
-              isRequired: q.isRequired,
-              options: q.options,
-              validation: q.validation,
+              description: q.description,
+              required: q.required,
+              options: q.options ?? undefined,
               sortOrder: index,
             })),
           },
@@ -324,12 +315,12 @@ export const interestFormRouter = router({
       const { jobId, templateId, candidateId, candidateData, responses } = input
 
       // Get or create candidate
-      let candidate: { id: string } | null = null
+      let candidate: { id: string; email: string; name: string } | null = null
 
       if (candidateId) {
         candidate = await ctx.prisma.jobCandidate.findUnique({
           where: { id: candidateId },
-          select: { id: true },
+          select: { id: true, email: true, name: true },
         })
       }
 
@@ -338,15 +329,14 @@ export const interestFormRouter = router({
         candidate = await ctx.prisma.jobCandidate.create({
           data: {
             jobId,
-            firstName: candidateData.firstName,
-            lastName: candidateData.lastName,
+            name: [candidateData.firstName, candidateData.lastName].filter(Boolean).join(' '),
             email: candidateData.email,
             phone: candidateData.phone,
             linkedinUrl: candidateData.linkedinUrl,
-            source: 'INTEREST_FORM',
+            source: 'INBOUND',
             stage: 'APPLIED',
           },
-          select: { id: true },
+          select: { id: true, email: true, name: true },
         })
       }
 
@@ -362,17 +352,14 @@ export const interestFormRouter = router({
         data: {
           templateId,
           candidateId: candidate.id,
+          candidateEmail: candidate.email,
+          candidateName: candidate.name || candidate.email,
           responses: JSON.stringify(responses),
           submittedAt: new Date(),
         },
       })
 
       // Update candidate with interest form response reference
-      await ctx.prisma.jobCandidate.update({
-        where: { id: candidate.id },
-        data: { interestFormResponseId: formResponse.id },
-      })
-
       // Trigger AI analysis in the background (don't await)
       generateCandidateAnalysis({
         candidateId: candidate.id,

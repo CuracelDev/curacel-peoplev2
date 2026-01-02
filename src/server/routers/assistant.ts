@@ -2509,6 +2509,9 @@ async function testIntegrationConnection(
 
   try {
     const connector = await getConnector(app)
+    if (!connector) {
+      return { status: 'error', message: `Could not create connector for ${app.name}.` }
+    }
     const result = await connector.testConnection()
 
     // Update connection status
@@ -2789,7 +2792,7 @@ async function getDailyBrief(
 
   if (summary.pendingContracts.length > 0) {
     message += `### ⏳ Pending Contracts (${summary.pendingContracts.length})\n`
-    summary.pendingContracts.forEach((c) => {
+    summary.pendingContracts.forEach((c: { name: string; status: string; daysOld: number }) => {
       message += `- ${c.name}: ${c.status} (${c.daysOld} days old)\n`
     })
     message += '\n'
@@ -2799,7 +2802,7 @@ async function getDailyBrief(
 
   if (summary.upcomingStarts.length > 0) {
     message += `### 🗓 Upcoming Starts (${summary.upcomingStarts.length})\n`
-    summary.upcomingStarts.forEach((e) => {
+    summary.upcomingStarts.forEach((e: { name: string; role: string; startDate: string }) => {
       message += `- ${e.name} (${e.role}) - ${e.startDate}\n`
     })
     message += '\n'
@@ -2901,6 +2904,9 @@ async function bulkStartOnboarding(
   }
 
   // Execute with approval token
+  if (!approvalToken) {
+    return { status: 'error', message: 'Approval token is required to start onboarding.' }
+  }
   const approval = await validateAndConsumeApproval(ctx, approvalToken, 'bulk_start_onboarding')
   if (!approval.valid) {
     return { status: 'error', message: approval.error! }
@@ -3014,6 +3020,9 @@ async function bulkResendContracts(
   }
 
   // Execute with approval token
+  if (!approvalToken) {
+    return { status: 'error', message: 'Approval token is required to resend contracts.' }
+  }
   const approval = await validateAndConsumeApproval(ctx, approvalToken, 'bulk_resend_contracts')
   if (!approval.valid) {
     return { status: 'error', message: approval.error! }
@@ -3125,7 +3134,11 @@ async function bulkDeprovisionAccess(
   }
 
   // Execute with approval token
-  const approval = await validateAndConsumeApproval(ctx, approvalToken, 'bulk_deprovision_access')
+  const approvalTokenValue = approvalToken ?? ''
+  if (!approvalTokenValue) {
+    return { status: 'error', message: 'Approval token is required to deprovision access.' }
+  }
+  const approval = await validateAndConsumeApproval(ctx, approvalTokenValue, 'bulk_deprovision_access')
   if (!approval.valid) {
     return { status: 'error', message: approval.error! }
   }
@@ -3136,13 +3149,17 @@ async function bulkDeprovisionAccess(
 
   for (const emp of employeesWithActiveAccounts) {
     try {
-      const result = await deprovisionEmployeeFromAllApps(emp, ctx.user.id)
+      const resultMap = await deprovisionEmployeeFromAllApps(emp, ctx.user.id)
+      const appResults = Object.values(resultMap)
+      const successCount = appResults.filter((r) => r.success).length
+      const allSucceeded = appResults.length > 0 && successCount === appResults.length
+      const firstError = appResults.find((r) => !r.success && r.error)?.error
       results.push({
         employeeId: emp.id,
         name: emp.fullName,
-        success: result.success,
-        appsDeprovisioned: result.results?.filter((r: any) => r.success).length || 0,
-        error: result.error,
+        success: allSucceeded,
+        appsDeprovisioned: successCount,
+        error: firstError,
       })
     } catch (error) {
       results.push({
@@ -3478,7 +3495,7 @@ export const assistantRouter = router({
   // Chat history
   listChats: adminProcedure.query(async ({ ctx }) => {
     const aiChats = getAIChatDelegate(ctx)
-    const chats = await aiChats.findMany({
+    const chats = (await aiChats.findMany({
       where: { userId: ctx.user.id },
       orderBy: { updatedAt: 'desc' },
       include: {
@@ -3487,7 +3504,7 @@ export const assistantRouter = router({
           take: 1,
         },
       },
-    })
+    })) as Array<{ id: string; title: string | null; updatedAt: Date; messages: Array<{ content: string; createdAt: Date }> }>
 
     return chats.map((chat) => ({
       id: chat.id,
@@ -3524,7 +3541,7 @@ export const assistantRouter = router({
         title: chat.title,
         createdAt: chat.createdAt,
         updatedAt: chat.updatedAt,
-        messages: chat.messages.map((message) => ({
+        messages: chat.messages.map((message: { id: string; role: string; content: string; isError: boolean | null; createdAt: Date }) => ({
           id: message.id,
           role: message.role,
           content: message.content,
