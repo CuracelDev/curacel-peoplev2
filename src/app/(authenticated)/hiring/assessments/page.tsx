@@ -65,7 +65,7 @@ const typeConfig: Record<string, { label: string; color: string; icon: React.Com
   COMPETENCY_TEST: { label: 'Competency Test', color: 'bg-purple-100 text-purple-800', icon: ClipboardCheck },
   CODING_TEST: { label: 'Coding Test', color: 'bg-blue-100 text-blue-800', icon: Code },
   PERSONALITY_TEST: { label: 'Personality Test', color: 'bg-pink-100 text-pink-800', icon: Brain },
-  WORK_TRIAL: { label: 'Work Trial', color: 'bg-green-100 text-green-800', icon: Briefcase },
+  WORK_TRIAL: { label: 'Work Trial', color: 'bg-success/10 text-success-foreground', icon: Briefcase },
   CUSTOM: { label: 'Custom', color: 'bg-muted text-foreground', icon: FileText },
 }
 
@@ -73,13 +73,13 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   NOT_STARTED: { label: 'Not Started', color: 'bg-muted text-foreground/80' },
   INVITED: { label: 'Invited', color: 'bg-blue-100 text-blue-800' },
   IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' },
-  COMPLETED: { label: 'Completed', color: 'bg-green-100 text-green-800' },
+  COMPLETED: { label: 'Completed', color: 'bg-success/10 text-success-foreground' },
   EXPIRED: { label: 'Expired', color: 'bg-red-100 text-red-800' },
   CANCELLED: { label: 'Cancelled', color: 'bg-muted text-muted-foreground' },
 }
 
 const recommendationConfig: Record<string, { label: string; color: string }> = {
-  HIRE: { label: 'Hire', color: 'bg-green-100 text-green-800' },
+  HIRE: { label: 'Hire', color: 'bg-success/10 text-success-foreground' },
   HOLD: { label: 'Hold', color: 'bg-yellow-100 text-yellow-800' },
   NO_HIRE: { label: 'No Hire', color: 'bg-red-100 text-red-800' },
 }
@@ -198,7 +198,7 @@ export default function AssessmentsPage() {
   // Score color based on value
   const getScoreColor = (score: number | null) => {
     if (score === null) return 'text-muted-foreground'
-    if (score >= 80) return 'text-green-600'
+    if (score >= 80) return 'text-success'
     if (score >= 60) return 'text-amber-600'
     return 'text-red-600'
   }

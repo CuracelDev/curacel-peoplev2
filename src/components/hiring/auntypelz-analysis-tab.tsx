@@ -133,11 +133,11 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
   const getRecommendationStyle = (rec: string) => {
     switch (rec) {
       case 'STRONG_YES':
-        return { bg: 'bg-green-100', text: 'text-green-700', icon: ThumbsUp }
+        return { bg: 'bg-success/10', text: 'text-success-foreground', icon: ThumbsUp }
       case 'YES':
-        return { bg: 'bg-green-50', text: 'text-green-600', icon: ThumbsUp }
+        return { bg: 'bg-success/10', text: 'text-success', icon: ThumbsUp }
       case 'MAYBE':
-        return { bg: 'bg-amber-50', text: 'text-amber-600', icon: HelpCircle }
+        return { bg: 'bg-warning/10', text: 'text-warning', icon: HelpCircle }
       case 'NO':
         return { bg: 'bg-red-50', text: 'text-red-600', icon: ThumbsDown }
       case 'STRONG_NO':
@@ -149,9 +149,9 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
 
   // Get sentiment icon
   const getSentimentIcon = (score: number, change?: number) => {
-    if (change && change > 5) return <TrendingUp className="h-4 w-4 text-green-500" />
+    if (change && change > 5) return <TrendingUp className="h-4 w-4 text-success" />
     if (change && change < -5) return <TrendingDown className="h-4 w-4 text-red-500" />
-    if (score > 30) return <TrendingUp className="h-4 w-4 text-green-500" />
+    if (score > 30) return <TrendingUp className="h-4 w-4 text-success" />
     if (score < -30) return <TrendingDown className="h-4 w-4 text-red-500" />
     return <Minus className="h-4 w-4 text-gray-400" />
   }
@@ -303,7 +303,7 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2 text-green-600">
+                <CardTitle className="text-sm flex items-center gap-2 text-success">
                   <CheckCircle2 className="h-4 w-4" />
                   Strengths
                 </CardTitle>
@@ -312,7 +312,7 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
                 <ul className="space-y-2">
                   {strengths.map((strength, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
-                      <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-green-500 flex-shrink-0" />
+                      <CheckCircle2 className="h-3.5 w-3.5 mt-0.5 text-success flex-shrink-0" />
                       <span>{strength}</span>
                     </li>
                   ))}
@@ -322,7 +322,7 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
 
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm flex items-center gap-2 text-amber-600">
+                <CardTitle className="text-sm flex items-center gap-2 text-warning">
                   <AlertTriangle className="h-4 w-4" />
                   Concerns
                 </CardTitle>
@@ -331,7 +331,7 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
                 <ul className="space-y-2">
                   {concerns.map((concern, i) => (
                     <li key={i} className="flex items-start gap-2 text-sm">
-                      <AlertTriangle className="h-3.5 w-3.5 mt-0.5 text-amber-500 flex-shrink-0" />
+                      <AlertTriangle className="h-3.5 w-3.5 mt-0.5 text-warning flex-shrink-0" />
                       <span>{concern}</span>
                     </li>
                   ))}
@@ -419,8 +419,8 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
               <div className="flex items-center gap-4">
                 <div className={cn(
                   'text-4xl font-bold',
-                  displayAnalysis.overallScore >= 80 ? 'text-green-600' :
-                  displayAnalysis.overallScore >= 65 ? 'text-amber-600' : 'text-red-600'
+                  displayAnalysis.overallScore >= 80 ? 'text-success' :
+                  displayAnalysis.overallScore >= 65 ? 'text-warning' : 'text-red-600'
                 )}>
                   {displayAnalysis.overallScore}
                 </div>
@@ -468,7 +468,7 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
               <div className="flex items-center gap-3 mb-2">
                 <div className={cn(
                   'text-2xl font-bold',
-                  displayAnalysis.sentimentScore > 30 ? 'text-green-600' :
+                  displayAnalysis.sentimentScore > 30 ? 'text-success' :
                   displayAnalysis.sentimentScore < -30 ? 'text-red-600' : 'text-gray-600'
                 )}>
                   {displayAnalysis.sentimentScore > 0 ? '+' : ''}{displayAnalysis.sentimentScore}

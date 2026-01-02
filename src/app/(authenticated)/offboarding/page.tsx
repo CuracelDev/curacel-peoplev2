@@ -72,7 +72,7 @@ export default function OffboardingPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'COMPLETED': return 'bg-green-100 text-green-800'
+      case 'COMPLETED': return 'bg-success/10 text-success-foreground'
       case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800'
       case 'PENDING': return 'bg-yellow-100 text-yellow-800'
       case 'FAILED': return 'bg-red-100 text-red-800'
@@ -184,8 +184,8 @@ export default function OffboardingPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <div className="p-2 bg-success/10 rounded-lg">
+                <CheckCircle2 className="h-5 w-5 text-success" />
               </div>
               <div>
                 <p className="text-2xl font-bold">
@@ -545,7 +545,7 @@ export default function OffboardingPage() {
                     </p>
                   ) : null}
                   {!googleDeleteAccount && googleAliasToEmail ? (
-                    <p className="text-xs text-amber-600 mt-1">
+                    <p className="text-xs text-warning mt-1">
                       Alias mapping requires deleting the Google account.
                     </p>
                   ) : null}

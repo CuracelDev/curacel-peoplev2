@@ -118,7 +118,7 @@ export default function InterestFormsPage() {
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{form.name}</span>
                         {form.isDefault && (
-                          <Badge variant="secondary" className="bg-green-100 text-green-800">
+                          <Badge variant="secondary" className="bg-success/10 text-success-foreground">
                             <Check className="h-3 w-3 mr-1" />
                             Default
                           </Badge>

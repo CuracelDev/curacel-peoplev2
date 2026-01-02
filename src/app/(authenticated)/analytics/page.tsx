@@ -120,8 +120,8 @@ export default function AnalyticsPage() {
                   value={monthlyTableData.keyMetrics.trialPassRate}
                   format="percentage"
                   icon={CheckCircle}
-                  iconColor="text-green-600"
-                  iconBgColor="bg-green-100"
+                  iconColor="text-success"
+                  iconBgColor="bg-success/10"
                 />
                 <MetricCard
                   title="Trial-Hire Rate"
@@ -337,7 +337,7 @@ export default function AnalyticsPage() {
                       </div>
                       <div className="text-center p-3 bg-muted/50 rounded-lg">
                         <p className="text-xs text-muted-foreground mb-1">Overall</p>
-                        <p className="text-lg font-bold text-green-600">{funnelSummary.conversionRates.qualToHired.toFixed(1)}%</p>
+                        <p className="text-lg font-bold text-success">{funnelSummary.conversionRates.qualToHired.toFixed(1)}%</p>
                       </div>
                     </div>
                   </CardContent>
@@ -360,7 +360,7 @@ export default function AnalyticsPage() {
                                 <span className="text-sm font-medium text-muted-foreground">{idx + 1}.</span>
                                 <span className="text-sm font-medium">{role.role}</span>
                               </div>
-                              <span className="text-sm font-bold text-green-600">{role.hires} hired</span>
+                              <span className="text-sm font-bold text-success">{role.hires} hired</span>
                             </div>
                           ))}
                         </div>
@@ -384,7 +384,7 @@ export default function AnalyticsPage() {
                           </div>
                         </div>
                         <div className="flex items-start gap-2">
-                          <UserCheck className="h-4 w-4 text-green-500 mt-0.5" />
+                          <UserCheck className="h-4 w-4 text-success mt-0.5" />
                           <div>
                             <p className="text-sm font-medium">Hires Made</p>
                             <p className="text-sm text-foreground/80">{funnelSummary.totals.hired} candidates successfully hired</p>
@@ -440,7 +440,7 @@ export default function AnalyticsPage() {
                                 <td className="py-2 text-sm text-right">{yearData.thirdStage}</td>
                                 <td className="py-2 text-sm text-right">{yearData.trial}</td>
                                 <td className="py-2 text-sm text-right">{yearData.ceoChat}</td>
-                                <td className="py-2 text-sm text-right font-semibold text-green-600">{yearData.hired}</td>
+                                <td className="py-2 text-sm text-right font-semibold text-success">{yearData.hired}</td>
                                 <td className="py-2 text-sm text-right">{yearData.conversionRates.qualToHired.toFixed(1)}%</td>
                               </tr>
                             )
@@ -490,8 +490,8 @@ export default function AnalyticsPage() {
                   value={velocityStats.fastest}
                   format="days"
                   icon={TrendingUp}
-                  iconColor="text-green-600"
-                  iconBgColor="bg-green-100"
+                  iconColor="text-success"
+                  iconBgColor="bg-success/10"
                 />
                 <MetricCard
                   title="Slowest Hire"
@@ -549,8 +549,8 @@ export default function AnalyticsPage() {
                   title="Inbound"
                   value={sourceData.bySource.find((s) => s.source === 'INBOUND')?.count || 0}
                   icon={TrendingUp}
-                  iconColor="text-green-600"
-                  iconBgColor="bg-green-100"
+                  iconColor="text-success"
+                  iconBgColor="bg-success/10"
                 />
                 <MetricCard
                   title="Outbound"

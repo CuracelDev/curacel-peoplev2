@@ -30,8 +30,8 @@ export default function EmployeesAnalyticsPage() {
                 <span className="text-3xl font-bold mt-1">—</span>
                 <span className="text-xs text-muted-foreground mt-1">Coming soon</span>
               </div>
-              <div className="p-3 rounded-lg bg-green-100">
-                <TrendingUp className="h-5 w-5 text-green-600" />
+              <div className="p-3 rounded-lg bg-success/10">
+                <TrendingUp className="h-5 w-5 text-success" />
               </div>
             </div>
           </CardContent>

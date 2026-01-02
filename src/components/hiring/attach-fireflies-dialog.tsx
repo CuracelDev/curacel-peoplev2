@@ -118,12 +118,12 @@ export function AttachFirefliesDialog({
             </DialogDescription>
           </DialogHeader>
           <div className="py-6">
-            <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-              <AlertCircle className="h-5 w-5 text-amber-500 flex-shrink-0" />
+            <div className="flex items-center gap-3 p-4 bg-warning/10 border border-warning/20 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-warning flex-shrink-0" />
               <div className="text-sm">
-                <p className="font-medium text-amber-800">API Key Required</p>
-                <p className="text-amber-600 mt-1">
-                  Add <code className="bg-amber-100 px-1 rounded">FIREFLIES_API_KEY</code> to your
+                <p className="font-medium text-warning-foreground">API Key Required</p>
+                <p className="text-warning-foreground/80 mt-1">
+                  Add <code className="bg-warning/20 px-1 rounded">FIREFLIES_API_KEY</code> to your
                   environment variables to enable this feature.
                 </p>
               </div>

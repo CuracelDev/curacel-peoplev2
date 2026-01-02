@@ -967,9 +967,9 @@ export default function ScheduleInterviewPage() {
                   </CardDescription>
                 )}
               </CardHeader>
-              <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
-                <Tabs defaultValue="bank" className="flex-1 flex flex-col">
-                  <TabsList className="mx-1 mb-2 grid grid-cols-2">
+              <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
+                <Tabs defaultValue="bank" className="flex-1 flex flex-col min-h-0">
+                  <TabsList className="mx-0 mb-2 grid grid-cols-2">
                     <TabsTrigger value="bank">
                       <BookOpen className="h-4 w-4 mr-2" />
                       Question Bank
@@ -981,7 +981,7 @@ export default function ScheduleInterviewPage() {
                   </TabsList>
 
                   {/* Question Bank Tab */}
-                  <TabsContent value="bank" className="px-1 pb-2 !mt-0 flex-1 flex flex-col overflow-hidden">
+                  <TabsContent value="bank" className="px-0.5 pb-2 !mt-0 flex-1 flex flex-col overflow-hidden min-h-0">
                     <Input
                       placeholder="Search questions..."
                       value={questionSearch}
@@ -1003,15 +1003,15 @@ export default function ScheduleInterviewPage() {
                         </p>
                       </div>
                     ) : (
-                      <ScrollArea className="flex-1">
-                        <div className="space-y-2 pr-2">
+                      <ScrollArea className="flex-1 pr-0.5 min-h-0">
+                        <div className="space-y-2 pr-1">
                           {filteredQuestions.map((question) => {
                             const isSelected = selectedQuestions.some(q => q.id === question.id)
                             return (
                               <div
                                 key={question.id}
                                 className={cn(
-                                  'p-3 border rounded-lg cursor-pointer transition-colors',
+                                  'p-2 border rounded-lg cursor-pointer transition-colors',
                                   isSelected ? 'bg-primary/10 border-primary' : 'hover:bg-muted/50'
                                 )}
                                 onClick={() => {
@@ -1055,7 +1055,7 @@ export default function ScheduleInterviewPage() {
                   </TabsContent>
 
                   {/* AI Generator Tab */}
-                  <TabsContent value="ai" className="px-1 pb-2 !mt-0 flex-1 overflow-auto">
+                  <TabsContent value="ai" className="px-0.5 pb-2 !mt-0 flex-1 overflow-auto">
                     {selectedCandidateId ? (
                       <AIQuestionGenerator
                         candidateId={selectedCandidateId}

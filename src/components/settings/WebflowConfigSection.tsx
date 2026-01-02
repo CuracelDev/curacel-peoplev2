@@ -137,7 +137,7 @@ export function WebflowConfigSection({
     <div className="space-y-6">
       {/* Save Status Feedback */}
       {saveStatus && (
-        <div className={`flex items-center gap-2 p-3 rounded-lg ${saveStatus.type === 'success' ? 'bg-green-50 text-green-700 dark:bg-green-900/20 dark:text-green-400' : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'}`}>
+        <div className={`flex items-center gap-2 p-3 rounded-lg ${saveStatus.type === 'success' ? 'bg-success/10 text-success dark:bg-success/20 dark:text-success' : 'bg-red-50 text-red-700 dark:bg-red-900/20 dark:text-red-400'}`}>
           {saveStatus.type === 'success' ? (
             <CheckCircle2 className="h-4 w-4" />
           ) : (
@@ -300,7 +300,7 @@ export function WebflowConfigSection({
             </div>
 
             {testMutation.data && (
-              <div className={`flex items-center gap-2 p-3 rounded-lg ${testMutation.data.success ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+              <div className={`flex items-center gap-2 p-3 rounded-lg ${testMutation.data.success ? 'bg-success/10 text-success' : 'bg-red-50 text-red-700'}`}>
                 {testMutation.data.success ? (
                   <>
                     <CheckCircle2 className="h-4 w-4" />
@@ -424,9 +424,9 @@ function SyncStatusCard() {
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-4 gap-4">
-          <div className="text-center p-3 bg-green-50 rounded-lg">
-            <div className="text-2xl font-bold text-green-700">{summary?.synced || 0}</div>
-            <div className="text-xs text-green-600">Synced</div>
+          <div className="text-center p-3 bg-success/10 rounded-lg">
+            <div className="text-2xl font-bold text-success">{summary?.synced || 0}</div>
+            <div className="text-xs text-success">Synced</div>
           </div>
           <div className="text-center p-3 bg-yellow-50 rounded-lg">
             <div className="text-2xl font-bold text-yellow-700">{summary?.pending || 0}</div>
@@ -462,7 +462,7 @@ function SyncStatusCard() {
         </div>
 
         {syncAllMutation.data && (
-          <div className={`p-3 rounded-lg ${syncAllMutation.data.failed === 0 ? 'bg-green-50' : 'bg-yellow-50'}`}>
+          <div className={`p-3 rounded-lg ${syncAllMutation.data.failed === 0 ? 'bg-success/10' : 'bg-yellow-50'}`}>
             <p className="text-sm">
               Synced {syncAllMutation.data.synced} jobs successfully.
               {syncAllMutation.data.failed > 0 && ` ${syncAllMutation.data.failed} failed.`}

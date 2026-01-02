@@ -61,7 +61,7 @@ export function MonthlyTable({ year, months, totals, keyMetrics, title }: Monthl
                     <span className="text-sm">{month.trials}</span>
                   </td>
                   <td className="py-2 text-right">
-                    <span className="text-sm font-semibold text-green-600">
+                    <span className="text-sm font-semibold text-success">
                       {month.hired > 0 ? month.hired : '-'}
                     </span>
                   </td>
@@ -85,7 +85,7 @@ export function MonthlyTable({ year, months, totals, keyMetrics, title }: Monthl
                   <span className="text-sm">{totals.trials}</span>
                 </td>
                 <td className="py-2 text-right">
-                  <span className="text-sm text-green-600">{totals.hired}</span>
+                  <span className="text-sm text-success">{totals.hired}</span>
                 </td>
                 <td className="py-2 text-right">-</td>
                 <td className="py-2 text-right">-</td>
@@ -100,31 +100,31 @@ export function MonthlyTable({ year, months, totals, keyMetrics, title }: Monthl
           <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Trial Pass Rate</p>
-              <p className={`text-lg font-bold ${keyMetrics.trialPassRate >= 50 ? 'text-green-600' : keyMetrics.trialPassRate >= 30 ? 'text-yellow-600' : 'text-red-500'}`}>
+              <p className={`text-lg font-bold ${keyMetrics.trialPassRate >= 50 ? 'text-success' : keyMetrics.trialPassRate >= 30 ? 'text-yellow-600' : 'text-destructive'}`}>
                 {keyMetrics.trialPassRate}%
               </p>
             </div>
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Trial-Hire Rate</p>
-              <p className={`text-lg font-bold ${keyMetrics.trialHireRate >= 30 ? 'text-green-600' : keyMetrics.trialHireRate >= 20 ? 'text-yellow-600' : 'text-red-500'}`}>
+              <p className={`text-lg font-bold ${keyMetrics.trialHireRate >= 30 ? 'text-success' : keyMetrics.trialHireRate >= 20 ? 'text-yellow-600' : 'text-destructive'}`}>
                 {keyMetrics.trialHireRate}%
               </p>
             </div>
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Offer Acceptance</p>
-              <p className={`text-lg font-bold ${keyMetrics.offerAcceptanceRate >= 70 ? 'text-green-600' : keyMetrics.offerAcceptanceRate >= 50 ? 'text-yellow-600' : 'text-red-500'}`}>
+              <p className={`text-lg font-bold ${keyMetrics.offerAcceptanceRate >= 70 ? 'text-success' : keyMetrics.offerAcceptanceRate >= 50 ? 'text-yellow-600' : 'text-destructive'}`}>
                 {keyMetrics.offerAcceptanceRate}%
               </p>
             </div>
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Hiring Fill Rate</p>
-              <p className={`text-lg font-bold ${keyMetrics.hiringFillRate >= 50 ? 'text-green-600' : keyMetrics.hiringFillRate >= 30 ? 'text-yellow-600' : 'text-red-500'}`}>
+              <p className={`text-lg font-bold ${keyMetrics.hiringFillRate >= 50 ? 'text-success' : keyMetrics.hiringFillRate >= 30 ? 'text-yellow-600' : 'text-destructive'}`}>
                 {keyMetrics.hiringFillRate}%
               </p>
             </div>
             <div className="text-center p-3 bg-muted/50 rounded-lg">
               <p className="text-xs text-muted-foreground mb-1">Interview-Trial</p>
-              <p className={`text-lg font-bold ${keyMetrics.interviewTrial >= 50 ? 'text-green-600' : keyMetrics.interviewTrial >= 30 ? 'text-yellow-600' : 'text-red-500'}`}>
+              <p className={`text-lg font-bold ${keyMetrics.interviewTrial >= 50 ? 'text-success' : keyMetrics.interviewTrial >= 30 ? 'text-yellow-600' : 'text-destructive'}`}>
                 {keyMetrics.interviewTrial}%
               </p>
             </div>

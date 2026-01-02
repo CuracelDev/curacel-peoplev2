@@ -286,8 +286,8 @@ export default function PublicInterestFormPage() {
       <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-10 pb-10">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="h-8 w-8 text-success" />
             </div>
             <h1 className="text-2xl font-bold mb-2">Application Submitted!</h1>
             <p className="text-foreground/80 mb-6">
@@ -343,7 +343,7 @@ export default function PublicInterestFormPage() {
                 <div key={question.id} className="space-y-2">
                   <Label htmlFor={question.id} className="flex items-center gap-1">
                     {question.label}
-                    {question.required && <span className="text-red-500">*</span>}
+                    {question.required && <span className="text-destructive">*</span>}
                   </Label>
 
                   {/* Text/Email/Tel/URL inputs */}
@@ -354,7 +354,7 @@ export default function PublicInterestFormPage() {
                       placeholder={question.placeholder}
                       value={(formData[question.id] as string) || ''}
                       onChange={(e) => handleInputChange(question.id, e.target.value)}
-                      className={cn(errors[question.id] && 'border-red-500')}
+                      className={cn(errors[question.id] && 'border-destructive')}
                     />
                   )}
 
@@ -365,7 +365,7 @@ export default function PublicInterestFormPage() {
                       placeholder={question.placeholder}
                       value={(formData[question.id] as string) || ''}
                       onChange={(e) => handleInputChange(question.id, e.target.value)}
-                      className={cn('min-h-[100px]', errors[question.id] && 'border-red-500')}
+                      className={cn('min-h-[100px]', errors[question.id] && 'border-destructive')}
                     />
                   )}
 
@@ -375,7 +375,7 @@ export default function PublicInterestFormPage() {
                       value={(formData[question.id] as string) || ''}
                       onValueChange={(value) => handleInputChange(question.id, value)}
                     >
-                      <SelectTrigger className={cn(errors[question.id] && 'border-red-500')}>
+                      <SelectTrigger className={cn(errors[question.id] && 'border-destructive')}>
                         <SelectValue placeholder="Select an option" />
                       </SelectTrigger>
                       <SelectContent>
@@ -393,7 +393,7 @@ export default function PublicInterestFormPage() {
                     <RadioGroup
                       value={(formData[question.id] as string) || ''}
                       onValueChange={(value) => handleInputChange(question.id, value)}
-                      className={cn(errors[question.id] && 'border border-red-500 rounded-md p-2')}
+                      className={cn(errors[question.id] && 'border border-destructive rounded-md p-2')}
                     >
                       {question.options?.map((opt) => (
                         <div key={opt.value} className="flex items-center space-x-2">
@@ -410,7 +410,7 @@ export default function PublicInterestFormPage() {
                   {question.type === 'multiselect' && (
                     <div className={cn(
                       'grid grid-cols-2 md:grid-cols-3 gap-3',
-                      errors[question.id] && 'border border-red-500 rounded-md p-2'
+                      errors[question.id] && 'border border-destructive rounded-md p-2'
                     )}>
                       {question.options?.map((opt) => (
                         <div key={opt.value} className="flex items-center space-x-2">
@@ -433,7 +433,7 @@ export default function PublicInterestFormPage() {
                   )}
 
                   {errors[question.id] && (
-                    <div className="flex items-center gap-1 text-red-500 text-sm">
+                    <div className="flex items-center gap-1 text-destructive text-sm">
                       <AlertCircle className="h-3 w-3" />
                       {errors[question.id]}
                     </div>
@@ -445,7 +445,7 @@ export default function PublicInterestFormPage() {
               <div className="space-y-2">
                 <Label className="flex items-center gap-1">
                   Resume/CV
-                  <span className="text-red-500">*</span>
+                  <span className="text-destructive">*</span>
                 </Label>
                 <div className="border-2 border-dashed rounded-lg p-6 text-center hover:border-indigo-400 transition-colors cursor-pointer">
                   <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />

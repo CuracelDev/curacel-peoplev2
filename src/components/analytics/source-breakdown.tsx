@@ -114,7 +114,7 @@ export function SourceBreakdown({
                   {hiredBySource.map((s) => (
                     <div key={s.source} className="flex items-center justify-between text-sm">
                       <span className="text-foreground/80">{SOURCE_LABELS[s.source] || s.source}</span>
-                      <span className="font-semibold text-green-600">{s.hires} hired</span>
+                      <span className="font-semibold text-success">{s.hires} hired</span>
                     </div>
                   ))}
                 </div>

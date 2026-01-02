@@ -265,7 +265,7 @@ export default function EmployeeDetailPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ACTIVE':
-        return 'bg-green-100 text-green-800'
+        return 'bg-success/10 text-success-foreground'
       case 'OFFBOARDING':
         return 'bg-yellow-100 text-yellow-800'
       case 'EXITED':
@@ -335,12 +335,12 @@ export default function EmployeeDetailPage() {
               <div className="space-y-6">
                 {/* Avatar */}
                 <div className="flex flex-col items-center">
-                  <Avatar className="h-24 w-24 bg-green-500">
+                  <Avatar className="h-24 w-24 bg-success">
                     <AvatarImage
                       src={employee.profileImageUrl || employee.user?.image || ''}
                       alt={employee.fullName}
                     />
-                    <AvatarFallback className="bg-green-500 text-white text-2xl">
+                    <AvatarFallback className="bg-success text-white text-2xl">
                       {getInitials(employee.fullName)}
                     </AvatarFallback>
                   </Avatar>
@@ -701,7 +701,7 @@ export default function EmployeeDetailPage() {
                                   rel="noopener noreferrer"
                                   className="flex items-center gap-2 p-3 border rounded-lg hover:bg-muted transition-colors"
                                 >
-                                  <FileText className="h-4 w-4 text-green-600" />
+                                  <FileText className="h-4 w-4 text-success" />
                                   <span className="text-sm flex-1">Last Payslip</span>
                                   <ExternalLink className="h-3 w-3 text-muted-foreground" />
                                 </a>
@@ -903,8 +903,8 @@ export default function EmployeeDetailPage() {
 
                       {/* Somewhat Important */}
                       {((employee.lifeValues as any).somewhatImportant || '').trim() && (
-                        <div className="border-2 border-amber-400 rounded-lg p-4 bg-amber-50">
-                          <h4 className="font-semibold text-sm mb-2 text-amber-700">Somewhat important (negotiable)</h4>
+                        <div className="border-2 border-warning/30 rounded-lg p-4 bg-warning/10">
+                          <h4 className="font-semibold text-sm mb-2 text-warning">Somewhat important (negotiable)</h4>
                           <p className="text-sm whitespace-pre-wrap">{(employee.lifeValues as any).somewhatImportant}</p>
                         </div>
                       )}
@@ -1403,7 +1403,7 @@ export default function EmployeeDetailPage() {
                       </p>
                     ) : null}
                     {!googleDeleteAccount && googleAliasToEmail ? (
-                      <p className="text-xs text-amber-600 mt-1">
+                      <p className="text-xs text-warning mt-1">
                         Alias mapping requires deleting the Google account.
                       </p>
                     ) : null}

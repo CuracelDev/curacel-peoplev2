@@ -736,7 +736,7 @@ export default function SettingsPage() {
                       Edit the interview flow for each role type. Changes apply across job setup, templates, and candidate stages.
                     </p>
                   </div>
-                  <Button onClick={handleSaveFlows} disabled={updateFlowMutation.isPending} variant={flowSaved ? 'outline' : 'default'} className={flowSaved ? 'bg-green-50 text-green-700 border-green-300' : ''}>
+                  <Button onClick={handleSaveFlows} disabled={updateFlowMutation.isPending} variant={flowSaved ? 'outline' : 'default'} className={flowSaved ? 'bg-success/10 text-success border-success/30' : ''}>
                     {flowSaved ? (
                       <>
                         <Check className="h-4 w-4 mr-2" />
@@ -985,7 +985,7 @@ export default function SettingsPage() {
                             <div className="flex items-center gap-2">
                               <span className="font-semibold">{form.name}</span>
                               {form.isDefault && (
-                                <Badge className="bg-green-100 text-green-700">Default</Badge>
+                                <Badge className="bg-success/10 text-success">Default</Badge>
                               )}
                             </div>
                             <div className="text-sm text-muted-foreground">
@@ -1191,7 +1191,7 @@ export default function SettingsPage() {
                                       <div key={score} className="text-center p-2 bg-card rounded-lg border border-border">
                                         <div className={cn(
                                           'text-lg font-bold mb-1',
-                                          parseInt(score) >= 4 ? 'text-green-600' :
+                                          parseInt(score) >= 4 ? 'text-success' :
                                           parseInt(score) >= 3 ? 'text-amber-600' : 'text-red-600'
                                         )}>
                                           {score}
@@ -1572,8 +1572,8 @@ export default function SettingsPage() {
                 <div className="border-t pt-6 space-y-3">
                   <h3 className="font-medium">How Sources Are Displayed</h3>
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="p-3 bg-green-50 rounded-lg">
-                      <Badge className="bg-green-100 text-green-800 mb-2">INBOUND</Badge>
+                    <div className="p-3 bg-success/10 rounded-lg">
+                      <Badge className="bg-success/10 text-success-foreground mb-2">INBOUND</Badge>
                       <p className="text-sm text-foreground/80">Shows channel name: &quot;YC&quot;, &quot;PeopleOS&quot;</p>
                     </div>
                     <div className="p-3 bg-blue-50 rounded-lg">
@@ -1654,7 +1654,7 @@ export default function SettingsPage() {
                       {publicJobsQuery.data?.map((job) => (
                         <div key={job.id} className="flex items-center justify-between p-3 border rounded-lg">
                           <div className="flex items-center gap-3">
-                            <Globe className="h-5 w-5 text-green-600" />
+                            <Globe className="h-5 w-5 text-success" />
                             <div>
                               <div className="font-medium">{job.title}</div>
                               <div className="text-sm text-muted-foreground">{job.department || 'No department'}</div>
@@ -1693,12 +1693,12 @@ export default function SettingsPage() {
                   )}
                 </div>
 
-                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="p-4 bg-success/10 border border-success/20 rounded-lg">
                   <div className="flex items-start gap-3">
-                    <Globe className="h-5 w-5 text-green-600 flex-shrink-0 mt-0.5" />
+                    <Globe className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-medium text-green-900">Public Application Links</div>
-                      <p className="text-sm text-green-700 mt-1">
+                      <div className="font-medium text-success-foreground">Public Application Links</div>
+                      <p className="text-sm text-success mt-1">
                         Public jobs get a unique URL that candidates can use to view details and apply directly.
                         Share these links on your website, social media, or job boards.
                       </p>
@@ -2389,8 +2389,8 @@ function QuestionBankSection() {
     behavioral: {
       name: 'Behavioral',
       description: '"Tell me about a time..."',
-      color: 'bg-green-50 text-green-600',
-      badgeColor: 'bg-green-100 text-green-700',
+      color: 'bg-success/10 text-success',
+      badgeColor: 'bg-success/10 text-success',
     },
     motivational: {
       name: 'Motivational',

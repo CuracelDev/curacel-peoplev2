@@ -329,7 +329,7 @@ export default function EditInterestFormPage() {
                 <div className="text-sm text-muted-foreground">Required</div>
               </div>
               <div className="p-4 bg-muted/50 rounded-lg">
-                <div className="text-2xl font-bold text-green-600">{formQuestions.filter(q => !q.isRequired).length}</div>
+                <div className="text-2xl font-bold text-success">{formQuestions.filter(q => !q.isRequired).length}</div>
                 <div className="text-sm text-muted-foreground">Optional</div>
               </div>
             </div>

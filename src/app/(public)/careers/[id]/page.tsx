@@ -230,8 +230,8 @@ export default function PublicCareersPage() {
       <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-10 pb-10">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <AlertCircle className="h-8 w-8 text-red-600" />
+            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertCircle className="h-8 w-8 text-destructive" />
             </div>
             <h1 className="text-2xl font-bold mb-2">Job Not Found</h1>
             <p className="text-foreground/80 mb-6">
@@ -255,8 +255,8 @@ export default function PublicCareersPage() {
       <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-10 pb-10">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="h-8 w-8 text-success" />
             </div>
             <h1 className="text-2xl font-bold mb-2">Application Submitted!</h1>
             <p className="text-foreground/80 mb-6">
@@ -385,24 +385,24 @@ export default function PublicCareersPage() {
                 {/* Name */}
                 <div className="space-y-2">
                   <Label htmlFor="name">
-                    Full Name <span className="text-red-500">*</span>
+                    Full Name <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="name"
                     placeholder="John Doe"
                     value={formData.name}
                     onChange={(e) => handleInputChange('name', e.target.value)}
-                    className={cn(errors.name && 'border-red-500')}
+                    className={cn(errors.name && 'border-destructive')}
                   />
                   {errors.name && (
-                    <p className="text-red-500 text-sm">{errors.name}</p>
+                    <p className="text-destructive text-sm">{errors.name}</p>
                   )}
                 </div>
 
                 {/* Email */}
                 <div className="space-y-2">
                   <Label htmlFor="email">
-                    Email Address <span className="text-red-500">*</span>
+                    Email Address <span className="text-destructive">*</span>
                   </Label>
                   <Input
                     id="email"
@@ -410,10 +410,10 @@ export default function PublicCareersPage() {
                     placeholder="john@example.com"
                     value={formData.email}
                     onChange={(e) => handleInputChange('email', e.target.value)}
-                    className={cn(errors.email && 'border-red-500')}
+                    className={cn(errors.email && 'border-destructive')}
                   />
                   {errors.email && (
-                    <p className="text-red-500 text-sm">{errors.email}</p>
+                    <p className="text-destructive text-sm">{errors.email}</p>
                   )}
                 </div>
 
@@ -457,17 +457,17 @@ export default function PublicCareersPage() {
               {/* Cover Letter */}
               <div className="space-y-2">
                 <Label htmlFor="coverLetter">
-                  Why are you applying? <span className="text-red-500">*</span>
+                  Why are you applying? <span className="text-destructive">*</span>
                 </Label>
                 <Textarea
                   id="coverLetter"
                   placeholder="Tell us why you're interested in this role and what makes you a great fit..."
                   value={formData.coverLetter}
                   onChange={(e) => handleInputChange('coverLetter', e.target.value)}
-                  className={cn('min-h-[150px]', errors.coverLetter && 'border-red-500')}
+                  className={cn('min-h-[150px]', errors.coverLetter && 'border-destructive')}
                 />
                 {errors.coverLetter && (
-                  <p className="text-red-500 text-sm">{errors.coverLetter}</p>
+                  <p className="text-destructive text-sm">{errors.coverLetter}</p>
                 )}
               </div>
 
@@ -509,7 +509,7 @@ export default function PublicCareersPage() {
                       variant="ghost"
                       size="sm"
                       onClick={handleRemoveFile}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <X className="h-4 w-4" />
                     </Button>
@@ -553,7 +553,7 @@ export default function PublicCareersPage() {
                   </div>
                 )}
                 {errors.resume && (
-                  <p className="text-red-500 text-sm">{errors.resume}</p>
+                  <p className="text-destructive text-sm">{errors.resume}</p>
                 )}
               </div>
 
@@ -570,16 +570,16 @@ export default function PublicCareersPage() {
                 <Label htmlFor="consent" className="font-normal text-sm leading-relaxed cursor-pointer">
                   I agree to the processing of my personal data for recruitment purposes.
                   I understand that my information will be stored securely and used only
-                  for evaluating my application. <span className="text-red-500">*</span>
+                  for evaluating my application. <span className="text-destructive">*</span>
                 </Label>
               </div>
               {errors.consent && (
-                <p className="text-red-500 text-sm">{errors.consent}</p>
+                <p className="text-destructive text-sm">{errors.consent}</p>
               )}
 
               {/* Submit Error */}
               {errors.submit && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-center gap-2 text-red-700">
+                <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-3 flex items-center gap-2 text-destructive">
                   <AlertCircle className="h-4 w-4" />
                   <span className="text-sm">{errors.submit}</span>
                 </div>

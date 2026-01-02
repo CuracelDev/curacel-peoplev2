@@ -338,7 +338,7 @@ export default function OnboardingSelfServicePage() {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 p-4">
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-red-600">Link Invalid or Expired</CardTitle>
+            <CardTitle className="text-destructive">Link Invalid or Expired</CardTitle>
             <CardDescription>
               This onboarding link is no longer valid. Please contact HR for assistance.
             </CardDescription>
@@ -504,7 +504,7 @@ export default function OnboardingSelfServicePage() {
                             </Button>
                           </label>
                           {uploadError && (
-                            <p className="text-sm text-red-600">{uploadError}</p>
+                            <p className="text-sm text-destructive">{uploadError}</p>
                           )}
                         </div>
                       </div>
@@ -950,7 +950,7 @@ export default function OnboardingSelfServicePage() {
 
                   {/* Somewhat important (negotiable) */}
                   <div>
-                    <Label htmlFor="somewhatImportant" className="text-sm font-semibold text-amber-700">
+                    <Label htmlFor="somewhatImportant" className="text-sm font-semibold text-warning">
                       Somewhat important (negotiable)
                     </Label>
                     <Textarea
@@ -1248,7 +1248,7 @@ export default function OnboardingSelfServicePage() {
                     href="#"
                     className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted transition-colors"
                   >
-                    <Shield className="h-5 w-5 text-green-500" />
+                    <Shield className="h-5 w-5 text-success" />
                     <div>
                       <p className="font-medium">IT Security Policy</p>
                       <p className="text-sm text-muted-foreground">Security best practices</p>

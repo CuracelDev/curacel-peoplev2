@@ -107,7 +107,7 @@ export function EmailTab({ candidateId, candidateName, candidateEmail, jobId, jo
     switch (status) {
       case 'SENT':
       case 'DELIVERED':
-        return <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+        return <CheckCircle2 className="h-3.5 w-3.5 text-success" />
       case 'OPENED':
         return <Eye className="h-3.5 w-3.5 text-blue-500" />
       case 'CLICKED':

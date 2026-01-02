@@ -123,7 +123,7 @@ export default function PublicAssessmentPage() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
-            <Clock className="h-16 w-16 text-amber-500 mx-auto mb-4" />
+            <Clock className="h-16 w-16 text-warning mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Assessment Expired</h2>
             <p className="text-muted-foreground">
               This assessment has expired. Please contact your recruiter for an extension or a new link.
@@ -140,7 +140,7 @@ export default function PublicAssessmentPage() {
       <div className="min-h-screen flex items-center justify-center p-4">
         <Card className="max-w-md w-full">
           <CardContent className="pt-6 text-center">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
+            <CheckCircle className="h-16 w-16 text-success mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">Assessment Submitted</h2>
             <p className="text-muted-foreground">
               Thank you for completing your assessment! Our team will review your submission and get back to you soon.
@@ -192,9 +192,9 @@ export default function PublicAssessmentPage() {
           </CardHeader>
           {assessment.template.instructions && (
             <CardContent>
-              <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
-                <h4 className="font-medium text-amber-800 dark:text-amber-200 mb-2">Instructions</h4>
-                <p className="text-sm text-amber-700 dark:text-amber-300 whitespace-pre-wrap">
+              <div className="p-4 bg-warning/10 dark:bg-warning/20 border border-warning/20 dark:border-warning/30 rounded-lg">
+                <h4 className="font-medium text-warning-foreground dark:text-warning mb-2">Instructions</h4>
+                <p className="text-sm text-warning-foreground/80 dark:text-warning whitespace-pre-wrap">
                   {assessment.template.instructions}
                 </p>
               </div>

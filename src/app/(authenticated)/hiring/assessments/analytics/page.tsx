@@ -316,7 +316,7 @@ export default function AssessmentAnalyticsPage() {
                 {aiAccuracy?.accuracy !== null && aiAccuracy?.accuracy !== undefined ? (
                   <div className="space-y-4">
                     <div className="text-center">
-                      <p className="text-5xl font-bold text-green-600">{aiAccuracy.accuracy}%</p>
+                      <p className="text-5xl font-bold text-success">{aiAccuracy.accuracy}%</p>
                       <p className="text-muted-foreground">Accuracy Rate</p>
                     </div>
                     <div className="text-sm text-muted-foreground text-center">
@@ -341,9 +341,9 @@ export default function AssessmentAnalyticsPage() {
               <CardContent>
                 {aiAccuracy?.breakdown ? (
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
-                      <span className="font-medium text-green-700">HIRE</span>
-                      <span className="text-2xl font-bold text-green-700">
+                    <div className="flex items-center justify-between p-3 bg-success/10 rounded-lg">
+                      <span className="font-medium text-success">HIRE</span>
+                      <span className="text-2xl font-bold text-success">
                         {aiAccuracy.breakdown.hireRecommended}
                       </span>
                     </div>

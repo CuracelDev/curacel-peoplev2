@@ -162,7 +162,7 @@ export default function PublicPagesSettingsPage() {
                             <CardTitle className="text-base flex items-center gap-2">
                               {page.name}
                               {isEnabled ? (
-                                <Badge variant="outline" className="text-green-600 border-green-200 bg-green-50">
+                                <Badge variant="outline" className="text-success border-success/20 bg-success/10">
                                   <CheckCircle className="h-3 w-3 mr-1" />
                                   Enabled
                                 </Badge>
@@ -198,7 +198,7 @@ export default function PublicPagesSettingsPage() {
                             disabled={!previewUrl}
                           >
                             {copiedKey === page.key ? (
-                              <CheckCircle className="h-4 w-4 mr-1 text-green-600" />
+                              <CheckCircle className="h-4 w-4 mr-1 text-success" />
                             ) : (
                               <Copy className="h-4 w-4 mr-1" />
                             )}

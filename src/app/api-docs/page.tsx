@@ -67,7 +67,7 @@ export default function ApiDocsPage() {
               <div className="rounded bg-gray-900 p-3 text-xs text-gray-100">
                 <pre>{`x-api-key: <api_key>`}</pre>
               </div>
-              <div className="mt-4 rounded border border-amber-200 bg-amber-50 p-3 text-amber-800">
+              <div className="mt-4 rounded border border-warning/20 bg-warning/10 p-3 text-warning-foreground">
                 <strong>Security:</strong> Store API keys securely. Never expose them in client-side code or public repositories.
               </div>
             </CardContent>
@@ -88,7 +88,7 @@ export default function ApiDocsPage() {
                   <span className="text-muted-foreground">— list employees</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-600">POST</Badge>
+                  <Badge className="bg-success">POST</Badge>
                   <code>/api/v1/employees</code>
                   <span className="text-muted-foreground">— create employee</span>
                 </div>
@@ -178,7 +178,7 @@ export default function ApiDocsPage() {
                   <span className="text-muted-foreground">— list contracts</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-600">POST</Badge>
+                  <Badge className="bg-success">POST</Badge>
                   <code>/api/v1/contracts</code>
                   <span className="text-muted-foreground">— create contract</span>
                 </div>
@@ -249,7 +249,7 @@ export default function ApiDocsPage() {
                   <span className="text-muted-foreground">— list workflows</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-600">POST</Badge>
+                  <Badge className="bg-success">POST</Badge>
                   <code>/api/v1/onboarding</code>
                   <span className="text-muted-foreground">— start onboarding</span>
                 </div>
@@ -322,7 +322,7 @@ export default function ApiDocsPage() {
                   <span className="text-muted-foreground">— list workflows</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-600">POST</Badge>
+                  <Badge className="bg-success">POST</Badge>
                   <code>/api/v1/offboarding</code>
                   <span className="text-muted-foreground">— start offboarding</span>
                 </div>
@@ -370,7 +370,7 @@ export default function ApiDocsPage() {
                   <span className="text-muted-foreground">— list jobs</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-600">POST</Badge>
+                  <Badge className="bg-success">POST</Badge>
                   <code>/api/v1/jobs</code>
                   <span className="text-muted-foreground">— create job</span>
                 </div>
@@ -394,7 +394,7 @@ export default function ApiDocsPage() {
                   <span className="text-muted-foreground">— list candidates</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-600">POST</Badge>
+                  <Badge className="bg-success">POST</Badge>
                   <code>/api/v1/candidates</code>
                   <span className="text-muted-foreground">— create candidate</span>
                 </div>
@@ -429,7 +429,7 @@ export default function ApiDocsPage() {
                   <span className="text-muted-foreground">— list forms</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-600">POST</Badge>
+                  <Badge className="bg-success">POST</Badge>
                   <code>/api/v1/interest-forms</code>
                   <span className="text-muted-foreground">— create form</span>
                 </div>
@@ -443,7 +443,7 @@ export default function ApiDocsPage() {
                   <span className="text-muted-foreground">— list rubrics</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <Badge className="bg-green-600">POST</Badge>
+                  <Badge className="bg-success">POST</Badge>
                   <code>/api/v1/interview-rubrics</code>
                   <span className="text-muted-foreground">— create rubric</span>
                 </div>
@@ -657,7 +657,7 @@ X-RateLimit-Remaining: 95
 X-RateLimit-Reset: 1705320000`}</pre>
               </div>
 
-              <div className="rounded border border-amber-200 bg-amber-50 p-3 text-amber-800">
+              <div className="rounded border border-warning/20 bg-warning/10 p-3 text-warning-foreground">
                 <strong>Tip:</strong> Implement exponential backoff when you receive a 429 response.
               </div>
             </CardContent>

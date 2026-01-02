@@ -60,7 +60,7 @@ export default function ContractsPage() {
       case 'CANCELLED':
         return 'bg-red-50 text-red-700 border border-red-200'
       case 'EXPIRED':
-        return 'bg-amber-50 text-amber-700 border border-amber-200'
+        return 'bg-warning/10 text-warning border border-warning/20'
       default:
         return 'bg-muted/50 text-foreground border border-border'
     }

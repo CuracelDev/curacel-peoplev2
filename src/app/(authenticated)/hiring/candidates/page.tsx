@@ -47,12 +47,14 @@ import {
   AlertCircle,
   Sparkles,
   Archive,
-  ExternalLink,
 } from 'lucide-react'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { cn, getInitials } from '@/lib/utils'
@@ -61,13 +63,67 @@ import { format, formatDistanceToNow, startOfDay, endOfDay, startOfWeek, startOf
 
 type SortOption = 'score-desc' | 'score-asc' | 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc'
 type DateFilter = 'all' | 'today' | 'week' | 'month' | 'quarter'
+type ColumnKey = 'location' | 'source' | 'salary' | 'mbti'
+
+const COLUMN_STORAGE_KEY = 'hiring.candidates.visibleColumns'
+
+const sourceLabels: Record<string, string> = {
+  INBOUND: 'Inbound',
+  OUTBOUND: 'Outbound',
+  RECRUITER: 'Recruiter',
+  EXCELLER: 'Exceller',
+}
+
+const inboundLabels: Record<string, string> = {
+  YC: 'YC',
+  PEOPLEOS: 'PeopleOS',
+  COMPANY_SITE: 'Company Site',
+  OTHER: 'Other',
+}
+
+const outboundLabels: Record<string, string> = {
+  LINKEDIN: 'LinkedIn',
+  JOB_BOARDS: 'Job Boards',
+  GITHUB: 'GitHub',
+  TWITTER: 'Twitter',
+  OTHER: 'Other',
+}
+
+const formatSource = (candidate: { source?: string | null; inboundChannel?: string | null; outboundChannel?: string | null }) => {
+  if (!candidate.source) return '—'
+  const base = sourceLabels[candidate.source] || candidate.source
+  if (candidate.source === 'INBOUND' && candidate.inboundChannel) {
+    return `${base} • ${inboundLabels[candidate.inboundChannel] || candidate.inboundChannel}`
+  }
+  if (candidate.source === 'OUTBOUND' && candidate.outboundChannel) {
+    return `${base} • ${outboundLabels[candidate.outboundChannel] || candidate.outboundChannel}`
+  }
+  return base
+}
+
+const formatSalary = (candidate: { salaryExpMin?: number | null; salaryExpMax?: number | null; salaryExpCurrency?: string | null }) => {
+  const min = candidate.salaryExpMin ?? null
+  const max = candidate.salaryExpMax ?? null
+  if (!min && !max) return '—'
+  const currency = candidate.salaryExpCurrency || 'USD'
+  const formatValue = (value: number) => {
+    try {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(value)
+    } catch (error) {
+      return `${currency} ${value}`
+    }
+  }
+  if (min && max) return `${formatValue(min)}–${formatValue(max)}`
+  if (min) return `From ${formatValue(min)}`
+  return `Up to ${formatValue(max as number)}`
+}
 
 const stageStyles: Record<string, string> = {
   'APPLIED': 'bg-muted text-foreground/80',
   'HR_SCREEN': 'bg-indigo-100 text-indigo-700',
   'TECHNICAL': 'bg-amber-100 text-amber-700',
-  'TEAM_CHAT': 'bg-green-100 text-green-700',
-  'PANEL': 'bg-green-100 text-green-700',
+  'TEAM_CHAT': 'bg-success/10 text-success',
+  'PANEL': 'bg-success/10 text-success',
   'TRIAL': 'bg-blue-100 text-blue-700',
   'CEO_CHAT': 'bg-purple-100 text-purple-700',
   'OFFER': 'bg-pink-100 text-pink-700',
@@ -86,9 +142,9 @@ const defaultStageCards = [
 
 function getScoreColor(score: number | null) {
   if (!score) return 'text-muted-foreground bg-muted/50'
-  if (score >= 80) return 'text-green-600 bg-green-50'
-  if (score >= 65) return 'text-amber-600 bg-amber-50'
-  return 'text-red-600 bg-red-50'
+  if (score >= 80) return 'text-success bg-success/10'
+  if (score >= 65) return 'text-warning bg-warning/10'
+  return 'text-destructive bg-destructive/10'
 }
 
 function getAvatarColor(name: string) {
@@ -104,6 +160,12 @@ export default function CandidatesPage() {
   const [sortOption, setSortOption] = useState<SortOption>('score-desc')
   const [teamFilter, setTeamFilter] = useState<string>('all')
   const [dateFilter, setDateFilter] = useState<DateFilter>('all')
+  const [visibleColumns, setVisibleColumns] = useState<Record<ColumnKey, boolean>>({
+    location: false,
+    source: false,
+    salary: false,
+    mbti: false,
+  })
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [addMode, setAddMode] = useState<'single' | 'bulk'>('single')
   const [newCandidate, setNewCandidate] = useState({
@@ -143,6 +205,12 @@ export default function CandidatesPage() {
   const { data: teams } = trpc.team.listForSelect.useQuery()
   const parseUpload = trpc.job.parseUploadForBulkImport.useMutation()
   const bulkImport = trpc.job.bulkImportCandidates.useMutation()
+  const utils = trpc.useUtils()
+  const updateCandidateStage = trpc.job.updateCandidate.useMutation({
+    onSuccess: () => {
+      utils.job.getAllCandidates.invalidate()
+    },
+  })
 
   // Build query params based on filters
   const sortBy = sortOption.startsWith('score') ? 'score' as const :
@@ -193,6 +261,13 @@ export default function CandidatesPage() {
   const candidates = candidatesData?.candidates || []
   const total = candidatesData?.total || 0
   const byStageCounts = candidatesData?.byStageCounts || {}
+  const optionalColumns = useMemo(() => ([
+    { key: 'location', label: 'Country', render: (candidate: typeof candidates[number]) => candidate.location || '—' },
+    { key: 'source', label: 'Source', render: (candidate: typeof candidates[number]) => formatSource(candidate) },
+    { key: 'salary', label: 'Salary', render: (candidate: typeof candidates[number]) => formatSalary(candidate) },
+    { key: 'mbti', label: 'MBTI', render: (candidate: typeof candidates[number]) => candidate.mbtiType || '—' },
+  ]), [candidates])
+  const visibleOptionalColumns = optionalColumns.filter((column) => visibleColumns[column.key])
 
   const stageCards = useMemo(() => defaultStageCards, [])
 
@@ -344,6 +419,21 @@ export default function CandidatesPage() {
     }
   }, [addParam])
 
+  useEffect(() => {
+    const stored = window.localStorage.getItem(COLUMN_STORAGE_KEY)
+    if (!stored) return
+    try {
+      const parsed = JSON.parse(stored) as Partial<Record<ColumnKey, boolean>>
+      setVisibleColumns((prev) => ({ ...prev, ...parsed }))
+    } catch (error) {
+      console.error('Failed to parse column preferences', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(visibleColumns))
+  }, [visibleColumns])
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -413,8 +503,8 @@ export default function CandidatesPage() {
             onClick={() => setActiveFilter(card.key)}
           >
             <CardContent className="py-4 px-3 flex flex-col items-center justify-center text-center">
-              <div className="text-xs text-muted-foreground truncate">{card.label}</div>
-              <div className="text-xl font-bold">{stageCounts[card.key] || 0}</div>
+                        <div className="text-xs text-muted-foreground truncate">{card.label}</div>
+                        <div className="mt-2 text-xl font-bold">{stageCounts[card.key] || 0}</div>
             </CardContent>
           </Card>
         ))}
@@ -609,7 +699,7 @@ export default function CandidatesPage() {
                       {/* File Info */}
                       {uploadedFile && !parseUpload.isPending && (
                         <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
-                          <FileSpreadsheet className="h-5 w-5 text-green-600" />
+                          <FileSpreadsheet className="h-5 w-5 text-success" />
                           <div className="flex-1 min-w-0">
                             <p className="font-medium truncate">{uploadedFile.name}</p>
                             <p className="text-xs text-muted-foreground">
@@ -674,10 +764,10 @@ export default function CandidatesPage() {
                                         className={cn(
                                           "text-xs px-1.5 py-0.5 rounded",
                                           confidence >= 80
-                                            ? "bg-green-100 text-green-700"
+                                            ? "bg-success/10 text-success"
                                             : confidence >= 50
-                                              ? "bg-amber-100 text-amber-700"
-                                              : "bg-red-100 text-red-700"
+                                              ? "bg-warning/10 text-warning"
+                                              : "bg-destructive/10 text-destructive"
                                         )}
                                       >
                                         {confidence}%
@@ -699,7 +789,7 @@ export default function CandidatesPage() {
                                     }))
                                   }}
                                 >
-                                  <SelectTrigger className={cn("w-[180px]", isLowConfidence && "border-amber-500")}>
+                                  <SelectTrigger className={cn("w-[180px]", isLowConfidence && "border-warning")}>
                                     <SelectValue placeholder="Map to field..." />
                                   </SelectTrigger>
                                   <SelectContent>
@@ -785,12 +875,12 @@ export default function CandidatesPage() {
                       {/* Result Summary */}
                       <div className={cn(
                         "flex items-center gap-3 p-4 rounded-lg",
-                        importResult.importedCount > 0 ? "bg-green-50" : "bg-amber-50"
+                        importResult.importedCount > 0 ? "bg-success/10" : "bg-warning/10"
                       )}>
                         {importResult.importedCount > 0 ? (
-                          <CheckCircle2 className="h-6 w-6 text-green-600" />
+                          <CheckCircle2 className="h-6 w-6 text-success" />
                         ) : (
-                          <AlertCircle className="h-6 w-6 text-amber-600" />
+                          <AlertCircle className="h-6 w-6 text-warning" />
                         )}
                         <div>
                           <p className="font-medium">
@@ -851,9 +941,45 @@ export default function CandidatesPage() {
                 <th className="w-16 py-3 px-2 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider">Score</th>
                 <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Candidate</th>
                 <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Stage</th>
+                {visibleOptionalColumns.map((column) => (
+                  <th
+                    key={column.key}
+                    className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                  >
+                    {column.label}
+                  </th>
+                ))}
                 <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Applied</th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Last Updated</th>
-                <th className="w-16 py-3 px-4"></th>
+                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  <div className="flex items-center justify-between gap-2">
+                    <span>Last Updated</span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Columns</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {optionalColumns.map((column) => (
+                          <DropdownMenuCheckboxItem
+                            key={column.key}
+                            checked={visibleColumns[column.key]}
+                            onCheckedChange={(checked) => {
+                              setVisibleColumns((prev) => ({
+                                ...prev,
+                                [column.key]: Boolean(checked),
+                              }))
+                            }}
+                          >
+                            {column.label}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -890,32 +1016,36 @@ export default function CandidatesPage() {
                       </Link>
                     </td>
                     <td className="py-3 px-4">
-                      <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-2">
-                        <Avatar className={cn("h-7 w-7", getAvatarColor(candidate.name))}>
-                          <AvatarFallback className={cn("text-white text-[10px] font-medium", getAvatarColor(candidate.name))}>
-                            {getInitials(candidate.name)}
-                          </AvatarFallback>
-                        </Avatar>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-2">
+                          <Avatar className={cn("h-7 w-7", getAvatarColor(candidate.name))}>
+                            <AvatarFallback className={cn("text-white text-[10px] font-medium", getAvatarColor(candidate.name))}>
+                              {getInitials(candidate.name)}
+                            </AvatarFallback>
+                          </Avatar>
+                        </Link>
                         <div className="flex flex-col">
-                          <span className="font-medium text-foreground">{candidate.name}</span>
-                          {candidate.email && (
-                            candidate.linkedinUrl ? (
-                              <a
-                                href={candidate.linkedinUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-xs text-muted-foreground hover:text-primary flex items-center gap-1"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                {candidate.email}
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
-                            ) : (
-                              <span className="text-xs text-muted-foreground">{candidate.email}</span>
-                            )
+                          <Link href={`/recruiting/candidates/${candidate.id}`} className="font-medium text-foreground">
+                            {candidate.name}
+                          </Link>
+                          {candidate.linkedinUrl && (
+                            <a
+                              href={candidate.linkedinUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="mt-1 inline-flex items-center gap-1 text-xs text-[#0A66C2] hover:text-[#004182]"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <span className="inline-flex h-3 w-3" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" role="img" aria-label="" fill="currentColor">
+                                  <path d="M4.98 3.5C4.98 4.88 3.88 6 2.49 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.49 1c1.39 0 2.49 1.12 2.49 2.5zM.5 24h3.99V7.98H.5V24zM8.98 7.98h3.83v2.16h.05c.53-1 1.83-2.16 3.77-2.16 4.03 0 4.77 2.65 4.77 6.1V24h-3.99v-8.62c0-2.06-.03-4.71-2.87-4.71-2.87 0-3.31 2.24-3.31 4.56V24H8.98V7.98z" />
+                                </svg>
+                              </span>
+                              LinkedIn
+                            </a>
                           )}
                         </div>
-                      </Link>
+                      </div>
                     </td>
                     <td className="py-3 px-4">
                       <Link href={`/recruiting/candidates/${candidate.id}`}>
@@ -924,26 +1054,54 @@ export default function CandidatesPage() {
                         </Badge>
                       </Link>
                     </td>
+                    {visibleOptionalColumns.map((column) => (
+                      <td key={column.key} className="py-3 px-4">
+                        <span className="text-sm text-foreground/80">
+                          {column.render(candidate)}
+                        </span>
+                      </td>
+                    ))}
                     <td className="py-3 px-4">
                       <Link href={`/recruiting/candidates/${candidate.id}`} className="text-sm text-foreground/80">
                         {format(appliedDate, 'MMM d, yyyy')}
                       </Link>
                     </td>
                     <td className="py-3 px-4">
-                      <Link href={`/recruiting/candidates/${candidate.id}`} className="text-sm text-muted-foreground">
-                        {formatDistanceToNow(updatedDate, { addSuffix: true })}
-                      </Link>
-                    </td>
-                    <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center justify-between gap-2">
+                        <Link href={`/recruiting/candidates/${candidate.id}`} className="text-sm text-muted-foreground">
+                          {formatDistanceToNow(updatedDate, { addSuffix: true })}
+                        </Link>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={(e) => e.stopPropagation()}
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() => updateCandidateStage.mutate({ id: candidate.id, stage: 'ARCHIVED' })}
+                            >
+                              Archive
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => updateCandidateStage.mutate({ id: candidate.id, stage: 'REJECTED' })}
+                            >
+                              Reject
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
                     </td>
                   </tr>
                 )
               }) : (
                 <tr>
-                  <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                  <td colSpan={6 + visibleOptionalColumns.length} className="py-8 text-center text-muted-foreground">
                     No candidates found
                   </td>
                 </tr>
@@ -974,7 +1132,7 @@ export default function CandidatesPage() {
       {selectedCandidates.length > 0 && (
         <div className="fixed bottom-4 sm:bottom-6 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 flex flex-wrap items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-gray-900 text-white rounded-lg shadow-lg z-50">
           <span className="font-medium text-sm sm:text-base">{selectedCandidates.length} selected</span>
-          <Button size="sm" className="bg-green-600 hover:bg-green-700 text-xs sm:text-sm">
+          <Button size="sm" className="bg-success hover:bg-success text-xs sm:text-sm">
             <span className="hidden sm:inline">Advance to Next Stage</span>
             <span className="sm:hidden">Advance</span>
           </Button>

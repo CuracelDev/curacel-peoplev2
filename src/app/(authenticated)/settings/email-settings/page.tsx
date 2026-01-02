@@ -74,8 +74,8 @@ export default function EmailSettingsPage() {
                   <Mail className="h-4 w-4 text-gray-400" />
                 </div>
               ) : testResult.success ? (
-                <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                <div className="h-8 w-8 rounded-full bg-success/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                 </div>
               ) : (
                 <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">

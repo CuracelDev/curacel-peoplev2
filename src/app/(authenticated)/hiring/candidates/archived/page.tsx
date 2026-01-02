@@ -14,7 +14,7 @@ import { format, formatDistanceToNow } from 'date-fns'
 
 function getScoreColor(score: number | null) {
   if (!score) return 'text-muted-foreground bg-muted/50'
-  if (score >= 80) return 'text-green-600 bg-green-50'
+  if (score >= 80) return 'text-success bg-success/10'
   if (score >= 65) return 'text-amber-600 bg-amber-50'
   return 'text-red-600 bg-red-50'
 }
