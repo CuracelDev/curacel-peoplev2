@@ -1606,7 +1606,6 @@ export const interviewRouter = router({
       // Get questions from the bank, filtered by job/category if applicable
       const questions = await ctx.prisma.interviewQuestion.findMany({
         where: {
-          organizationId: tokenRecord.interview.candidate.jobId ? undefined : undefined,
           ...(input.search ? {
             text: { contains: input.search, mode: 'insensitive' as const },
           } : {}),
