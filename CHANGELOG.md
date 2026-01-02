@@ -201,6 +201,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Public careers application now always sends a linkedin URL string
 - Public careers detail page now safely accesses job description content
 - Public recruiter submissions now always send a linkedin URL string
+- Hiring questions bank layout now closes the grid container correctly
+- Assessment submit API now casts response payloads to JSON input types
+- Assessment submit API now casts responses through unknown for JSON typing
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off

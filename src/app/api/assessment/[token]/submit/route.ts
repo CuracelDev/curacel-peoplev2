@@ -5,6 +5,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
+import { Prisma } from '@prisma/client'
 import { prisma } from '@/lib/prisma'
 import { gradeAssessmentResponses, analyzeAssessmentResults } from '@/lib/ai/hiring/assessment-analysis'
 
@@ -64,7 +65,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       data: {
         status: 'COMPLETED',
         completedAt: new Date(),
-        responses: responses,
+        responses: responses as unknown as Prisma.InputJsonValue,
       },
     })
 
