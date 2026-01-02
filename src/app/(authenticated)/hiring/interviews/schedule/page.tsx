@@ -196,6 +196,39 @@ export default function ScheduleInterviewPage() {
     return questionsData.questions.filter(q => questionCategories.includes(q.category))
   }, [questionsData, questionCategories])
 
+  // Helper to parse validation errors into user-friendly messages
+  const parseValidationError = (error: { message: string }): string => {
+    try {
+      // Try to parse as JSON (Zod validation errors come as JSON arrays)
+      const parsed = JSON.parse(error.message)
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const firstError = parsed[0]
+        const path = firstError.path?.join(' → ') || ''
+        const message = firstError.message || 'Validation failed'
+
+        // Special case handling for common errors
+        if (path.includes('interviewers') && path.includes('email')) {
+          const interviewerIndex = firstError.path?.[1]
+          const interviewer = selectedInterviewers[interviewerIndex]
+          if (interviewer) {
+            return `${interviewer.name} has an invalid or missing email address. Please select a different interviewer or update their profile.`
+          }
+          return 'One or more interviewers have invalid email addresses. Please check their profiles.'
+        }
+
+        if (message === 'Invalid email') {
+          return 'Invalid email address. Please check the interviewer email addresses.'
+        }
+
+        // Return formatted path + message for other errors
+        return path ? `${path}: ${message}` : message
+      }
+    } catch {
+      // Not JSON, return as-is
+    }
+    return error.message
+  }
+
   // Schedule interview mutation
   const utils = trpc.useUtils()
   const scheduleMutation = trpc.interview.schedule.useMutation({
@@ -218,8 +251,9 @@ export default function ScheduleInterviewPage() {
       router.push('/hiring/interviews')
     },
     onError: (error) => {
+      const friendlyMessage = parseValidationError(error)
       toast.error('Failed to schedule interview', {
-        description: error.message,
+        description: friendlyMessage,
       })
     },
   })
@@ -766,7 +800,7 @@ export default function ScheduleInterviewPage() {
 
                     {selectedSlot && (
                       <div className="mt-4 p-3 bg-success/10 border border-success/20 rounded-lg">
-                        <div className="flex items-center gap-2 text-success-foreground">
+                        <div className="flex items-center gap-2 text-success">
                           <Check className="h-4 w-4" />
                           <span className="font-medium">Selected: </span>
                           <span>{format(new Date(selectedSlot.start), 'EEEE, MMMM d \'at\' h:mm a')}</span>

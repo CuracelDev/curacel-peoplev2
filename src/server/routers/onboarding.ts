@@ -1329,11 +1329,27 @@ export const onboardingRouter = router({
       taskCount: number
       source: 'sheet' | 'static'
       error?: string
+      debug?: {
+        rawSheetId?: string | null
+        cleanedSheetId?: string | null
+        foundSheets?: string[]
+        apiError?: string
+      }
     }> => {
+      const debug: {
+        rawSheetId?: string | null
+        cleanedSheetId?: string | null
+        foundSheets?: string[]
+        apiError?: string
+      } = {}
+
       try {
         const settings = await ctx.prisma.onboardingSettings.findFirst()
         const rawSheetId = settings?.sheetId
         const sheetId = rawSheetId ? extractSpreadsheetId(rawSheetId) : null
+
+        debug.rawSheetId = rawSheetId
+        debug.cleanedSheetId = sheetId
 
         console.log('[syncTaskCatalog] Raw sheet ID:', rawSheetId)
         console.log('[syncTaskCatalog] Cleaned sheet ID:', sheetId)
@@ -1344,11 +1360,30 @@ export const onboardingRouter = router({
             taskCount: ONBOARDING_TASKS.length,
             source: 'static',
             error: 'No Google Sheet configured. Using static task list.',
+            debug,
           }
         }
 
         const sheetsService = getGoogleSheetsService({ spreadsheetId: sheetId })
-        const sheetNames = await sheetsService.getSheetNames()
+
+        let sheetNames: string[] = []
+        try {
+          sheetNames = await sheetsService.getSheetNames()
+          debug.foundSheets = sheetNames
+          console.log('[syncTaskCatalog] Found sheets:', sheetNames)
+        } catch (apiError: any) {
+          const errorMsg = apiError?.response?.data?.error?.message || apiError?.message || String(apiError)
+          debug.apiError = errorMsg
+          console.error('[syncTaskCatalog] API error getting sheet names:', errorMsg)
+          return {
+            success: false,
+            taskCount: ONBOARDING_TASKS.length,
+            source: 'static',
+            error: `Google Sheets API error: ${errorMsg}`,
+            debug,
+          }
+        }
+
         const hasTaskCatalog = sheetNames.some(name => name.toLowerCase().trim() === 'task catalog')
 
         if (!hasTaskCatalog) {
@@ -1357,6 +1392,7 @@ export const onboardingRouter = router({
             taskCount: ONBOARDING_TASKS.length,
             source: 'static',
             error: `Task Catalog sheet not found. Found sheets: ${sheetNames.join(', ') || 'none'}. Create a "Task Catalog" tab in your Google Sheet.`,
+            debug,
           }
         }
 
@@ -1368,6 +1404,7 @@ export const onboardingRouter = router({
             taskCount: ONBOARDING_TASKS.length,
             source: 'static',
             error: 'Task Catalog sheet is empty. Add tasks starting from row 2.',
+            debug,
           }
         }
 
@@ -1375,14 +1412,18 @@ export const onboardingRouter = router({
           success: true,
           taskCount: sheetTasks.length,
           source: 'sheet',
+          debug,
         }
-      } catch (error) {
-        console.error('Failed to sync task catalog:', error)
+      } catch (error: any) {
+        const errorMsg = error?.response?.data?.error?.message || error?.message || String(error)
+        debug.apiError = errorMsg
+        console.error('Failed to sync task catalog:', errorMsg)
         return {
           success: false,
           taskCount: ONBOARDING_TASKS.length,
           source: 'static',
-          error: error instanceof Error ? error.message : 'Failed to sync from sheet',
+          error: `Failed to sync: ${errorMsg}`,
+          debug,
         }
       }
     }),
