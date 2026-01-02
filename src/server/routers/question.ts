@@ -1451,12 +1451,16 @@ Respond ONLY with a valid JSON array, no additional text.`
         }
       }
 
+      // Decrypt API key
+      const { decrypt } = await import('@/lib/encryption')
+      const apiKey = decrypt(encryptedApiKey)
+
       // Call AI based on provider
       let responseText = ''
 
       if (aiSettings?.provider === 'ANTHROPIC') {
         const Anthropic = (await import('@anthropic-ai/sdk')).default
-        const anthropic = new Anthropic({ apiKey: encryptedApiKey })
+        const anthropic = new Anthropic({ apiKey })
         const response = await anthropic.messages.create({
           model: aiModel || 'claude-sonnet-4-20250514',
           max_tokens: 4000,
@@ -1465,7 +1469,7 @@ Respond ONLY with a valid JSON array, no additional text.`
         responseText = response.content[0].type === 'text' ? response.content[0].text : ''
       } else if (aiSettings?.provider === 'OPENAI') {
         const OpenAI = (await import('openai')).default
-        const openai = new OpenAI({ apiKey: encryptedApiKey })
+        const openai = new OpenAI({ apiKey })
         const response = await openai.chat.completions.create({
           model: aiModel || 'gpt-4-turbo-preview',
           messages: [{ role: 'user', content: prompt }],
@@ -1474,7 +1478,7 @@ Respond ONLY with a valid JSON array, no additional text.`
         responseText = response.choices[0]?.message?.content || ''
       } else if (aiSettings?.provider === 'GEMINI') {
         const { GoogleGenerativeAI } = await import('@google/generative-ai')
-        const genAI = new GoogleGenerativeAI(encryptedApiKey)
+        const genAI = new GoogleGenerativeAI(apiKey)
         const model = genAI.getGenerativeModel({ model: aiModel || 'gemini-pro' })
         const result = await model.generateContent(prompt)
         responseText = result.response.text()
