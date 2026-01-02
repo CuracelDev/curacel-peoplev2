@@ -115,6 +115,12 @@ export default function CandidatesListPage() {
       utils.job.get.invalidate({ id: jobId })
     },
   })
+  const autoAssignFlowsMutation = trpc.job.autoAssignHiringFlows.useMutation({
+    onSuccess: () => {
+      utils.job.get.invalidate({ id: jobId })
+      utils.job.listCandidates.invalidate({ jobId })
+    },
+  })
 
   const [selectedStage, setSelectedStage] = useState('all')
   const [sortBy, setSortBy] = useState('score-desc')
@@ -123,6 +129,13 @@ export default function CandidatesListPage() {
   const [pageSize, setPageSize] = useState(25)
 
   const isLoading = jobLoading || candidatesLoading
+
+  // Auto-assign hiring flows if job doesn't have one
+  useEffect(() => {
+    if (job && !job.hiringFlowSnapshotId && !autoAssignFlowsMutation.isPending) {
+      autoAssignFlowsMutation.mutate()
+    }
+  }, [job?.hiringFlowSnapshotId])
 
   // Use real candidates from API
   const allCandidates = candidatesData?.candidates || []
@@ -136,6 +149,7 @@ export default function CandidatesListPage() {
     hired: 0,
     rejected: 0,
   }
+  const hiringFlowStages = candidatesData?.hiringFlowStages || []
 
   // Use actual stages from backend with real counts
   const stages = useMemo(() => {
