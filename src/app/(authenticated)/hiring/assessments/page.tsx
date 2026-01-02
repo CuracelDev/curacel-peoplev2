@@ -78,12 +78,6 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   CANCELLED: { label: 'Cancelled', color: 'bg-muted text-muted-foreground' },
 }
 
-const recommendationConfig: Record<string, { label: string; color: string }> = {
-  HIRE: { label: 'Hire', color: 'bg-success/10 text-success-foreground' },
-  HOLD: { label: 'Hold', color: 'bg-yellow-100 text-yellow-800' },
-  NO_HIRE: { label: 'No Hire', color: 'bg-destructive/10 text-destructive-foreground' },
-}
-
 type Assessment = NonNullable<ReturnType<typeof trpc.assessment.list.useQuery>['data']>[number]
 
 export default function AssessmentsPage() {
@@ -195,24 +189,16 @@ export default function AssessmentsPage() {
     { key: 'CUSTOM', label: 'Custom' },
   ]
 
-  // Score color based on value
-  const getScoreColor = (score: number | null) => {
-    if (score === null) return 'text-muted-foreground'
-    if (score >= 80) return 'text-success'
-    if (score >= 60) return 'text-amber-600'
-    return 'text-destructive'
-  }
-
   return (
     <div className="space-y-6">
       {/* Header with Filter Cards */}
-      <div className="flex items-center justify-between">
-        <div className="flex gap-2">
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-3">
           {types.map((type) => (
             <button
               key={type.key}
               className={cn(
-                'px-4 py-2 rounded-lg text-sm font-medium transition-all',
+                'flex items-center gap-3 whitespace-nowrap rounded-2xl px-5 py-3 text-base font-medium transition-all',
                 activeFilter === type.key
                   ? 'bg-primary text-white'
                   : 'bg-muted text-foreground/80 hover:bg-muted'
@@ -220,12 +206,14 @@ export default function AssessmentsPage() {
               onClick={() => setActiveFilter(type.key)}
             >
               {type.label}
-              <span className={cn(
-                'ml-2 px-1.5 py-0.5 rounded text-xs',
-                activeFilter === type.key
-                  ? 'bg-card/20'
-                  : 'bg-muted'
-              )}>
+              <span
+                className={cn(
+                  'flex h-6 min-w-[24px] items-center justify-center rounded-lg px-2 text-xs font-semibold',
+                  activeFilter === type.key
+                    ? 'bg-card/20 text-white'
+                    : 'bg-background text-foreground'
+                )}
+              >
                 {type.key === 'all'
                   ? counts?.all || 0
                   : counts?.[type.key] || 0}
@@ -288,11 +276,9 @@ export default function AssessmentsPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-[220px]">Candidate</TableHead>
-                  <TableHead className="w-[160px]">Assessment</TableHead>
+                  <TableHead className="w-[220px]">Assessment</TableHead>
                   <TableHead className="w-[120px]">Type</TableHead>
                   <TableHead className="w-[100px]">Status</TableHead>
-                  <TableHead className="w-[80px]">Score</TableHead>
-                  <TableHead className="w-[120px]">Recommendation</TableHead>
                   <TableHead className="w-[100px]">Sent</TableHead>
                   <TableHead className="w-[100px]">Completed</TableHead>
                   <TableHead className="w-[50px]"></TableHead>
@@ -302,9 +288,6 @@ export default function AssessmentsPage() {
                 {assessments.map((assessment) => {
                   const type = typeConfig[assessment.template.type] || typeConfig.CUSTOM
                   const status = statusConfig[assessment.status] || statusConfig.NOT_STARTED
-                  const recommendation = assessment.recommendation
-                    ? recommendationConfig[assessment.recommendation]
-                    : null
                   const TypeIcon = type.icon
 
                   return (
@@ -329,7 +312,7 @@ export default function AssessmentsPage() {
                         </div>
                       </TableCell>
                       <TableCell className="py-4">
-                        <div className="text-sm font-medium truncate">
+                        <div className="text-sm font-medium whitespace-normal break-words">
                           {assessment.template.name}
                         </div>
                       </TableCell>
@@ -343,20 +326,6 @@ export default function AssessmentsPage() {
                         <Badge className={cn('font-normal', status.color)}>
                           {status.label}
                         </Badge>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        <span className={cn('font-semibold', getScoreColor(assessment.overallScore))}>
-                          {assessment.overallScore !== null ? `${assessment.overallScore}%` : '-'}
-                        </span>
-                      </TableCell>
-                      <TableCell className="py-4">
-                        {recommendation ? (
-                          <Badge className={cn('font-normal', recommendation.color)}>
-                            {recommendation.label}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
                       </TableCell>
                       <TableCell className="py-4">
                         <span className="text-sm text-muted-foreground whitespace-nowrap">
