@@ -37,7 +37,7 @@ export default function ArchivedCandidatesPage() {
     offset: 0,
   })
 
-  const updateStage = trpc.job.updateCandidateStage.useMutation({
+  const updateStage = trpc.job.updateCandidate.useMutation({
     onSuccess: () => {
       // Refetch candidates after update
       window.location.reload()
@@ -50,7 +50,7 @@ export default function ArchivedCandidatesPage() {
   const handleRestore = async (candidateId: string) => {
     if (confirm('Restore this candidate to the active pipeline?')) {
       await updateStage.mutateAsync({
-        candidateId,
+        id: candidateId,
         stage: 'APPLIED',
       })
     }
@@ -157,7 +157,7 @@ export default function ArchivedCandidatesPage() {
                       </Link>
                     </td>
                     <td className="py-3 px-4">
-                      <div className="text-sm text-foreground/80">{candidate.jobTitle || '-'}</div>
+                      <div className="text-sm text-foreground/80">{candidate.job?.title || '-'}</div>
                     </td>
                     <td className="py-3 px-4">
                       <div className="text-sm text-foreground/80">

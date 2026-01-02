@@ -406,7 +406,7 @@ export default function CandidatesListPage() {
         candidateHref={(candidate) => `/recruiting/candidates/${candidate.id}`}
         scoreClassName={(score) => getScoreClass(score || 0)}
         renderStage={(candidate) => getStageBadge(candidate.stage || '')}
-        formatApplied={(candidate) => formatDate(candidate.appliedAt)}
+        formatApplied={(candidate) => formatDate(candidate.appliedAt) || '-'}
         formatUpdated={(candidate) => getRelativeTime(candidate.updatedAt)}
         onArchiveCandidate={(id) => updateCandidateStage.mutate({ id, stage: 'ARCHIVED' })}
         onRejectCandidate={(id) => updateCandidateStage.mutate({ id, stage: 'REJECTED' })}

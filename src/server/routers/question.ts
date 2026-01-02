@@ -967,6 +967,48 @@ ${hasCriticalAreas ? '6. At least 30% of questions MUST address the critical are
 
 Respond ONLY with a valid JSON array, no additional text.`
 
+      // Helper to clean AI response (strip markdown code blocks if present)
+      const cleanJsonResponse = (text: string): string => {
+        let cleaned = text.trim()
+        // Remove markdown code block markers
+        if (cleaned.startsWith('```json')) {
+          cleaned = cleaned.slice(7)
+        } else if (cleaned.startsWith('```')) {
+          cleaned = cleaned.slice(3)
+        }
+        if (cleaned.endsWith('```')) {
+          cleaned = cleaned.slice(0, -3)
+        }
+        return cleaned.trim()
+      }
+
+      // Helper to parse AI response with better error handling
+      const parseAIResponse = (text: string): unknown[] => {
+        const cleaned = cleanJsonResponse(text)
+
+        try {
+          const parsed = JSON.parse(cleaned)
+
+          // Handle direct array response
+          if (Array.isArray(parsed)) {
+            return parsed
+          }
+          // Handle wrapped response like { questions: [...] }
+          if (parsed && typeof parsed === 'object' && Array.isArray(parsed.questions)) {
+            return parsed.questions
+          }
+          // Handle single question object (AI returned one question instead of array)
+          if (parsed && typeof parsed === 'object' && 'text' in parsed && 'category' in parsed) {
+            return [parsed]
+          }
+          console.error('AI response format unexpected:', Object.keys(parsed || {}))
+          return []
+        } catch (parseError) {
+          console.error('Failed to parse AI response:', parseError)
+          return []
+        }
+      }
+
       // Call AI
       let generatedQuestions: Array<{
         text: string
@@ -997,7 +1039,7 @@ Respond ONLY with a valid JSON array, no additional text.`
               throw new Error('No text response from Anthropic')
             }
 
-            generatedQuestions = JSON.parse(textContent.text)
+            generatedQuestions = parseAIResponse(textContent.text) as typeof generatedQuestions
             break
           }
 
@@ -1016,8 +1058,7 @@ Respond ONLY with a valid JSON array, no additional text.`
               throw new Error('No response from OpenAI')
             }
 
-            const parsed = JSON.parse(content)
-            generatedQuestions = Array.isArray(parsed) ? parsed : parsed.questions || []
+            generatedQuestions = parseAIResponse(content) as typeof generatedQuestions
             break
           }
 
@@ -1040,7 +1081,7 @@ Respond ONLY with a valid JSON array, no additional text.`
               throw new Error('No response from Gemini')
             }
 
-            generatedQuestions = JSON.parse(genContent)
+            generatedQuestions = parseAIResponse(genContent) as typeof generatedQuestions
             break
           }
 

@@ -5,7 +5,7 @@ import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
 import Underline from '@tiptap/extension-underline'
-import TextStyle from '@tiptap/extension-text-style'
+import { TextStyle } from '@tiptap/extension-text-style'
 import Color from '@tiptap/extension-color'
 import FontFamily from '@tiptap/extension-font-family'
 import {
@@ -39,7 +39,8 @@ import {
 import { useCallback, useEffect, useState } from 'react'
 
 interface RichTextEditorProps {
-  content: string
+  content?: string
+  value?: string
   onChange: (content: string) => void
   placeholder?: string
   disabled?: boolean
@@ -48,11 +49,13 @@ interface RichTextEditorProps {
 
 export function RichTextEditor({
   content,
+  value,
   onChange,
   placeholder = 'Start typing...',
   disabled = false,
   className,
 }: RichTextEditorProps) {
+  const resolvedContent = content ?? value ?? ''
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
@@ -75,7 +78,7 @@ export function RichTextEditor({
       Color.configure({ types: ['textStyle'] }),
       FontFamily.configure({ types: ['textStyle'] }),
     ],
-    content,
+    content: resolvedContent,
     editable: !disabled,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML())
@@ -92,10 +95,10 @@ export function RichTextEditor({
 
   // Update editor content when prop changes
   useEffect(() => {
-    if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content)
+    if (editor && resolvedContent !== editor.getHTML()) {
+      editor.commands.setContent(resolvedContent)
     }
-  }, [content, editor])
+  }, [resolvedContent, editor])
 
   const setLink = useCallback(() => {
     if (!editor) return

@@ -115,6 +115,55 @@ function resolveAbsoluteUrl(rawUrl: string | undefined, appUrl: string, fallback
   return `${baseUrl}/${trimmed}`
 }
 
+export function buildBrandedEmailHtml(params: {
+  companyName: string
+  bodyHtml: string
+  logoUrl?: string
+}): string {
+  const { companyName, bodyHtml, logoUrl: rawLogoUrl } = params
+  const appUrl = getAppUrl()
+  const logoUrl = resolveAbsoluteUrl(rawLogoUrl, appUrl, '/logo.png')
+  const year = new Date().getFullYear()
+
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      </head>
+      <body style="margin:0; padding:0; background-color:#eef2f7; font-family:'Segoe UI', Arial, sans-serif; color:#0f172a;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#eef2f7;">
+          <tr>
+            <td align="center" style="padding:32px 16px;">
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px; background:#ffffff; border-radius:16px; border:1px solid #e2e8f0; overflow:hidden;">
+                <tr>
+                  <td style="padding:24px 32px 12px; text-align:center;">
+                    <img
+                      src="${logoUrl}"
+                      alt="${companyName} logo"
+                      width="120"
+                      style="display:block; margin:0 auto; height:auto;"
+                    />
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding:8px 32px 32px; font-size:16px; line-height:1.6; color:#334155;">
+                    ${bodyHtml}
+                  </td>
+                </tr>
+              </table>
+              <p style="margin:16px 0 0; font-size:12px; color:#94a3b8; text-align:center;">
+                &copy; ${year} ${companyName}
+              </p>
+            </td>
+          </tr>
+        </table>
+      </body>
+    </html>
+  `
+}
+
 export async function sendEmail(options: SendEmailOptions): Promise<void> {
   const { to, subject, html, text, attachments } = options
   const status = getEmailTransportStatus()

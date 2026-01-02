@@ -78,8 +78,6 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   CANCELLED: { label: 'Cancelled', color: 'bg-muted text-muted-foreground' },
 }
 
-type Assessment = NonNullable<ReturnType<typeof trpc.assessment.list.useQuery>['data']>[number]
-
 export default function AssessmentsPage() {
   const router = useRouter()
   const [activeFilter, setActiveFilter] = useState('all')
