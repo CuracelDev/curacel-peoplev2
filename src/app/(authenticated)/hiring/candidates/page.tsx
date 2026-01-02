@@ -33,7 +33,6 @@ import {
   Search,
   Download,
   Plus,
-  MoreHorizontal,
   MoreVertical,
   ChevronLeft,
   ChevronRight,
@@ -48,7 +47,7 @@ import {
   Sparkles,
   Archive,
 } from 'lucide-react'
-import { cn, getInitials } from '@/lib/utils'
+import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
 import { format, formatDistanceToNow, startOfDay, endOfDay, startOfWeek, startOfMonth, startOfQuarter } from 'date-fns'
 
@@ -82,12 +81,6 @@ function getScoreColor(score: number | null) {
   if (score >= 80) return 'text-success bg-success/10'
   if (score >= 65) return 'text-warning bg-warning/10'
   return 'text-destructive bg-destructive/10'
-}
-
-function getAvatarColor(name: string) {
-  const colors = ['bg-green-500', 'bg-indigo-500', 'bg-sky-500', 'bg-amber-500', 'bg-pink-500', 'bg-purple-500', 'bg-teal-500']
-  const index = name.length % colors.length
-  return colors[index]
 }
 
 export default function CandidatesPage() {
