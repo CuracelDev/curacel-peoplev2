@@ -140,21 +140,6 @@ async function gradeAndAnalyzeInBackground(assessmentId: string, responses: Resp
       },
     })
 
-    // Create audit log
-    await prisma.auditLog.create({
-      data: {
-        actorType: 'system',
-        action: 'UPDATE',
-        resourceType: 'candidate_assessment',
-        resourceId: assessmentId,
-        metadata: {
-          event: 'ASSESSMENT_GRADED',
-          overallScore,
-          recommendation: analysis.recommendation,
-        },
-      },
-    })
-
     console.log(`Assessment ${assessmentId} graded and analyzed successfully`)
   } catch (error) {
     console.error(`Failed to grade assessment ${assessmentId}:`, error)

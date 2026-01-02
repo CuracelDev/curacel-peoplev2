@@ -2502,6 +2502,41 @@ model EmailSettings {
   updatedAt               DateTime @updatedAt
 }
 
+// Queued emails for automatic stage transition notifications
+model QueuedStageEmail {
+  id              String   @id @default(uuid())
+  candidateId     String
+  candidate       JobCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // Stage transition info
+  fromStage       String?
+  toStage         String
+
+  // Email details
+  templateId      String?
+  recruiterId     String   // User who triggered the stage change
+  recruiterEmail  String
+  recruiterName   String?
+
+  // Scheduling
+  scheduledFor    DateTime // When to send (now + delay)
+
+  // Status tracking
+  status          String   @default("PENDING") // PENDING, PROCESSING, SENT, FAILED, CANCELLED
+  processedAt     DateTime?
+  error           String?  @db.Text
+  emailId         String?  // Reference to CandidateEmail once sent
+
+  // User override
+  skipAutoEmail   Boolean  @default(false) // User chose to skip auto-email for this move
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@index([status, scheduledFor])
+  @@index([candidateId])
+}
+
 model ReminderSettings {
   id                      String   @id @default(uuid())
   organizationId          String   @unique

@@ -38,6 +38,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Progress } from '@/components/ui/progress'
 import { Textarea } from '@/components/ui/textarea'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { cn, getInitials } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
 import { normalizeCandidateScoreWeights, type CandidateScoreComponent } from '@/lib/hiring/score-config'
@@ -88,6 +98,15 @@ export default function CandidateProfilePage() {
     null | 'advance' | 'reject' | 'decision'
   >(null)
   const [exporting, setExporting] = useState(false)
+
+  // Stage change dialog state
+  const [stageChangeDialog, setStageChangeDialog] = useState<{
+    open: boolean
+    stage: 'OFFER' | 'REJECTED'
+    stageName: string
+    successMessage: string
+  } | null>(null)
+  const [skipAutoEmail, setSkipAutoEmail] = useState(false)
   const [decisionInitialized, setDecisionInitialized] = useState(false)
 
   // Fetch candidate profile from database
@@ -575,12 +594,23 @@ export default function CandidateProfilePage() {
     }
   }
 
-  const handleStageUpdate = async (stage: 'OFFER' | 'REJECTED', successMessage: string) => {
-    if (updateCandidate.isPending) return
-    setActionInFlight(stage === 'OFFER' ? 'advance' : 'reject')
+  const handleStageUpdate = (stage: 'OFFER' | 'REJECTED', successMessage: string) => {
+    const stageName = stage === 'OFFER' ? 'Advance to Offer' : 'Reject'
+    setStageChangeDialog({ open: true, stage, stageName, successMessage })
+  }
+
+  const confirmStageUpdate = async () => {
+    if (!stageChangeDialog || updateCandidate.isPending) return
+    setActionInFlight(stageChangeDialog.stage === 'OFFER' ? 'advance' : 'reject')
     try {
-      await updateCandidate.mutateAsync({ id: candidateId, stage })
-      toast.success(successMessage)
+      await updateCandidate.mutateAsync({
+        id: candidateId,
+        stage: stageChangeDialog.stage,
+        skipAutoEmail,
+      })
+      toast.success(stageChangeDialog.successMessage)
+      setStageChangeDialog(null)
+      setSkipAutoEmail(false)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to update candidate')
     } finally {
@@ -1889,6 +1919,59 @@ export default function CandidateProfilePage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Stage Change Confirmation Dialog */}
+      <Dialog
+        open={stageChangeDialog?.open ?? false}
+        onOpenChange={(open) => {
+          if (!open) {
+            setStageChangeDialog(null)
+            setSkipAutoEmail(false)
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{stageChangeDialog?.stageName}</DialogTitle>
+            <DialogDescription>
+              {stageChangeDialog?.stage === 'OFFER'
+                ? 'This will advance the candidate to the offer stage.'
+                : 'This will reject the candidate from the hiring process.'}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-center space-x-2 py-4">
+            <Checkbox
+              id="skipAutoEmailDetail"
+              checked={skipAutoEmail}
+              onCheckedChange={(checked) => setSkipAutoEmail(checked === true)}
+            />
+            <Label htmlFor="skipAutoEmailDetail" className="text-sm cursor-pointer">
+              Skip automatic stage notification email
+            </Label>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setStageChangeDialog(null)
+                setSkipAutoEmail(false)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmStageUpdate}
+              disabled={actionInFlight !== null}
+              variant={stageChangeDialog?.stage === 'REJECTED' ? 'destructive' : 'default'}
+            >
+              {actionInFlight && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

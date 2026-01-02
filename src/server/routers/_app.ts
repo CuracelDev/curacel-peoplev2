@@ -36,6 +36,7 @@ import { auntyPelzAnalysisRouter } from './auntypelz-analysis'
 import { publicPagesRouter } from './public-pages'
 import { webflowRouter } from './webflow'
 import { advisorRouter } from './advisor'
+import { emailSettingsRouter } from './email-settings'
 
 export const appRouter = router({
   employee: employeeRouter,
@@ -75,6 +76,7 @@ export const appRouter = router({
   publicPages: publicPagesRouter,
   webflow: webflowRouter,
   advisor: advisorRouter,
+  emailSettings: emailSettingsRouter,
 })
 
 export type AppRouter = typeof appRouter

@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
+import { AutoSendStageSettings } from '@/components/settings/auto-send-stage-settings'
 import {
   Mail,
   CheckCircle2,
@@ -20,18 +21,34 @@ import {
   MousePointer2,
   Loader2,
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 export default function EmailSettingsPage() {
-  const [defaultCcEmail, setDefaultCcEmail] = useState('peopleops@curacel.ai')
+  const [defaultCcEmail, setDefaultCcEmail] = useState('')
   const [trackOpens, setTrackOpens] = useState(true)
   const [trackClicks, setTrackClicks] = useState(true)
   const [autoSendOnApplication, setAutoSendOnApplication] = useState(true)
   const [isTesting, setIsTesting] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
   const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null)
+
+  // Fetch email settings
+  const { data: emailSettings, isLoading } = trpc.emailSettings.get.useQuery()
+  const updateSettings = trpc.emailSettings.update.useMutation()
+
+  // Populate form with existing settings
+  useEffect(() => {
+    if (emailSettings) {
+      setDefaultCcEmail(emailSettings.defaultCcEmail || 'peopleops@curacel.ai')
+      setTrackOpens(emailSettings.trackOpens ?? true)
+      setTrackClicks(emailSettings.trackClicks ?? true)
+      setAutoSendOnApplication(emailSettings.autoSendOnApplication ?? true)
+    }
+  }, [emailSettings])
 
   // Test Gmail connection
   const testConnection = trpc.candidateEmail.testGmailConnection.useQuery(undefined, {
-    enabled: false, // Only run on demand
+    enabled: false,
     retry: false,
   })
 
@@ -42,10 +59,39 @@ export default function EmailSettingsPage() {
       const result = await testConnection.refetch()
       setTestResult(result.data || { success: false, error: 'Unknown error' })
     } catch (error) {
-      setTestResult({ success: false, error: error instanceof Error ? error.message : 'Connection failed' })
+      setTestResult({
+        success: false,
+        error: error instanceof Error ? error.message : 'Connection failed',
+      })
     } finally {
       setIsTesting(false)
     }
+  }
+
+  const handleSaveSettings = async () => {
+    setIsSaving(true)
+    try {
+      await updateSettings.mutateAsync({
+        defaultCcEmail: defaultCcEmail || undefined,
+        trackOpens,
+        trackClicks,
+        autoSendOnApplication,
+      })
+      toast.success('Email settings saved successfully')
+    } catch (error) {
+      toast.error('Failed to save settings')
+      console.error(error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-12">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    )
   }
 
   return (
@@ -87,24 +133,19 @@ export default function EmailSettingsPage() {
                   {testResult === null
                     ? 'Gmail Connection'
                     : testResult.success
-                    ? 'Connected'
-                    : 'Connection Failed'}
+                      ? 'Connected'
+                      : 'Connection Failed'}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {testResult === null
                     ? 'Click test to verify connection'
                     : testResult.success
-                    ? 'Gmail API is working correctly'
-                    : testResult.error}
+                      ? 'Gmail API is working correctly'
+                      : testResult.error}
                 </p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleTestConnection}
-              disabled={isTesting}
-            >
+            <Button variant="outline" size="sm" onClick={handleTestConnection} disabled={isTesting}>
               {isTesting ? (
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
               ) : (
@@ -117,12 +158,7 @@ export default function EmailSettingsPage() {
           <div className="grid gap-4 pt-2">
             <div className="space-y-2">
               <Label htmlFor="gmail-domain">Gmail Domain</Label>
-              <Input
-                id="gmail-domain"
-                value="curacel.ai"
-                disabled
-                className="bg-muted"
-              />
+              <Input id="gmail-domain" value="curacel.ai" disabled className="bg-muted" />
               <p className="text-xs text-muted-foreground">
                 Emails will be sent from @curacel.ai addresses via domain-wide delegation
               </p>
@@ -138,9 +174,7 @@ export default function EmailSettingsPage() {
             <Settings className="h-4 w-4" />
             Sender Settings
           </CardTitle>
-          <CardDescription>
-            Configure default sender behavior for candidate emails
-          </CardDescription>
+          <CardDescription>Configure default sender behavior for candidate emails</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -166,13 +200,13 @@ export default function EmailSettingsPage() {
                 Automatically send confirmation email when candidates apply
               </p>
             </div>
-            <Switch
-              checked={autoSendOnApplication}
-              onCheckedChange={setAutoSendOnApplication}
-            />
+            <Switch checked={autoSendOnApplication} onCheckedChange={setAutoSendOnApplication} />
           </div>
         </CardContent>
       </Card>
+
+      {/* Auto-Send Stage Settings */}
+      <AutoSendStageSettings />
 
       {/* Tracking Settings */}
       <Card>
@@ -224,9 +258,7 @@ export default function EmailSettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-base">Environment Configuration</CardTitle>
-          <CardDescription>
-            Required environment variables for Gmail integration
-          </CardDescription>
+          <CardDescription>Required environment variables for Gmail integration</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2 font-mono text-xs">
@@ -248,7 +280,10 @@ export default function EmailSettingsPage() {
 
       {/* Save Button */}
       <div className="flex justify-end">
-        <Button>Save Settings</Button>
+        <Button onClick={handleSaveSettings} disabled={isSaving}>
+          {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+          Save Settings
+        </Button>
       </div>
     </div>
   )

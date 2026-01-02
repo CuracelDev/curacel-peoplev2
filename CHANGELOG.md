@@ -209,6 +209,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Assessment grading now stores graded response arrays directly
 - Assessment grading now casts graded responses for JSON storage
 - Assessment analysis now casts AI analysis payloads for JSON storage
+- Assessment analysis now maps reasoning and interview questions to stored fields
+- Removed invalid audit log action from assessment grading
+- Forgot password flow now stores reset tokens on the user record
+- Reset password flow now validates and clears reset tokens on the user record
+- Candidate export now pulls score weights from hiring settings
+- Candidate export now normalizes must-validate lists to strings
+- Candidate export now returns PDF buffers as Uint8Array responses
+- Candidate resume uploads now use a supported 8MB file size limit
+- Assessment webhook status mapping now uses the AssessmentStatus enum
+- Assessment webhook updates now write to overallScore
+- Assessment webhook updates now cast JSON payloads for Prisma
+- Assessment webhook AI analysis now casts JSON payloads for Prisma
+- Removed invalid audit log action from assessment webhook analysis
+- Assessment webhook logs now cast payloads for Prisma JSON
+- Interviewer portal now guards missing scheduled dates
+- AuntyPelz analysis now defaults recommendation styling when missing
+- AuntyPelz analysis now defaults recommendation labels when missing
+- AuntyPelz analysis now guards missing overall scores
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off

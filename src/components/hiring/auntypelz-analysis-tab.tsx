@@ -216,13 +216,16 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
     )
   }
 
-  const recStyle = getRecommendationStyle(displayAnalysis.recommendation)
+  const recStyle = getRecommendationStyle(displayAnalysis.recommendation || 'HOLD')
   const RecIcon = recStyle.icon
+  const recommendationLabel = (displayAnalysis.recommendation || 'HOLD').replace('_', ' ')
   const strengths = normalizeTextList(displayAnalysis.strengths)
   const concerns = normalizeTextList(displayAnalysis.concerns)
   const mustValidatePoints = normalizeTextList(displayAnalysis.mustValidatePoints)
   const nextStageQuestions = normalizeTextList(displayAnalysis.nextStageQuestions)
   const recommendations = normalizeTextList(displayAnalysis.recommendations)
+  const overallScore = displayAnalysis.overallScore ?? 0
+  const overallScoreLabel = displayAnalysis.overallScore ?? '—'
 
   return (
     <div className="space-y-6">
@@ -286,7 +289,7 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
                 <div className={cn('flex items-center gap-2 px-3 py-1.5 rounded-full', recStyle.bg)}>
                   <RecIcon className={cn('h-4 w-4', recStyle.text)} />
                   <span className={cn('font-medium text-sm', recStyle.text)}>
-                    {displayAnalysis.recommendation.replace('_', ' ')}
+                    {recommendationLabel}
                   </span>
                   <span className="text-xs text-muted-foreground">
                     ({Math.round((displayAnalysis.confidence || 0) * 100)}% confident)
@@ -419,10 +422,10 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
               <div className="flex items-center gap-4">
                 <div className={cn(
                   'text-4xl font-bold',
-                  displayAnalysis.overallScore >= 80 ? 'text-success' :
-                  displayAnalysis.overallScore >= 65 ? 'text-warning' : 'text-red-600'
+                  overallScore >= 80 ? 'text-success' :
+                  overallScore >= 65 ? 'text-warning' : 'text-red-600'
                 )}>
-                  {displayAnalysis.overallScore}
+                  {overallScoreLabel}
                 </div>
                 <div className="flex-1">
                   <Progress

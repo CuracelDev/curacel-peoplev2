@@ -71,6 +71,8 @@ interface EditInterviewDialogProps {
     meetingLink?: string | null
     feedback?: string | null
     interviewers?: Interviewer[] | null
+    interviewTypeId?: string | null
+    stageName?: string | null
   }
   onSuccess?: () => void
 }
@@ -103,6 +105,7 @@ export function EditInterviewDialog({
   const [duration, setDuration] = useState(interview.duration || 60)
   const [meetingLink, setMeetingLink] = useState(interview.meetingLink || '')
   const [notes, setNotes] = useState(interview.feedback || '')
+  const [interviewTypeId, setInterviewTypeId] = useState(interview.interviewTypeId || '')
 
   // Interviewers state
   const [interviewers, setInterviewers] = useState<Interviewer[]>(
@@ -127,6 +130,9 @@ export function EditInterviewDialog({
     limit: 20,
   })
 
+  // Fetch interview types
+  const { data: interviewTypesData } = trpc.interviewType.list.useQuery()
+
   // Reset form when dialog opens
   useEffect(() => {
     if (open) {
@@ -139,6 +145,7 @@ export function EditInterviewDialog({
       setDuration(interview.duration || 60)
       setMeetingLink(interview.meetingLink || '')
       setNotes(interview.feedback || '')
+      setInterviewTypeId(interview.interviewTypeId || '')
       setInterviewers((interview.interviewers as Interviewer[]) || [])
       setActiveTab('details')
     }
@@ -191,6 +198,7 @@ export function EditInterviewDialog({
       meetingLink: meetingLink || null,
       notes: notes || null,
       interviewers,
+      interviewTypeId: interviewTypeId || null,
     })
   }
 
@@ -242,7 +250,7 @@ export function EditInterviewDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[600px]">
+      <DialogContent className="sm:max-w-[1000px] max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Edit Interview</DialogTitle>
           <DialogDescription>
@@ -279,6 +287,28 @@ export function EditInterviewDialog({
           {/* Details Tab */}
           <TabsContent value="details" className="mt-4">
             <div className="space-y-4">
+              {/* Interview Type */}
+              <div className="space-y-2">
+                <Label>Interview Type</Label>
+                <Select value={interviewTypeId} onValueChange={setInterviewTypeId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select interview type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {interviewTypesData?.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {interview.stageName && (
+                  <p className="text-xs text-muted-foreground">
+                    Current stage: {interview.stageName}
+                  </p>
+                )}
+              </div>
+
               {/* Date & Time */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

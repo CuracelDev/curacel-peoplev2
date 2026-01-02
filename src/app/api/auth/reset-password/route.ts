@@ -20,40 +20,20 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // Find the token
-    const resetToken = await prisma.passwordResetToken.findUnique({
-      where: { token },
+    const user = await prisma.user.findFirst({
+      where: { resetToken: token },
     })
 
-    if (!resetToken) {
+    if (!user) {
       return NextResponse.json(
         { error: 'Invalid or expired reset link' },
         { status: 400 }
       )
     }
 
-    if (resetToken.usedAt) {
-      return NextResponse.json(
-        { error: 'This reset link has already been used' },
-        { status: 400 }
-      )
-    }
-
-    if (resetToken.expiresAt < new Date()) {
+    if (!user.resetTokenExpires || user.resetTokenExpires < new Date()) {
       return NextResponse.json(
         { error: 'This reset link has expired' },
-        { status: 400 }
-      )
-    }
-
-    // Find the user
-    const user = await prisma.user.findUnique({
-      where: { email: resetToken.email },
-    })
-
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
         { status: 400 }
       )
     }
@@ -61,20 +41,16 @@ export async function POST(req: NextRequest) {
     // Hash the new password
     const passwordHash = await hashPassword(password)
 
-    // Update user's password and mark token as used
-    await prisma.$transaction([
-      prisma.user.update({
-        where: { id: user.id },
-        data: {
-          passwordHash,
-          passwordSetAt: new Date(),
-        },
-      }),
-      prisma.passwordResetToken.update({
-        where: { id: resetToken.id },
-        data: { usedAt: new Date() },
-      }),
-    ])
+    // Update user's password and clear token
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        passwordSetAt: new Date(),
+        resetToken: null,
+        resetTokenExpires: null,
+      },
+    })
 
     return NextResponse.json({ success: true })
   } catch (error) {
@@ -98,23 +74,20 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const resetToken = await prisma.passwordResetToken.findUnique({
-      where: { token },
+    const user = await prisma.user.findFirst({
+      where: { resetToken: token },
+      select: { email: true, resetTokenExpires: true },
     })
 
-    if (!resetToken) {
+    if (!user) {
       return NextResponse.json({ valid: false, error: 'Invalid reset link' })
     }
 
-    if (resetToken.usedAt) {
-      return NextResponse.json({ valid: false, error: 'This reset link has already been used' })
-    }
-
-    if (resetToken.expiresAt < new Date()) {
+    if (!user.resetTokenExpires || user.resetTokenExpires < new Date()) {
       return NextResponse.json({ valid: false, error: 'This reset link has expired' })
     }
 
-    return NextResponse.json({ valid: true, email: resetToken.email })
+    return NextResponse.json({ valid: true, email: user.email })
   } catch (error) {
     console.error('Verify token error:', error)
     return NextResponse.json(
