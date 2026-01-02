@@ -43,6 +43,24 @@ export default function InterestFormsPage() {
     },
   })
 
+  const normalizeQuestionOptions = (options: unknown) => {
+    if (!options) return ''
+    if (typeof options === 'string') return options
+    if (!Array.isArray(options)) return ''
+    return options
+      .map((option) => {
+        if (typeof option === 'string') return option
+        if (option && typeof option === 'object') {
+          const { label, value } = option as { label?: unknown; value?: unknown }
+          if (typeof label === 'string') return label
+          if (typeof value === 'string' || typeof value === 'number') return String(value)
+        }
+        return ''
+      })
+      .filter(Boolean)
+      .join(', ')
+  }
+
   const forms = interestFormsQuery.data || []
 
   // Filter forms
@@ -172,7 +190,7 @@ export default function InterestFormsPage() {
                 <div className="mt-6 border-t pt-6">
                   <h3 className="font-semibold mb-4">Questions: {selectedForm.name}</h3>
                   <div className="space-y-3">
-                    {(selectedForm.questions as Array<{ id: string; label: string; type: string; isRequired: boolean; placeholder?: string; options?: string }>)?.map((question, index) => (
+                    {selectedForm.questions.map((question, index) => (
                       <div
                         key={question.id || index}
                         className="flex items-start gap-3 p-4 border border-border rounded-lg bg-muted/30"
@@ -182,24 +200,24 @@ export default function InterestFormsPage() {
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <span className="font-medium">{question.label}</span>
-                            {question.isRequired && (
+                            <span className="font-medium">{question.question}</span>
+                            {question.required && (
                               <Badge variant="outline" className="text-red-600 border-red-200">Required</Badge>
                             )}
                           </div>
                           <div className="text-sm text-muted-foreground mt-1">
                             {questionTypeLabels[question.type] || question.type}
-                            {question.placeholder && ` • Placeholder: "${question.placeholder}"`}
+                            {question.description && ` • ${question.description}`}
                           </div>
-                          {question.options && (
+                          {normalizeQuestionOptions(question.options) && (
                             <div className="text-xs text-muted-foreground mt-1">
-                              Options: {question.options}
+                              Options: {normalizeQuestionOptions(question.options)}
                             </div>
                           )}
                         </div>
                       </div>
                     ))}
-                    {(!selectedForm.questions || (selectedForm.questions as Array<unknown>).length === 0) && (
+                    {selectedForm.questions.length === 0 && (
                       <div className="text-center py-6 text-muted-foreground">
                         No questions yet. Edit the form to add questions.
                       </div>

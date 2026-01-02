@@ -183,6 +183,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Interview scheduling advisor selection now matches interviewer input types
 - Hiring dashboard upcoming interviews now skip entries without scheduled dates
 - Candidate list applied date formatter now always returns a string
+- Interest form dialog typing now derives from query data safely
+- Interest form editor now normalizes stored options and fields when editing
+- Rubric dialog typing now derives from query data safely
+- Interest form preview now uses question/required fields from the API
+- Hiring settings now guards job score display values before applying state
+- Interest form edit screen now normalizes stored question fields on load
+- Interest form list preview now renders question/required fields and normalizes options
+- Onboarding Bitbucket options query now guards against missing app IDs
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off

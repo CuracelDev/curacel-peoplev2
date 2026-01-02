@@ -437,7 +437,7 @@ export default function ScheduleInterviewPage() {
   }, [availableSlots])
 
   return (
-    <div className={cn("px-3 py-4 mx-auto", currentStep === 2 ? "max-w-7xl" : "max-w-5xl")}>
+    <div className={cn("px-6 py-4 mx-auto", currentStep === 2 ? "max-w-7xl" : "max-w-6xl")}>
       {/* Step 1: Interview Details */}
       {currentStep === 1 && (
         <Card>
@@ -447,7 +447,9 @@ export default function ScheduleInterviewPage() {
               Select the candidate, interview type, interviewers, and schedule time.
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+            {/* Row 1: Candidate & Interview Type */}
             {/* Candidate Selection */}
             <div className="grid gap-2">
               <Label>Candidate *</Label>
@@ -524,7 +526,7 @@ export default function ScheduleInterviewPage() {
               )}
             </div>
 
-            {/* Interview Type */}
+            {/* Interview Type (Row 1 - Right) */}
             <div className="grid gap-2">
               <Label htmlFor="type">Interview Type *</Label>
               <Select value={interviewTypeId} onValueChange={handleInterviewTypeChange}>
@@ -555,7 +557,8 @@ export default function ScheduleInterviewPage() {
               )}
             </div>
 
-            {/* Interviewers */}
+            {/* Row 2: Interviewers & Duration */}
+            {/* Interviewers (Row 2 - Left) */}
             <div className="grid gap-2">
               <Label>Interviewers *</Label>
               <div className="flex flex-wrap gap-2 mb-2">
@@ -651,7 +654,7 @@ export default function ScheduleInterviewPage() {
               </Popover>
             </div>
 
-            {/* Duration */}
+            {/* Duration (Row 2 - Right) */}
             <div className="grid gap-2">
               <Label htmlFor="duration">Duration</Label>
               <Select value={duration.toString()} onValueChange={(v) => setDuration(Number(v))}>
@@ -668,9 +671,9 @@ export default function ScheduleInterviewPage() {
               </Select>
             </div>
 
-            {/* Date & Time Selection */}
+            {/* Row 3: Date & Time Selection (Full Width) */}
             {calendarConfig?.configured && selectedInterviewers.length > 0 ? (
-              <div className="grid gap-2">
+              <div className="md:col-span-2 grid gap-2">
                 <Label>Schedule Time *</Label>
                 <Tabs value={schedulingMode} onValueChange={(v) => setSchedulingMode(v as 'manual' | 'suggested')}>
                   <TabsList className="grid w-full grid-cols-2">
@@ -857,7 +860,7 @@ export default function ScheduleInterviewPage() {
                 </Tabs>
               </div>
             ) : (
-              <div className="grid gap-2">
+              <div className="md:col-span-2 grid gap-2">
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
                     <Label>Date *</Label>
@@ -912,9 +915,9 @@ export default function ScheduleInterviewPage() {
               </div>
             )}
 
-            {/* Meeting Link - only show when auto-create is disabled or calendar not configured */}
+            {/* Row 4: Meeting Link (Full Width) */}
             {(!calendarConfig?.configured || !syncToCalendar || !createGoogleMeet) ? (
-              <div className="grid gap-2">
+              <div className="md:col-span-2 grid gap-2">
                 <Label htmlFor="meetingLink">Meeting Link</Label>
                 <div className="relative">
                   <Video className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -928,15 +931,15 @@ export default function ScheduleInterviewPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2 p-3 bg-success/10 dark:bg-green-900/20 border border-success/20 dark:border-success/30 rounded-lg text-sm">
+              <div className="md:col-span-2 flex items-center gap-2 p-3 bg-success/10 dark:bg-green-900/20 border border-success/20 dark:border-success/30 rounded-lg text-sm">
                 <Video className="h-4 w-4 text-success dark:text-success" />
                 <span className="text-success dark:text-success">Google Meet link will be auto-generated</span>
               </div>
             )}
 
-            {/* Calendar Integration Options */}
+            {/* Row 5: Calendar Integration Options (Full Width) */}
             {calendarConfig?.configured && (
-              <div className="space-y-4 p-4 border rounded-lg bg-muted/30">
+              <div className="md:col-span-2 space-y-4 p-4 border rounded-lg bg-muted/30">
                 <h4 className="text-sm font-medium flex items-center gap-2">
                   <CalendarCheckIcon className="h-4 w-4" />
                   Calendar Options
@@ -972,8 +975,8 @@ export default function ScheduleInterviewPage() {
               </div>
             )}
 
-            {/* Notes */}
-            <div className="grid gap-2">
+            {/* Row 6: Notes (Full Width) */}
+            <div className="md:col-span-2 grid gap-2">
               <Label htmlFor="notes">Notes (optional)</Label>
               <Textarea
                 id="notes"
@@ -983,6 +986,7 @@ export default function ScheduleInterviewPage() {
                 rows={3}
               />
             </div>
+            </div>{/* End of grid container */}
           </CardContent>
         </Card>
       )}
