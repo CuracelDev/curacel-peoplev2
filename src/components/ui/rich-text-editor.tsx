@@ -71,7 +71,7 @@ export function RichTextEditor({
         },
       }),
       Underline,
-      TextStyle.configure(),
+      TextStyle,
       Color.configure({
         types: ['textStyle'],
       }),
