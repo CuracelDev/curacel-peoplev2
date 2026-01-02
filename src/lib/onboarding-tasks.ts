@@ -1,5 +1,6 @@
-// Static task catalog for onboarding
-// Phase 2: This will be driven from a "Task Catalog" sheet tab
+// Static task catalog for onboarding (fallback when Google Sheet is not configured)
+// The app will try to fetch from Google Sheet "Task Catalog" tab first,
+// then fall back to this static list if sheet is not available
 
 export interface OnboardingTask {
   id: string
@@ -261,7 +262,8 @@ export function getTaskById(id: string): OnboardingTask | undefined {
   return ONBOARDING_TASKS.find(task => task.id === id)
 }
 
-// Phase 2: Task progress types
+// Task progress types - now fetched from Google Sheet "Task Progress" tab
+// Use trpc.onboarding.getEmployeeTaskProgress for real-time progress
 export interface TaskProgress {
   taskId: string
   userId: string
@@ -269,10 +271,10 @@ export interface TaskProgress {
   updatedAt?: string
 }
 
-// TODO: When chatbot writes task-level completion, this function will fetch real progress
-// For now, returns "not tracked" for all tasks
+// Legacy helper - use trpc.onboarding.getEmployeeTaskProgress instead
+// This returns empty for backward compatibility
 export function getTaskProgressForUser(_userId: string): Map<string, TaskProgress> {
-  // Phase 2: Fetch from Task Progress sheet
-  // For MVP, return empty map (all tasks show "Not tracked yet")
+  // Task progress is now fetched from Google Sheet via tRPC
+  // See: trpc.onboarding.getEmployeeTaskProgress
   return new Map()
 }

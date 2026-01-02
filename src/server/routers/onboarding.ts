@@ -6,8 +6,8 @@ import { sendOnboardingEmail } from '@/lib/email'
 import { provisionEmployeeInApp, provisionEmployeeInAppById } from '@/lib/integrations'
 import { hasMatchingProvisioningRule } from '@/lib/integrations/provisioning-rules'
 import { getOrganization } from '@/lib/organization'
-import { getGoogleSheetsService, type OnboardingRosterRow } from '@/lib/google-sheets'
-import { ONBOARDING_TASKS, TASK_SECTIONS } from '@/lib/onboarding-tasks'
+import { getGoogleSheetsService, type OnboardingRosterRow, type TaskCatalogRow, type TaskProgressRow } from '@/lib/google-sheets'
+import { ONBOARDING_TASKS, TASK_SECTIONS, type OnboardingTask } from '@/lib/onboarding-tasks'
 
 const DEFAULT_ONBOARDING_TASKS = [
   // Automated tasks
@@ -1243,12 +1243,203 @@ export const onboardingRouter = router({
       }
     }),
 
-  // Get static task catalog
+  // Get task catalog - tries Google Sheet first, falls back to static
   getTaskCatalog: hrAdminProcedure
-    .query(() => {
-      return {
-        tasks: ONBOARDING_TASKS,
-        sections: TASK_SECTIONS,
+    .query(async ({ ctx }): Promise<{
+      tasks: OnboardingTask[]
+      sections: typeof TASK_SECTIONS
+      source: 'sheet' | 'static'
+      error?: string
+      lastSynced?: string
+    }> => {
+      try {
+        // Get sheet ID from settings
+        const settings = await ctx.prisma.onboardingSettings.findFirst()
+        const sheetId = settings?.sheetId
+
+        if (sheetId) {
+          const sheetsService = getGoogleSheetsService({ spreadsheetId: sheetId })
+
+          // Check if Task Catalog sheet exists
+          const hasTaskCatalog = await sheetsService.sheetExists('Task Catalog')
+
+          if (hasTaskCatalog) {
+            const sheetTasks = await sheetsService.fetchTaskCatalog()
+
+            if (sheetTasks.length > 0) {
+              // Convert TaskCatalogRow to OnboardingTask format
+              const tasks: OnboardingTask[] = sheetTasks.map((row) => ({
+                id: row.id,
+                section: row.section,
+                title: row.title,
+                url: row.url,
+                notes: row.notes,
+                isConditional: row.isConditional,
+                conditionalLabel: row.conditionalLabel,
+                appliesTo: row.appliesTo,
+              }))
+
+              return {
+                tasks,
+                sections: TASK_SECTIONS,
+                source: 'sheet',
+                lastSynced: new Date().toISOString(),
+              }
+            }
+          }
+        }
+
+        // Fallback to static tasks
+        return {
+          tasks: ONBOARDING_TASKS,
+          sections: TASK_SECTIONS,
+          source: 'static',
+        }
+      } catch (error) {
+        console.error('Failed to fetch task catalog from sheet:', error)
+        // Fallback to static tasks on error
+        return {
+          tasks: ONBOARDING_TASKS,
+          sections: TASK_SECTIONS,
+          source: 'static',
+          error: error instanceof Error ? error.message : 'Failed to fetch from sheet',
+        }
+      }
+    }),
+
+  // Force sync task catalog from Google Sheet
+  syncTaskCatalog: hrAdminProcedure
+    .mutation(async ({ ctx }): Promise<{
+      success: boolean
+      taskCount: number
+      source: 'sheet' | 'static'
+      error?: string
+    }> => {
+      try {
+        const settings = await ctx.prisma.onboardingSettings.findFirst()
+        const sheetId = settings?.sheetId
+
+        if (!sheetId) {
+          return {
+            success: false,
+            taskCount: ONBOARDING_TASKS.length,
+            source: 'static',
+            error: 'No Google Sheet configured. Using static task list.',
+          }
+        }
+
+        const sheetsService = getGoogleSheetsService({ spreadsheetId: sheetId })
+        const hasTaskCatalog = await sheetsService.sheetExists('Task Catalog')
+
+        if (!hasTaskCatalog) {
+          return {
+            success: false,
+            taskCount: ONBOARDING_TASKS.length,
+            source: 'static',
+            error: 'Task Catalog sheet not found. Create a "Task Catalog" tab in your Google Sheet.',
+          }
+        }
+
+        const sheetTasks = await sheetsService.fetchTaskCatalog()
+
+        if (sheetTasks.length === 0) {
+          return {
+            success: false,
+            taskCount: ONBOARDING_TASKS.length,
+            source: 'static',
+            error: 'Task Catalog sheet is empty. Add tasks starting from row 2.',
+          }
+        }
+
+        return {
+          success: true,
+          taskCount: sheetTasks.length,
+          source: 'sheet',
+        }
+      } catch (error) {
+        console.error('Failed to sync task catalog:', error)
+        return {
+          success: false,
+          taskCount: ONBOARDING_TASKS.length,
+          source: 'static',
+          error: error instanceof Error ? error.message : 'Failed to sync from sheet',
+        }
+      }
+    }),
+
+  // Get task progress for an employee from Google Sheet
+  getEmployeeTaskProgress: hrAdminProcedure
+    .input(z.object({
+      visId: z.string().optional(),
+      email: z.string().optional(),
+      fullName: z.string().optional(),
+    }))
+    .query(async ({ ctx, input }): Promise<{
+      progress: TaskProgressRow[]
+      error?: string
+    }> => {
+      if (!input.visId && !input.email && !input.fullName) {
+        return { progress: [], error: 'Either visId, email, or fullName is required' }
+      }
+
+      try {
+        const settings = await ctx.prisma.onboardingSettings.findFirst()
+        const sheetId = settings?.sheetId
+
+        if (!sheetId) {
+          return { progress: [], error: 'No Google Sheet configured' }
+        }
+
+        const sheetsService = getGoogleSheetsService({ spreadsheetId: sheetId })
+        const hasProgressSheet = await sheetsService.sheetExists('Task Progress')
+
+        if (!hasProgressSheet) {
+          return { progress: [], error: 'Task Progress sheet not found' }
+        }
+
+        // Try to find by visId first, then email, then name
+        const searchKey = input.visId || input.email || input.fullName || ''
+        const progress = await sheetsService.fetchTaskProgress(searchKey)
+
+        return { progress }
+      } catch (error) {
+        console.error('Failed to fetch task progress:', error)
+        return {
+          progress: [],
+          error: error instanceof Error ? error.message : 'Failed to fetch progress',
+        }
+      }
+    }),
+
+  // Get all task progress (for dashboard/reports)
+  getAllTaskProgress: hrAdminProcedure
+    .query(async ({ ctx }): Promise<{
+      progress: TaskProgressRow[]
+      error?: string
+    }> => {
+      try {
+        const settings = await ctx.prisma.onboardingSettings.findFirst()
+        const sheetId = settings?.sheetId
+
+        if (!sheetId) {
+          return { progress: [], error: 'No Google Sheet configured' }
+        }
+
+        const sheetsService = getGoogleSheetsService({ spreadsheetId: sheetId })
+        const hasProgressSheet = await sheetsService.sheetExists('Task Progress')
+
+        if (!hasProgressSheet) {
+          return { progress: [], error: 'Task Progress sheet not found' }
+        }
+
+        const progress = await sheetsService.fetchAllTaskProgress()
+        return { progress }
+      } catch (error) {
+        console.error('Failed to fetch all task progress:', error)
+        return {
+          progress: [],
+          error: error instanceof Error ? error.message : 'Failed to fetch progress',
+        }
       }
     }),
 

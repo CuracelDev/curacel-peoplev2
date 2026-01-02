@@ -24,7 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowDown, ArrowUp, Plus, Trash2, RotateCcw, Pencil, FileSpreadsheet, RefreshCw, CheckCircle2, ChevronDown, ChevronRight, ExternalLink } from 'lucide-react'
+import { ArrowDown, ArrowUp, Plus, Trash2, RotateCcw, Pencil, FileSpreadsheet, RefreshCw, CheckCircle2, ChevronDown, ChevronRight, ExternalLink, AlertCircle, Cloud, HardDrive } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { CardDescription } from '@/components/ui/card'
 import { useForm, Controller } from 'react-hook-form'
@@ -59,6 +59,18 @@ export default function OnboardingFlowSettingsPage() {
   const taskCatalogQuery = trpc.onboarding.getTaskCatalog.useQuery()
   const employeeTasks = taskCatalogQuery.data?.tasks ?? []
   const taskSections = taskCatalogQuery.data?.sections
+  const taskSource = taskCatalogQuery.data?.source ?? 'static'
+  const taskSyncError = taskCatalogQuery.data?.error
+  const lastSynced = taskCatalogQuery.data?.lastSynced
+
+  // Sync task catalog mutation
+  const syncTaskCatalog = trpc.onboarding.syncTaskCatalog.useMutation({
+    onSuccess: (data) => {
+      if (data.success) {
+        taskCatalogQuery.refetch()
+      }
+    },
+  })
 
   // Get onboarding settings (sheet ID)
   const settingsQuery = trpc.onboarding.getSettings.useQuery()
@@ -379,11 +391,57 @@ export default function OnboardingFlowSettingsPage() {
               <FileSpreadsheet className="h-5 w-5 text-success" />
               <CardTitle>Employee Tasks</CardTitle>
               <Badge variant="secondary">{employeeTasks.length} tasks</Badge>
+              {/* Source indicator */}
+              {taskSource === 'sheet' ? (
+                <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 gap-1">
+                  <Cloud className="h-3 w-3" />
+                  Google Sheet
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="bg-gray-50 text-gray-600 border-gray-200 gap-1">
+                  <HardDrive className="h-3 w-3" />
+                  Static
+                </Badge>
+              )}
+            </div>
+            {/* Sync button */}
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  syncTaskCatalog.mutate()
+                }}
+                disabled={syncTaskCatalog.isPending || taskCatalogQuery.isRefetching}
+                title="Sync tasks from Google Sheet"
+              >
+                <RefreshCw className={`h-4 w-4 mr-1 ${(syncTaskCatalog.isPending || taskCatalogQuery.isRefetching) ? 'animate-spin' : ''}`} />
+                Sync
+              </Button>
             </div>
           </div>
           <CardDescription>
             Tasks employees complete during onboarding (tracked via Google Sheet)
           </CardDescription>
+          {/* Show sync status/errors */}
+          {taskSyncError && (
+            <div className="flex items-center gap-2 text-sm text-amber-600 mt-2">
+              <AlertCircle className="h-4 w-4" />
+              <span>{taskSyncError}</span>
+            </div>
+          )}
+          {syncTaskCatalog.data && !syncTaskCatalog.data.success && syncTaskCatalog.data.error && (
+            <div className="flex items-center gap-2 text-sm text-amber-600 mt-2">
+              <AlertCircle className="h-4 w-4" />
+              <span>{syncTaskCatalog.data.error}</span>
+            </div>
+          )}
+          {syncTaskCatalog.data?.success && (
+            <div className="flex items-center gap-2 text-sm text-success mt-2">
+              <CheckCircle2 className="h-4 w-4" />
+              <span>Synced {syncTaskCatalog.data.taskCount} tasks from Google Sheet</span>
+            </div>
+          )}
         </CardHeader>
         {employeeTasksExpanded && (
         <CardContent className="space-y-6">
@@ -434,6 +492,45 @@ export default function OnboardingFlowSettingsPage() {
                 </a>
               </div>
             )}
+
+            {/* Sheet structure instructions */}
+            <div className="bg-muted/50 rounded-lg p-4 mt-4">
+              <h4 className="font-medium text-sm mb-2">Expected Sheet Structure</h4>
+              <p className="text-xs text-muted-foreground mb-3">
+                To sync tasks from Google Sheet, create a tab named <code className="bg-muted px-1 rounded">Task Catalog</code> with these columns:
+              </p>
+              <div className="overflow-x-auto">
+                <table className="text-xs w-full">
+                  <thead>
+                    <tr className="border-b">
+                      <th className="text-left py-1 px-2 font-medium">A: ID</th>
+                      <th className="text-left py-1 px-2 font-medium">B: Section</th>
+                      <th className="text-left py-1 px-2 font-medium">C: Title</th>
+                      <th className="text-left py-1 px-2 font-medium">D: URL</th>
+                      <th className="text-left py-1 px-2 font-medium">E: Notes</th>
+                      <th className="text-left py-1 px-2 font-medium">F: Conditional</th>
+                      <th className="text-left py-1 px-2 font-medium">G: Conditional Label</th>
+                      <th className="text-left py-1 px-2 font-medium">H: Applies To</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-muted-foreground">
+                    <tr>
+                      <td className="py-1 px-2">task_001</td>
+                      <td className="py-1 px-2">todo</td>
+                      <td className="py-1 px-2">Fill Biodata</td>
+                      <td className="py-1 px-2">https://...</td>
+                      <td className="py-1 px-2">Make a copy</td>
+                      <td className="py-1 px-2">false</td>
+                      <td className="py-1 px-2"></td>
+                      <td className="py-1 px-2">all</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p className="text-xs text-muted-foreground mt-2">
+                <strong>Section:</strong> todo, to_read, or to_watch | <strong>Applies To:</strong> all, full_time, or contract
+              </p>
+            </div>
           </div>
 
           {/* Employee Tasks Catalog */}
