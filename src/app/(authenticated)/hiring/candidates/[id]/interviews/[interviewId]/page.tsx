@@ -407,29 +407,23 @@ export default function InterviewDetailPage() {
   const isUpcoming = scheduledDate > new Date() && interview.status === 'SCHEDULED'
   const isPast = scheduledDate < new Date()
 
-  // Get interviewer names with their statuses from tokens
-  const interviewersWithStatus = useMemo(() => {
-    const tokensMap = new Map(
-      interviewerTokens.map((t: { interviewerEmail: string; evaluationStatus: string }) => [
-        t.interviewerEmail,
-        t.evaluationStatus,
-      ])
-    )
-    return interviewers.map((interviewer) => ({
-      ...interviewer,
-      status: tokensMap.get(interviewer.email) || 'PENDING',
-    }))
-  }, [interviewers, interviewerTokens])
-
-  const interviewerNames = interviewersWithStatus
-    .map((i) => {
+  // Get interviewer names with their statuses from tokens (calculated inline to avoid hook ordering issues)
+  const tokensMap = new Map(
+    interviewerTokens.map((t: { interviewerEmail: string; evaluationStatus: string }) => [
+      t.interviewerEmail,
+      t.evaluationStatus,
+    ])
+  )
+  const interviewerNames = interviewers
+    .map((interviewer) => {
+      const status = tokensMap.get(interviewer.email) || 'PENDING'
       const statusLabel =
-        i.status === 'SUBMITTED'
+        status === 'SUBMITTED'
           ? 'Completed'
-          : i.status === 'IN_PROGRESS'
+          : status === 'IN_PROGRESS'
           ? 'In Progress'
           : 'Pending'
-      return `${i.name} (${statusLabel})`
+      return `${interviewer.name} (${statusLabel})`
     })
     .join(', ')
 
