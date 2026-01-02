@@ -145,8 +145,8 @@ export const offerStatusColors: Record<string, string> = {
   DRAFT: 'bg-gray-100 text-gray-800',
   SENT: 'bg-blue-100 text-blue-800',
   VIEWED: 'bg-yellow-100 text-yellow-800',
-  SIGNED: 'bg-success/10 text-success-foreground',
-  DECLINED: 'bg-destructive/10 text-destructive-foreground',
+  SIGNED: 'bg-success/10 text-success',
+  DECLINED: 'bg-destructive/10 text-destructive',
   EXPIRED: 'bg-orange-100 text-orange-800',
   CANCELLED: 'bg-gray-100 text-gray-800',
 }
@@ -166,8 +166,8 @@ export const taskStatusLabels: Record<string, string> = {
 export const taskStatusColors: Record<string, string> = {
   PENDING: 'bg-gray-100 text-gray-800',
   IN_PROGRESS: 'bg-blue-100 text-blue-800',
-  SUCCESS: 'bg-success/10 text-success-foreground',
-  FAILED: 'bg-destructive/10 text-destructive-foreground',
+  SUCCESS: 'bg-success/10 text-success',
+  FAILED: 'bg-destructive/10 text-destructive',
   SKIPPED: 'bg-gray-100 text-gray-600',
 }
 
