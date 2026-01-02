@@ -229,6 +229,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - AuntyPelz analysis now guards missing overall scores
 - AuntyPelz analysis now guards missing sentiment scores
 - AuntyPelz analysis now guards missing sentiment deltas
+- AuntyPelz analysis now renders sentiment score fallbacks
+- AuntyPelz analysis version list now guards missing sentiment data
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off
