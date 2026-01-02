@@ -188,7 +188,7 @@ export function CandidatesTable({
     window.localStorage.setItem(storageKey, JSON.stringify(visibleColumns))
   }, [storageKey, visibleColumns, isColumnsLoaded])
 
-  const optionalColumns = useMemo(() => ([
+  const optionalColumns = useMemo<Array<{ key: ColumnKey; label: string; render: (candidate: CandidateRow) => string }>>(() => ([
     { key: 'location', label: 'Country', render: (candidate: CandidateRow) => candidate.location || '—' },
     { key: 'source', label: 'Source', render: (candidate: CandidateRow) => formatSource(candidate) },
     { key: 'salary', label: 'Salary', render: (candidate: CandidateRow) => formatSalary(candidate) },

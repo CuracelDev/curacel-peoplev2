@@ -472,10 +472,10 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
               <div className="flex items-center gap-3 mb-2">
                 <div className={cn(
                   'text-2xl font-bold',
-                  displayAnalysis.sentimentScore > 30 ? 'text-success' :
-                  displayAnalysis.sentimentScore < -30 ? 'text-red-600' : 'text-gray-600'
+                  sentimentScore > 30 ? 'text-success' :
+                  sentimentScore < -30 ? 'text-red-600' : 'text-gray-600'
                 )}>
-                  {displayAnalysis.sentimentScore > 0 ? '+' : ''}{displayAnalysis.sentimentScore}
+                  {sentimentScore > 0 ? '+' : ''}{sentimentScore}
                 </div>
                 {displayAnalysis.sentimentChange !== null && displayAnalysis.sentimentChange !== 0 && (
                   <Badge variant={displayAnalysis.sentimentChange > 0 ? 'default' : 'destructive'}>
@@ -544,32 +544,37 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
               <CardContent>
                 <ScrollArea className={showAllVersions ? 'h-[200px]' : ''}>
                   <div className="space-y-2">
-                    {(showAllVersions ? versions : versions.slice(0, 3)).map((v) => (
-                      <button
-                        key={v.id}
-                        onClick={() => setSelectedVersionId(v.id === selectedVersionId ? null : v.id)}
-                        className={cn(
-                          'w-full text-left p-2 rounded-md text-xs transition-colors',
-                          v.id === (selectedVersionId || latestAnalysis?.id)
-                            ? 'bg-indigo-50 border border-indigo-200'
-                            : 'hover:bg-muted'
-                        )}
-                      >
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="font-medium">v{v.version}</span>
-                          <span className="text-muted-foreground">
-                            {formatDistanceToNow(new Date(v.createdAt), { addSuffix: true })}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 text-muted-foreground">
-                          <Badge variant="outline" className="text-[10px]">
-                            {v.analysisType.replace('_', ' ')}
-                          </Badge>
-                          <span>Score: {v.overallScore}</span>
-                          {getSentimentIcon(v.sentimentScore, v.sentimentChange)}
-                        </div>
-                      </button>
-                    ))}
+                    {(showAllVersions ? versions : versions.slice(0, 3)).map((v) => {
+                      const versionSentimentScore = v.sentimentScore ?? 0
+                      const versionSentimentChange = v.sentimentChange ?? undefined
+
+                      return (
+                        <button
+                          key={v.id}
+                          onClick={() => setSelectedVersionId(v.id === selectedVersionId ? null : v.id)}
+                          className={cn(
+                            'w-full text-left p-2 rounded-md text-xs transition-colors',
+                            v.id === (selectedVersionId || latestAnalysis?.id)
+                              ? 'bg-indigo-50 border border-indigo-200'
+                              : 'hover:bg-muted'
+                          )}
+                        >
+                          <div className="flex items-center justify-between mb-1">
+                            <span className="font-medium">v{v.version}</span>
+                            <span className="text-muted-foreground">
+                              {formatDistanceToNow(new Date(v.createdAt), { addSuffix: true })}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2 text-muted-foreground">
+                            <Badge variant="outline" className="text-[10px]">
+                              {v.analysisType.replace('_', ' ')}
+                            </Badge>
+                            <span>Score: {v.overallScore}</span>
+                            {getSentimentIcon(versionSentimentScore, versionSentimentChange)}
+                          </div>
+                        </button>
+                      )
+                    })}
                   </div>
                 </ScrollArea>
               </CardContent>
