@@ -228,6 +228,7 @@ export default function QuestionsPage() {
   // AI generation mutation
   const generateBankMutation = trpc.question.generateBankQuestions.useMutation({
     onSuccess: (data) => {
+      console.log('generateBankMutation onSuccess', data)
       if (!data.questions || data.questions.length === 0) {
         toast.warning('No questions were generated. Please try again.')
         return
@@ -237,6 +238,7 @@ export default function QuestionsPage() {
       toast.success(`Generated ${data.questions.length} questions for ${data.jobTitle}`)
     },
     onError: (err) => {
+      console.error('generateBankMutation onError', err)
       toast.error('Failed to generate questions', { description: err.message })
     },
   })
@@ -296,6 +298,7 @@ export default function QuestionsPage() {
 
   // AI generation handlers
   const handleGenerateQuestions = () => {
+    console.log('handleGenerateQuestions called', { aiJobId, aiInterviewTypeId, aiCategories, aiQuestionCount, aiCustomPrompt })
     generateBankMutation.mutate({
       jobId: aiJobId || undefined,
       interviewTypeId: aiInterviewTypeId || undefined,
@@ -698,8 +701,8 @@ export default function QuestionsPage() {
                 </Card>
               )
             })}
-        </div>
           </div>
+        </div>
         </TabsContent>
 
         {/* AuntyPelz AI Tab */}
