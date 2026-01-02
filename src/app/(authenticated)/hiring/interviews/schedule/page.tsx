@@ -784,8 +784,8 @@ export default function ScheduleInterviewPage() {
                     {hasCalendarErrors ? (
                       <div className="flex flex-col items-center justify-center py-8 border border-warning/20 rounded-lg bg-warning/5">
                         <AlertCircle className="h-8 w-8 text-warning mb-3" />
-                        <p className="text-sm font-medium text-warning-foreground">Cannot access all calendars</p>
-                        <div className="text-xs text-warning-foreground/80 mt-2 text-center max-w-sm">
+                        <p className="text-sm font-medium text-warning-foreground dark:text-warning">Cannot access all calendars</p>
+                        <div className="text-xs text-warning-foreground/80 dark:text-warning/80 mt-2 text-center max-w-sm">
                           <p className="mb-2">The following interviewers have inaccessible calendars:</p>
                           <ul className="space-y-1">
                             {Object.entries(calendarErrors).map(([email]) => (
