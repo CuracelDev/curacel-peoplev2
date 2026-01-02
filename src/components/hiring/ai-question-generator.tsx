@@ -48,7 +48,7 @@ import { toast } from 'sonner'
 const categoryColors: Record<string, string> = {
   behavioral: 'bg-blue-100 text-blue-700',
   situational: 'bg-purple-100 text-purple-700',
-  technical: 'bg-green-100 text-green-700',
+  technical: 'bg-success/10 text-success',
   motivational: 'bg-orange-100 text-orange-700',
   culture: 'bg-pink-100 text-pink-700',
 }
@@ -433,7 +433,7 @@ export function AIQuestionGenerator({
                     />
                     <div className="flex-1">
                       <Label htmlFor="job-requirements" className="flex items-center gap-2 cursor-pointer">
-                        <Briefcase className="h-4 w-4 text-green-500" />
+                        <Briefcase className="h-4 w-4 text-success" />
                         Job Requirements
                       </Label>
                       {context.job && (
@@ -659,9 +659,9 @@ export function AIQuestionGenerator({
   // Return compact version (no card wrapper)
   if (compact) {
     return (
-      <div>
+      <div className="h-full flex flex-col">
         {/* Compact header */}
-        <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center justify-between mb-3 flex-shrink-0">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-primary" />
             <span className="text-sm font-medium">Generate with AuntyPelz</span>
@@ -672,7 +672,9 @@ export function AIQuestionGenerator({
             </Badge>
           )}
         </div>
-        {content}
+        <div className="flex-1 overflow-auto">
+          {content}
+        </div>
       </div>
     )
   }
