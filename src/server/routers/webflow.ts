@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { Prisma } from '@prisma/client'
 import { router, adminProcedure } from '@/lib/trpc'
 import prisma from '@/lib/prisma'
 import { decrypt, encrypt } from '@/lib/encryption'
@@ -129,11 +130,11 @@ export const webflowRouter = router({
         create: {
           appConnectionId: result.connectionId,
           fieldMappings: {},
-          collectionSchema: schema,
+          collectionSchema: JSON.parse(JSON.stringify(schema)) as Prisma.InputJsonValue,
           schemaFetchedAt: new Date(),
         },
         update: {
-          collectionSchema: schema,
+          collectionSchema: JSON.parse(JSON.stringify(schema)) as Prisma.InputJsonValue,
           schemaFetchedAt: new Date(),
         },
       })

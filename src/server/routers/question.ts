@@ -1229,10 +1229,13 @@ Respond ONLY with a valid JSON array, no additional text.`
     .mutation(async ({ ctx, input }) => {
       const { prisma, session } = ctx
 
-      const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { employeeId: true },
-      })
+      const sessionUserId = session?.user?.id
+      const user = sessionUserId
+        ? await prisma.user.findUnique({
+            where: { id: sessionUserId },
+            select: { employeeId: true },
+          })
+        : null
 
       const created = await prisma.interviewQuestion.createMany({
         data: input.questions.map((q) => ({
@@ -1250,10 +1253,12 @@ Respond ONLY with a valid JSON array, no additional text.`
   seedDefaults: adminProcedure.mutation(async ({ ctx }) => {
     const { prisma, session } = ctx
 
-    const user = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { employeeId: true },
-    })
+    const user = session?.user?.id
+      ? await prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { employeeId: true },
+        })
+      : null
 
     const defaultQuestions = [
       // Behavioral

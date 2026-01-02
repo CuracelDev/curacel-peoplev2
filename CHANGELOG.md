@@ -249,6 +249,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Interview question relevance queries now use explicit Prisma where typing
 - Interview question usage tracking now guards missing sessions
 - Interview question bulk creation now guards missing sessions
+- AI question saving now reuses a guarded session user id
 - Interview AI analysis now returns results without persisting missing fields
 - Public careers application now always sends a linkedin URL string
 - Public careers detail page now safely accesses job description content
