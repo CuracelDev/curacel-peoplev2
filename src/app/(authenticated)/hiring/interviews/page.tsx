@@ -85,7 +85,7 @@ const statusConfig: Record<string, { label: string; color: string; icon: React.C
   IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
   COMPLETED: { label: 'Completed', color: 'bg-success/10 text-success-foreground', icon: CheckCircle },
   CANCELLED: { label: 'Cancelled', color: 'bg-muted text-foreground', icon: XCircle },
-  NO_SHOW: { label: 'No Show', color: 'bg-red-100 text-red-800', icon: AlertCircle },
+  NO_SHOW: { label: 'No Show', color: 'bg-destructive/10 text-destructive-foreground', icon: AlertCircle },
 }
 
 export default function InterviewsPage() {
@@ -306,7 +306,7 @@ export default function InterviewsPage() {
                           <div className="text-xs whitespace-nowrap">
                             <div className={cn(
                               interview.scheduledAt && isPast(new Date(interview.scheduledAt)) && interview.status === 'SCHEDULED'
-                                ? 'text-red-600'
+                                ? 'text-destructive'
                                 : ''
                             )}>
                               {formatInterviewDate(interview.scheduledAt)}
@@ -394,7 +394,7 @@ export default function InterviewsPage() {
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
-                                  className="text-red-600"
+                                  className="text-destructive"
                                   onClick={(e) => {
                                     e.stopPropagation()
                                     setSelectedInterviewId(interview.id)
@@ -456,7 +456,7 @@ export default function InterviewsPage() {
             <AlertDialogCancel>Keep Interview</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCancelInterview}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90"
               disabled={cancelMutation.isPending}
             >
               {cancelMutation.isPending ? (

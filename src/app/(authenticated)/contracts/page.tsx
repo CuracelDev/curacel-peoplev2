@@ -58,7 +58,7 @@ export default function ContractsPage() {
       case 'VIEWED':
         return 'bg-indigo-50 text-indigo-700 border border-indigo-200'
       case 'CANCELLED':
-        return 'bg-red-50 text-red-700 border border-red-200'
+        return 'bg-destructive/10 text-destructive border border-destructive/20'
       case 'EXPIRED':
         return 'bg-warning/10 text-warning border border-warning/20'
       default:

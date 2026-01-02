@@ -33,7 +33,7 @@ export default function OnboardingPage() {
       case 'COMPLETED': return 'bg-success/10 text-success-foreground'
       case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800'
       case 'PENDING': return 'bg-yellow-100 text-yellow-800'
-      case 'FAILED': return 'bg-red-100 text-red-800'
+      case 'FAILED': return 'bg-destructive/10 text-destructive-foreground'
       default: return 'bg-muted text-foreground'
     }
   }
@@ -125,8 +125,8 @@ export default function OnboardingPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <div className="p-2 bg-red-100 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-red-600" />
+              <div className="p-2 bg-destructive/10 rounded-lg">
+                <AlertCircle className="h-5 w-5 text-destructive" />
               </div>
               <div>
                 <p className="text-2xl font-bold">

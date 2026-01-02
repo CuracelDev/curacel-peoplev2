@@ -123,6 +123,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Candidates list stage cards and LinkedIn links now align with updated spacing and branding
 - Candidates row menu now includes Archive and Reject actions
 - Interviews menu labels Fireflies recordings as View Fireflies
+- Interview scheduling question source tabs remove extra top padding
+- AuntyPelz generator block now sits closer to the tabs on interview scheduling
 - **Recruiting Assessments Page Improvements**
   - Enhanced UI and layout for assessments management
 - **Interviews Page Enhancements**

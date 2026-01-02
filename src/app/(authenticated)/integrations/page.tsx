@@ -90,7 +90,7 @@ export default function IntegrationsPage() {
       return { icon: CheckCircle2, text: 'Connected', color: 'text-success', bg: 'bg-success/10' }
     }
     if (isFailed) {
-      return { icon: XCircle, text: 'Disconnected', color: 'text-red-500', bg: 'bg-red-50' }
+      return { icon: XCircle, text: 'Disconnected', color: 'text-destructive', bg: 'bg-destructive/10' }
     }
     return { icon: CheckCircle2, text: 'Configured', color: 'text-muted-foreground', bg: 'bg-muted' }
   }

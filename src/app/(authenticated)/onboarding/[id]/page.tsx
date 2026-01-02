@@ -292,7 +292,7 @@ export default function OnboardingDetailPage() {
     }
     if (!bitbucketRules || bitbucketRules.length === 0) {
       return (
-        <span className="text-sm text-red-600">
+        <span className="text-sm text-destructive">
           No Bitbucket provisioning rules found. Add rules with groups or repositories + permissions.
         </span>
       )
@@ -345,7 +345,7 @@ export default function OnboardingDetailPage() {
       return <span className="text-xs text-muted-foreground">Loading Bitbucket teams...</span>
     }
     if (bitbucketOptions.error) {
-      return <span className="text-xs text-red-600">{bitbucketOptions.error}</span>
+      return <span className="text-xs text-destructive">{bitbucketOptions.error}</span>
     }
 
     const groups = Array.isArray(bitbucketOptions.groups) ? bitbucketOptions.groups : []
@@ -443,7 +443,7 @@ export default function OnboardingDetailPage() {
         <Badge className={
           workflow.status === 'COMPLETED' ? 'bg-success/10 text-success-foreground' :
           workflow.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
-          workflow.status === 'FAILED' ? 'bg-red-100 text-red-800' :
+          workflow.status === 'FAILED' ? 'bg-destructive/10 text-destructive-foreground' :
           'bg-muted text-foreground'
         }>
           {workflow.status.replace('_', ' ')}
@@ -534,7 +534,7 @@ export default function OnboardingDetailPage() {
                     className={cn(
                       'px-2 py-2',
                       task.status === 'SUCCESS' && 'bg-success/10',
-                      task.status === 'FAILED' && 'bg-red-50',
+                      task.status === 'FAILED' && 'bg-destructive/10',
                       task.status === 'IN_PROGRESS' && 'bg-blue-50'
                     )}
                   >
@@ -552,7 +552,7 @@ export default function OnboardingDetailPage() {
                             <span
                               className={cn(
                                 'text-xs truncate block',
-                                task.status === 'FAILED' ? 'text-red-600' : 'text-muted-foreground'
+                                task.status === 'FAILED' ? 'text-destructive' : 'text-muted-foreground'
                               )}
                             >
                               {task.statusMessage}
@@ -577,7 +577,7 @@ export default function OnboardingDetailPage() {
                           {task.type}
                         </Badge>
                         {task.status === 'SUCCESS' && <CheckCircle2 className="h-4 w-4 text-success" />}
-                        {task.status === 'FAILED' && <XCircle className="h-4 w-4 text-red-500" />}
+                        {task.status === 'FAILED' && <XCircle className="h-4 w-4 text-destructive" />}
                         {task.status === 'IN_PROGRESS' && <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />}
                         {task.status === 'SKIPPED' && <SkipForward className="h-4 w-4 text-muted-foreground" />}
                         {task.status === 'PENDING' && (

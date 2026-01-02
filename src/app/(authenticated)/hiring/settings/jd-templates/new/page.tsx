@@ -455,7 +455,7 @@ export default function NewJDPage() {
                 </div>
               )}
               {uploadStatus === 'error' && (
-                <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 rounded-lg">
+                <div className="flex items-center gap-2 p-4 bg-destructive/10 text-destructive rounded-lg">
                   <AlertCircle className="h-5 w-5" />
                   <span className="font-medium">Upload failed. Please try again.</span>
                 </div>
@@ -532,7 +532,7 @@ export default function NewJDPage() {
                 </div>
               )}
               {importError && (
-                <div className="flex items-center gap-2 p-4 bg-red-50 text-red-700 rounded-lg">
+                <div className="flex items-center gap-2 p-4 bg-destructive/10 text-destructive rounded-lg">
                   <AlertCircle className="h-5 w-5" />
                   <span className="font-medium">{importError}</span>
                 </div>

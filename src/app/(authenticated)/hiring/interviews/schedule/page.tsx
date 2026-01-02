@@ -969,7 +969,7 @@ export default function ScheduleInterviewPage() {
               </CardHeader>
               <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
                 <Tabs defaultValue="bank" className="flex-1 flex flex-col min-h-0">
-                  <TabsList className="mx-0 mb-2 grid grid-cols-2">
+                  <TabsList className="mx-0 mb-2 grid grid-cols-2 p-0">
                     <TabsTrigger value="bank">
                       <BookOpen className="h-4 w-4 mr-2" />
                       Question Bank
@@ -1057,24 +1057,26 @@ export default function ScheduleInterviewPage() {
                   {/* AI Generator Tab */}
                   <TabsContent value="ai" className="px-0.5 pb-2 !mt-0 flex-1 overflow-auto">
                     {selectedCandidateId ? (
-                      <AIQuestionGenerator
-                        candidateId={selectedCandidateId}
-                        interviewTypeId={interviewTypeId || undefined}
-                        jobId={selectedCandidate?.job?.id || undefined}
-                        onQuestionsAdded={(questions) => {
-                          setSelectedQuestions(prev => [
-                            ...prev,
-                            ...questions.map(q => ({
-                              ...q,
-                              isCustom: q.isCustom ?? true,
-                              saveToBank: q.saveToBank ?? true,
-                              isRequired: q.isRequired ?? false,
-                            }))
-                          ])
-                        }}
-                        existingQuestionIds={selectedQuestions.filter(q => q.id).map(q => q.id!)}
-                        compact
-                      />
+                      <div className="-mt-4">
+                        <AIQuestionGenerator
+                          candidateId={selectedCandidateId}
+                          interviewTypeId={interviewTypeId || undefined}
+                          jobId={selectedCandidate?.job?.id || undefined}
+                          onQuestionsAdded={(questions) => {
+                            setSelectedQuestions(prev => [
+                              ...prev,
+                              ...questions.map(q => ({
+                                ...q,
+                                isCustom: q.isCustom ?? true,
+                                saveToBank: q.saveToBank ?? true,
+                                isRequired: q.isRequired ?? false,
+                              }))
+                            ])
+                          }}
+                          existingQuestionIds={selectedQuestions.filter(q => q.id).map(q => q.id!)}
+                          compact
+                        />
+                      </div>
                     ) : (
                       <div className="flex flex-col items-center justify-center h-full text-center">
                         <Sparkles className="h-8 w-8 text-muted-foreground mb-2" />

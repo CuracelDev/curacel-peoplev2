@@ -218,7 +218,7 @@ export default function NewContractPage() {
             {/* Candidate */}
             <div className="md:col-span-2">
               <Label htmlFor="employeeId" className="text-sm font-medium">
-                Candidate <span className="text-red-500">*</span>
+                Candidate <span className="text-destructive">*</span>
               </Label>
               <div className="flex gap-2 mt-1">
                 <Controller
@@ -251,7 +251,7 @@ export default function NewContractPage() {
                 </Button>
               </div>
               {errors.employeeId && (
-                <p className="text-sm text-red-500 mt-1">{errors.employeeId.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.employeeId.message}</p>
               )}
               <p className="text-xs text-muted-foreground italic mt-1">Select from list of candidates with link to add new candidate</p>
             </div>
@@ -259,7 +259,7 @@ export default function NewContractPage() {
             {/* Employment Type */}
             <div>
               <Label htmlFor="employmentType" className="text-sm font-medium">
-                Employment type <span className="text-red-500">*</span>
+                Employment type <span className="text-destructive">*</span>
               </Label>
               <Controller
                 name="employmentType"
@@ -280,14 +280,14 @@ export default function NewContractPage() {
                 )}
               />
               {errors.employmentType && (
-                <p className="text-sm text-red-500 mt-1">{errors.employmentType.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.employmentType.message}</p>
               )}
             </div>
 
             {/* Job Title */}
             <div>
               <Label htmlFor="jobTitle" className="text-sm font-medium">
-                Job title <span className="text-red-500">*</span>
+                Job title <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="jobTitle"
@@ -296,14 +296,14 @@ export default function NewContractPage() {
                 placeholder="e.g., Senior Software Engineer"
               />
               {errors.jobTitle && (
-                <p className="text-sm text-red-500 mt-1">{errors.jobTitle.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.jobTitle.message}</p>
               )}
             </div>
 
             {/* Anticipated Start Date */}
             <div>
               <Label htmlFor="anticipatedStartDate" className="text-sm font-medium">
-                Anticipated start date <span className="text-red-500">*</span>
+                Anticipated start date <span className="text-destructive">*</span>
               </Label>
               <DatePicker
                 id="anticipatedStartDate"
@@ -311,7 +311,7 @@ export default function NewContractPage() {
                 className="mt-1"
               />
               {errors.anticipatedStartDate && (
-                <p className="text-sm text-red-500 mt-1">{errors.anticipatedStartDate.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.anticipatedStartDate.message}</p>
               )}
               <p className="text-xs text-muted-foreground italic mt-1">Date the candidate is expected to resume</p>
             </div>
@@ -336,7 +336,7 @@ export default function NewContractPage() {
             {/* Probation End Date */}
             <div>
               <Label htmlFor="probationEndDate" className="text-sm font-medium">
-                Probation end date <span className="text-red-500">*</span>
+                Probation end date <span className="text-destructive">*</span>
               </Label>
               <DatePicker
                 id="probationEndDate"
@@ -344,7 +344,7 @@ export default function NewContractPage() {
                 className="mt-1"
               />
               {errors.probationEndDate && (
-                <p className="text-sm text-red-500 mt-1">{errors.probationEndDate.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.probationEndDate.message}</p>
               )}
               <p className="text-xs text-muted-foreground italic mt-1">When the candidate&apos;s probation period end</p>
             </div>
@@ -381,7 +381,7 @@ export default function NewContractPage() {
             {/* Offer Date */}
             <div>
               <Label htmlFor="offerDate" className="text-sm font-medium">
-                Offer date <span className="text-red-500">*</span>
+                Offer date <span className="text-destructive">*</span>
               </Label>
               <DatePicker
                 id="offerDate"
@@ -389,7 +389,7 @@ export default function NewContractPage() {
                 className="mt-1"
               />
               {errors.offerDate && (
-                <p className="text-sm text-red-500 mt-1">{errors.offerDate.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.offerDate.message}</p>
               )}
               <p className="text-xs text-muted-foreground italic mt-1">Date the offer is made to the candidate (default: today)</p>
             </div>
@@ -397,7 +397,7 @@ export default function NewContractPage() {
             {/* Offer Expiration Date */}
             <div>
               <Label htmlFor="offerExpirationDate" className="text-sm font-medium">
-                Offer expiration date <span className="text-red-500">*</span>
+                Offer expiration date <span className="text-destructive">*</span>
               </Label>
               <DatePicker
                 id="offerExpirationDate"
@@ -405,7 +405,7 @@ export default function NewContractPage() {
                 className="mt-1"
               />
               {errors.offerExpirationDate && (
-                <p className="text-sm text-red-500 mt-1">{errors.offerExpirationDate.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.offerExpirationDate.message}</p>
               )}
               <p className="text-xs text-muted-foreground italic mt-1">Date the offer will expire if it is not accepted (default: 7 days from today)</p>
             </div>
@@ -413,7 +413,7 @@ export default function NewContractPage() {
             {/* Supervisor Job Title */}
             <div>
               <Label htmlFor="supervisorJobTitle" className="text-sm font-medium">
-                Job title of candidate&apos;s supervisor <span className="text-red-500">*</span>
+                Job title of candidate&apos;s supervisor <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="supervisorJobTitle"
@@ -422,7 +422,7 @@ export default function NewContractPage() {
                 placeholder="e.g., Engineering Manager"
               />
               {errors.supervisorJobTitle && (
-                <p className="text-sm text-red-500 mt-1">{errors.supervisorJobTitle.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.supervisorJobTitle.message}</p>
               )}
             </div>
 
@@ -443,7 +443,7 @@ export default function NewContractPage() {
             {/* Legal Entity */}
             <div>
               <Label htmlFor="legalEntity" className="text-sm font-medium">
-                Legal entity <span className="text-red-500">*</span>
+                Legal entity <span className="text-destructive">*</span>
               </Label>
               <div className="flex gap-2 mt-1">
                 <Controller
@@ -476,14 +476,14 @@ export default function NewContractPage() {
                 </Button>
               </div>
               {errors.legalEntity && (
-                <p className="text-sm text-red-500 mt-1">{errors.legalEntity.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.legalEntity.message}</p>
               )}
             </div>
 
             {/* Signature Block */}
             <div>
               <Label htmlFor="signatureBlock" className="text-sm font-medium">
-                Signature block <span className="text-red-500">*</span>
+                Signature block <span className="text-destructive">*</span>
               </Label>
               <div className="flex gap-2 mt-1">
                 <Controller
@@ -516,7 +516,7 @@ export default function NewContractPage() {
                 </Button>
               </div>
               {errors.signatureBlock && (
-                <p className="text-sm text-red-500 mt-1">{errors.signatureBlock.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.signatureBlock.message}</p>
               )}
             </div>
 
@@ -565,7 +565,7 @@ export default function NewContractPage() {
             {/* Salary Amount */}
             <div>
               <Label htmlFor="salaryAmount" className="text-sm font-medium">
-                Salary amount <span className="text-red-500">*</span>
+                Salary amount <span className="text-destructive">*</span>
               </Label>
               <Input
                 id="salaryAmount"
@@ -576,14 +576,14 @@ export default function NewContractPage() {
                 placeholder="100000"
               />
               {errors.salaryAmount && (
-                <p className="text-sm text-red-500 mt-1">{errors.salaryAmount.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.salaryAmount.message}</p>
               )}
             </div>
 
             {/* Currency */}
             <div>
               <Label htmlFor="salaryCurrency" className="text-sm font-medium">
-                Currency <span className="text-red-500">*</span>
+                Currency <span className="text-destructive">*</span>
               </Label>
               <Controller
                 name="salaryCurrency"
@@ -607,14 +607,14 @@ export default function NewContractPage() {
                 )}
               />
               {errors.salaryCurrency && (
-                <p className="text-sm text-red-500 mt-1">{errors.salaryCurrency.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.salaryCurrency.message}</p>
               )}
             </div>
 
             {/* Payment Frequency */}
             <div>
               <Label htmlFor="paymentFrequency" className="text-sm font-medium">
-                Payment frequency <span className="text-red-500">*</span>
+                Payment frequency <span className="text-destructive">*</span>
               </Label>
               <Controller
                 name="paymentFrequency"
@@ -635,7 +635,7 @@ export default function NewContractPage() {
                 )}
               />
               {errors.paymentFrequency && (
-                <p className="text-sm text-red-500 mt-1">{errors.paymentFrequency.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.paymentFrequency.message}</p>
               )}
             </div>
           </div>

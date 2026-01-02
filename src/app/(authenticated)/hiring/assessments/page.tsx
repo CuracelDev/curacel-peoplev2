@@ -74,14 +74,14 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   INVITED: { label: 'Invited', color: 'bg-blue-100 text-blue-800' },
   IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' },
   COMPLETED: { label: 'Completed', color: 'bg-success/10 text-success-foreground' },
-  EXPIRED: { label: 'Expired', color: 'bg-red-100 text-red-800' },
+  EXPIRED: { label: 'Expired', color: 'bg-destructive/10 text-destructive-foreground' },
   CANCELLED: { label: 'Cancelled', color: 'bg-muted text-muted-foreground' },
 }
 
 const recommendationConfig: Record<string, { label: string; color: string }> = {
   HIRE: { label: 'Hire', color: 'bg-success/10 text-success-foreground' },
   HOLD: { label: 'Hold', color: 'bg-yellow-100 text-yellow-800' },
-  NO_HIRE: { label: 'No Hire', color: 'bg-red-100 text-red-800' },
+  NO_HIRE: { label: 'No Hire', color: 'bg-destructive/10 text-destructive-foreground' },
 }
 
 type Assessment = NonNullable<ReturnType<typeof trpc.assessment.list.useQuery>['data']>[number]
@@ -200,7 +200,7 @@ export default function AssessmentsPage() {
     if (score === null) return 'text-muted-foreground'
     if (score >= 80) return 'text-success'
     if (score >= 60) return 'text-amber-600'
-    return 'text-red-600'
+    return 'text-destructive'
   }
 
   return (
