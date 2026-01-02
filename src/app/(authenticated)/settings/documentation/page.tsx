@@ -686,7 +686,7 @@ const docSections: DocSection[] = [
         title: 'Where to configure',
         items: [
           'Go to Settings > Hiring > General Settings for global and per-job toggles.',
-          'Go to Settings > Hiring > AuntyPelz Decision Support to edit personality templates, team profiles, rubrics, and scoring.',
+          'Go to Settings > Teams to edit personality templates and team profiles.',
         ],
       },
       {

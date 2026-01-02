@@ -30,6 +30,7 @@ import {
   HelpCircle,
   Mic,
   Loader2,
+  Clock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -742,7 +743,7 @@ export default function CandidateProfilePage() {
             <TabsTrigger value="application" className="flex-1 justify-center text-xs sm:text-sm">Application</TabsTrigger>
             <TabsTrigger value="stages" className="flex-1 justify-center text-xs sm:text-sm">Interviews</TabsTrigger>
             <TabsTrigger value="assessments" className="flex-1 justify-center text-xs sm:text-sm">Assessments</TabsTrigger>
-            <TabsTrigger value="values" className="flex-1 justify-center text-xs sm:text-sm">Values</TabsTrigger>
+            <TabsTrigger value="values" className="flex-1 justify-center text-xs sm:text-sm">Curacel Fit</TabsTrigger>
             <TabsTrigger value="email" className="flex-1 justify-center text-xs sm:text-sm">Email</TabsTrigger>
             <TabsTrigger value="auntypelz" className="flex-1 justify-center text-xs sm:text-sm">AuntyPelz</TabsTrigger>
             <TabsTrigger value="decision" className="flex-1 justify-center text-xs sm:text-sm">Decision</TabsTrigger>
@@ -1338,6 +1339,7 @@ export default function CandidateProfilePage() {
                   </CardHeader>
                 </Link>
                 <CardContent>
+                  {evaluation.evaluators.length > 0 ? (
                   <div className="space-y-6">
                     {evaluation.evaluators.map((evaluator, evIdx) => {
                       const rating = typeof evaluator.overallRating === 'number' ? evaluator.overallRating : null
@@ -1436,6 +1438,14 @@ export default function CandidateProfilePage() {
                       )
                     })}
                   </div>
+                  ) : (
+                    <div className="text-center py-8 text-muted-foreground">
+                      <div className="flex flex-col items-center gap-2">
+                        <Clock className="h-8 w-8 text-muted-foreground/60" />
+                        <p className="text-sm">Interview scheduled - awaiting evaluation</p>
+                      </div>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             ))}

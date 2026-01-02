@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { trpc } from '@/lib/trpc-client'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -42,7 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, MoreHorizontal, Pencil, Trash2, Users, ChevronRight, FolderPlus } from 'lucide-react'
+import { Plus, MoreHorizontal, Pencil, Trash2, Users, ChevronRight, FolderPlus, Brain } from 'lucide-react'
 
 const TEAM_COLORS = [
   { name: 'Blue', value: '#3B82F6' },
@@ -284,6 +285,43 @@ export default function TeamsPage() {
         title="Teams"
         description="Manage teams and departments. Teams are used for organizing employees across the application."
       />
+
+      <Card>
+        <CardContent className="p-0">
+          <div className="divide-y divide-border">
+            <Link
+              href="/hiring/settings/all?section=personality"
+              className="flex items-center gap-4 p-6 hover:bg-muted transition-colors"
+            >
+              <div className="bg-indigo-100 p-3 rounded-lg flex-shrink-0">
+                <Brain className="h-6 w-6 text-indigo-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-foreground mb-1">Personality Templates</h3>
+                <p className="text-sm text-foreground/80">
+                  Define ideal OCEAN personality profiles for department fit analysis.
+                </p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            </Link>
+            <Link
+              href="/hiring/settings/all?section=team"
+              className="flex items-center gap-4 p-6 hover:bg-muted transition-colors"
+            >
+              <div className="bg-indigo-100 p-3 rounded-lg flex-shrink-0">
+                <Users className="h-6 w-6 text-indigo-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-foreground mb-1">Team Profiles</h3>
+                <p className="text-sm text-foreground/80">
+                  Configure team-specific preferences and guidance.
+                </p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            </Link>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Actions Row */}
       <div className="flex items-center justify-end">

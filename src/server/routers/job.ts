@@ -1075,16 +1075,15 @@ export const jobRouter = router({
           }
         }
 
-        if (evaluators.length > 0) {
-          const scores = evaluators.filter((e) => e.overallRating != null).map((e) => e.overallRating as number)
-          const averageScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null
+        // Include all interviews, even those without evaluations
+        const scores = evaluators.filter((e) => e.overallRating != null).map((e) => e.overallRating as number)
+        const averageScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null
 
-          evaluationsByStage[interview.stage] = {
-            stage: interview.stage,
-            stageName: interview.stageName || stageDisplayNames[interview.stage] || interview.stage,
-            evaluators,
-            averageScore,
-          }
+        evaluationsByStage[interview.stage] = {
+          stage: interview.stage,
+          stageName: interview.stageName || stageDisplayNames[interview.stage] || interview.stage,
+          evaluators,
+          averageScore,
         }
       }
 
