@@ -293,6 +293,17 @@ export default function SettingsPage() {
     onSuccess: () => recruitersQuery.refetch(),
   })
 
+  // Decision Support queries and mutations
+  const decisionSupportJobsQuery = trpc.hiringSettings.getDecisionSupportJobs.useQuery()
+  const updateJobDecisionSupportMutation = trpc.hiringSettings.updateJobDecisionSupport.useMutation({
+    onSuccess: () => decisionSupportJobsQuery.refetch(),
+  })
+
+  // Decision support local state (synced from server)
+  const [decisionSupportEnabled, setDecisionSupportEnabled] = useState(true)
+  const [personalityProfilesEnabled, setPersonalityProfilesEnabled] = useState(true)
+  const [teamProfilesEnabled, setTeamProfilesEnabled] = useState(true)
+
   // Handle section query parameter from URL
   useEffect(() => {
     const section = searchParams.get('section')
@@ -319,6 +330,20 @@ export default function SettingsPage() {
     )
   }, [recruitingSettingsQuery.data?.candidateScoreWeights])
 
+  // Sync decision support settings from server
+  useEffect(() => {
+    const data = recruitingSettingsQuery.data
+    if (!data) return
+    if (typeof data.decisionSupportEnabled === 'boolean') {
+      setDecisionSupportEnabled(data.decisionSupportEnabled)
+    }
+    if (typeof data.personalityProfilesEnabled === 'boolean') {
+      setPersonalityProfilesEnabled(data.personalityProfilesEnabled)
+    }
+    if (typeof data.teamProfilesEnabled === 'boolean') {
+      setTeamProfilesEnabled(data.teamProfilesEnabled)
+    }
+  }, [recruitingSettingsQuery.data])
 
   // Initialize edited flow when active flow changes
   useEffect(() => {
@@ -378,6 +403,19 @@ export default function SettingsPage() {
     updateSettingsMutation.mutate({
       candidateScoreWeights: scoreComponents,
     })
+  }
+
+  const handleDecisionSupportToggle = (key: 'decisionSupportEnabled' | 'personalityProfilesEnabled' | 'teamProfilesEnabled', value: boolean) => {
+    if (key === 'decisionSupportEnabled') {
+      setDecisionSupportEnabled(value)
+      updateSettingsMutation.mutate({ decisionSupportEnabled: value })
+    } else if (key === 'personalityProfilesEnabled') {
+      setPersonalityProfilesEnabled(value)
+      updateSettingsMutation.mutate({ personalityProfilesEnabled: value })
+    } else {
+      setTeamProfilesEnabled(value)
+      updateSettingsMutation.mutate({ teamProfilesEnabled: value })
+    }
   }
 
   const removeStage = (index: number) => {
@@ -676,6 +714,78 @@ export default function SettingsPage() {
 
           {/* AuntyPelz Decision Support */}
           {activeSection === 'decision-support' && (
+            <>
+            <Card>
+              <CardContent className="p-6 space-y-6">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="font-medium">Enable decision support</div>
+                      <p className="text-sm text-muted-foreground">Master switch for personality and team profile insights.</p>
+                    </div>
+                    <Switch checked={decisionSupportEnabled} onCheckedChange={(value) => handleDecisionSupportToggle('decisionSupportEnabled', value)} />
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="font-medium">Personality profiles</div>
+                      <p className="text-sm text-muted-foreground">Use OCEAN/MBTI templates for fit analysis.</p>
+                    </div>
+                    <Switch checked={personalityProfilesEnabled} onCheckedChange={(value) => handleDecisionSupportToggle('personalityProfilesEnabled', value)} />
+                  </div>
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <div className="font-medium">Team profiles</div>
+                      <p className="text-sm text-muted-foreground">Include team-specific preferences in recommendations.</p>
+                    </div>
+                    <Switch checked={teamProfilesEnabled} onCheckedChange={(value) => handleDecisionSupportToggle('teamProfilesEnabled', value)} />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <div className="text-sm font-medium">Per-job overrides</div>
+                  <div className="rounded-xl border border-border divide-y">
+                    {(decisionSupportJobsQuery.data || []).map((job) => (
+                      <div key={job.id} className="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="space-y-1">
+                          <div className="font-medium">{job.title}</div>
+                          <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+                            <span>{job.department || 'Unassigned'}</span>
+                            <Badge variant="secondary">{job.status}</Badge>
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap gap-4">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">Decision</span>
+                            <Switch
+                              checked={job.decisionSupportEnabled}
+                              onCheckedChange={(value) => updateJobDecisionSupportMutation.mutate({ jobId: job.id, decisionSupportEnabled: value })}
+                            />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">Personality</span>
+                            <Switch
+                              checked={job.personalityProfilesEnabled}
+                              onCheckedChange={(value) => updateJobDecisionSupportMutation.mutate({ jobId: job.id, personalityProfilesEnabled: value })}
+                            />
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">Team</span>
+                            <Switch
+                              checked={job.teamProfilesEnabled}
+                              onCheckedChange={(value) => updateJobDecisionSupportMutation.mutate({ jobId: job.id, teamProfilesEnabled: value })}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                    {decisionSupportJobsQuery.data && decisionSupportJobsQuery.data.length === 0 && (
+                      <div className="p-4 text-sm text-muted-foreground">No jobs available yet.</div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardContent className="p-0">
                 <div className="divide-y divide-border">
