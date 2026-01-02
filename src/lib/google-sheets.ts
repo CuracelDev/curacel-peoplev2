@@ -287,6 +287,7 @@ export class GoogleSheetsService {
    * Get list of all sheet/tab names in the spreadsheet
    */
   async getSheetNames(): Promise<string[]> {
+    console.log('[getSheetNames] Fetching sheet names for spreadsheet:', this.config.spreadsheetId)
     try {
       const sheets = await this.getSheetsClient()
       const response = await sheets.spreadsheets.get({
@@ -294,10 +295,13 @@ export class GoogleSheetsService {
         fields: 'sheets.properties.title',
       })
 
-      return response.data.sheets?.map(s => s.properties?.title || '').filter(Boolean) || []
-    } catch (error) {
-      console.error('[getSheetNames] Error:', error)
-      return []
+      const names = response.data.sheets?.map(s => s.properties?.title || '').filter(Boolean) || []
+      console.log('[getSheetNames] Found sheets:', names)
+      return names
+    } catch (error: any) {
+      console.error('[getSheetNames] Error fetching sheets:', error?.message || error)
+      console.error('[getSheetNames] Full error:', JSON.stringify(error?.response?.data || error, null, 2))
+      throw error // Re-throw so we can see the actual error
     }
   }
 }

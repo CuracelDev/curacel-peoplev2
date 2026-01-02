@@ -431,9 +431,28 @@ export default function OnboardingFlowSettingsPage() {
             </div>
           )}
           {syncTaskCatalog.data && !syncTaskCatalog.data.success && syncTaskCatalog.data.error && (
-            <div className="flex items-center gap-2 text-sm text-amber-600 mt-2">
-              <AlertCircle className="h-4 w-4" />
-              <span>{syncTaskCatalog.data.error}</span>
+            <div className="mt-2 space-y-1">
+              <div className="flex items-center gap-2 text-sm text-amber-600">
+                <AlertCircle className="h-4 w-4" />
+                <span>{syncTaskCatalog.data.error}</span>
+              </div>
+              {/* Debug info for troubleshooting */}
+              {syncTaskCatalog.data.debug && (
+                <div className="text-xs text-muted-foreground bg-muted/50 p-2 rounded font-mono">
+                  {syncTaskCatalog.data.debug.rawSheetId && (
+                    <div>Raw Sheet ID: {syncTaskCatalog.data.debug.rawSheetId}</div>
+                  )}
+                  {syncTaskCatalog.data.debug.cleanedSheetId && (
+                    <div>Cleaned Sheet ID: {syncTaskCatalog.data.debug.cleanedSheetId}</div>
+                  )}
+                  {syncTaskCatalog.data.debug.foundSheets && (
+                    <div>Found Sheets: [{syncTaskCatalog.data.debug.foundSheets.join(', ')}]</div>
+                  )}
+                  {syncTaskCatalog.data.debug.apiError && (
+                    <div className="text-red-600">API Error: {syncTaskCatalog.data.debug.apiError}</div>
+                  )}
+                </div>
+              )}
             </div>
           )}
           {syncTaskCatalog.data?.success && (

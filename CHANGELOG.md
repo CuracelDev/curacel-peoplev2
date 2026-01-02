@@ -164,6 +164,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Dashboard hook order now consistent to prevent render mismatch errors
 - Candidate profile hook order now consistent to prevent render mismatch errors
 - Interview scheduling candidate picker is selectable again
+- Interview scheduling selected slot banner now uses readable success text color
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off
