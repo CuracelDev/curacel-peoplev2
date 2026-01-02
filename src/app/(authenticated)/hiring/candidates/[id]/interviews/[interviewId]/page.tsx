@@ -429,63 +429,65 @@ export default function InterviewDetailPage() {
 
   return (
     <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
-      {/* Header */}
-      <div className="mb-6">
-        {/* Title and Stage Badge */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-semibold">
-              {interview.stageDisplayName || interview.stageName || interview.stage}
-            </h1>
-            <Badge className="bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-1">
-              <span className="flex items-center gap-1.5">
-                <span className="text-xs">●</span>
-                Stage {interview.stageNumber || 5} of {interview.totalStages || 6}
-              </span>
-            </Badge>
+      {/* Header Card */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          {/* Title and Stage Badge */}
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <h1 className="text-2xl font-semibold">
+                {interview.stageDisplayName || interview.stageName || interview.stage}
+              </h1>
+              <Badge className="bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-1">
+                <span className="flex items-center gap-1.5">
+                  <span className="text-xs">●</span>
+                  Stage {interview.stageNumber || 5} of {interview.totalStages || 6}
+                </span>
+              </Badge>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" disabled className="text-muted-foreground">
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              <span className="text-sm text-muted-foreground">/</span>
+              <Button variant="ghost" size="sm" disabled className="text-muted-foreground">
+                Next Stage
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
           </div>
 
-          {/* Navigation */}
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" disabled className="text-muted-foreground">
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Previous
-            </Button>
-            <span className="text-sm text-muted-foreground">/</span>
-            <Button variant="ghost" size="sm" disabled className="text-muted-foreground">
-              Next Stage
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
+          {/* Candidate Link */}
+          <div className="mb-3">
+            <span className="text-sm text-muted-foreground">Candidate: </span>
+            <Link
+              href={`/hiring/candidates/${candidateId}`}
+              className="text-sm text-indigo-600 hover:text-indigo-700 hover:underline font-medium"
+            >
+              {interview.candidate.name}
+            </Link>
           </div>
-        </div>
 
-        {/* Candidate Link */}
-        <div className="mb-2">
-          <span className="text-sm text-muted-foreground">Candidate: </span>
-          <Link
-            href={`/hiring/candidates/${candidateId}`}
-            className="text-sm text-indigo-600 hover:text-indigo-700 hover:underline font-medium"
-          >
-            {interview.candidate.name}
-          </Link>
-        </div>
-
-        {/* Interview Details */}
-        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-          <span className="flex items-center gap-1.5">
-            <Calendar className="h-4 w-4" />
-            {format(scheduledDate, 'MMMM d, yyyy \'at\' h:mm a')}
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Clock className="h-4 w-4" />
-            {interview.duration} minutes
-          </span>
-          <span className="flex items-center gap-1.5">
-            <Users className="h-4 w-4" />
-            Interviewers: {interviewerNames || 'None assigned'}
-          </span>
-        </div>
-      </div>
+          {/* Interview Details */}
+          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+            <span className="flex items-center gap-1.5">
+              <Calendar className="h-4 w-4" />
+              {format(scheduledDate, 'MMMM d, yyyy \'at\' h:mm a')}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Clock className="h-4 w-4" />
+              {interview.duration} minutes
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Users className="h-4 w-4" />
+              Interviewers: {interviewerNames || 'None assigned'}
+            </span>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Action Buttons */}
       <div className="mb-6">
