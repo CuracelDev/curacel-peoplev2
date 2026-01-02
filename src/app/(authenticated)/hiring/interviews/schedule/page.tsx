@@ -891,9 +891,9 @@ export default function ScheduleInterviewPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2 p-3 bg-success/10 dark:bg-green-900/20 border border-success/20 dark:border-green-800 rounded-lg text-sm">
-                <Video className="h-4 w-4 text-success dark:text-green-400" />
-                <span className="text-success dark:text-green-300">Google Meet link will be auto-generated</span>
+              <div className="flex items-center gap-2 p-3 bg-success/10 dark:bg-green-900/20 border border-success/20 dark:border-success/30 rounded-lg text-sm">
+                <Video className="h-4 w-4 text-success dark:text-success" />
+                <span className="text-success dark:text-success">Google Meet link will be auto-generated</span>
               </div>
             )}
 
@@ -981,7 +981,7 @@ export default function ScheduleInterviewPage() {
                   </TabsList>
 
                   {/* Question Bank Tab */}
-                  <TabsContent value="bank" className="px-1 pb-2 !mt-0 h-full flex flex-col overflow-hidden">
+                  <TabsContent value="bank" className="px-1 pb-2 !mt-0 flex-1 flex flex-col overflow-hidden">
                     <Input
                       placeholder="Search questions..."
                       value={questionSearch}
@@ -1055,7 +1055,7 @@ export default function ScheduleInterviewPage() {
                   </TabsContent>
 
                   {/* AI Generator Tab */}
-                  <TabsContent value="ai" className="px-1 pb-2 !mt-0 h-full overflow-auto">
+                  <TabsContent value="ai" className="px-1 pb-2 !mt-0 flex-1 overflow-auto">
                     {selectedCandidateId ? (
                       <AIQuestionGenerator
                         candidateId={selectedCandidateId}
