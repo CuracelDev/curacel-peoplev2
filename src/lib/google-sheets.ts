@@ -390,6 +390,26 @@ export class GoogleSheetsService {
   }
 
   /**
+   * Get the service account email (for sharing sheets)
+   */
+  async getServiceAccountEmail(): Promise<string | null> {
+    try {
+      let serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
+      if (!serviceAccountKey) {
+        const dbConfig = await this.getGoogleConfigFromDatabase()
+        if (dbConfig) {
+          serviceAccountKey = dbConfig.serviceAccountKey
+        }
+      }
+      if (!serviceAccountKey) return null
+      const serviceAccount = JSON.parse(serviceAccountKey)
+      return serviceAccount.client_email || null
+    } catch {
+      return null
+    }
+  }
+
+  /**
    * Get list of all sheet/tab names in the spreadsheet
    */
   async getSheetNames(): Promise<string[]> {

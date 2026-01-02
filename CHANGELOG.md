@@ -167,6 +167,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Interview scheduling selected slot banner now uses readable success text color
 - JD template editor color picker no longer throws a runtime error
 - JD templates breadcrumb label now uses the correct "JD" casing
+- JD template detail breadcrumbs now drop the "JD" slug prefix from titles
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off
