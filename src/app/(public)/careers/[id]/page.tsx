@@ -315,61 +315,22 @@ export default function PublicCareersPage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="grid md:grid-cols-3 gap-8">
-          {/* Job Description */}
-          <div className="md:col-span-2">
-            <Card>
-              <CardHeader>
-                <CardTitle>About This Role</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {job.jobDescription?.content ? (
-                  <div
-                    className="prose prose-sm max-w-none"
-                    dangerouslySetInnerHTML={{ __html: job.jobDescription.content }}
-                  />
-                ) : (
-                  <p className="text-muted-foreground">No description available.</p>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Quick Info Sidebar */}
-          <div className="space-y-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">Quick Info</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm">
-                {job.department && (
-                  <div className="flex items-center gap-2 text-foreground/80">
-                    <Users className="h-4 w-4" />
-                    <span>{job.department}</span>
-                  </div>
-                )}
-                {job.employmentType && (
-                  <div className="flex items-center gap-2 text-foreground/80">
-                    <Clock className="h-4 w-4" />
-                    <span>{formatEmploymentType(job.employmentType)}</span>
-                  </div>
-                )}
-                {locations.length > 0 && (
-                  <div className="flex items-center gap-2 text-foreground/80">
-                    <MapPin className="h-4 w-4" />
-                    <span>{locations.join(', ')}</span>
-                  </div>
-                )}
-                {salary && (
-                  <div className="flex items-center gap-2 text-foreground/80">
-                    <DollarSign className="h-4 w-4" />
-                    <span>{salary}</span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </div>
-        </div>
+        {/* Job Description */}
+        <Card>
+          <CardHeader>
+            <CardTitle>About This Role</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {job.jobDescription?.content ? (
+              <div
+                className="prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: job.jobDescription.content }}
+              />
+            ) : (
+              <p className="text-muted-foreground">No description available.</p>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Application Form */}
         <Card className="mt-8">
