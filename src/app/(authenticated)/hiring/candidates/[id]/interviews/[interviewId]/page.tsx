@@ -38,6 +38,7 @@ import {
   Upload,
   Search,
   CheckCircle,
+  HelpCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -786,6 +787,58 @@ export default function InterviewDetailPage() {
                       </ul>
                     </>
                   )}
+                </CardContent>
+              </Card>
+
+              {/* Suggested Follow-up Questions */}
+              <Card>
+                <CardHeader className="py-4 px-5">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <HelpCircle className="h-4 w-4" />
+                    Suggested Follow-up Questions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-5 pb-5 space-y-2">
+                  {interview.firefliesActionItems && interview.firefliesActionItems.length > 0 ? (
+                    interview.firefliesActionItems.slice(0, 3).map((question, i) => (
+                      <div key={i} className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+                        <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                          {i + 1}
+                        </div>
+                        <div className="text-sm text-foreground">{question}</div>
+                      </div>
+                    ))
+                  ) : (
+                    <>
+                      <div className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+                        <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                          1
+                        </div>
+                        <div className="text-sm text-foreground">
+                          Can you walk us through your technical approach to solving complex distributed systems challenges?
+                        </div>
+                      </div>
+                      <div className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+                        <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                          2
+                        </div>
+                        <div className="text-sm text-foreground">
+                          Tell me about a time you had to make a technical decision with incomplete information. How did you handle it?
+                        </div>
+                      </div>
+                      <div className="flex gap-3 p-3 bg-muted/50 rounded-lg">
+                        <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
+                          3
+                        </div>
+                        <div className="text-sm text-foreground">
+                          How do you approach mentoring junior engineers? Can you share a specific example?
+                        </div>
+                      </div>
+                    </>
+                  )}
+                  <Link href="/hiring/questions" className="block text-center text-indigo-600 text-sm mt-3 hover:underline">
+                    Generate more questions →
+                  </Link>
                 </CardContent>
               </Card>
             </div>
