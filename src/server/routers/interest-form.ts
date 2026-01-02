@@ -50,7 +50,7 @@ export const interestFormRouter = router({
   listForSelect: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.interestFormTemplate.findMany({
       where: { isActive: true },
-      select: { id: true, name: true, isDefault: true },
+      select: { id: true, name: true },
       orderBy: { name: 'asc' },
     })
   }),
@@ -102,16 +102,11 @@ export const interestFormRouter = router({
         })
       }
 
-      // If no specific form assigned, get default
       let form = job.interestForm
       if (!form) {
-        form = await ctx.prisma.interestFormTemplate.findFirst({
-          where: { isDefault: true, isActive: true },
-          include: {
-            questions: {
-              orderBy: { sortOrder: 'asc' },
-            },
-          },
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'No interest form is assigned to this job.',
         })
       }
 
@@ -133,26 +128,17 @@ export const interestFormRouter = router({
       z.object({
         name: z.string().min(2).max(200),
         description: z.string().max(1000).optional(),
-        isDefault: z.boolean().optional(),
         questions: z.array(questionSchema).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { questions, isDefault, ...templateData } = input
-
-      // If setting as default, unset other defaults
-      if (isDefault) {
-        await ctx.prisma.interestFormTemplate.updateMany({
-          where: { isDefault: true },
-          data: { isDefault: false },
-        })
-      }
+      const { questions, ...templateData } = input
 
       return ctx.prisma.interestFormTemplate.create({
         data: {
           name: templateData.name.trim(),
           description: templateData.description?.trim(),
-          isDefault: isDefault || false,
+          isDefault: false,
           questions: questions?.length
             ? {
                 create: questions.map((q, index) => ({
@@ -181,12 +167,11 @@ export const interestFormRouter = router({
         id: z.string(),
         name: z.string().min(2).max(200).optional(),
         description: z.string().max(1000).optional().nullable(),
-        isDefault: z.boolean().optional(),
         questions: z.array(questionSchema).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, questions, isDefault, ...data } = input
+      const { id, questions, ...data } = input
 
       const existing = await ctx.prisma.interestFormTemplate.findUnique({
         where: { id },
@@ -196,14 +181,6 @@ export const interestFormRouter = router({
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Interest form template not found',
-        })
-      }
-
-      // If setting as default, unset other defaults
-      if (isDefault) {
-        await ctx.prisma.interestFormTemplate.updateMany({
-          where: { isDefault: true, id: { not: id } },
-          data: { isDefault: false },
         })
       }
 
@@ -233,7 +210,6 @@ export const interestFormRouter = router({
         data: {
           ...(data.name && { name: data.name.trim() }),
           ...(data.description !== undefined && { description: data.description?.trim() || null }),
-          ...(isDefault !== undefined && { isDefault }),
         },
         include: {
           questions: {

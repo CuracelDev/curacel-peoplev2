@@ -13,7 +13,7 @@ import {
   getTemplateForStage,
 } from '@/lib/email-service'
 import { getEmailAnalytics } from '@/lib/email-tracking'
-import { createGmailConnector } from '@/lib/integrations/gmail'
+import { getGmailConnector } from '@/lib/integrations/gmail'
 
 // Schema definitions
 const SendEmailSchema = z.object({
@@ -556,9 +556,9 @@ export const candidateEmailRouter = router({
 
   testGmailConnection: adminProcedure
     .query(async () => {
-      const gmail = createGmailConnector()
+      const gmail = await getGmailConnector()
       if (!gmail) {
-        return { success: false, error: 'Gmail not configured' }
+        return { success: false, error: 'Gmail not configured. Please configure Google Workspace integration first.' }
       }
 
       return gmail.testConnection()

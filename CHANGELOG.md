@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Public careers landing page (`/careers`) for job seekers
   - Public recruiter application forms (`/recruiter`)
   - Public jobs API endpoint (`/api/jobs`) for external integrations
+- **AuntyPelz Decision Support Settings**
+  - New Hiring settings tile to group Personality and Team profiles
+  - Global and per-job toggles for decision support, personality templates, and team profiles
 - **Recruiting Mock Seed**
   - Added `scripts/seed-single-candidate.ts` to populate one consistent mock candidate with flow, interviews, assessments, and BlueAI analysis
 - **Candidate Profile PDF Export**

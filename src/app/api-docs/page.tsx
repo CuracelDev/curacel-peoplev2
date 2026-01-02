@@ -456,17 +456,40 @@ export default function ApiDocsPage() {
                   <code>/api/trpc/hiringSettings.update</code>
                   <span className="text-muted-foreground">— update hiring settings (General Settings)</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">GET</Badge>
+                  <code>/api/trpc/hiringSettings.getDecisionSupportJobs</code>
+                  <span className="text-muted-foreground">— list jobs with decision support toggles</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-amber-600">POST</Badge>
+                  <code>/api/trpc/hiringSettings.updateJobDecisionSupport</code>
+                  <span className="text-muted-foreground">— update decision support toggles for a job</span>
+                </div>
               </div>
 
               <div className="rounded bg-gray-900 p-3 text-xs text-gray-100">
                 <pre>{`// Hiring settings update (tRPC input)
 {
   "jobScoreDisplay": "average", // "average" | "max"
+  "decisionSupportEnabled": true,
+  "personalityProfilesEnabled": true,
+  "teamProfilesEnabled": true,
   "candidateScoreWeights": [
     { "id": "experienceMatchScore", "label": "Experience Match", "weight": 20, "enabled": true },
     { "id": "skillsMatchScore", "label": "Skills Match", "weight": 20, "enabled": true },
     { "id": "interviewAverage", "label": "Interview Average", "weight": 20, "enabled": true }
   ]
+}`}</pre>
+              </div>
+
+              <div className="rounded bg-gray-900 p-3 text-xs text-gray-100">
+                <pre>{`// Decision support job update (tRPC input)
+{
+  "jobId": "job_123",
+  "decisionSupportEnabled": false,
+  "personalityProfilesEnabled": true,
+  "teamProfilesEnabled": true
 }`}</pre>
               </div>
 

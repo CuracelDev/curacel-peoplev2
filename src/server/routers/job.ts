@@ -190,6 +190,7 @@ export const jobRouter = router({
         hiringFlowId: z.string().optional(),
         jobDescriptionId: z.string().optional(),
         hiringManagerId: z.string().optional(),
+        interestFormId: z.string().optional(),
         // AI settings
         autoArchiveLocation: z.boolean().default(false),
         // Relations
@@ -198,7 +199,19 @@ export const jobRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { followerIds, competencyIds, deadline, hiringFlowId, ...data } = input
+      const { followerIds, competencyIds, deadline, hiringFlowId, interestFormId, ...data } = input
+
+      if (!interestFormId) {
+        const activeForms = await ctx.prisma.interestFormTemplate.count({
+          where: { isActive: true },
+        })
+        if (activeForms > 0) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Select an interest form for this job.',
+          })
+        }
+      }
 
       // Convert hiringFlowId to hiringFlowSnapshotId by finding the latest snapshot
       let hiringFlowSnapshotId: string | undefined
@@ -215,6 +228,7 @@ export const jobRouter = router({
       const job = await ctx.prisma.job.create({
         data: {
           ...data,
+          interestFormId: interestFormId || null,
           hiringFlowId, // Keep legacy field for reference
           hiringFlowSnapshotId, // Assign the latest snapshot
           deadline: deadline ? new Date(deadline) : null,
@@ -267,6 +281,7 @@ export const jobRouter = router({
         hiringFlowId: z.string().optional().nullable(),
         jobDescriptionId: z.string().optional().nullable(),
         hiringManagerId: z.string().optional().nullable(),
+        interestFormId: z.string().optional().nullable(),
         // AI settings
         autoArchiveLocation: z.boolean().optional(),
         // Relations (replace all)
@@ -275,7 +290,7 @@ export const jobRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, followerIds, competencyIds, deadline, locations, hiringFlowId, ...data } = input
+      const { id, followerIds, competencyIds, deadline, locations, hiringFlowId, interestFormId, ...data } = input
 
       const existing = await ctx.prisma.job.findUnique({ where: { id } })
       if (!existing) {
@@ -287,6 +302,23 @@ export const jobRouter = router({
 
       // Build update operations
       const updateData: Record<string, unknown> = { ...data }
+
+      if (interestFormId !== undefined) {
+        if (!interestFormId) {
+          const activeForms = await ctx.prisma.interestFormTemplate.count({
+            where: { isActive: true },
+          })
+          if (activeForms > 0) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Select an interest form for this job.',
+            })
+          }
+          updateData.interestFormId = null
+        } else {
+          updateData.interestFormId = interestFormId
+        }
+      }
 
       if (deadline !== undefined) {
         updateData.deadline = deadline ? new Date(deadline) : null

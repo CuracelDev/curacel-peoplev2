@@ -65,6 +65,7 @@ export default function CreateJobPage() {
   const router = useRouter()
   const { data: teams } = trpc.team.listForSelect.useQuery()
   const { data: jobDescriptions } = trpc.jobDescription.listForSelect.useQuery()
+  const { data: interestForms } = trpc.interestForm.listForSelect.useQuery()
   const { data: competencies } = trpc.competency.listForSelect.useQuery()
   const { data: employees } = trpc.employee.getAllActive.useQuery()
   const createJob = trpc.job.create.useMutation()
@@ -77,6 +78,7 @@ export default function CreateJobPage() {
     jdId: '',
     deadline: '',
     hiresCount: '1',
+    interestFormId: '',
     // New fields
     salaryMin: '',
     salaryMax: '',
@@ -119,6 +121,7 @@ export default function CreateJobPage() {
 
   const selectedFlowData = flows.find((flow) => flow.id === selectedFlow) ?? flows[0]
   const selectedJD = (jobDescriptions || []).find(jd => jd.id === formData.jdId)
+  const availableInterestForms = interestForms || []
 
   // Filter competencies based on search
   const filteredCompetencies = useMemo(() => {
@@ -228,6 +231,9 @@ export default function CreateJobPage() {
     if (!formData.title.trim()) {
       return 'Add a job title to save a draft.'
     }
+    if (availableInterestForms.length > 0 && !formData.interestFormId) {
+      return 'Select an interest form to save a draft.'
+    }
     return null
   }
 
@@ -246,6 +252,9 @@ export default function CreateJobPage() {
     }
     if (!selectedFlow) {
       return 'Select an interview flow to create a job.'
+    }
+    if (availableInterestForms.length > 0 && !formData.interestFormId) {
+      return 'Select an interest form to create a job.'
     }
     return null
   }
@@ -281,6 +290,7 @@ export default function CreateJobPage() {
         locations: officeLocations,
         hiringFlowId: selectedFlow || undefined,
         jobDescriptionId: formData.jdId || undefined,
+        interestFormId: formData.interestFormId || undefined,
         hiringManagerId: formData.hiringManagerId || undefined,
         autoArchiveLocation: formData.autoArchiveLocation,
         followerIds: followers,
@@ -571,6 +581,35 @@ export default function CreateJobPage() {
                     <Link href="/hiring/settings/jd-templates" className="text-indigo-600 hover:underline">
                       Job Settings
                     </Link>
+                  </p>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Interest Form</Label>
+                <Select
+                  value={formData.interestFormId || 'none'}
+                  onValueChange={(value) => setFormData({ ...formData, interestFormId: value === 'none' ? '' : value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an interest form" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Select an interest form...</SelectItem>
+                    {availableInterestForms.map((form) => (
+                      <SelectItem key={form.id} value={form.id}>
+                        {form.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {availableInterestForms.length === 0 && (
+                  <p className="text-sm text-muted-foreground flex items-center gap-1">
+                    <Info className="h-3.5 w-3.5" />
+                    Create a form in{' '}
+                    <Link href="/hiring/settings/interest-forms" className="text-indigo-600 hover:underline">
+                      Interest Forms
+                    </Link>
+                    {' '}to attach to this job.
                   </p>
                 )}
               </div>

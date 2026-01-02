@@ -31,6 +31,8 @@ import {
   MapPin,
   AlertTriangle,
   Lock,
+  Edit3,
+  ClipboardList,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -40,8 +42,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Label } from '@/components/ui/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn, getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
+import { PeopleTeamView } from '@/components/interview/people-team-view'
 
 // Rating descriptions
 const ratingDescriptions = [
@@ -76,6 +80,8 @@ export default function PublicInterviewPage() {
   // Question responses (scores and notes for each interview question)
   const [questionResponses, setQuestionResponses] = useState<Record<string, { score: number | null; notes: string }>>({})
   const [expandedInterviewQuestion, setExpandedInterviewQuestion] = useState<string | null>(null)
+  const [otherQuestionsExpanded, setOtherQuestionsExpanded] = useState(false)
+  const [activeTab, setActiveTab] = useState('score')
 
   // Fetch interview data
   const {
@@ -339,8 +345,17 @@ export default function PublicInterviewPage() {
     return null
   }
 
+  // People Team View - Read Only
+  if (interviewData.isPeopleTeam) {
+    return <PeopleTeamView interviewData={interviewData as any} />
+  }
+
   const rubricCriteria = interviewData.rubricCriteria || []
   const candidateInitials = getInitials(interviewData.candidate.name)
+
+  // Separate questions: assigned to me vs others
+  const myQuestions = interviewData.interviewQuestions?.filter(q => q.isAssignedToMe) || []
+  const otherQuestions = interviewData.interviewQuestions?.filter(q => !q.isAssignedToMe) || []
 
   return (
     <div className="min-h-screen bg-muted/50">

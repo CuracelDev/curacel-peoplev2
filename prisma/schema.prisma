@@ -1222,6 +1222,9 @@ model Job {
 
   // AI settings
   autoArchiveLocation Boolean     @default(false)
+  decisionSupportEnabled Boolean  @default(true)
+  personalityProfilesEnabled Boolean  @default(true)
+  teamProfilesEnabled Boolean  @default(true)
 
   // Interest Form assigned to this job
   interestFormId      String?
@@ -1491,6 +1494,9 @@ model InterviewerToken {
   interviewId  String
   interview    CandidateInterview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
 
+  // Token type: INTERVIEWER (can score questions) or PEOPLE_TEAM (view-only)
+  tokenType    String   @default("INTERVIEWER")
+
   // Interviewer info
   interviewerId    String?  // User ID if internal
   interviewerName  String
@@ -1649,6 +1655,9 @@ model HiringSettings {
   // Candidate scoring weights
   candidateScoreWeights Json? // [{ id, label, description, weight, enabled }]
   jobScoreDisplay     String  @default("average")
+  decisionSupportEnabled Boolean @default(true)
+  personalityProfilesEnabled Boolean @default(true)
+  teamProfilesEnabled Boolean @default(true)
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
