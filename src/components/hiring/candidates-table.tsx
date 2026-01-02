@@ -163,23 +163,30 @@ export function CandidatesTable({
   bulkActions,
 }: CandidatesTableProps) {
   const [visibleColumns, setVisibleColumns] = useState<Record<ColumnKey, boolean>>(defaultVisibleColumns)
+  const [isColumnsLoaded, setIsColumnsLoaded] = useState(false)
 
   useEffect(() => {
     if (typeof window === 'undefined') return
     const stored = window.localStorage.getItem(storageKey)
-    if (!stored) return
+    if (!stored) {
+      setIsColumnsLoaded(true)
+      return
+    }
     try {
       const parsed = JSON.parse(stored) as Partial<Record<ColumnKey, boolean>>
       setVisibleColumns((prev) => ({ ...prev, ...parsed }))
     } catch (error) {
       console.error('Failed to parse column preferences', error)
+    } finally {
+      setIsColumnsLoaded(true)
     }
   }, [storageKey])
 
   useEffect(() => {
     if (typeof window === 'undefined') return
+    if (!isColumnsLoaded) return
     window.localStorage.setItem(storageKey, JSON.stringify(visibleColumns))
-  }, [storageKey, visibleColumns])
+  }, [storageKey, visibleColumns, isColumnsLoaded])
 
   const optionalColumns = useMemo(() => ([
     { key: 'location', label: 'Country', render: (candidate: CandidateRow) => candidate.location || '—' },

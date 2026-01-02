@@ -100,6 +100,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Interview settings entry on the main Settings page linking to hiring flow editor
 
 ### Changed
+- Adjusted assessments filter cards layout for consistent sizing and spacing.
+- Simplified assessments list columns and allowed assessment names to wrap.
 - **App-Wide Responsiveness Enhancement**
   - Onboarding page: Stats grid now 2-column on mobile, workflow cards stack vertically
   - Offboarding page: Same responsive improvements as onboarding
@@ -127,6 +129,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - AuntyPelz generator block now sits closer to the tabs on interview scheduling
 - Bulk actions on candidates now include Archive
 - Candidates tables now share a single reusable component across main and job-specific views
+- Candidates table column preferences now persist correctly across reloads
 - **Recruiting Assessments Page Improvements**
   - Enhanced UI and layout for assessments management
 - **Interviews Page Enhancements**
