@@ -486,7 +486,7 @@ export async function sendTeamInviteEmail(params: {
 
   await sendEmail({
     to,
-    subject: `You’ve been invited to Curacel People`,
+    subject: `You've been invited to Curacel People`,
     html: `
       <!DOCTYPE html>
       <html>
@@ -502,13 +502,139 @@ export async function sendTeamInviteEmail(params: {
         <body>
           <div class="container">
             <div class="content">
-              <h2 style="margin-top: 0;">You’ve been invited</h2>
+              <h2 style="margin-top: 0;">You've been invited</h2>
               <p>${invitedByName ? `${invitedByName} has` : 'You have'} invited you to Curacel People.</p>
               <p><strong>Role:</strong> ${role}</p>
               <a class="button" href="${acceptUrl}">Accept invite</a>
-              <p class="meta">If you didn’t expect this invite, you can ignore this email.</p>
+              <p class="meta">If you didn't expect this invite, you can ignore this email.</p>
             </div>
           </div>
+        </body>
+      </html>
+    `,
+  })
+}
+
+export async function sendInterviewerInviteEmail(params: {
+  to: string
+  interviewerName: string
+  candidateName: string
+  jobTitle: string
+  interviewDate: Date
+  interviewType: string
+  interviewLink: string
+  companyName: string
+  logoUrl?: string
+}): Promise<void> {
+  const { to, interviewerName, candidateName, jobTitle, interviewDate, interviewType, interviewLink, companyName, logoUrl } = params
+  const appUrl = getAppUrl()
+  const resolvedLogoUrl = resolveAbsoluteUrl(logoUrl, appUrl, '/logo.png')
+  const year = new Date().getFullYear()
+
+  const formattedDate = interviewDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+  })
+
+  const formattedTime = interviewDate.toLocaleTimeString('en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  })
+
+  await sendEmail({
+    to,
+    subject: `Interview Assignment: ${candidateName} for ${jobTitle}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8" />
+          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        </head>
+        <body style="margin:0; padding:0; background-color:#eef2f7; font-family:'Segoe UI', Arial, sans-serif; color:#0f172a;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#eef2f7;">
+            <tr>
+              <td align="center" style="padding:32px 16px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px; background:#ffffff; border-radius:16px; border:1px solid #e2e8f0; overflow:hidden;">
+                  <tr>
+                    <td style="padding:24px 32px 12px; text-align:center;">
+                      <img
+                        src="${resolvedLogoUrl}"
+                        alt="${companyName} logo"
+                        width="120"
+                        style="display:block; margin:0 auto; height:auto;"
+                      />
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 32px 32px;">
+                      <h1 style="margin:0 0 16px; font-size:24px; line-height:1.3; font-weight:700; color:#0f172a;">
+                        Interview Assignment
+                      </h1>
+                      <p style="margin:0 0 12px; font-size:16px; line-height:1.6; color:#334155;">
+                        Hi ${interviewerName},
+                      </p>
+                      <p style="margin:0 0 20px; font-size:16px; line-height:1.6; color:#334155;">
+                        You've been assigned as an interviewer for <strong>${candidateName}</strong> applying for <strong>${jobTitle}</strong>.
+                      </p>
+
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc; border-radius:10px; margin-bottom:24px;">
+                        <tr>
+                          <td style="padding:20px;">
+                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+                              <tr>
+                                <td style="padding:4px 0;">
+                                  <span style="color:#64748b; font-size:14px;">Date</span>
+                                </td>
+                                <td style="padding:4px 0; text-align:right;">
+                                  <span style="color:#0f172a; font-weight:600; font-size:14px;">${formattedDate}</span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="padding:4px 0;">
+                                  <span style="color:#64748b; font-size:14px;">Time</span>
+                                </td>
+                                <td style="padding:4px 0; text-align:right;">
+                                  <span style="color:#0f172a; font-weight:600; font-size:14px;">${formattedTime}</span>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="padding:4px 0;">
+                                  <span style="color:#64748b; font-size:14px;">Interview Type</span>
+                                </td>
+                                <td style="padding:4px 0; text-align:right;">
+                                  <span style="color:#0f172a; font-weight:600; font-size:14px;">${interviewType}</span>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                      </table>
+
+                      <p style="margin:0 0 20px; font-size:16px; line-height:1.6; color:#334155;">
+                        Click the button below to view your interview questions and submit your feedback after the interview.
+                      </p>
+
+                      <a
+                        href="${interviewLink}"
+                        style="display:inline-block; background:#4f46e5; color:#ffffff; text-decoration:none; padding:14px 24px; border-radius:10px; font-weight:600; font-size:15px;"
+                      >View Interview Questions</a>
+
+                      <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#64748b;">
+                        You can customize your questions before the interview. After the interview, please submit your feedback within 3 days.
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:16px 0 0; font-size:12px; color:#94a3b8; text-align:center;">
+                  &copy; ${year} ${companyName}
+                </p>
+              </td>
+            </tr>
+          </table>
         </body>
       </html>
     `,

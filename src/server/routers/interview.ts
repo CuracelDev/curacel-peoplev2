@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure, adminProcedure, publicProcedure } from '@/lib/trpc'
 import { Prisma } from '@prisma/client'
+import { sendInterviewerInviteEmail } from '@/lib/email'
 
 const interviewStageEnum = z.enum([
   'HR_SCREEN',      // People Chat
@@ -887,6 +888,40 @@ export const interviewRouter = router({
           )
         )
         createdTokens.push(...interviewerTokens)
+
+        // Send email notifications to new interviewers
+        // Fetch interview with candidate and job details
+        const interviewWithDetails = await ctx.prisma.candidateInterview.findUnique({
+          where: { id: input.interviewId },
+          include: {
+            candidate: {
+              include: {
+                job: true,
+              },
+            },
+          },
+        })
+
+        if (interviewWithDetails?.candidate) {
+          const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+          const companyName = process.env.COMPANY_NAME || 'Curacel'
+
+          // Send emails in parallel (don't block on failures)
+          await Promise.allSettled(
+            interviewerTokens.map((token) =>
+              sendInterviewerInviteEmail({
+                to: token.interviewerEmail,
+                interviewerName: token.interviewerName,
+                candidateName: interviewWithDetails.candidate.name,
+                jobTitle: interviewWithDetails.candidate.job?.title || 'Open Position',
+                interviewDate: interviewWithDetails.scheduledAt || new Date(),
+                interviewType: stageDisplayNames[interviewWithDetails.stage] || interviewWithDetails.stage,
+                interviewLink: `${appUrl}/interview/${token.token}`,
+                companyName,
+              })
+            )
+          )
+        }
       }
 
       return { created: createdTokens.length, tokens: createdTokens }
@@ -908,6 +943,68 @@ export const interviewRouter = router({
       })
 
       return token
+    }),
+
+  // Resend interviewer invite email
+  resendInterviewerEmail: protectedProcedure
+    .input(
+      z.object({
+        tokenId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Get the token with interview and candidate details
+      const token = await ctx.prisma.interviewerToken.findUnique({
+        where: { id: input.tokenId },
+        include: {
+          interview: {
+            include: {
+              candidate: {
+                include: {
+                  job: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      if (!token) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Token not found',
+        })
+      }
+
+      if (token.tokenType === 'PEOPLE_TEAM') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Cannot send email to People Team token',
+        })
+      }
+
+      if (token.isRevoked) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Token has been revoked',
+        })
+      }
+
+      const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+      const companyName = process.env.COMPANY_NAME || 'Curacel'
+
+      await sendInterviewerInviteEmail({
+        to: token.interviewerEmail,
+        interviewerName: token.interviewerName,
+        candidateName: token.interview.candidate.name,
+        jobTitle: token.interview.candidate.job?.title || 'Open Position',
+        interviewDate: token.interview.scheduledAt || new Date(),
+        interviewType: stageDisplayNames[token.interview.stage] || token.interview.stage,
+        interviewLink: `${appUrl}/interview/${token.token}`,
+        companyName,
+      })
+
+      return { success: true }
     }),
 
   // Get all tokens for an interview
@@ -1471,6 +1568,203 @@ export const interviewRouter = router({
         evaluationId: evaluation.id,
         message: 'Thank you for submitting your evaluation',
       }
+    }),
+
+  // ============================================
+  // Interviewer Question Management (Public)
+  // ============================================
+
+  // Get question bank for token (public)
+  getQuestionBankForToken: publicProcedure
+    .input(z.object({
+      token: z.string(),
+      search: z.string().optional(),
+      category: z.string().optional(),
+      limit: z.number().optional().default(20),
+    }))
+    .query(async ({ ctx, input }) => {
+      const tokenRecord = await ctx.prisma.interviewerToken.findUnique({
+        where: { token: input.token },
+        include: {
+          interview: {
+            include: {
+              candidate: {
+                select: { jobId: true },
+              },
+            },
+          },
+        },
+      })
+
+      if (!tokenRecord || tokenRecord.tokenType === 'PEOPLE_TEAM') {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Invalid token or not authorized',
+        })
+      }
+
+      // Get questions from the bank, filtered by job/category if applicable
+      const questions = await ctx.prisma.interviewQuestion.findMany({
+        where: {
+          organizationId: tokenRecord.interview.candidate.jobId ? undefined : undefined,
+          ...(input.search ? {
+            text: { contains: input.search, mode: 'insensitive' as const },
+          } : {}),
+          ...(input.category ? { category: input.category } : {}),
+          isActive: true,
+        },
+        take: input.limit,
+        orderBy: { createdAt: 'desc' },
+      })
+
+      return {
+        questions: questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          category: q.category,
+          followUp: q.followUp,
+          isRequired: false,
+        })),
+      }
+    }),
+
+  // Add question to interviewer's assignments (public)
+  addInterviewerQuestion: publicProcedure
+    .input(z.object({
+      token: z.string(),
+      questionId: z.string().optional(), // From bank
+      customQuestion: z.object({
+        text: z.string(),
+        category: z.string().optional(),
+        followUp: z.string().optional(),
+      }).optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tokenRecord = await ctx.prisma.interviewerToken.findUnique({
+        where: { token: input.token },
+        include: {
+          interview: {
+            select: { id: true, scheduledAt: true },
+          },
+        },
+      })
+
+      if (!tokenRecord || tokenRecord.tokenType === 'PEOPLE_TEAM') {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Invalid token or not authorized',
+        })
+      }
+
+      // Check lockout
+      const lockoutDays = 3
+      const lockoutDate = tokenRecord.interview.scheduledAt
+        ? new Date(tokenRecord.interview.scheduledAt.getTime() + (lockoutDays * 24 * 60 * 60 * 1000))
+        : null
+      if (lockoutDate && new Date() > lockoutDate) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Cannot edit questions after the feedback period has ended',
+        })
+      }
+
+      // Get the max sort order
+      const maxSortOrder = await ctx.prisma.interviewAssignedQuestion.aggregate({
+        where: { interviewId: tokenRecord.interview.id },
+        _max: { sortOrder: true },
+      })
+
+      const newSortOrder = (maxSortOrder._max.sortOrder || 0) + 1
+
+      // Create the assigned question
+      const assignedQuestion = await ctx.prisma.interviewAssignedQuestion.create({
+        data: {
+          interviewId: tokenRecord.interview.id,
+          questionId: input.questionId || null,
+          customText: input.customQuestion?.text || null,
+          category: input.customQuestion?.category || 'general',
+          isRequired: false,
+          sortOrder: newSortOrder,
+          assignedToInterviewerId: tokenRecord.interviewerId,
+          assignedToInterviewerName: tokenRecord.interviewerName,
+        },
+        include: {
+          question: true,
+        },
+      })
+
+      return {
+        success: true,
+        question: {
+          id: assignedQuestion.id,
+          text: assignedQuestion.question?.text || assignedQuestion.customText || '',
+          category: assignedQuestion.question?.category || assignedQuestion.category || 'general',
+          isCustom: !assignedQuestion.questionId,
+        },
+      }
+    }),
+
+  // Remove question from interviewer's assignments (public)
+  removeInterviewerQuestion: publicProcedure
+    .input(z.object({
+      token: z.string(),
+      assignedQuestionId: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const tokenRecord = await ctx.prisma.interviewerToken.findUnique({
+        where: { token: input.token },
+        include: {
+          interview: {
+            select: { id: true, scheduledAt: true },
+          },
+        },
+      })
+
+      if (!tokenRecord || tokenRecord.tokenType === 'PEOPLE_TEAM') {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Invalid token or not authorized',
+        })
+      }
+
+      // Check lockout
+      const lockoutDays = 3
+      const lockoutDate = tokenRecord.interview.scheduledAt
+        ? new Date(tokenRecord.interview.scheduledAt.getTime() + (lockoutDays * 24 * 60 * 60 * 1000))
+        : null
+      if (lockoutDate && new Date() > lockoutDate) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Cannot edit questions after the feedback period has ended',
+        })
+      }
+
+      // Verify the question is assigned to this interviewer
+      const assignedQuestion = await ctx.prisma.interviewAssignedQuestion.findUnique({
+        where: { id: input.assignedQuestionId },
+      })
+
+      if (!assignedQuestion) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Question not found',
+        })
+      }
+
+      // Only allow removing if assigned to this interviewer
+      if (assignedQuestion.assignedToInterviewerId !== tokenRecord.interviewerId &&
+          assignedQuestion.assignedToInterviewerName !== tokenRecord.interviewerName) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You can only remove questions assigned to you',
+        })
+      }
+
+      await ctx.prisma.interviewAssignedQuestion.delete({
+        where: { id: input.assignedQuestionId },
+      })
+
+      return { success: true }
     }),
 
   // ============================================

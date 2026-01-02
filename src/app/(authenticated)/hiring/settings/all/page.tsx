@@ -17,6 +17,7 @@ import {
   Link2,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
   Edit2,
   X,
   ArrowRight,
@@ -121,8 +122,8 @@ const sectionMap: Record<string, string> = {
   // Evaluation Criteria
   competencies: 'competencies',
   decisionSupport: 'decision-support',
-  personality: 'decision-support',
-  team: 'decision-support',
+  personality: 'personality',
+  team: 'team',
   scoring: 'scoring',
   // Integrations
   webhooks: 'webhooks',
@@ -661,85 +662,126 @@ export default function SettingsPage() {
 
           {/* AuntyPelz Decision Support */}
           {activeSection === 'decision-support' && (
-            <div className="space-y-6">
-              <Card id="personality">
-                <CardHeader className="p-5 border-b">
-                  <h2 className="text-lg font-semibold">Personality Templates</h2>
-                  <p className="text-sm text-muted-foreground">Define ideal OCEAN personality profiles for different departments. Used for team fit analysis.</p>
-                </CardHeader>
-                <CardContent className="p-5">
-                  <div className="mb-4">
-                    <Label className="mb-2 block">Department</Label>
-                    <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                      <SelectTrigger className="w-[200px]">
-                        <SelectValue placeholder="Select department" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="engineering">Engineering</SelectItem>
-                        <SelectItem value="design">Design</SelectItem>
-                        <SelectItem value="growth">Growth</SelectItem>
-                        <SelectItem value="operations">Operations</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="mt-6">
-                    <Label className="mb-4 block">OCEAN Profile ({selectedDepartment})</Label>
-                    <div className="grid grid-cols-5 gap-3">
-                      {Object.entries(oceanProfile).map(([key, value]) => (
-                        <div key={key} className="text-center p-3 border border-border rounded-lg">
-                          <div className="text-xs text-muted-foreground mb-2 capitalize">{key}</div>
-                          <div className="text-lg font-semibold mb-2">{value}%</div>
-                          <Slider
-                            value={[value]}
-                            max={100}
-                            step={1}
-                            onValueChange={([v]) => setOceanProfile((prev) => ({ ...prev, [key]: v }))}
-                            className="w-full"
-                          />
-                        </div>
-                      ))}
+            <Card>
+              <CardContent className="p-0">
+                <div className="divide-y divide-border">
+                  <Link
+                    href="/hiring/settings/all?section=personality"
+                    className="flex items-center gap-4 p-6 hover:bg-muted transition-colors"
+                  >
+                    <div className="bg-indigo-100 p-3 rounded-lg flex-shrink-0">
+                      <Brain className="h-6 w-6 text-indigo-600" />
                     </div>
-                  </div>
-
-                  <div className="mt-6">
-                    <Label className="mb-2 block">Preferred MBTI Types</Label>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTJ</Badge>
-                      <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTP</Badge>
-                      <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">ENTJ</Badge>
-                      <Badge variant="secondary">ENTP</Badge>
-                      <Badge variant="secondary">ISTJ</Badge>
-                      <Badge variant="secondary">ISTP</Badge>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-foreground mb-1">Personality Templates</h3>
+                      <p className="text-sm text-foreground/80">
+                        Define ideal OCEAN personality profiles for department fit analysis.
+                      </p>
                     </div>
-                  </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  </Link>
+                  <Link
+                    href="/hiring/settings/all?section=team"
+                    className="flex items-center gap-4 p-6 hover:bg-muted transition-colors"
+                  >
+                    <div className="bg-indigo-100 p-3 rounded-lg flex-shrink-0">
+                      <Users className="h-6 w-6 text-indigo-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-foreground mb-1">Team Profiles</h3>
+                      <p className="text-sm text-foreground/80">
+                        Configure team-specific preferences and guidance.
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  </Link>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
-                  <Button className="mt-6">
-                    <Save className="h-4 w-4 mr-2" />
-                    Save Profile
+          {/* Personality Templates */}
+          {activeSection === 'personality' && (
+            <Card id="personality">
+              <CardHeader className="p-5 border-b">
+                <h2 className="text-lg font-semibold">Personality Templates</h2>
+                <p className="text-sm text-muted-foreground">Define ideal OCEAN personality profiles for different departments. Used for team fit analysis.</p>
+              </CardHeader>
+              <CardContent className="p-5">
+                <div className="mb-4">
+                  <Label className="mb-2 block">Department</Label>
+                  <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                    <SelectTrigger className="w-[200px]">
+                      <SelectValue placeholder="Select department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="engineering">Engineering</SelectItem>
+                      <SelectItem value="design">Design</SelectItem>
+                      <SelectItem value="growth">Growth</SelectItem>
+                      <SelectItem value="operations">Operations</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="mt-6">
+                  <Label className="mb-4 block">OCEAN Profile ({selectedDepartment})</Label>
+                  <div className="grid grid-cols-5 gap-3">
+                    {Object.entries(oceanProfile).map(([key, value]) => (
+                      <div key={key} className="text-center p-3 border border-border rounded-lg">
+                        <div className="text-xs text-muted-foreground mb-2 capitalize">{key}</div>
+                        <div className="text-lg font-semibold mb-2">{value}%</div>
+                        <Slider
+                          value={[value]}
+                          max={100}
+                          step={1}
+                          onValueChange={([v]) => setOceanProfile((prev) => ({ ...prev, [key]: v }))}
+                          className="w-full"
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-6">
+                  <Label className="mb-2 block">Preferred MBTI Types</Label>
+                  <div className="flex flex-wrap gap-2">
+                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTJ</Badge>
+                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTP</Badge>
+                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">ENTJ</Badge>
+                    <Badge variant="secondary">ENTP</Badge>
+                    <Badge variant="secondary">ISTJ</Badge>
+                    <Badge variant="secondary">ISTP</Badge>
+                  </div>
+                </div>
+
+                <Button className="mt-6">
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Profile
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Team Profiles */}
+          {activeSection === 'team' && (
+            <Card id="team">
+              <CardHeader className="p-5 border-b">
+                <h2 className="text-lg font-semibold">Team Profiles</h2>
+                <p className="text-sm text-muted-foreground">Configure team-specific settings and preferences.</p>
+              </CardHeader>
+              <CardContent className="p-5">
+                <div className="text-center py-10 text-muted-foreground">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
+                  <p>Team profiles are managed in the Teams settings.</p>
+                  <Button variant="outline" className="mt-4" asChild>
+                    <Link href="/settings/teams">
+                      Go to Teams
+                      <ArrowRight className="h-4 w-4 ml-2" />
+                    </Link>
                   </Button>
-                </CardContent>
-              </Card>
-
-              <Card id="team">
-                <CardHeader className="p-5 border-b">
-                  <h2 className="text-lg font-semibold">Team Profiles</h2>
-                  <p className="text-sm text-muted-foreground">Configure team-specific settings and preferences.</p>
-                </CardHeader>
-                <CardContent className="p-5">
-                  <div className="text-center py-10 text-muted-foreground">
-                    <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
-                    <p>Team profiles are managed in the Teams settings.</p>
-                    <Button variant="outline" className="mt-4" asChild>
-                      <Link href="/settings/teams">
-                        Go to Teams
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
           )}
 
           {/* Interview/Hiring Flow */}
