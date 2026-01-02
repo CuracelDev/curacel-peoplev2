@@ -1477,19 +1477,30 @@ export default function SettingsPage() {
 
           {/* Candidate Scoring */}
           {activeSection === 'scoring' && (
+            <>
+            <div className="flex items-center gap-4 mb-6">
+              <Link href="/hiring/settings/interview">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold text-foreground">Candidate Scoring</h1>
+                <p className="text-sm text-foreground/80">
+                  Configure how the overall score is weighted across profile inputs. Missing data is excluded from the calculation.
+                </p>
+              </div>
+              <Button onClick={handleSaveScoreWeights} disabled={updateSettingsMutation.isPending}>
+                <Save className="h-4 w-4 mr-2" />
+                {updateSettingsMutation.isPending ? 'Saving...' : 'Save Scoring'}
+              </Button>
+            </div>
             <Card id="scoring">
               <CardHeader className="p-5 border-b">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h2 className="text-lg font-semibold">Candidate Scoring</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Configure how the overall score is weighted across profile inputs. Missing data is excluded from the calculation.
-                    </p>
+                    <h3 className="text-lg font-semibold">Score Weights</h3>
                   </div>
-                  <Button onClick={handleSaveScoreWeights} disabled={updateSettingsMutation.isPending}>
-                    <Save className="h-4 w-4 mr-2" />
-                    {updateSettingsMutation.isPending ? 'Saving...' : 'Save Scoring'}
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="p-5 space-y-4">
@@ -1530,6 +1541,7 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+            </>
           )}
 
           {/* Interview Types Section */}
@@ -2752,19 +2764,30 @@ function QuestionBankSection() {
   const isEmpty = totalQuestions === 0 && !questionsLoading
 
   return (
+    <>
+    <div className="flex items-center gap-4 mb-6">
+      <Link href="/hiring/settings/interview">
+        <Button variant="ghost" size="icon">
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+      </Link>
+      <div className="flex-1">
+        <h1 className="text-2xl font-bold text-foreground">Question Bank</h1>
+        <p className="text-sm text-foreground/80">
+          Manage reusable interview questions. Questions are automatically suggested when scheduling interviews.
+        </p>
+      </div>
+      <Button onClick={() => setCreateDialogOpen(true)}>
+        <Plus className="h-4 w-4 mr-2" />
+        Add Question
+      </Button>
+    </div>
     <Card id="questions">
       <CardHeader className="p-5 border-b">
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-lg font-semibold">Question Bank</h2>
-            <p className="text-sm text-muted-foreground">
-              Manage reusable interview questions. Questions are automatically suggested when scheduling interviews.
-            </p>
+            <h3 className="text-lg font-semibold">All Questions</h3>
           </div>
-          <Button onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Question
-          </Button>
         </div>
       </CardHeader>
       <CardContent className="p-5">
@@ -3111,5 +3134,6 @@ function QuestionBankSection() {
         </DialogContent>
       </Dialog>
     </Card>
+    </>
   )
 }

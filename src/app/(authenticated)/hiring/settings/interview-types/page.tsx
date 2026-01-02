@@ -2,22 +2,38 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Plus, Video, Trash2, Pencil, Search, MoreHorizontal, Loader2 } from 'lucide-react'
+import { Plus, Video, Trash2, Pencil, Search, MoreHorizontal, Loader2, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import { trpc } from '@/lib/trpc-client'
 import { toast } from 'sonner'
 
 export default function InterviewTypesPage() {
   const [searchQuery, setSearchQuery] = useState('')
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteInput, setDeleteInput] = useState('')
+  const [typeToDelete, setTypeToDelete] = useState<{
+    id: string
+    name: string
+    interviewCount: number
+  } | null>(null)
 
   const interviewTypesQuery = trpc.interviewType.list.useQuery()
   const deleteTypeMutation = trpc.interviewType.delete.useMutation({
@@ -27,6 +43,15 @@ export default function InterviewTypesPage() {
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to delete interview type')
+    },
+  })
+  const updateTypeMutation = trpc.interviewType.update.useMutation({
+    onSuccess: () => {
+      toast.success('Interview type deactivated')
+      interviewTypesQuery.refetch()
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to update interview type')
     },
   })
 
@@ -41,23 +66,58 @@ export default function InterviewTypesPage() {
     return matchesSearch
   })
 
+  const openDeleteDialog = (type: typeof types[number]) => {
+    setTypeToDelete({
+      id: type.id,
+      name: type.name,
+      interviewCount: type._count?.interviews || 0,
+    })
+    setDeleteInput('')
+    setDeleteDialogOpen(true)
+  }
+
+  const handleConfirmDelete = () => {
+    if (!typeToDelete) return
+    if (deleteInput.trim() !== 'DELETE') {
+      toast.error('Type DELETE to confirm')
+      return
+    }
+
+    if (typeToDelete.interviewCount > 0) {
+      updateTypeMutation.mutate({ id: typeToDelete.id, isActive: false })
+    } else {
+      deleteTypeMutation.mutate({ id: typeToDelete.id })
+    }
+    setDeleteDialogOpen(false)
+  }
+
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Link href="/hiring/settings/interview">
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-foreground">Interview Types</h1>
+          <p className="text-sm text-foreground/80">
+            Configure interview types with default durations and question categories.
+          </p>
+        </div>
+        <Link href="/hiring/settings/interview-types/new">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Type
+          </Button>
+        </Link>
+      </div>
       <Card>
         <CardHeader className="p-5 border-b">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-lg font-semibold">Interview Types</h2>
-              <p className="text-sm text-muted-foreground">
-                Configure interview types with default durations and question categories.
-              </p>
+              <h3 className="text-lg font-semibold">All Types</h3>
             </div>
-            <Link href="/hiring/settings/interview-types/new">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Type
-              </Button>
-            </Link>
           </div>
         </CardHeader>
         <CardContent className="p-5">
@@ -118,9 +178,7 @@ export default function InterviewTypesPage() {
                         <DropdownMenuItem
                           className="text-red-600"
                           onClick={() => {
-                            if (confirm('Are you sure you want to delete this interview type?')) {
-                              deleteTypeMutation.mutate({ id: type.id })
-                            }
+                            openDeleteDialog(type)
                           }}
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
@@ -135,6 +193,40 @@ export default function InterviewTypesPage() {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete interview type</DialogTitle>
+            <DialogDescription>
+              {typeToDelete?.interviewCount
+                ? `This type is used by ${typeToDelete.interviewCount} interview(s) and cannot be deleted. Typing DELETE will deactivate it and remove it from new selections.`
+                : 'This action permanently deletes the interview type.'}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="delete-confirm">Type DELETE to confirm</Label>
+            <Input
+              id="delete-confirm"
+              value={deleteInput}
+              onChange={(e) => setDeleteInput(e.target.value)}
+              placeholder="DELETE"
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={deleteTypeMutation.isPending || updateTypeMutation.isPending}
+            >
+              {typeToDelete?.interviewCount ? 'Deactivate' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
