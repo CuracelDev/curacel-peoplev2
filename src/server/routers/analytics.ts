@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { JobCandidateStage } from '@prisma/client'
 import { router, hrAdminProcedure, protectedProcedure } from '@/lib/trpc'
 import {
   startOfMonth,
@@ -1270,7 +1271,7 @@ export const analyticsRouter = router({
     })
 
     // Define pipeline order
-    const pipelineOrder = [
+    const pipelineOrder: JobCandidateStage[] = [
       'APPLIED',
       'HR_SCREEN',
       'TECHNICAL',
@@ -1282,7 +1283,7 @@ export const analyticsRouter = router({
       'HIRED',
     ]
 
-    const stageDisplayNames: Record<string, string> = {
+    const stageDisplayNames: Partial<Record<JobCandidateStage, string>> = {
       APPLIED: 'Applied',
       HR_SCREEN: 'People Chat',
       TECHNICAL: 'Coding Test',
@@ -1294,7 +1295,7 @@ export const analyticsRouter = router({
       HIRED: 'Hired',
     }
 
-    const stageCountMap = new Map(
+    const stageCountMap = new Map<string, number>(
       candidatesByStage.map((item) => [item.stage, item._count.id])
     )
 

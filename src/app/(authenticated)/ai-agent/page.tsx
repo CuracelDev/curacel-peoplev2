@@ -321,8 +321,8 @@ export default function AIAgentPage() {
   const filteredChats = useMemo(() => {
     const term = search.trim().toLowerCase()
     if (!term) return chatList
-    return chatList.filter((chat: { id: string; title: string; lastMessage?: { content?: string } }) => {
-      if (chat.title.toLowerCase().includes(term)) return true
+    return chatList.filter((chat: { id: string; title: string | null; lastMessage?: { content?: string } | null }) => {
+      if (chat.title?.toLowerCase().includes(term)) return true
       const lastContent = chat.lastMessage?.content?.toLowerCase() || ''
       return lastContent.includes(term)
     })
@@ -354,8 +354,8 @@ export default function AIAgentPage() {
           <div className="px-3 py-6 text-sm text-muted-foreground">No chats yet.</div>
         ) : (
           <div className="space-y-1">
-            {filteredChats.map((chat: { id: string; title: string; updatedAt?: Date; lastMessage?: { content?: string; createdAt?: Date } }) => {
-              const title = truncateWords(chat.title, 4)
+            {filteredChats.map((chat) => {
+              const title = truncateWords(chat.title ?? 'Untitled', 4)
               return (
                 <button
                   key={chat.id}
@@ -444,9 +444,9 @@ export default function AIAgentPage() {
               <div className="px-3 py-6 text-sm text-muted-foreground">No chats yet.</div>
             ) : (
               <div className="space-y-1">
-                {filteredChats.map((chat: { id: string; title: string; updatedAt?: Date; lastMessage?: { content?: string; createdAt?: Date } }) => {
+                {filteredChats.map((chat) => {
                   const lastMessage = chat.lastMessage
-                  const title = truncateWords(chat.title, 4)
+                  const title = truncateWords(chat.title ?? 'Untitled', 4)
                   return (
                     <button
                       key={chat.id}

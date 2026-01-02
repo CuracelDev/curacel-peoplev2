@@ -7,11 +7,12 @@ export type SliderProps = Omit<
 > & {
   value?: number[]
   defaultValue?: number[]
+  onChange?: React.ChangeEventHandler<HTMLInputElement>
   onValueChange?: (value: number[]) => void
 }
 
 const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
-  ({ className, value, defaultValue, onValueChange, ...props }, ref) => {
+  ({ className, value, defaultValue, onChange, onValueChange, ...props }, ref) => {
     const rangeProps: React.InputHTMLAttributes<HTMLInputElement> = {
       type: 'range',
       ...props,
@@ -28,7 +29,7 @@ const Slider = React.forwardRef<HTMLInputElement, SliderProps>(
         ref={ref}
         {...rangeProps}
         onChange={(event) => {
-          props.onChange?.(event)
+          onChange?.(event)
           onValueChange?.([Number(event.target.value)])
         }}
         className={cn(

@@ -347,21 +347,23 @@ export async function generateCandidateAnalysis(
   let additionalContext = ''
 
   if (interviewId) {
-    const interview = await prisma.interview.findUnique({
+    const interview = await prisma.candidateInterview.findUnique({
       where: { id: interviewId },
       include: { interviewType: true },
     })
     if (interview) {
-      additionalContext += `\n## Interview Context\nType: ${interview.interviewType?.name}\nNotes: ${interview.notes || 'None'}\n`
+      additionalContext += `\n## Interview Context\nType: ${interview.interviewType?.name}\nFeedback: ${interview.feedback || 'None'}\n`
     }
   }
 
   if (assessmentId) {
     const assessment = await prisma.candidateAssessment.findUnique({
       where: { id: assessmentId },
+      include: { template: true },
     })
     if (assessment) {
-      additionalContext += `\n## Assessment Context\nPlatform: ${assessment.platform}\nScore: ${assessment.score || 'Pending'}\n`
+      const platformLabel = assessment.template?.externalPlatform || assessment.template?.name || 'Unknown'
+      additionalContext += `\n## Assessment Context\nType: ${platformLabel}\nScore: ${assessment.overallScore || 'Pending'}\n`
     }
   }
 

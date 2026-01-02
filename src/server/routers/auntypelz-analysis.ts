@@ -185,8 +185,8 @@ export const auntyPelzAnalysisRouter = router({
       }
 
       // Calculate differences
-      const scoreDelta = analysisB.overallScore - analysisA.overallScore
-      const sentimentDelta = analysisB.sentimentScore - analysisA.sentimentScore
+      const scoreDelta = (analysisB.overallScore ?? 0) - (analysisA.overallScore ?? 0)
+      const sentimentDelta = (analysisB.sentimentScore ?? 0) - (analysisA.sentimentScore ?? 0)
 
       // Compare strengths and concerns
       const strengthsA = analysisA.strengths as string[] || []

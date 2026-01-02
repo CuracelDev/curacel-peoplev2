@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure, adminProcedure, publicProcedure } from '@/lib/trpc'
 import { randomUUID } from 'crypto'
+import type { Prisma } from '@prisma/client'
 
 const assessmentTypeEnum = z.enum([
   'COMPETENCY_TEST',
@@ -1305,11 +1306,13 @@ export const assessmentRouter = router({
       const overallScore = maxPossible > 0 ? Math.round((totalScore / maxPossible) * 100) : 0
 
       // Update assessment with grades
+      const serializedScores = JSON.parse(JSON.stringify(gradedResponses)) as Prisma.InputJsonValue
+
       const assessment = await ctx.prisma.candidateAssessment.update({
         where: { id: input.assessmentId },
         data: {
           overallScore,
-          scores: gradedResponses,
+          scores: serializedScores,
           status: 'COMPLETED',
           completedAt: new Date(),
         },
@@ -1512,7 +1515,7 @@ export const assessmentRouter = router({
           submissionFiles: input.submissionFiles,
           submittedAt: new Date(),
           completedAt: new Date(),
-          submissionMethod: 'CANDIDATE_PORTAL',
+          submissionMethod: 'CANDIDATE',
         },
       })
 

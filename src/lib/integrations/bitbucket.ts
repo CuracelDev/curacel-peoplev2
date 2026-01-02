@@ -104,7 +104,7 @@ async function requestPaginatedWithAuth<T>(
   let page = 0
 
   while (nextUrl && page < maxPages) {
-    const data = await requestJsonWithAuth<{ values?: T[]; next?: string }>(
+    const data: { values?: T[]; next?: string } = await requestJsonWithAuth<{ values?: T[]; next?: string }>(
       nextUrl,
       init,
       [200],

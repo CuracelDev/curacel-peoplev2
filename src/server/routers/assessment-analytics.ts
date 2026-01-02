@@ -544,12 +544,12 @@ export const assessmentAnalyticsRouter = router({
       where: {
         aiRecommendation: { not: null },
         candidate: {
-          status: { in: ['HIRED', 'REJECTED'] },
+          stage: { in: ['HIRED', 'REJECTED'] },
         },
       },
       include: {
         candidate: {
-          select: { status: true },
+          select: { stage: true },
         },
       },
     })
@@ -565,7 +565,7 @@ export const assessmentAnalyticsRouter = router({
     let correctPredictions = 0
 
     for (const a of assessmentsWithOutcomes) {
-      const wasHired = a.candidate.status === 'HIRED'
+      const wasHired = a.candidate.stage === 'HIRED'
       const predictedHire = a.aiRecommendation === 'HIRE'
 
       if ((wasHired && predictedHire) || (!wasHired && !predictedHire)) {

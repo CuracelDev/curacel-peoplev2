@@ -608,8 +608,8 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
 
     return {
       eventId: response.data.id || '',
-      meetLink: response.data.hangoutLink || response.data.conferenceData?.entryPoints?.[0]?.uri,
-      htmlLink: response.data.htmlLink || undefined,
+      meetLink: response.data.hangoutLink ?? response.data.conferenceData?.entryPoints?.[0]?.uri ?? undefined,
+      htmlLink: response.data.htmlLink ?? undefined,
     }
   }
 
@@ -703,8 +703,8 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
         start: new Date(response.data.start?.dateTime || response.data.start?.date || ''),
         end: new Date(response.data.end?.dateTime || response.data.end?.date || ''),
         attendees: (response.data.attendees || []).map(a => a.email || '').filter(Boolean),
-        meetLink: response.data.hangoutLink || response.data.conferenceData?.entryPoints?.[0]?.uri,
-        htmlLink: response.data.htmlLink || undefined,
+        meetLink: response.data.hangoutLink ?? response.data.conferenceData?.entryPoints?.[0]?.uri ?? undefined,
+        htmlLink: response.data.htmlLink ?? undefined,
       }
     } catch {
       return null

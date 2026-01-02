@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { Prisma } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure } from '@/lib/trpc'
 import { normalizeCandidateScoreWeights } from '@/lib/hiring/score-config'
@@ -68,7 +69,10 @@ export const hiringSettingsRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const normalizedScoreWeights = input.candidateScoreWeights
-        ? normalizeCandidateScoreWeights(input.candidateScoreWeights)
+        ? normalizeCandidateScoreWeights(input.candidateScoreWeights as Parameters<typeof normalizeCandidateScoreWeights>[0])
+        : undefined
+      const normalizedScoreWeightsJson = normalizedScoreWeights
+        ? (normalizedScoreWeights as Prisma.InputJsonValue)
         : undefined
 
       // Get or create settings
@@ -81,17 +85,20 @@ export const hiringSettingsRouter = router({
             ...input,
             globalWebhookUrl: input.globalWebhookUrl || null,
             companyLogoUrl: input.companyLogoUrl || null,
-            candidateScoreWeights: normalizedScoreWeights,
+            candidateScoreWeights: normalizedScoreWeightsJson,
           },
         })
       } else {
+        const fallbackScoreWeights = settings.candidateScoreWeights === null
+          ? undefined
+          : (settings.candidateScoreWeights as Prisma.InputJsonValue)
         settings = await ctx.prisma.hiringSettings.update({
           where: { id: settings.id },
           data: {
             ...input,
             globalWebhookUrl: input.globalWebhookUrl || null,
             companyLogoUrl: input.companyLogoUrl || null,
-            candidateScoreWeights: normalizedScoreWeights ?? settings.candidateScoreWeights,
+            candidateScoreWeights: normalizedScoreWeightsJson ?? fallbackScoreWeights,
           },
         })
       }

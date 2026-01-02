@@ -1,4 +1,5 @@
 import { router, protectedProcedure, hrAdminProcedure } from '@/lib/trpc'
+import type { JobCandidateStage } from '@prisma/client'
 import { autoActivateEmployees } from '@/lib/employee-status'
 
 export const dashboardRouter = router({
@@ -220,7 +221,7 @@ export const dashboardRouter = router({
       const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
       const fourteenDaysAgo = new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000)
 
-      const interviewStages = [
+      const interviewStages: JobCandidateStage[] = [
         'HR_SCREEN',
         'TECHNICAL',
         'TEAM_CHAT',

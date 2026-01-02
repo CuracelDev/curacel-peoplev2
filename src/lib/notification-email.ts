@@ -1,7 +1,7 @@
 import { sendEmail } from '@/lib/email'
 import { getOrganizationName } from '@/lib/organization'
 import prisma from '@/lib/prisma'
-import { ADMIN_NOTIFICATION_ROLES, formatAuditAction } from '@/lib/notifications'
+import { formatAuditAction, isAdminRole } from '@/lib/notifications'
 import { getNotificationEmailSettings, listAdminUsers } from '@/lib/notification-settings'
 import { formatDateTime } from '@/lib/utils'
 
@@ -54,7 +54,7 @@ export async function notifyAdminsOfAuditLog(params: {
           })
         : null
       const actorUser = actorById || actorByEmail
-      const isAdmin = actorUser?.role ? ADMIN_NOTIFICATION_ROLES.includes(actorUser.role) : false
+      const isAdmin = isAdminRole(actorUser?.role)
       recipients = isAdmin && actorUser?.email ? [{ id: actorUser.id, email: actorUser.email, name: null, role: actorUser.role }] : []
     }
 
