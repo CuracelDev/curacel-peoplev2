@@ -60,15 +60,24 @@ export class GoogleSheetsService {
   private async getSheetsClient(): Promise<sheets_v4.Sheets> {
     if (this.sheets) return this.sheets
 
-    // Use the same Google Workspace service account as the provisioning integration
-    const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
+    // Try to get credentials from environment variables first
+    let serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
+    let adminEmail = process.env.GOOGLE_WORKSPACE_ADMIN_EMAIL
+
+    // If not in env, try to get from database (same as Google Workspace integration)
+    if (!serviceAccountKey) {
+      const dbConfig = await this.getGoogleConfigFromDatabase()
+      if (dbConfig) {
+        serviceAccountKey = dbConfig.serviceAccountKey
+        adminEmail = dbConfig.adminEmail
+      }
+    }
+
     if (!serviceAccountKey) {
       throw new Error('GOOGLE_SERVICE_ACCOUNT_KEY environment variable is not set. Configure Google Workspace integration in Settings.')
     }
 
     const serviceAccount = JSON.parse(serviceAccountKey)
-    // Use the same admin email as Google Workspace integration
-    const adminEmail = process.env.GOOGLE_WORKSPACE_ADMIN_EMAIL
 
     const auth = new google.auth.JWT({
       email: serviceAccount.client_email,
@@ -79,6 +88,68 @@ export class GoogleSheetsService {
 
     this.sheets = google.sheets({ version: 'v4', auth })
     return this.sheets
+  }
+
+  /**
+   * Get Google service account config from database AppConnection
+   * This mirrors the logic in google-workspace.ts getGoogleWorkspaceConnector()
+   */
+  private async getGoogleConfigFromDatabase(): Promise<{
+    serviceAccountKey: string
+    adminEmail: string
+    domain: string
+  } | null> {
+    try {
+      const { default: prisma } = await import('@/lib/prisma')
+      const { decrypt } = await import('@/lib/encryption')
+
+      // Find Google Workspace app and its active connection
+      const app = await prisma.app.findFirst({
+        where: { type: 'GOOGLE_WORKSPACE' },
+      })
+
+      if (!app) {
+        console.warn('[GoogleSheets] Google Workspace app not found in database')
+        return null
+      }
+
+      const connection = await prisma.appConnection.findFirst({
+        where: { appId: app.id, isActive: true },
+      })
+
+      if (!connection) {
+        console.warn('[GoogleSheets] No active Google Workspace connection found')
+        return null
+      }
+
+      // Parse and decrypt the config
+      let config: Record<string, unknown>
+      try {
+        config = JSON.parse(decrypt(connection.configEncrypted)) as Record<string, unknown>
+      } catch {
+        try {
+          config = JSON.parse(connection.configEncrypted) as Record<string, unknown>
+        } catch {
+          console.warn('[GoogleSheets] Failed to parse Google Workspace config')
+          return null
+        }
+      }
+
+      const domain = typeof config.domain === 'string' ? config.domain : ''
+      const adminEmail = typeof config.adminEmail === 'string' ? config.adminEmail : ''
+      const serviceAccountKey = typeof config.serviceAccountKey === 'string' ? config.serviceAccountKey : ''
+
+      if (!adminEmail || !serviceAccountKey) {
+        console.warn('[GoogleSheets] Google Workspace connection is missing required configuration')
+        return null
+      }
+
+      console.log('[GoogleSheets] Using credentials from database AppConnection')
+      return { domain, adminEmail, serviceAccountKey }
+    } catch (error) {
+      console.error('[GoogleSheets] Error getting Google config from database:', error)
+      return null
+    }
   }
 
   async fetchOnboardingRoster(): Promise<OnboardingRosterRow[]> {
