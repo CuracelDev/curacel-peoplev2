@@ -157,13 +157,13 @@ export default function InterviewsPage() {
   return (
     <div className="space-y-6">
       {/* Header with Filter Cards */}
-      <div className="flex items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-3">
+      <div className="flex items-center justify-between">
+        <div className="flex gap-1.5 flex-nowrap">
           {stages.map((stage) => (
             <button
               key={stage.key}
               className={cn(
-                'flex items-center gap-3 whitespace-nowrap rounded-2xl px-5 py-3 text-base font-medium transition-all',
+                'px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap',
                 activeFilter === stage.key
                   ? 'bg-primary text-white'
                   : 'bg-muted text-foreground/80 hover:bg-muted'
@@ -171,14 +171,12 @@ export default function InterviewsPage() {
               onClick={() => setActiveFilter(stage.key)}
             >
               {stage.label}
-              <span
-                className={cn(
-                  'flex h-6 min-w-[24px] items-center justify-center rounded-lg px-2 text-xs font-semibold',
-                  activeFilter === stage.key
-                    ? 'bg-card/20 text-white'
-                    : 'bg-background text-foreground'
-                )}
-              >
+              <span className={cn(
+                'ml-1.5 px-1 py-0.5 rounded text-[10px]',
+                activeFilter === stage.key
+                  ? 'bg-card/20'
+                  : 'bg-muted'
+              )}>
                 {stage.key === 'all'
                   ? counts?.all || 0
                   : (counts as Record<string, number>)?.[stage.key] || 0}
@@ -187,7 +185,7 @@ export default function InterviewsPage() {
           ))}
         </div>
         <Link href="/hiring/interviews/schedule">
-          <Button size="lg" className="rounded-2xl px-6">
+          <Button size="sm">
             <Plus className="h-4 w-4 mr-2" />
             Schedule Interview
           </Button>

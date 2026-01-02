@@ -221,7 +221,7 @@ export default function AssessmentsPage() {
             </button>
           ))}
         </div>
-        <Button onClick={() => setSendDialogOpen(true)}>
+        <Button size="lg" className="rounded-2xl px-6" onClick={() => setSendDialogOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           Send Assessment
         </Button>
