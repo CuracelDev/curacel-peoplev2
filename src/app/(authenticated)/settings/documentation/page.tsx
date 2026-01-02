@@ -528,7 +528,7 @@ const docSections: DocSection[] = [
         title: 'Create or edit a form',
         ordered: true,
         items: [
-          'Go to Recruiting > Settings > Interest Forms.',
+          'Go to Settings > Hiring > Interest Forms.',
           'Click Create Form or Edit on an existing form.',
           'Enter a form name and optional description.',
           'Add questions with the appropriate field type (Short Text, Long Text, Dropdown, Multi-Select, Rating Scale, etc).',

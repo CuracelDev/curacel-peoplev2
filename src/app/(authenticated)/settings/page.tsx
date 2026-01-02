@@ -16,16 +16,8 @@ import {
   BookOpen,
   Bot,
   Users,
-  GitBranch,
-  Brain,
   Globe,
-  SlidersHorizontal,
-  Settings,
   Briefcase,
-  Zap,
-  ClipboardCheck,
-  FileType,
-  Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -86,58 +78,10 @@ const settingsSections = [
     title: 'Hiring',
     items: [
       {
-        title: 'General Settings',
-        description: 'Shared hiring defaults and display options.',
-        icon: SlidersHorizontal,
-        href: '/hiring/settings/general',
-      },
-      {
-        title: 'Job Settings',
-        description: 'Manage job postings, forms, recruiters, and careers page.',
+        title: 'Hiring',
+        description: 'Manage hiring workflows, forms, templates, and decision support.',
         icon: Briefcase,
-        href: '/settings/job-settings',
-      },
-      {
-        title: 'Interest Forms',
-        description: 'Customize candidate application forms.',
-        icon: ClipboardCheck,
-        href: '/hiring/settings/interest-forms',
-      },
-      {
-        title: 'JD Templates',
-        description: 'Job description templates.',
-        icon: FileType,
-        href: '/hiring/settings/jd-templates',
-      },
-      {
-        title: 'Hiring Flows',
-        description: 'Define interview stages and pipeline.',
-        icon: GitBranch,
-        href: '/hiring/settings/all?section=interview',
-      },
-      {
-        title: 'Interview Settings',
-        description: 'Manage interview types, rubrics, scoring, and question bank.',
-        icon: Settings,
-        href: '/hiring/settings/interview',
-      },
-      {
-        title: 'Assessments',
-        description: 'Configure tests and assessments.',
-        icon: ClipboardList,
-        href: '/hiring/settings/assessments',
-      },
-      {
-        title: 'Auto Send Settings',
-        description: 'Configure automatic stage emails and templates.',
-        icon: Zap,
-        href: '/settings/email-settings',
-      },
-      {
-        title: 'AuntyPelz Decision Support',
-        description: 'Configure personality templates and team profile guidance.',
-        icon: Sparkles,
-        href: '/hiring/settings/all?section=decision-support',
+        href: '/settings/hiring',
       },
     ],
   },

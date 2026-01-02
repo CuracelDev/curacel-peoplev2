@@ -122,6 +122,7 @@ const sectionMap: Record<string, string> = {
   // Evaluation Criteria
   competencies: 'competencies',
   decisionSupport: 'decision-support',
+  'decision-support': 'decision-support',
   personality: 'personality',
   team: 'team',
   scoring: 'scoring',
