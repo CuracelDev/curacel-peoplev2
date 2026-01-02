@@ -69,6 +69,7 @@ export default function EditJobPage() {
   const { data: job, isLoading: jobLoading } = trpc.job.get.useQuery({ id: jobId })
   const { data: teams } = trpc.team.listForSelect.useQuery()
   const { data: jobDescriptions } = trpc.jobDescription.listForSelect.useQuery()
+  const { data: interestForms } = trpc.interestForm.listForSelect.useQuery()
   const { data: competencies } = trpc.competency.listForSelect.useQuery()
   const { data: employees } = trpc.employee.getAllActive.useQuery()
   const updateJob = trpc.job.update.useMutation()
@@ -90,6 +91,7 @@ export default function EditJobPage() {
     equityMax: '',
     autoArchiveLocation: false,
     hiringManagerId: '',
+    interestFormId: '',
   })
 
   const [officeLocations, setOfficeLocations] = useState<string[]>([])
@@ -128,6 +130,7 @@ export default function EditJobPage() {
         equityMax: job.equityMax ? String(job.equityMax) : '',
         autoArchiveLocation: job.autoArchiveLocation || false,
         hiringManagerId: job.hiringManagerId || '',
+        interestFormId: job.interestFormId || '',
       })
       setOfficeLocations(Array.isArray(job.locations) ? job.locations as string[] : [])
       setFollowers(job.followers?.map(f => f.employeeId) || [])
@@ -146,6 +149,7 @@ export default function EditJobPage() {
 
   const selectedFlowData = flows.find((flow) => flow.id === selectedFlow) ?? flows[0]
   const selectedJD = (jobDescriptions || []).find(jd => jd.id === formData.jdId)
+  const availableInterestForms = interestForms || []
 
   const filteredCompetencies = useMemo(() => {
     const allCompetencies = competencies || []
@@ -232,6 +236,11 @@ export default function EditJobPage() {
       setIsSaving(false)
       return
     }
+    if (availableInterestForms.length > 0 && !formData.interestFormId) {
+      setSaveState({ type: 'error', message: 'Select an interest form to continue.' })
+      setIsSaving(false)
+      return
+    }
 
     try {
       await updateJob.mutateAsync({
@@ -252,6 +261,7 @@ export default function EditJobPage() {
         locations: officeLocations,
         hiringFlowId: selectedFlow || null,
         jobDescriptionId: formData.jdId || null,
+        interestFormId: formData.interestFormId || null,
         hiringManagerId: formData.hiringManagerId || null,
         autoArchiveLocation: formData.autoArchiveLocation,
         followerIds: followers,
@@ -528,14 +538,34 @@ export default function EditJobPage() {
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">3</div>
               <h2 className="font-semibold">Job Description</h2>
             </div>
-            <div className="p-5">
-              <Select value={formData.jdId || 'none'} onValueChange={(v) => setFormData({ ...formData, jdId: v === 'none' ? '' : v })}>
-                <SelectTrigger><SelectValue placeholder="Select a job description" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No JD selected</SelectItem>
-                  {(jobDescriptions || []).map((jd) => <SelectItem key={jd.id} value={jd.id}>{jd.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
+            <div className="p-5 space-y-4">
+              <div className="space-y-2">
+                <Label>Job description</Label>
+                <Select value={formData.jdId || 'none'} onValueChange={(v) => setFormData({ ...formData, jdId: v === 'none' ? '' : v })}>
+                  <SelectTrigger><SelectValue placeholder="Select a job description" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">No JD selected</SelectItem>
+                    {(jobDescriptions || []).map((jd) => <SelectItem key={jd.id} value={jd.id}>{jd.name}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Interest form</Label>
+                <Select value={formData.interestFormId || 'none'} onValueChange={(v) => setFormData({ ...formData, interestFormId: v === 'none' ? '' : v })}>
+                  <SelectTrigger><SelectValue placeholder="Select an interest form" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Select an interest form...</SelectItem>
+                    {availableInterestForms.map((form) => (
+                      <SelectItem key={form.id} value={form.id}>{form.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {availableInterestForms.length === 0 && (
+                  <p className="text-sm text-muted-foreground">
+                    Create an interest form in Settings to attach it to this job.
+                  </p>
+                )}
+              </div>
             </div>
           </div>
 

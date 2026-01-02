@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
-import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import { AutoSendStageSettings } from '@/components/settings/auto-send-stage-settings'
@@ -109,7 +108,7 @@ export default function EmailSettingsPage() {
             Gmail Integration
           </CardTitle>
           <CardDescription>
-            Connect to Gmail API for sending emails as recruiters with domain-wide delegation
+            Uses Google Workspace integration for sending emails as recruiters with domain-wide delegation
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -138,9 +137,9 @@ export default function EmailSettingsPage() {
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {testResult === null
-                    ? 'Click test to verify connection'
+                    ? 'Click test to verify Google Workspace connection'
                     : testResult.success
-                      ? 'Gmail API is working correctly'
+                      ? 'Gmail API is working via Google Workspace'
                       : testResult.error}
                 </p>
               </div>
@@ -155,15 +154,9 @@ export default function EmailSettingsPage() {
             </Button>
           </div>
 
-          <div className="grid gap-4 pt-2">
-            <div className="space-y-2">
-              <Label htmlFor="gmail-domain">Gmail Domain</Label>
-              <Input id="gmail-domain" value="curacel.ai" disabled className="bg-muted" />
-              <p className="text-xs text-muted-foreground">
-                Emails will be sent from @curacel.ai addresses via domain-wide delegation
-              </p>
-            </div>
-          </div>
+          <p className="text-xs text-muted-foreground">
+            Gmail integration uses the Google Workspace credentials configured in Settings → Integrations.
+          </p>
         </CardContent>
       </Card>
 
@@ -250,30 +243,6 @@ export default function EmailSettingsPage() {
               </div>
             </div>
             <Switch checked={trackClicks} onCheckedChange={setTrackClicks} />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Environment Variables Info */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base">Environment Configuration</CardTitle>
-          <CardDescription>Required environment variables for Gmail integration</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 font-mono text-xs">
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">GMAIL_SERVICE_ACCOUNT_KEY</Badge>
-              <span className="text-muted-foreground">Service account JSON key</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">GMAIL_DELEGATED_USER</Badge>
-              <span className="text-muted-foreground">Admin user for impersonation</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">GMAIL_DEFAULT_CC</Badge>
-              <span className="text-muted-foreground">Default CC email (optional)</span>
-            </div>
           </div>
         </CardContent>
       </Card>

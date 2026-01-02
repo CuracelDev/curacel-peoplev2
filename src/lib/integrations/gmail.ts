@@ -524,3 +524,70 @@ export function createGmailConnector(): GmailConnector | null {
     defaultCcEmail,
   })
 }
+
+/**
+ * Get Gmail connector - tries environment variables first, then database-stored Google Workspace credentials
+ */
+export async function getGmailConnector(): Promise<GmailConnector | null> {
+  // First try environment variables
+  const envConnector = createGmailConnector()
+  if (envConnector) {
+    return envConnector
+  }
+
+  // Fall back to database-stored Google Workspace credentials
+  try {
+    const { prisma } = await import('@/lib/prisma')
+    const { decrypt } = await import('@/lib/encryption')
+
+    // Find Google Workspace app and its active connection
+    const app = await prisma.app.findFirst({
+      where: { type: 'GOOGLE_WORKSPACE' },
+    })
+
+    if (!app) {
+      console.warn('Google Workspace app not found in database for Gmail integration')
+      return null
+    }
+
+    const connection = await prisma.appConnection.findFirst({
+      where: { appId: app.id, isActive: true },
+    })
+
+    if (!connection) {
+      console.warn('No active Google Workspace connection found for Gmail integration')
+      return null
+    }
+
+    // Parse and decrypt the config
+    let config: Record<string, unknown>
+    try {
+      config = JSON.parse(decrypt(connection.configEncrypted)) as Record<string, unknown>
+    } catch {
+      try {
+        config = JSON.parse(connection.configEncrypted) as Record<string, unknown>
+      } catch {
+        console.warn('Failed to parse Google Workspace config for Gmail integration')
+        return null
+      }
+    }
+
+    const serviceAccountKey = typeof config.serviceAccountKey === 'string' ? config.serviceAccountKey : ''
+    const adminEmail = typeof config.adminEmail === 'string' ? config.adminEmail : ''
+    const defaultCcEmail = process.env.GMAIL_DEFAULT_CC || 'peopleops@curacel.ai'
+
+    if (!serviceAccountKey || !adminEmail) {
+      console.warn('Google Workspace connection is missing required configuration for Gmail')
+      return null
+    }
+
+    return new GmailConnector({
+      serviceAccountKey,
+      delegatedUser: adminEmail,
+      defaultCcEmail,
+    })
+  } catch (error) {
+    console.error('Error getting Gmail connector from database:', error)
+    return null
+  }
+}

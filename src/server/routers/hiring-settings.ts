@@ -65,6 +65,9 @@ export const hiringSettingsRouter = router({
           })
         ).optional(),
         jobScoreDisplay: z.enum(['average', 'max']).optional(),
+        decisionSupportEnabled: z.boolean().optional(),
+        personalityProfilesEnabled: z.boolean().optional(),
+        teamProfilesEnabled: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -175,6 +178,41 @@ export const hiringSettingsRouter = router({
       orderBy: { title: 'asc' },
     })
   }),
+
+  getDecisionSupportJobs: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.job.findMany({
+      select: {
+        id: true,
+        title: true,
+        department: true,
+        status: true,
+        decisionSupportEnabled: true,
+        personalityProfilesEnabled: true,
+        teamProfilesEnabled: true,
+      },
+      orderBy: { title: 'asc' },
+    })
+  }),
+
+  updateJobDecisionSupport: protectedProcedure
+    .input(
+      z.object({
+        jobId: z.string(),
+        decisionSupportEnabled: z.boolean().optional(),
+        personalityProfilesEnabled: z.boolean().optional(),
+        teamProfilesEnabled: z.boolean().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return ctx.prisma.job.update({
+        where: { id: input.jobId },
+        data: {
+          decisionSupportEnabled: input.decisionSupportEnabled,
+          personalityProfilesEnabled: input.personalityProfilesEnabled,
+          teamProfilesEnabled: input.teamProfilesEnabled,
+        },
+      })
+    }),
 
   // Get source channel options (built-in + custom)
   getSourceChannels: protectedProcedure.query(async ({ ctx }) => {

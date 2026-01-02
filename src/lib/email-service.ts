@@ -5,7 +5,7 @@
  */
 
 import { prisma } from './prisma'
-import { createGmailConnector, type SendEmailParams as GmailSendParams } from './integrations/gmail'
+import { getGmailConnector, type SendEmailParams as GmailSendParams } from './integrations/gmail'
 import { addEmailTracking } from './email-tracking'
 import type { Job, JobCandidate, CandidateEmailThread, CandidateEmail, EmailTemplate, EmailReminder } from '@prisma/client'
 
@@ -88,9 +88,9 @@ function cleanSubjectForThreading(subject: string): string {
  * Send an email to a candidate
  */
 export async function sendCandidateEmail(options: SendEmailOptions): Promise<SendEmailResult> {
-  const gmail = createGmailConnector()
+  const gmail = await getGmailConnector()
   if (!gmail) {
-    return { success: false, error: 'Gmail not configured' }
+    return { success: false, error: 'Gmail not configured. Please configure Google Workspace integration.' }
   }
 
   try {
@@ -418,7 +418,7 @@ export async function getTemplateForStage(
  * Sync inbound emails from Gmail thread
  */
 export async function syncInboundEmails(threadId: string): Promise<CandidateEmail[]> {
-  const gmail = createGmailConnector()
+  const gmail = await getGmailConnector()
   if (!gmail) {
     return []
   }

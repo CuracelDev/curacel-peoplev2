@@ -120,8 +120,9 @@ const sectionMap: Record<string, string> = {
   questions: 'questions',
   // Evaluation Criteria
   competencies: 'competencies',
-  personality: 'personality',
-  team: 'team',
+  decisionSupport: 'decision-support',
+  personality: 'decision-support',
+  team: 'decision-support',
   scoring: 'scoring',
   // Integrations
   webhooks: 'webhooks',
@@ -179,7 +180,6 @@ export default function SettingsPage() {
   const [editingFormId, setEditingFormId] = useState<string | null>(null)
   const [formName, setFormName] = useState('')
   const [formDescription, setFormDescription] = useState('')
-  const [formIsDefault, setFormIsDefault] = useState(false)
   const [formQuestions, setFormQuestions] = useState<Question[]>([])
 
   // Rubric state
@@ -460,7 +460,6 @@ export default function SettingsPage() {
       setEditingFormId(form.id)
       setFormName(form.name)
       setFormDescription(form.description || '')
-      setFormIsDefault(form.isDefault)
       setFormQuestions(
         form.questions.map((q) => ({
           id: q.id,
@@ -476,7 +475,6 @@ export default function SettingsPage() {
       setEditingFormId(null)
       setFormName('')
       setFormDescription('')
-      setFormIsDefault(false)
       setFormQuestions([])
     }
     setFormDialogOpen(true)
@@ -487,7 +485,6 @@ export default function SettingsPage() {
     setEditingFormId(null)
     setFormName('')
     setFormDescription('')
-    setFormIsDefault(false)
     setFormQuestions([])
   }
 
@@ -512,7 +509,6 @@ export default function SettingsPage() {
     const data = {
       name: formName,
       description: formDescription || undefined,
-      isDefault: formIsDefault,
       questions: formQuestions.map((q) => ({
         label: q.label,
         type: q.type as 'TEXT' | 'EMAIL' | 'PHONE' | 'URL' | 'TEXTAREA' | 'SELECT' | 'MULTISELECT' | 'RADIO' | 'CHECKBOX' | 'DATE' | 'FILE' | 'SCALE',
@@ -663,88 +659,87 @@ export default function SettingsPage() {
             </Card>
           )}
 
-          {/* Personality Templates */}
-          {activeSection === 'personality' && (
-            <Card id="personality">
-              <CardHeader className="p-5 border-b">
-                <h2 className="text-lg font-semibold">Personality Templates</h2>
-                <p className="text-sm text-muted-foreground">Define ideal OCEAN personality profiles for different departments. Used for team fit analysis.</p>
-              </CardHeader>
-              <CardContent className="p-5">
-                <div className="mb-4">
-                  <Label className="mb-2 block">Department</Label>
-                  <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Select department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="engineering">Engineering</SelectItem>
-                      <SelectItem value="design">Design</SelectItem>
-                      <SelectItem value="growth">Growth</SelectItem>
-                      <SelectItem value="operations">Operations</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="mt-6">
-                  <Label className="mb-4 block">OCEAN Profile ({selectedDepartment})</Label>
-                  <div className="grid grid-cols-5 gap-3">
-                    {Object.entries(oceanProfile).map(([key, value]) => (
-                      <div key={key} className="text-center p-3 border border-border rounded-lg">
-                        <div className="text-xs text-muted-foreground mb-2 capitalize">{key}</div>
-                        <div className="text-lg font-semibold mb-2">{value}%</div>
-                        <Slider
-                          value={[value]}
-                          max={100}
-                          step={1}
-                          onValueChange={([v]) => setOceanProfile((prev) => ({ ...prev, [key]: v }))}
-                          className="w-full"
-                        />
-                      </div>
-                    ))}
+          {/* AuntyPelz Decision Support */}
+          {activeSection === 'decision-support' && (
+            <div className="space-y-6">
+              <Card id="personality">
+                <CardHeader className="p-5 border-b">
+                  <h2 className="text-lg font-semibold">Personality Templates</h2>
+                  <p className="text-sm text-muted-foreground">Define ideal OCEAN personality profiles for different departments. Used for team fit analysis.</p>
+                </CardHeader>
+                <CardContent className="p-5">
+                  <div className="mb-4">
+                    <Label className="mb-2 block">Department</Label>
+                    <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                      <SelectTrigger className="w-[200px]">
+                        <SelectValue placeholder="Select department" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="engineering">Engineering</SelectItem>
+                        <SelectItem value="design">Design</SelectItem>
+                        <SelectItem value="growth">Growth</SelectItem>
+                        <SelectItem value="operations">Operations</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
 
-                <div className="mt-6">
-                  <Label className="mb-2 block">Preferred MBTI Types</Label>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTJ</Badge>
-                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTP</Badge>
-                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">ENTJ</Badge>
-                    <Badge variant="secondary">ENTP</Badge>
-                    <Badge variant="secondary">ISTJ</Badge>
-                    <Badge variant="secondary">ISTP</Badge>
+                  <div className="mt-6">
+                    <Label className="mb-4 block">OCEAN Profile ({selectedDepartment})</Label>
+                    <div className="grid grid-cols-5 gap-3">
+                      {Object.entries(oceanProfile).map(([key, value]) => (
+                        <div key={key} className="text-center p-3 border border-border rounded-lg">
+                          <div className="text-xs text-muted-foreground mb-2 capitalize">{key}</div>
+                          <div className="text-lg font-semibold mb-2">{value}%</div>
+                          <Slider
+                            value={[value]}
+                            max={100}
+                            step={1}
+                            onValueChange={([v]) => setOceanProfile((prev) => ({ ...prev, [key]: v }))}
+                            className="w-full"
+                          />
+                        </div>
+                      ))}
+                    </div>
                   </div>
-                </div>
 
-                <Button className="mt-6">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Profile
-                </Button>
-              </CardContent>
-            </Card>
-          )}
+                  <div className="mt-6">
+                    <Label className="mb-2 block">Preferred MBTI Types</Label>
+                    <div className="flex flex-wrap gap-2">
+                      <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTJ</Badge>
+                      <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTP</Badge>
+                      <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">ENTJ</Badge>
+                      <Badge variant="secondary">ENTP</Badge>
+                      <Badge variant="secondary">ISTJ</Badge>
+                      <Badge variant="secondary">ISTP</Badge>
+                    </div>
+                  </div>
 
-          {/* Team Profiles */}
-          {activeSection === 'team' && (
-            <Card id="team">
-              <CardHeader className="p-5 border-b">
-                <h2 className="text-lg font-semibold">Team Profiles</h2>
-                <p className="text-sm text-muted-foreground">Configure team-specific settings and preferences.</p>
-              </CardHeader>
-              <CardContent className="p-5">
-                <div className="text-center py-10 text-muted-foreground">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
-                  <p>Team profiles are managed in the Teams settings.</p>
-                  <Button variant="outline" className="mt-4" asChild>
-                    <Link href="/settings/teams">
-                      Go to Teams
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Link>
+                  <Button className="mt-6">
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Profile
                   </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+
+              <Card id="team">
+                <CardHeader className="p-5 border-b">
+                  <h2 className="text-lg font-semibold">Team Profiles</h2>
+                  <p className="text-sm text-muted-foreground">Configure team-specific settings and preferences.</p>
+                </CardHeader>
+                <CardContent className="p-5">
+                  <div className="text-center py-10 text-muted-foreground">
+                    <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
+                    <p>Team profiles are managed in the Teams settings.</p>
+                    <Button variant="outline" className="mt-4" asChild>
+                      <Link href="/settings/teams">
+                        Go to Teams
+                        <ArrowRight className="h-4 w-4 ml-2" />
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           )}
 
           {/* Interview/Hiring Flow */}
@@ -1006,9 +1001,6 @@ export default function SettingsPage() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <span className="font-semibold">{form.name}</span>
-                              {form.isDefault && (
-                                <Badge className="bg-success/10 text-success">Default</Badge>
-                              )}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {form.questions.length} questions · Linked to {form._count.jobs} job{form._count.jobs !== 1 ? 's' : ''}
@@ -1820,11 +1812,6 @@ export default function SettingsPage() {
                   placeholder="Optional description"
                 />
               </div>
-            </div>
-
-            <div className="flex items-center gap-2">
-              <Switch checked={formIsDefault} onCheckedChange={setFormIsDefault} />
-              <Label>Set as default form for new jobs</Label>
             </div>
 
             <div className="space-y-4">

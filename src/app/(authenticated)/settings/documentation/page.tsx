@@ -522,7 +522,6 @@ const docSections: DocSection[] = [
           'Interest forms are custom application questionnaires linked to job postings.',
           'Candidates complete these forms when they apply for a position.',
           'Forms can include text fields, dropdowns, multi-select, rating scales, and more.',
-          'One form can be marked as default for new jobs.',
         ],
       },
       {
@@ -644,6 +643,38 @@ const docSections: DocSection[] = [
         items: [
           'Only candidates with a score contribute to the metrics.',
           'The display choice does not change candidate scores, only the jobs list summary.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'decision-support-settings',
+    title: 'AuntyPelz Decision Support',
+    description: 'Manage personality templates, team profile guidance, and toggle them by job.',
+    blocks: [
+      {
+        title: 'Where to configure',
+        items: [
+          'Go to Settings > Hiring > General Settings for global and per-job toggles.',
+          'Go to Settings > Hiring > AuntyPelz Decision Support to edit personality templates and team profile guidance.',
+        ],
+      },
+      {
+        title: 'Global toggles',
+        ordered: true,
+        items: [
+          'Enable decision support to turn on AuntyPelz guidance in hiring insights.',
+          'Toggle Personality profiles to include OCEAN/MBTI templates.',
+          'Toggle Team profiles to include team-specific preferences.',
+        ],
+      },
+      {
+        title: 'Per-job overrides',
+        ordered: true,
+        items: [
+          'In General Settings, find the Per-job overrides list.',
+          'Switch Decision, Personality, or Team for a specific role.',
+          'Use overrides to exclude sensitive roles or experiments.',
         ],
       },
     ],

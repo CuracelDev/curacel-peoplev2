@@ -25,6 +25,7 @@ import {
   Zap,
   ClipboardCheck,
   FileType,
+  Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -133,16 +134,10 @@ const settingsSections = [
         href: '/settings/email-settings',
       },
       {
-        title: 'Personality Profiles',
-        description: 'Define ideal OCEAN personality profiles.',
-        icon: Brain,
-        href: '/hiring/settings/all?section=personality',
-      },
-      {
-        title: 'Team Profiles',
-        description: 'Team-specific settings and preferences.',
-        icon: Users,
-        href: '/hiring/settings/all?section=team',
+        title: 'AuntyPelz Decision Support',
+        description: 'Configure personality templates and team profile guidance.',
+        icon: Sparkles,
+        href: '/hiring/settings/all?section=decision-support',
       },
     ],
   },

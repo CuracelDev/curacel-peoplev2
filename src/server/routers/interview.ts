@@ -840,41 +840,54 @@ export const interviewRouter = router({
         email: string
       }>) || []
 
-      if (!interviewers.length) {
-        return { created: 0, tokens: [] }
-      }
-
       // Get existing tokens
       const existingTokens = await ctx.prisma.interviewerToken.findMany({
         where: { interviewId: input.interviewId },
-        select: { interviewerEmail: true },
+        select: { interviewerEmail: true, tokenType: true },
       })
       const existingEmails = new Set(existingTokens.map(t => t.interviewerEmail))
+      const hasPeopleTeamToken = existingTokens.some(t => t.tokenType === 'PEOPLE_TEAM')
 
       // Find interviewers without tokens
       const newInterviewers = interviewers.filter(i => !existingEmails.has(i.email))
 
-      if (!newInterviewers.length) {
-        return { created: 0, tokens: [] }
-      }
-
       const expiresAt = new Date()
       expiresAt.setDate(expiresAt.getDate() + input.expiresInDays)
 
+      const createdTokens: Array<{ id: string; token: string; tokenType: string; interviewerName: string; interviewerEmail: string }> = []
+
+      // Create People Team token if it doesn't exist
+      if (!hasPeopleTeamToken) {
+        const peopleTeamToken = await ctx.prisma.interviewerToken.create({
+          data: {
+            interviewId: input.interviewId,
+            tokenType: 'PEOPLE_TEAM',
+            interviewerName: 'People Team',
+            interviewerEmail: 'people-team@internal',
+            expiresAt,
+          },
+        })
+        createdTokens.push(peopleTeamToken)
+      }
+
       // Create tokens for new interviewers
-      const createdTokens = await Promise.all(
-        newInterviewers.map((interviewer) =>
-          ctx.prisma.interviewerToken.create({
-            data: {
-              interviewId: input.interviewId,
-              interviewerId: interviewer.employeeId,
-              interviewerName: interviewer.name,
-              interviewerEmail: interviewer.email,
-              expiresAt,
-            },
-          })
+      if (newInterviewers.length) {
+        const interviewerTokens = await Promise.all(
+          newInterviewers.map((interviewer) =>
+            ctx.prisma.interviewerToken.create({
+              data: {
+                interviewId: input.interviewId,
+                tokenType: 'INTERVIEWER',
+                interviewerId: interviewer.employeeId,
+                interviewerName: interviewer.name,
+                interviewerEmail: interviewer.email,
+                expiresAt,
+              },
+            })
+          )
         )
-      )
+        createdTokens.push(...interviewerTokens)
+      }
 
       return { created: createdTokens.length, tokens: createdTokens }
     }),
@@ -1048,16 +1061,28 @@ export const interviewRouter = router({
         role?: string
       }>) || []
 
-      // Get other tokens (panel members) status
+      // Check if this is a People Team token
+      const isPeopleTeam = tokenRecord.tokenType === 'PEOPLE_TEAM'
+
+      // Get other tokens (panel members) status - for People Team, get ALL interviewer tokens
       const allTokens = await ctx.prisma.interviewerToken.findMany({
         where: {
           interviewId: tokenRecord.interviewId,
-          id: { not: tokenRecord.id },
+          tokenType: 'INTERVIEWER', // Only get interviewer tokens, not People Team
+          ...(isPeopleTeam ? {} : { id: { not: tokenRecord.id } }), // People Team sees all, interviewers see others
         },
         select: {
+          id: true,
+          interviewerId: true,
           interviewerName: true,
+          interviewerEmail: true,
           interviewerRole: true,
           evaluationStatus: true,
+          overallRating: true,
+          recommendation: true,
+          evaluationNotes: true,
+          questionResponses: true,
+          submittedAt: true,
         },
       })
 
@@ -1120,9 +1145,36 @@ export const interviewRouter = router({
         : null
       const isLocked = lockoutDate ? new Date() > lockoutDate : false
 
+      // Determine if editing is allowed
+      const canEdit = !isPeopleTeam && !isLocked
+
+      // For People Team, group questions by interviewer with their responses
+      const interviewerQuestionResponses = isPeopleTeam
+        ? allTokens.map(t => ({
+            interviewerId: t.interviewerId,
+            interviewerName: t.interviewerName,
+            interviewerEmail: t.interviewerEmail,
+            evaluationStatus: t.evaluationStatus,
+            overallRating: t.overallRating,
+            recommendation: t.recommendation,
+            evaluationNotes: t.evaluationNotes,
+            submittedAt: t.submittedAt,
+            questionResponses: t.questionResponses as Record<string, { score: number | null; notes: string }> | null,
+            // Questions assigned to this interviewer
+            assignedQuestions: interviewQuestions.filter(
+              q => q.assignedToInterviewerId === t.interviewerId ||
+                   q.assignedToInterviewerName === t.interviewerName
+            ),
+          }))
+        : null
+
       return {
         tokenId: tokenRecord.id,
+        tokenType: tokenRecord.tokenType,
+        isPeopleTeam,
+        canEdit,
         interviewer: {
+          id: tokenRecord.interviewerId,
           name: tokenRecord.interviewerName,
           email: tokenRecord.interviewerEmail,
           role: tokenRecord.interviewerRole,
@@ -1150,10 +1202,18 @@ export const interviewRouter = router({
         } : null,
         rubricCriteria,
         interviewQuestions,
+        // For People Team: full interviewer responses grouped by person
+        interviewerQuestionResponses,
         panelMembers: allTokens.map(t => ({
+          id: t.id,
+          interviewerId: t.interviewerId,
           name: t.interviewerName,
+          email: t.interviewerEmail,
           role: t.interviewerRole,
           status: t.evaluationStatus,
+          overallRating: t.overallRating,
+          recommendation: t.recommendation,
+          submittedAt: t.submittedAt,
         })),
         previousEvaluations: tokenRecord.interview.evaluations.map(e => ({
           evaluatorName: e.evaluatorName,

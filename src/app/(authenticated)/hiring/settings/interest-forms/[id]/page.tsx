@@ -51,7 +51,6 @@ export default function EditInterestFormPage() {
 
   const [formName, setFormName] = useState('')
   const [formDescription, setFormDescription] = useState('')
-  const [formIsDefault, setFormIsDefault] = useState(false)
   const [formQuestions, setFormQuestions] = useState<Question[]>([])
   const [isLoaded, setIsLoaded] = useState(false)
 
@@ -91,7 +90,6 @@ export default function EditInterestFormPage() {
       const form = formQuery.data
       setFormName(form.name)
       setFormDescription(form.description || '')
-      setFormIsDefault(form.isDefault || false)
       setFormQuestions(
         form.questions.map((q) => ({
           id: q.id,
@@ -134,7 +132,6 @@ export default function EditInterestFormPage() {
       id,
       name: formName,
       description: formDescription || undefined,
-      isDefault: formIsDefault,
       questions: formQuestions.filter(q => q.label).map((q) => ({
         label: q.label,
         type: q.type as 'TEXT' | 'EMAIL' | 'PHONE' | 'URL' | 'TEXTAREA' | 'SELECT' | 'MULTISELECT' | 'RADIO' | 'CHECKBOX' | 'DATE' | 'FILE' | 'SCALE',
@@ -215,13 +212,6 @@ export default function EditInterestFormPage() {
                 onChange={(e) => setFormDescription(e.target.value)}
                 placeholder="Optional description"
               />
-            </div>
-          </div>
-          <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
-            <Switch checked={formIsDefault} onCheckedChange={setFormIsDefault} />
-            <div>
-              <Label className="font-medium">Set as default form</Label>
-              <p className="text-sm text-muted-foreground">This form will be used for all new job postings by default</p>
             </div>
           </div>
         </CardContent>

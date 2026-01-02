@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Plus, FileQuestion, Trash2, Pencil, Search, MoreHorizontal, Check, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, FileQuestion, Trash2, Pencil, Search, MoreHorizontal, ChevronDown, ChevronUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -135,12 +135,6 @@ export default function InterestFormsPage() {
                     <div className="flex-1">
                       <div className="flex items-center gap-2">
                         <span className="font-semibold">{form.name}</span>
-                        {form.isDefault && (
-                          <Badge variant="secondary" className="bg-success/10 text-success-foreground">
-                            <Check className="h-3 w-3 mr-1" />
-                            Default
-                          </Badge>
-                        )}
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {form.questions?.length || 0} questions

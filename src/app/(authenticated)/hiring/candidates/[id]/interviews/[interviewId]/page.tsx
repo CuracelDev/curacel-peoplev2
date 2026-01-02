@@ -261,31 +261,43 @@ export default function InterviewDetailPage() {
     return Math.round((totalScore / interview.evaluations.length) * 20) // Convert 1-5 to percentage
   }, [interview?.evaluations])
 
-  // Check if tokens exist
-  const hasTokens = interview?.interviewerTokens && interview.interviewerTokens.length > 0
+  // Split tokens by type
+  const peopleTeamToken = useMemo(() => {
+    return interview?.interviewerTokens?.find((t: { tokenType?: string }) => t.tokenType === 'PEOPLE_TEAM')
+  }, [interview?.interviewerTokens])
+
+  const interviewerTokens = useMemo(() => {
+    return interview?.interviewerTokens?.filter((t: { tokenType?: string }) => t.tokenType !== 'PEOPLE_TEAM') || []
+  }, [interview?.interviewerTokens])
+
+  const hasTokens = interviewerTokens.length > 0 || !!peopleTeamToken
   const hasInterviewers = interviewers.length > 0
 
-  // Generate public link
-  const publicLink = useMemo(() => {
-    if (!interview?.interviewerTokens?.[0]) {
-      return hasInterviewers ? null : `${typeof window !== 'undefined' ? window.location.origin : ''}/interview/${interviewId}`
-    }
-    return `${typeof window !== 'undefined' ? window.location.origin : ''}/interview/${interview.interviewerTokens[0].token}`
-  }, [interview?.interviewerTokens, interviewId, hasInterviewers])
+  // Generate People Team link
+  const peopleTeamLink = useMemo(() => {
+    if (!peopleTeamToken) return null
+    return `${typeof window !== 'undefined' ? window.location.origin : ''}/interview/${peopleTeamToken.token}`
+  }, [peopleTeamToken])
 
   const handleGenerateTokens = () => {
     generateTokensMutation.mutate({ interviewId })
   }
 
-  const handleCopyLink = () => {
-    if (!publicLink) {
-      toast.error('No link available. Generate interviewer links first.')
+  const handleCopyPeopleTeamLink = () => {
+    if (!peopleTeamLink) {
+      toast.error('No People Team link available. Generate links first.')
       return
     }
-    navigator.clipboard.writeText(publicLink)
+    navigator.clipboard.writeText(peopleTeamLink)
     setCopiedLink(true)
-    toast.success('Link copied to clipboard')
+    toast.success('People Team link copied to clipboard')
     setTimeout(() => setCopiedLink(false), 2000)
+  }
+
+  const handleCopyInterviewerLink = (token: { token: string; interviewerName: string }) => {
+    const link = `${typeof window !== 'undefined' ? window.location.origin : ''}/interview/${token.token}`
+    navigator.clipboard.writeText(link)
+    toast.success(`Link copied for ${token.interviewerName}`)
   }
 
   const handleMarkComplete = () => {
@@ -481,92 +493,48 @@ export default function InterviewDetailPage() {
         </div>
       </div>
 
-      {/* Interviewer Link Card */}
+      {/* People Team Link Card */}
       <Card className="mb-6 bg-indigo-50 border-indigo-200">
         <CardContent className="p-3 sm:p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                <Link2 className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600" />
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600" />
+            </div>
+            <div className="flex-1">
+              <div className="font-semibold text-indigo-900 text-sm sm:text-base">
+                People Team Link
               </div>
-              <div>
-                <div className="font-semibold text-indigo-900 text-sm sm:text-base">
-                  Interviewer Link
-                </div>
-                <div className="text-xs sm:text-sm text-indigo-700 hidden sm:block">
-                  Share this link with interviewers to collect feedback
-                </div>
+              <div className="text-xs sm:text-sm text-indigo-700">
+                View-only access to all questions and interviewer responses
               </div>
             </div>
-            {hasInterviewers && !hasTokens ? (
-              // Show generate button when interviewers exist but no tokens
-              <div className="flex items-center gap-2">
-                <div className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded">
-                  Links not generated yet
-                </div>
-                <Button
-                  size="sm"
-                  onClick={handleGenerateTokens}
-                  disabled={generateTokensMutation.isPending}
-                >
-                  {generateTokensMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Link2 className="h-4 w-4 mr-2" />
-                  )}
-                  Generate Links
-                </Button>
-              </div>
-            ) : publicLink ? (
-              // Show link and actions when link exists
-              <div className="flex items-center gap-2 overflow-hidden">
-                <div className="px-2 sm:px-3 py-1.5 bg-card rounded-lg text-xs sm:text-sm font-mono text-foreground/80 border flex-1 sm:flex-none sm:max-w-xs truncate">
-                  {publicLink}
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleCopyLink}
-                  className={cn('flex-shrink-0', copiedLink && 'bg-success/10 border-success/30 text-success')}
-                >
-                  {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                </Button>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="outline" size="sm" className="flex-shrink-0">
-                      <Send className="h-4 w-4 sm:mr-2" />
-                      <span className="hidden sm:inline">Send</span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64">
-                    <div className="p-2">
-                      <div className="text-xs font-medium text-muted-foreground mb-2">
-                        Send to interviewers:
-                      </div>
-                      {interviewers.map((interviewer) => (
-                        <DropdownMenuItem
-                          key={interviewer.id}
-                          onClick={() => {
-                            toast.info(`Email functionality coming soon`)
-                          }}
-                        >
-                          <Mail className="h-4 w-4 mr-2" />
-                          {interviewer.email}
-                        </DropdownMenuItem>
-                      ))}
-                      <DropdownMenuItem>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Add new email...
-                      </DropdownMenuItem>
-                    </div>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
+            {!hasTokens ? (
+              <Button
+                size="sm"
+                onClick={handleGenerateTokens}
+                disabled={generateTokensMutation.isPending}
+              >
+                {generateTokensMutation.isPending ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Link2 className="h-4 w-4 mr-2" />
+                )}
+                Generate Links
+              </Button>
             ) : (
-              // No interviewers
-              <div className="text-xs text-muted-foreground">
-                Add interviewers to generate links
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyPeopleTeamLink}
+                disabled={!peopleTeamLink}
+              >
+                {copiedLink ? (
+                  <Check className="h-3.5 w-3.5 mr-1" />
+                ) : (
+                  <Copy className="h-3.5 w-3.5 mr-1" />
+                )}
+                {copiedLink ? 'Copied!' : 'Copy Link'}
+              </Button>
             )}
           </div>
         </CardContent>
@@ -918,6 +886,61 @@ export default function InterviewDetailPage() {
                             <p className="text-sm">Evaluation not yet submitted</p>
                           </div>
                         )}
+
+                        {/* Interviewer Link */}
+                        {(() => {
+                          const token = interviewerTokens.find(
+                            (t: { interviewerEmail: string }) => t.interviewerEmail === interviewer.email
+                          )
+                          if (token) {
+                            return (
+                              <div className="mt-4 pt-4 border-t">
+                                <div className="flex items-center gap-2">
+                                  <Link2 className="h-4 w-4 text-muted-foreground" />
+                                  <span className="text-sm font-medium">Interview Link</span>
+                                  <Badge
+                                    variant="outline"
+                                    className={cn(
+                                      'text-xs ml-auto',
+                                      token.evaluationStatus === 'SUBMITTED' && 'bg-success/10 text-success border-success/30',
+                                      token.evaluationStatus === 'IN_PROGRESS' && 'bg-amber-100 text-amber-700 border-amber-300',
+                                      token.evaluationStatus === 'PENDING' && 'bg-muted text-muted-foreground'
+                                    )}
+                                  >
+                                    {token.evaluationStatus === 'SUBMITTED' ? 'Submitted' :
+                                     token.evaluationStatus === 'IN_PROGRESS' ? 'In Progress' : 'Pending'}
+                                  </Badge>
+                                </div>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="flex-1"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      handleCopyInterviewerLink(token)
+                                    }}
+                                  >
+                                    <Copy className="h-3.5 w-3.5 mr-1" />
+                                    Copy Link
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      toast.info('Email functionality coming soon')
+                                    }}
+                                  >
+                                    <Send className="h-3.5 w-3.5 mr-1" />
+                                    Send
+                                  </Button>
+                                </div>
+                              </div>
+                            )
+                          }
+                          return null
+                        })()}
 
                         {/* Actions */}
                         <div className="flex gap-2 mt-4 pt-4 border-t">
