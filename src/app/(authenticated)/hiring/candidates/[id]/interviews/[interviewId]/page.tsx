@@ -447,17 +447,29 @@ export default function InterviewDetailPage() {
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center">
-              <Button variant="ghost" size="sm" disabled className="text-muted-foreground text-xs">
-                <ChevronLeft className="h-3.5 w-3.5 mr-1" />
-                Previous
-              </Button>
-              <span className="text-xs text-muted-foreground">/</span>
-              <Button variant="ghost" size="sm" disabled className="text-muted-foreground text-xs">
-                Next Stage
-                <ChevronRight className="h-3.5 w-3.5 ml-1" />
-              </Button>
-            </div>
+            {(interview.previousInterviewId || interview.nextInterviewId) && (
+              <div className="flex items-center">
+                {interview.previousInterviewId && (
+                  <Link href={`/hiring/candidates/${candidateId}/interviews/${interview.previousInterviewId}`}>
+                    <Button variant="ghost" size="sm" className="text-muted-foreground text-xs hover:text-foreground">
+                      <ChevronLeft className="h-3.5 w-3.5 mr-1" />
+                      Previous
+                    </Button>
+                  </Link>
+                )}
+                {interview.previousInterviewId && interview.nextInterviewId && (
+                  <span className="text-xs text-muted-foreground">/</span>
+                )}
+                {interview.nextInterviewId && (
+                  <Link href={`/hiring/candidates/${candidateId}/interviews/${interview.nextInterviewId}`}>
+                    <Button variant="ghost" size="sm" className="text-muted-foreground text-xs hover:text-foreground">
+                      Next
+                      <ChevronRight className="h-3.5 w-3.5 ml-1" />
+                    </Button>
+                  </Link>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Candidate Link */}

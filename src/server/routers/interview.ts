@@ -214,9 +214,31 @@ export const interviewRouter = router({
         })
       }
 
+      // Find next interview for the same candidate
+      const nextInterview = await ctx.prisma.candidateInterview.findFirst({
+        where: {
+          candidateId: interview.candidateId,
+          scheduledAt: { gt: interview.scheduledAt },
+        },
+        orderBy: { scheduledAt: 'asc' },
+        select: { id: true },
+      })
+
+      // Find previous interview for the same candidate
+      const previousInterview = await ctx.prisma.candidateInterview.findFirst({
+        where: {
+          candidateId: interview.candidateId,
+          scheduledAt: { lt: interview.scheduledAt },
+        },
+        orderBy: { scheduledAt: 'desc' },
+        select: { id: true },
+      })
+
       return {
         ...interview,
         stageDisplayName: stageDisplayNames[interview.stage] || interview.stageName || interview.stage,
+        nextInterviewId: nextInterview?.id || null,
+        previousInterviewId: previousInterview?.id || null,
       }
     }),
 
