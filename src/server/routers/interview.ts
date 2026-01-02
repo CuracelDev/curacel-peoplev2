@@ -97,6 +97,7 @@ export const interviewRouter = router({
               },
             },
           },
+          interviewType: true,
         },
         orderBy: [
           { scheduledAt: 'asc' },
@@ -145,7 +146,7 @@ export const interviewRouter = router({
         return {
           ...interview,
           interviewers: enrichedInterviewers,
-          stageDisplayName: stageDisplayNames[interview.stage] || interview.stageName || interview.stage,
+          stageDisplayName: interview.interviewType?.name || stageDisplayNames[interview.stage] || interview.stageName || interview.stage,
         }
       })
     }),
@@ -483,10 +484,11 @@ export const interviewRouter = router({
             email: z.string().email(),
           })
         ).optional(),
+        interviewTypeId: z.string().optional().nullable(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, scheduledAt, duration, meetingLink, notes, interviewers } = input
+      const { id, scheduledAt, duration, meetingLink, notes, interviewers, interviewTypeId } = input
 
       // Build update data
       const updateData: Record<string, unknown> = {}
@@ -495,6 +497,7 @@ export const interviewRouter = router({
       if (meetingLink !== undefined) updateData.meetingLink = meetingLink
       if (notes !== undefined) updateData.feedback = notes
       if (interviewers !== undefined) updateData.interviewers = interviewers
+      if (interviewTypeId !== undefined) updateData.interviewTypeId = interviewTypeId
 
       const interview = await ctx.prisma.candidateInterview.update({
         where: { id },

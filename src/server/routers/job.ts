@@ -537,10 +537,18 @@ export const jobRouter = router({
         notes: z.string().optional().nullable(),
         decisionStatus: z.enum(['PENDING', 'HIRE', 'HOLD', 'NO_HIRE']).optional(),
         decisionNotes: z.string().optional().nullable(),
+        skipAutoEmail: z.boolean().optional().default(false),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, decisionStatus, decisionNotes, ...data } = input
+      const { id, decisionStatus, decisionNotes, skipAutoEmail, ...data } = input
+
+      // Get current candidate state for stage comparison
+      const currentCandidate = await ctx.prisma.jobCandidate.findUnique({
+        where: { id },
+        select: { stage: true },
+      })
+
       const updateData: Record<string, unknown> = { ...data }
 
       if (decisionStatus) {
@@ -554,10 +562,36 @@ export const jobRouter = router({
         updateData.decisionNotes = decisionNotes
       }
 
-      return ctx.prisma.jobCandidate.update({
+      const result = await ctx.prisma.jobCandidate.update({
         where: { id },
         data: updateData,
       })
+
+      // Queue auto-email if stage changed
+      if (input.stage && currentCandidate && input.stage !== currentCandidate.stage) {
+        try {
+          const { queueStageEmail } = await import('@/lib/jobs/stage-email')
+          const { getWorker } = await import('@/lib/jobs/worker')
+
+          const boss = getWorker()
+          if (boss && ctx.user) {
+            await queueStageEmail(boss, {
+              candidateId: id,
+              fromStage: currentCandidate.stage,
+              toStage: input.stage,
+              recruiterId: ctx.user.id,
+              recruiterEmail: ctx.user.email || '',
+              recruiterName: ctx.user.name || undefined,
+              skipAutoEmail: skipAutoEmail || false,
+            })
+          }
+        } catch (error) {
+          // Log error but don't fail the mutation
+          console.error('[updateCandidate] Failed to queue stage email:', error)
+        }
+      }
+
+      return result
     }),
 
   // Bulk update candidate stages
@@ -566,13 +600,49 @@ export const jobRouter = router({
       z.object({
         candidateIds: z.array(z.string()),
         stage: JobCandidateStageEnum,
+        skipAutoEmail: z.boolean().optional().default(false),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      return ctx.prisma.jobCandidate.updateMany({
+      // Get current stages for all candidates
+      const currentCandidates = await ctx.prisma.jobCandidate.findMany({
+        where: { id: { in: input.candidateIds } },
+        select: { id: true, stage: true },
+      })
+
+      // Update all candidates
+      const result = await ctx.prisma.jobCandidate.updateMany({
         where: { id: { in: input.candidateIds } },
         data: { stage: input.stage },
       })
+
+      // Queue auto-emails for candidates whose stage actually changed
+      try {
+        const { queueStageEmail } = await import('@/lib/jobs/stage-email')
+        const { getWorker } = await import('@/lib/jobs/worker')
+
+        const boss = getWorker()
+        if (boss && ctx.user) {
+          for (const candidate of currentCandidates) {
+            if (candidate.stage !== input.stage) {
+              await queueStageEmail(boss, {
+                candidateId: candidate.id,
+                fromStage: candidate.stage,
+                toStage: input.stage,
+                recruiterId: ctx.user.id,
+                recruiterEmail: ctx.user.email || '',
+                recruiterName: ctx.user.name || undefined,
+                skipAutoEmail: input.skipAutoEmail || false,
+              })
+            }
+          }
+        }
+      } catch (error) {
+        // Log error but don't fail the mutation
+        console.error('[bulkUpdateCandidateStage] Failed to queue stage emails:', error)
+      }
+
+      return result
     }),
 
   // Delete a candidate

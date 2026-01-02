@@ -7,6 +7,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { AssessmentStatus, Prisma } from '@prisma/client'
 import { getConnector } from '@/lib/integrations/assessments'
 import { analyzeAssessmentResults } from '@/lib/ai/hiring/assessment-analysis'
 import { decrypt } from '@/lib/encryption'
@@ -115,12 +116,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
     }
 
     // Map status to our enum
-    const statusMap: Record<string, string> = {
-      PENDING: 'PENDING',
-      IN_PROGRESS: 'IN_PROGRESS',
-      COMPLETED: 'COMPLETED',
-      EXPIRED: 'EXPIRED',
-      CANCELLED: 'CANCELLED',
+    const statusMap: Record<string, AssessmentStatus> = {
+      PENDING: AssessmentStatus.NOT_STARTED,
+      IN_PROGRESS: AssessmentStatus.IN_PROGRESS,
+      COMPLETED: AssessmentStatus.COMPLETED,
+      EXPIRED: AssessmentStatus.EXPIRED,
+      CANCELLED: AssessmentStatus.CANCELLED,
     }
 
     // Update assessment with results
@@ -128,10 +129,10 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       where: { id: assessment.id },
       data: {
         status: statusMap[results.status] || assessment.status,
-        score: results.score ?? assessment.score,
+        overallScore: results.score ?? assessment.overallScore,
         completedAt: results.completedAt ?? assessment.completedAt,
-        dimensionScores: results.dimensionScores ?? assessment.dimensionScores,
-        resultData: results.rawResults ?? assessment.resultData,
+        dimensionScores: (results.dimensionScores ?? assessment.dimensionScores) as Prisma.InputJsonValue,
+        resultData: (results.rawResults ?? assessment.resultData) as Prisma.InputJsonValue,
         updatedAt: new Date(),
       },
     })
@@ -145,29 +146,12 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
         await prisma.candidateAssessment.update({
           where: { id: assessment.id },
           data: {
-            aiAnalysis: aiAnalysis as unknown as Record<string, unknown>,
+            aiAnalysis: aiAnalysis as unknown as Prisma.InputJsonValue,
             aiRecommendation: aiAnalysis.recommendation,
             aiConfidence: aiAnalysis.confidence,
           },
         })
 
-        // Create audit log
-        await prisma.auditLog.create({
-          data: {
-            actorType: 'system',
-            action: 'CREATE',
-            resourceType: 'assessment_analysis',
-            resourceId: assessment.id,
-            metadata: {
-              event: 'AI_ANALYSIS_GENERATED',
-              assessmentName: assessment.template.name,
-              candidateName: assessment.candidate.name,
-              recommendation: aiAnalysis.recommendation,
-              confidence: aiAnalysis.confidence,
-              score: results.score,
-            },
-          },
-        })
       } catch (aiError) {
         console.error('Failed to generate AI analysis:', aiError)
         // Don't fail the webhook if AI analysis fails
@@ -179,7 +163,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
       data: {
         source: platform,
         eventType: validation.eventType || 'unknown',
-        payload: payload as Record<string, unknown>,
+        payload: payload as Prisma.InputJsonValue,
         status: 'SUCCESS',
         processedAt: new Date(),
       },

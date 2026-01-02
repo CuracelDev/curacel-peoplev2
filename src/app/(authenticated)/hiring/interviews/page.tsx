@@ -484,6 +484,8 @@ export default function InterviewsPage() {
             meetingLink: selectedInterview.meetingLink,
             feedback: selectedInterview.feedback,
             interviewers: selectedInterview.interviewers as Array<{ employeeId?: string; name: string; email: string }> || [],
+            interviewTypeId: (selectedInterview as { interviewTypeId?: string | null }).interviewTypeId,
+            stageName: (selectedInterview as { stageName?: string | null }).stageName,
           }}
           onSuccess={() => {
             utils.interview.list.invalidate()

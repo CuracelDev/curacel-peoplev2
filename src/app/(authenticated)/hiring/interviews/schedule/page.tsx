@@ -1046,7 +1046,7 @@ export default function ScheduleInterviewPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Left Panel: Question Sources (Bank or AI) */}
           <div>
-            <Card className="sticky top-4 h-[580px] flex flex-col">
+            <Card className="sticky top-4 min-h-[calc(100vh-140px)] flex flex-col">
               <CardHeader className="pb-2 px-3 pt-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <BookOpen className="h-4 w-4" />
@@ -1182,7 +1182,7 @@ export default function ScheduleInterviewPage() {
 
           {/* Right Panel: Selected Questions */}
           <div>
-            <Card className="h-[580px] flex flex-col">
+            <Card className="min-h-[calc(100vh-140px)] flex flex-col">
               <CardHeader className="pb-2 px-3 pt-3">
                 <div className="flex items-center justify-between">
                   <div>
@@ -1268,7 +1268,7 @@ export default function ScheduleInterviewPage() {
                 {/* Add Custom Question */}
                 <div className="pt-3 border-t space-y-2 mt-auto">
                   <Label className="text-sm font-medium">Add Custom Question</Label>
-                  <div className="flex gap-2">
+                  <div className="flex items-center gap-2 mb-2">
                     <Select value={customQuestionCategory} onValueChange={setCustomQuestionCategory}>
                       <SelectTrigger className="w-28 h-8">
                         <SelectValue />
@@ -1279,30 +1279,32 @@ export default function ScheduleInterviewPage() {
                         ))}
                       </SelectContent>
                     </Select>
-                    <Input
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="save-to-bank"
+                        checked={saveCustomToBank}
+                        onCheckedChange={(v) => setSaveCustomToBank(v as boolean)}
+                      />
+                      <Label htmlFor="save-to-bank" className="text-xs text-muted-foreground">
+                        Save to question bank
+                      </Label>
+                    </div>
+                  </div>
+                  <div className="flex gap-2 items-end">
+                    <Textarea
                       placeholder="Type your custom question..."
                       value={customQuestionText}
                       onChange={(e) => setCustomQuestionText(e.target.value)}
-                      className="flex-1 h-8"
+                      className="flex-1 min-h-[80px] resize-none"
                       onKeyDown={(e) => {
-                        if (e.key === 'Enter' && customQuestionText.trim()) {
+                        if (e.key === 'Enter' && e.metaKey && customQuestionText.trim()) {
                           addCustomQuestion()
                         }
                       }}
                     />
-                    <Button onClick={addCustomQuestion} disabled={!customQuestionText.trim()} size="sm" className="h-8">
+                    <Button onClick={addCustomQuestion} disabled={!customQuestionText.trim()} size="icon" className="h-10 w-10">
                       <Plus className="h-4 w-4" />
                     </Button>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="save-to-bank"
-                      checked={saveCustomToBank}
-                      onCheckedChange={(v) => setSaveCustomToBank(v as boolean)}
-                    />
-                    <Label htmlFor="save-to-bank" className="text-xs text-muted-foreground">
-                      Save to question bank
-                    </Label>
                   </div>
                 </div>
               </CardContent>

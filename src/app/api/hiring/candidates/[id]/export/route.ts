@@ -176,7 +176,7 @@ export async function GET(
     orderBy: { createdAt: 'desc' },
   })
 
-  const settings = await prisma.recruitingSettings.findFirst()
+  const settings = await prisma.hiringSettings.findFirst()
   const normalizedWeights = normalizeCandidateScoreWeights(
     settings?.candidateScoreWeights as CandidateScoreComponent[] | null
   )
@@ -325,7 +325,9 @@ export async function GET(
     }
   })
 
-  const mustValidate = Array.isArray(candidate.mustValidate) ? candidate.mustValidate : []
+  const mustValidate = Array.isArray(candidate.mustValidate)
+    ? candidate.mustValidate.filter((item): item is string => typeof item === 'string')
+    : []
   const recommendationStrengths = Array.isArray(latestAnalysis?.strengths)
     ? (latestAnalysis?.strengths as string[])
     : Array.isArray(candidate.recommendationStrengths)
@@ -661,7 +663,7 @@ export async function GET(
   const fileNameBase = safeFileName(candidate.name || 'candidate')
   const fileName = `candidate-profile-${fileNameBase || 'export'}.pdf`
 
-  return new NextResponse(pdfBuffer, {
+  return new NextResponse(new Uint8Array(pdfBuffer), {
     headers: {
       'Content-Type': 'application/pdf',
       'Content-Disposition': `attachment; filename="${fileName}"`,

@@ -866,12 +866,14 @@ export default function PublicInterviewPage() {
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Scheduled</span>
                   <span className="font-medium">
-                    {new Date(interviewData.interview.scheduledAt).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      hour: 'numeric',
-                      minute: '2-digit',
-                    })}
+                    {interviewData.interview.scheduledAt
+                      ? new Date(interviewData.interview.scheduledAt).toLocaleDateString('en-US', {
+                          month: 'short',
+                          day: 'numeric',
+                          hour: 'numeric',
+                          minute: '2-digit',
+                        })
+                      : 'TBD'}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">

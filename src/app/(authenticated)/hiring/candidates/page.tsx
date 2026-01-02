@@ -100,6 +100,15 @@ export default function CandidatesPage() {
     notes: '',
   })
 
+  // Bulk stage change state
+  const [stageChangeDialog, setStageChangeDialog] = useState<{
+    open: boolean
+    candidateIds: string[]
+    stage: string
+    stageName: string
+  } | null>(null)
+  const [skipAutoEmail, setSkipAutoEmail] = useState(false)
+
   // Bulk upload state
   const [bulkUploadStep, setBulkUploadStep] = useState<'upload' | 'mapping' | 'importing' | 'complete'>('upload')
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
@@ -138,8 +147,25 @@ export default function CandidatesPage() {
     onSuccess: () => {
       utils.job.getAllCandidates.invalidate()
       setSelectedCandidates([])
+      setStageChangeDialog(null)
+      setSkipAutoEmail(false)
     },
   })
+
+  // Handle bulk stage change with dialog
+  const handleBulkStageChange = (candidateIds: string[], stage: string, stageName: string) => {
+    setStageChangeDialog({ open: true, candidateIds, stage, stageName })
+  }
+
+  const confirmBulkStageChange = () => {
+    if (stageChangeDialog) {
+      bulkUpdateStage.mutate({
+        candidateIds: stageChangeDialog.candidateIds,
+        stage: stageChangeDialog.stage as 'ARCHIVED' | 'REJECTED',
+        skipAutoEmail,
+      })
+    }
+  }
 
   // Build query params based on filters
   const sortBy = sortOption.startsWith('score') ? 'score' as const :
@@ -843,10 +869,10 @@ export default function CandidatesPage() {
             : new Date(candidate.updatedAt)
           return formatDistanceToNow(updatedDate, { addSuffix: true })
         }}
-        onArchiveCandidate={(id) => updateCandidateStage.mutate({ id, stage: 'ARCHIVED' })}
-        onRejectCandidate={(id) => updateCandidateStage.mutate({ id, stage: 'REJECTED' })}
-        onBulkArchive={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'ARCHIVED' })}
-        onBulkReject={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'REJECTED' })}
+        onArchiveCandidate={(id) => handleBulkStageChange([id], 'ARCHIVED', 'Archive')}
+        onRejectCandidate={(id) => handleBulkStageChange([id], 'REJECTED', 'Reject')}
+        onBulkArchive={(ids) => handleBulkStageChange(ids, 'ARCHIVED', 'Archive')}
+        onBulkReject={(ids) => handleBulkStageChange(ids, 'REJECTED', 'Reject')}
         bulkActions={(
           <Button size="sm" className="bg-success hover:bg-success text-xs sm:text-sm">
             <span className="hidden sm:inline">Advance to Next Stage</span>
@@ -871,6 +897,58 @@ export default function CandidatesPage() {
           </div>
         )}
       />
+
+      {/* Stage Change Confirmation Dialog */}
+      <Dialog
+        open={stageChangeDialog?.open ?? false}
+        onOpenChange={(open) => {
+          if (!open) {
+            setStageChangeDialog(null)
+            setSkipAutoEmail(false)
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {stageChangeDialog?.stageName} {stageChangeDialog?.candidateIds.length === 1 ? 'Candidate' : `${stageChangeDialog?.candidateIds.length} Candidates`}
+            </DialogTitle>
+            <DialogDescription>
+              This will move {stageChangeDialog?.candidateIds.length === 1 ? 'this candidate' : `${stageChangeDialog?.candidateIds.length} candidates`} to the {stageChangeDialog?.stageName?.toLowerCase()} stage.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex items-center space-x-2 py-4">
+            <Checkbox
+              id="skipAutoEmail"
+              checked={skipAutoEmail}
+              onCheckedChange={(checked) => setSkipAutoEmail(checked === true)}
+            />
+            <Label htmlFor="skipAutoEmail" className="text-sm cursor-pointer">
+              Skip automatic stage notification email
+            </Label>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setStageChangeDialog(null)
+                setSkipAutoEmail(false)
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={confirmBulkStageChange}
+              disabled={bulkUpdateStage.isPending}
+            >
+              {bulkUpdateStage.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

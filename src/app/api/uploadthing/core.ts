@@ -17,9 +17,9 @@ export const ourFileRouter = {
 
   // Endpoint for public candidate resume uploads (no auth required)
   candidateResume: f({
-    pdf: { maxFileSize: '5MB', maxFileCount: 1 },
-    'application/msword': { maxFileSize: '5MB', maxFileCount: 1 },
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { maxFileSize: '5MB', maxFileCount: 1 },
+    pdf: { maxFileSize: '8MB', maxFileCount: 1 },
+    'application/msword': { maxFileSize: '8MB', maxFileCount: 1 },
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { maxFileSize: '8MB', maxFileCount: 1 },
   })
     .onUploadComplete(async ({ file }) => {
       console.log('Candidate resume uploaded:', file.url)
