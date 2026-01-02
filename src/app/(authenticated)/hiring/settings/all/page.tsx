@@ -20,6 +20,7 @@ import {
   ChevronRight,
   Edit2,
   X,
+  ArrowLeft,
   ArrowRight,
   Check,
   Webhook,
@@ -715,6 +716,19 @@ export default function SettingsPage() {
           {/* AuntyPelz Decision Support */}
           {activeSection === 'decision-support' && (
             <>
+            <div className="flex items-center gap-4 mb-6">
+              <Link href="/settings">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">AuntyPelz Decision Support</h1>
+                <p className="text-sm text-foreground/80">
+                  Configure personality templates and team profile guidance for hiring insights.
+                </p>
+              </div>
+            </div>
             <Card>
               <CardContent className="p-6 space-y-6">
                 <div className="space-y-4">
