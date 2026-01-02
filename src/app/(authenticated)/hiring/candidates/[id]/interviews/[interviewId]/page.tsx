@@ -402,11 +402,11 @@ export default function InterviewDetailPage() {
       {/* Header */}
       <div className="mb-6">
         <Link
-          href={`/recruiting/candidates/${candidateId}`}
+          href="/hiring/interviews"
           className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
         >
           <ArrowLeft className="h-4 w-4 mr-1" />
-          Back to Candidate
+          Back to Interviews
         </Link>
 
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
@@ -495,11 +495,19 @@ export default function InterviewDetailPage() {
                     </DropdownMenuItem>
                   </>
                 )}
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    window.open(`/api/hiring/interviews/${interviewId}/export`, '_blank')
+                  }}
+                >
                   <FileText className="h-4 w-4 mr-2" />
                   Export to PDF
                 </DropdownMenuItem>
-                <DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    toast.info('Email summary functionality coming soon')
+                  }}
+                >
                   <Mail className="h-4 w-4 mr-2" />
                   Email Summary
                 </DropdownMenuItem>
