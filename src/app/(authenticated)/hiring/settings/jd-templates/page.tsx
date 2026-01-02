@@ -70,9 +70,48 @@ const DEPARTMENTS = [
   { value: 'Finance', icon: Briefcase, color: 'text-emerald-500 bg-emerald-50' },
 ]
 
-function getDepartmentInfo(department: string | null) {
-  if (!department) return { icon: Briefcase, color: 'text-muted-foreground bg-muted/50' }
-  return DEPARTMENTS.find(d => d.value === department) || { icon: Briefcase, color: 'text-muted-foreground bg-muted/50' }
+function getDepartmentInfo(department: string | null, jobTitle?: string) {
+  const searchText = department || jobTitle || ''
+  if (!searchText) return { icon: Briefcase, color: 'text-muted-foreground bg-muted/50' }
+
+  // Try exact match first on department
+  if (department) {
+    const exactMatch = DEPARTMENTS.find(d => d.value === department)
+    if (exactMatch) return exactMatch
+  }
+
+  // Try case-insensitive partial match
+  const normalized = searchText.toLowerCase()
+  const partialMatch = DEPARTMENTS.find(d =>
+    normalized.includes(d.value.toLowerCase()) ||
+    d.value.toLowerCase().includes(normalized)
+  )
+  if (partialMatch) return partialMatch
+
+  // Keyword-based matching for common role/team patterns
+  if (normalized.includes('engineer') || normalized.includes('developer') || normalized.includes('devops') || normalized.includes('backend') || normalized.includes('frontend') || normalized.includes('technical')) {
+    return DEPARTMENTS.find(d => d.value === 'Engineering')!
+  }
+  if (normalized.includes('design') || normalized.includes('ux') || normalized.includes('ui') || normalized.includes('product design')) {
+    return DEPARTMENTS.find(d => d.value === 'Design')!
+  }
+  if (normalized.includes('market') || normalized.includes('growth') || normalized.includes('content') || normalized.includes('brand')) {
+    return DEPARTMENTS.find(d => d.value === 'Marketing')!
+  }
+  if (normalized.includes('sales') || normalized.includes('business development') || normalized.includes('account') || normalized.includes('revenue')) {
+    return DEPARTMENTS.find(d => d.value === 'Sales')!
+  }
+  if (normalized.includes('people') || normalized.includes('hr') || normalized.includes('human resources') || normalized.includes('talent') || normalized.includes('recruiting')) {
+    return DEPARTMENTS.find(d => d.value === 'People')!
+  }
+  if (normalized.includes('operations') || normalized.includes('ops')) {
+    return DEPARTMENTS.find(d => d.value === 'Operations')!
+  }
+  if (normalized.includes('finance') || normalized.includes('accounting') || normalized.includes('financial')) {
+    return DEPARTMENTS.find(d => d.value === 'Finance')!
+  }
+
+  return { icon: Briefcase, color: 'text-muted-foreground bg-muted/50' }
 }
 
 function stripHtml(html: string): string {
@@ -203,7 +242,7 @@ export default function JDsPage() {
             </TableHeader>
             <TableBody>
               {filteredJDs.map((jd) => {
-                const deptInfo = getDepartmentInfo(jd.department)
+                const deptInfo = getDepartmentInfo(jd.department, jd.name)
                 const DeptIcon = deptInfo.icon
 
                 return (
