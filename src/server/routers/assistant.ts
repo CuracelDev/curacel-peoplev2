@@ -1949,6 +1949,8 @@ async function flexibleQuery(
 
     const decryptedKey = decrypt(encryptedKey)
 
+    console.log('[flexible_query] Using provider:', settings.provider, 'model:', modelToUse)
+
     // Generate the Prisma query using AI
     let querySpec: { model: string; operation: string; args: Record<string, unknown>; format: string }
 
@@ -1971,10 +1973,13 @@ async function flexibleQuery(
       })
 
       if (!response.ok) {
-        throw new Error(`OpenAI API error: ${response.statusText}`)
+        const errorBody = await response.text()
+        console.error('[flexible_query] OpenAI error:', response.status, errorBody)
+        throw new Error(`OpenAI API error: ${response.status} - ${errorBody.slice(0, 200)}`)
       }
 
       const data = await response.json()
+      console.log('[flexible_query] OpenAI response:', JSON.stringify(data.choices[0].message.content).slice(0, 200))
       querySpec = JSON.parse(data.choices[0].message.content)
     } else if (settings.provider === 'ANTHROPIC') {
       const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -1993,11 +1998,14 @@ async function flexibleQuery(
       })
 
       if (!response.ok) {
-        throw new Error(`Anthropic API error: ${response.statusText}`)
+        const errorBody = await response.text()
+        console.error('[flexible_query] Anthropic error:', response.status, errorBody)
+        throw new Error(`Anthropic API error: ${response.status} - ${errorBody.slice(0, 200)}`)
       }
 
       const data = await response.json()
       const content = data.content[0].text
+      console.log('[flexible_query] Anthropic response:', content.slice(0, 200))
       // Extract JSON from response
       const jsonMatch = content.match(/\{[\s\S]*\}/)
       if (!jsonMatch) throw new Error('No valid JSON in response')
@@ -2069,6 +2077,7 @@ async function flexibleQuery(
       message: querySpec.format ? `${querySpec.format}\n\n${message}` : message,
     }
   } catch (error) {
+    console.error('[flexible_query] Error:', error)
     return {
       status: 'error',
       message: `Query failed: ${error instanceof Error ? error.message : 'Unknown error'}`,

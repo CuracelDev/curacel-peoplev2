@@ -236,6 +236,14 @@ export default function InterviewDetailPage() {
     },
   })
 
+  const {
+    data: assignedQuestions,
+    isLoading: questionsLoading,
+  } = trpc.interview.getAssignedQuestions.useQuery(
+    { interviewId },
+    { enabled: !!interviewId }
+  )
+
   // Derived data
   const interviewers = useMemo(() => {
     if (!interview?.interviewers) return []
@@ -738,13 +746,86 @@ export default function InterviewDetailPage() {
 
         {/* Questions Tab */}
         <TabsContent value="questions" className="mt-6">
-          <Card className="text-center py-12">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Interview Questions</CardTitle>
+              <CardDescription>
+                Questions assigned to this interview and their interviewer assignments.
+              </CardDescription>
+            </CardHeader>
             <CardContent>
-              <FileText className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">Questions Coming Soon</h3>
-              <p className="text-muted-foreground mb-4">
-                Interview questions and scorecard integration will be available in Phase 4.
-              </p>
+              {questionsLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : assignedQuestions && assignedQuestions.length > 0 ? (
+                <div className="space-y-3">
+                  {assignedQuestions.map((question, index) => (
+                    <div key={question.id} className="border border-border rounded-lg p-4">
+                      <div className="flex items-start justify-between gap-4">
+                        <div>
+                          <div className="flex items-center gap-2 mb-2">
+                            <Badge variant="secondary">Q{index + 1}</Badge>
+                            {question.category && (
+                              <Badge variant="outline" className="capitalize">
+                                {question.category}
+                              </Badge>
+                            )}
+                            {question.isRequired && (
+                              <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-100">
+                                Required
+                              </Badge>
+                            )}
+                            {question.wasAsked && (
+                              <Badge className="bg-success/10 text-success hover:bg-success/10">
+                                Asked
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="font-medium text-foreground">{question.text}</div>
+                          {question.followUp && (
+                            <div className="text-sm text-muted-foreground mt-1">
+                              Follow-up: {question.followUp}
+                            </div>
+                          )}
+                          {question.tags && question.tags.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {question.tags.map((tag) => (
+                                <Badge key={tag} variant="outline">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <div className="text-right text-sm text-muted-foreground">
+                          <div className="font-medium text-foreground">Assigned to</div>
+                          <div>{question.assignedToInterviewerName || 'Unassigned'}</div>
+                          {typeof question.rating === 'number' && (
+                            <div className="mt-2">
+                              <div className="text-xs uppercase tracking-wide text-muted-foreground">Rating</div>
+                              <div className="font-semibold text-foreground">{question.rating}/5</div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      {question.notes && (
+                        <div className="mt-3 text-sm text-muted-foreground">
+                          Notes: {question.notes}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 text-muted-foreground">
+                  <FileText className="h-10 w-10 mx-auto mb-3 text-muted-foreground/60" />
+                  <p className="text-sm">No questions assigned to this interview yet.</p>
+                  <p className="text-xs mt-1">
+                    Assign questions from the Question Bank or add custom questions.
+                  </p>
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
