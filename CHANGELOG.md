@@ -116,6 +116,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Reduced side padding on Candidates, Jobs, Job Details, and Interview Details pages.
 - Switched candidate profile tabs to the line-style navigation.
 - Increased side padding on Candidates, Jobs, Job Details, and Interview Details pages after the reduction.
+- Jobs now default to public visibility on creation.
 - **App-Wide Responsiveness Enhancement**
   - Onboarding page: Stats grid now 2-column on mobile, workflow cards stack vertically
   - Offboarding page: Same responsive improvements as onboarding
@@ -142,7 +143,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added a back button on the Assessments settings page.
 - Interview type deletion now surfaces errors and confirms success.
 - Interview settings is now the single entry point for interview types, rubrics, scoring, and question bank in Settings
-- Jobs list public toggle now sits beside the priority badge and uses a smaller control
+- Job public visibility toggle now lives on the job detail page
 - Job list stage stats now link into filtered job candidates views
 - Candidates list adds LinkedIn profile links and a column selector for extra fields
 - Job candidates table now mirrors the candidates list column selector and action menu alignment

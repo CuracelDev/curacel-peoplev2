@@ -9,6 +9,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Pencil,
+  Globe,
+  Lock,
   Loader2,
   AlertTriangle,
   RefreshCw,
@@ -24,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
 
@@ -103,6 +106,11 @@ export default function CandidatesListPage() {
     },
   })
   const upgradeFlowMutation = trpc.hiringFlow.upgradeJobFlow.useMutation({
+    onSuccess: () => {
+      utils.job.get.invalidate({ id: jobId })
+    },
+  })
+  const toggleJobPublicMutation = trpc.hiringSettings.toggleJobPublic.useMutation({
     onSuccess: () => {
       utils.job.get.invalidate({ id: jobId })
     },
@@ -215,6 +223,10 @@ export default function CandidatesListPage() {
   const handlePageSizeChange = (size: string) => {
     setPageSize(Number(size))
     setCurrentPage(1)
+  }
+
+  const handlePublicToggle = (value: boolean) => {
+    toggleJobPublicMutation.mutate({ jobId, isPublic: value })
   }
 
   const formatDate = (date: Date | string | null) => {
@@ -367,6 +379,21 @@ export default function CandidatesListPage() {
 
       {/* Action Bar */}
       <div className="flex items-center justify-end gap-3 mb-4">
+        <div className="mr-auto flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5">
+          <div className="flex items-center gap-2 text-sm text-foreground">
+            {job.isPublic ? (
+              <Globe className="h-4 w-4 text-indigo-600" />
+            ) : (
+              <Lock className="h-4 w-4 text-muted-foreground" />
+            )}
+            <span className="font-medium">{job.isPublic ? 'Public' : 'Private'}</span>
+          </div>
+          <Switch
+            checked={Boolean(job.isPublic)}
+            onCheckedChange={handlePublicToggle}
+            disabled={toggleJobPublicMutation.isPending}
+          />
+        </div>
         <Select value={sortBy} onValueChange={setSortBy}>
           <SelectTrigger className="w-auto">
             <SelectValue placeholder="Sort by" />
