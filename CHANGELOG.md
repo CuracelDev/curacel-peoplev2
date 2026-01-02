@@ -165,6 +165,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Candidate profile hook order now consistent to prevent render mismatch errors
 - Interview scheduling candidate picker is selectable again
 - Interview scheduling selected slot banner now uses readable success text color
+- JD template editor color picker no longer throws a runtime error
+- JD templates breadcrumb label now uses the correct "JD" casing
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off
