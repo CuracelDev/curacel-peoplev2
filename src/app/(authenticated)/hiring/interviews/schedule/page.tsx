@@ -969,7 +969,7 @@ export default function ScheduleInterviewPage() {
               </CardHeader>
               <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
                 <Tabs defaultValue="bank" className="flex-1 flex flex-col">
-                  <TabsList className="mx-3 mb-2 grid grid-cols-2">
+                  <TabsList className="mx-1 mb-2 grid grid-cols-2">
                     <TabsTrigger value="bank">
                       <BookOpen className="h-4 w-4 mr-2" />
                       Question Bank
@@ -981,7 +981,7 @@ export default function ScheduleInterviewPage() {
                   </TabsList>
 
                   {/* Question Bank Tab */}
-                  <TabsContent value="bank" className="px-3 pb-3 !mt-0 h-full flex flex-col overflow-hidden">
+                  <TabsContent value="bank" className="px-1 pb-2 !mt-0 h-full flex flex-col overflow-hidden">
                     <Input
                       placeholder="Search questions..."
                       value={questionSearch}
@@ -1055,7 +1055,7 @@ export default function ScheduleInterviewPage() {
                   </TabsContent>
 
                   {/* AI Generator Tab */}
-                  <TabsContent value="ai" className="px-3 pb-3 !mt-0 h-full overflow-auto">
+                  <TabsContent value="ai" className="px-1 pb-2 !mt-0 h-full overflow-auto">
                     {selectedCandidateId ? (
                       <AIQuestionGenerator
                         candidateId={selectedCandidateId}
