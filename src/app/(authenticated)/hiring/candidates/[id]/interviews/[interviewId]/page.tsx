@@ -584,10 +584,6 @@ export default function InterviewDetailPage() {
             <TabsTrigger value="questions" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
               Questions
             </TabsTrigger>
-            <TabsTrigger value="fireflies" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
-              <Mic className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" />
-              <span className="hidden sm:inline">Fireflies</span>
-            </TabsTrigger>
             <TabsTrigger value="interviewers" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
               <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" />
               <span className="hidden sm:inline">Interviewers</span> ({interviewers.length})
@@ -927,23 +923,6 @@ export default function InterviewDetailPage() {
                   </p>
                 </div>
               )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Fireflies Tab */}
-        <TabsContent value="fireflies" className="mt-6">
-          <Card className="text-center py-12">
-            <CardContent>
-              <Mic className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Recording Available</h3>
-              <p className="text-muted-foreground mb-4">
-                Fireflies integration will be available in Phase 6.
-              </p>
-              <Button variant="outline">
-                <ExternalLink className="h-4 w-4 mr-2" />
-                Connect Fireflies
-              </Button>
             </CardContent>
           </Card>
         </TabsContent>
