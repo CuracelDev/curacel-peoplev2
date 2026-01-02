@@ -3,11 +3,10 @@ import { TRPCError } from '@trpc/server'
 import { router, adminProcedure, protectedProcedure } from '@/lib/trpc'
 
 export const jobDescriptionRouter = router({
-  // List all active JDs
+  // List all JDs (active and inactive)
   list: protectedProcedure.query(async ({ ctx }) => {
     return ctx.prisma.jobDescription.findMany({
-      where: { isActive: true },
-      orderBy: { name: 'asc' },
+      orderBy: [{ updatedAt: 'desc' }],
     })
   }),
 

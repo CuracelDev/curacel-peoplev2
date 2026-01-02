@@ -1057,7 +1057,7 @@ export default function ScheduleInterviewPage() {
                   {/* AI Generator Tab */}
                   <TabsContent value="ai" className="px-0.5 pb-2 !mt-0 flex-1 overflow-auto">
                     {selectedCandidateId ? (
-                      <div className="-mt-4">
+                      <div className="-mt-6">
                         <AIQuestionGenerator
                           candidateId={selectedCandidateId}
                           interviewTypeId={interviewTypeId || undefined}
