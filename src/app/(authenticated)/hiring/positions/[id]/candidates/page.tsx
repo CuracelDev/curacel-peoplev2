@@ -96,6 +96,12 @@ export default function CandidatesListPage() {
       utils.job.listCandidates.invalidate({ jobId })
     },
   })
+  const bulkUpdateStage = trpc.job.bulkUpdateCandidateStage.useMutation({
+    onSuccess: () => {
+      utils.job.listCandidates.invalidate({ jobId })
+      setSelectedCandidates([])
+    },
+  })
   const upgradeFlowMutation = trpc.hiringFlow.upgradeJobFlow.useMutation({
     onSuccess: () => {
       utils.job.get.invalidate({ id: jobId })
@@ -406,6 +412,11 @@ export default function CandidatesListPage() {
         onRejectCandidate={(id) => updateCandidateStage.mutate({ id, stage: 'REJECTED' })}
         onBulkArchive={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'ARCHIVED' })}
         onBulkReject={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'REJECTED' })}
+        bulkActions={(
+          <Button size="sm" className="bg-success hover:bg-success">
+            Advance to Next Stage
+          </Button>
+        )}
         footer={(
           <div className="p-4 flex items-center justify-between">
             <div className="flex items-center gap-4">

@@ -27,6 +27,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Progress } from '@/components/ui/progress'
 import {
@@ -75,13 +82,6 @@ const defaultStageCards = [
   { key: 'panel', label: 'Team Chat', stageKeys: ['TEAM_CHAT', 'PANEL'] },
   { key: 'offer', label: 'Offer', stageKeys: ['OFFER'] },
 ]
-
-function getScoreColor(score: number | null) {
-  if (!score) return 'text-muted-foreground bg-muted/50'
-  if (score >= 80) return 'text-success bg-success/10'
-  if (score >= 65) return 'text-warning bg-warning/10'
-  return 'text-destructive bg-destructive/10'
-}
 
 export default function CandidatesPage() {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
@@ -848,6 +848,12 @@ export default function CandidatesPage() {
         onRejectCandidate={(id) => updateCandidateStage.mutate({ id, stage: 'REJECTED' })}
         onBulkArchive={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'ARCHIVED' })}
         onBulkReject={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'REJECTED' })}
+        bulkActions={(
+          <Button size="sm" className="bg-success hover:bg-success text-xs sm:text-sm">
+            <span className="hidden sm:inline">Advance to Next Stage</span>
+            <span className="sm:hidden">Advance</span>
+          </Button>
+        )}
         footer={(
           <div className="px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-3">
             <div className="text-xs sm:text-sm text-muted-foreground order-2 sm:order-1">

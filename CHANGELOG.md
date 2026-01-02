@@ -126,6 +126,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Interview scheduling question source tabs remove extra top padding
 - AuntyPelz generator block now sits closer to the tabs on interview scheduling
 - Bulk actions on candidates now include Archive
+- Candidates tables now share a single reusable component across main and job-specific views
 - **Recruiting Assessments Page Improvements**
   - Enhanced UI and layout for assessments management
 - **Interviews Page Enhancements**

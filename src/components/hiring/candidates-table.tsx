@@ -56,6 +56,7 @@ type CandidatesTableProps = {
   onBulkArchive?: (ids: string[]) => void
   onBulkReject?: (ids: string[]) => void
   footer?: React.ReactNode
+  bulkActions?: React.ReactNode
 }
 
 const sourceLabels: Record<string, string> = {
@@ -159,6 +160,7 @@ export function CandidatesTable({
   onBulkArchive,
   onBulkReject,
   footer,
+  bulkActions,
 }: CandidatesTableProps) {
   const [visibleColumns, setVisibleColumns] = useState<Record<ColumnKey, boolean>>(defaultVisibleColumns)
 
@@ -401,6 +403,7 @@ export function CandidatesTable({
       {selectedCandidates.length > 0 && (onBulkArchive || onBulkReject) && (
         <div className="fixed bottom-4 sm:bottom-6 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 flex flex-wrap items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-gray-900 text-white rounded-lg shadow-lg z-50">
           <span className="font-medium text-sm sm:text-base">{selectedCandidates.length} selected</span>
+          {bulkActions}
           {onBulkReject && (
             <Button
               size="sm"
