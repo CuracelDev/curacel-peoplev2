@@ -244,8 +244,15 @@ export const interviewRouter = router({
             category: z.string(),
             isRequired: z.boolean().optional().default(false),
             saveToBank: z.boolean().optional().default(false),
+            assignedToInterviewerId: z.string().optional(),
+            assignedToInterviewerName: z.string().optional(),
           })
         ).optional(),
+        // Interviewer assignments for questions from bank (questionId -> interviewerId mapping)
+        questionAssignments: z.record(z.string(), z.object({
+          interviewerId: z.string(),
+          interviewerName: z.string(),
+        })).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -311,10 +318,14 @@ export const interviewRouter = router({
         // Add questions from bank
         if (input.questionIds?.length) {
           for (let i = 0; i < input.questionIds.length; i++) {
+            const questionId = input.questionIds[i]
+            const assignment = input.questionAssignments?.[questionId]
             assignedQuestions.push({
               interviewId: interview.id,
-              questionId: input.questionIds[i],
+              questionId,
               sortOrder: i,
+              assignedToInterviewerId: assignment?.interviewerId || null,
+              assignedToInterviewerName: assignment?.interviewerName || null,
             })
           }
         }
@@ -347,6 +358,8 @@ export const interviewRouter = router({
               isRequired: customQ.isRequired || false,
               saveToBank: customQ.saveToBank || false,
               sortOrder: startOrder + i,
+              assignedToInterviewerId: customQ.assignedToInterviewerId || null,
+              assignedToInterviewerName: customQ.assignedToInterviewerName || null,
             })
           }
         }
@@ -451,6 +464,54 @@ export const interviewRouter = router({
       return {
         ...interview,
         stageDisplayName: stageDisplayNames[interview.stage] || interview.stageName || interview.stage,
+      }
+    }),
+
+  // Update interview details (for editing scheduled interviews)
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        scheduledAt: z.string().optional(),
+        duration: z.number().optional(),
+        meetingLink: z.string().optional().nullable(),
+        notes: z.string().optional().nullable(),
+        interviewers: z.array(
+          z.object({
+            employeeId: z.string().optional(),
+            name: z.string(),
+            email: z.string().email(),
+          })
+        ).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id, scheduledAt, duration, meetingLink, notes, interviewers } = input
+
+      // Build update data
+      const updateData: Record<string, unknown> = {}
+      if (scheduledAt !== undefined) updateData.scheduledAt = new Date(scheduledAt)
+      if (duration !== undefined) updateData.duration = duration
+      if (meetingLink !== undefined) updateData.meetingLink = meetingLink
+      if (notes !== undefined) updateData.feedback = notes
+      if (interviewers !== undefined) updateData.interviewers = interviewers
+
+      const interview = await ctx.prisma.candidateInterview.update({
+        where: { id },
+        data: updateData,
+        include: {
+          candidate: {
+            include: {
+              job: true,
+            },
+          },
+          interviewType: true,
+        },
+      })
+
+      return {
+        ...interview,
+        stageDisplayName: interview.interviewType?.name || stageDisplayNames[interview.stage] || interview.stageName || interview.stage,
       }
     }),
 
@@ -2298,6 +2359,8 @@ Respond ONLY with valid JSON, no additional text.`
         sortOrder: q.sortOrder,
         isCustom: !q.questionId,
         saveToBank: q.saveToBank,
+        assignedToInterviewerId: q.assignedToInterviewerId,
+        assignedToInterviewerName: q.assignedToInterviewerName,
       }))
     }),
 
@@ -2313,8 +2376,15 @@ Respond ONLY with valid JSON, no additional text.`
             category: z.string(),
             isRequired: z.boolean().optional().default(false),
             saveToBank: z.boolean().optional().default(false),
+            assignedToInterviewerId: z.string().optional(),
+            assignedToInterviewerName: z.string().optional(),
           })
         ).optional(),
+        // Interviewer assignments for questions from bank (questionId -> interviewerId mapping)
+        questionAssignments: z.record(z.string(), z.object({
+          interviewerId: z.string(),
+          interviewerName: z.string(),
+        })).optional(),
         replaceExisting: z.boolean().optional().default(false),
       })
     )
@@ -2357,10 +2427,13 @@ Respond ONLY with valid JSON, no additional text.`
             where: { interviewId: input.interviewId, questionId },
           })
           if (!existing) {
+            const assignment = input.questionAssignments?.[questionId]
             assignedQuestions.push({
               interviewId: input.interviewId,
               questionId,
               sortOrder: currentOrder++,
+              assignedToInterviewerId: assignment?.interviewerId || null,
+              assignedToInterviewerName: assignment?.interviewerName || null,
             })
           }
         }
@@ -2390,6 +2463,8 @@ Respond ONLY with valid JSON, no additional text.`
             isRequired: customQ.isRequired || false,
             saveToBank: customQ.saveToBank || false,
             sortOrder: currentOrder++,
+            assignedToInterviewerId: customQ.assignedToInterviewerId || null,
+            assignedToInterviewerName: customQ.assignedToInterviewerName || null,
           })
         }
       }
@@ -2403,7 +2478,7 @@ Respond ONLY with valid JSON, no additional text.`
       return { added: assignedQuestions.length }
     }),
 
-  // Update an assigned question (mark as asked, add rating, etc.)
+  // Update an assigned question (mark as asked, add rating, interviewer assignment, etc.)
   updateAssignedQuestion: protectedProcedure
     .input(
       z.object({
@@ -2412,6 +2487,8 @@ Respond ONLY with valid JSON, no additional text.`
         rating: z.number().min(1).max(5).optional(),
         notes: z.string().optional(),
         isRequired: z.boolean().optional(),
+        assignedToInterviewerId: z.string().nullable().optional(),
+        assignedToInterviewerName: z.string().nullable().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -2421,6 +2498,35 @@ Respond ONLY with valid JSON, no additional text.`
         where: { id },
         data,
       })
+    }),
+
+  // Bulk update interviewer assignments for questions
+  updateQuestionAssignments: protectedProcedure
+    .input(
+      z.object({
+        interviewId: z.string(),
+        assignments: z.array(
+          z.object({
+            questionId: z.string(), // InterviewAssignedQuestion.id
+            interviewerId: z.string().nullable(),
+            interviewerName: z.string().nullable(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updates = input.assignments.map((assignment) =>
+        ctx.prisma.interviewAssignedQuestion.update({
+          where: { id: assignment.questionId },
+          data: {
+            assignedToInterviewerId: assignment.interviewerId,
+            assignedToInterviewerName: assignment.interviewerName,
+          },
+        })
+      )
+
+      await ctx.prisma.$transaction(updates)
+      return { updated: input.assignments.length }
     }),
 
   // Remove an assigned question
