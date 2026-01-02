@@ -1295,4 +1295,230 @@ Respond ONLY with a valid JSON array, no additional text.`
 
     return { message: 'Default questions seeded successfully', count: created.count }
   }),
+
+  // AI-powered question generation for question bank (no candidate required)
+  generateBankQuestions: protectedProcedure
+    .input(
+      z.object({
+        jobId: z.string().optional(),
+        interviewTypeId: z.string().optional(),
+        categories: z.array(questionCategoryEnum).optional(),
+        count: z.number().min(1).max(20).optional().default(10),
+        customPrompt: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { prisma } = ctx
+      const { jobId, interviewTypeId, categories, count, customPrompt } = input
+
+      // Get AI settings
+      const aiSettings = await prisma.aISettings.findFirst({
+        orderBy: { updatedAt: 'desc' },
+      })
+
+      // Get the API key based on provider
+      const getApiKey = () => {
+        if (!aiSettings) return null
+        switch (aiSettings.provider) {
+          case 'ANTHROPIC': return aiSettings.anthropicKeyEncrypted
+          case 'OPENAI': return aiSettings.openaiKeyEncrypted
+          case 'GEMINI': return aiSettings.geminiKeyEncrypted
+          default: return null
+        }
+      }
+
+      // Get the model based on provider
+      const getModel = () => {
+        if (!aiSettings) return null
+        switch (aiSettings.provider) {
+          case 'ANTHROPIC': return aiSettings.anthropicModel
+          case 'OPENAI': return aiSettings.openaiModel
+          case 'GEMINI': return aiSettings.geminiModel
+          default: return null
+        }
+      }
+
+      const encryptedApiKey = getApiKey()
+      const aiModel = getModel()
+
+      if (!encryptedApiKey) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'AI settings not configured. Please configure in Settings → AI Configuration.',
+        })
+      }
+
+      // Get job info if provided
+      let jobTitle = 'General Position'
+      let jobDescription = ''
+
+      if (jobId) {
+        const job = await prisma.job.findUnique({
+          where: { id: jobId },
+          include: { jobDescription: { select: { content: true } } },
+        })
+        if (job) {
+          jobTitle = job.title
+          jobDescription = job.jobDescription?.content || ''
+        }
+      }
+
+      // Get interview type info
+      let targetCategories = categories
+      let interviewTypeName = 'General Interview'
+
+      if (interviewTypeId) {
+        const interviewType = await prisma.interviewType.findUnique({
+          where: { id: interviewTypeId },
+        })
+        if (interviewType) {
+          interviewTypeName = interviewType.name
+          if (!targetCategories && interviewType.questionCategories?.length) {
+            targetCategories = interviewType.questionCategories as typeof categories
+          }
+        }
+      }
+
+      // Build AI prompt
+      const prompt = `You are an expert interviewer at Curacel, an insurtech company. Generate ${count} high-quality interview questions for the company's question bank.
+
+## Company Values (PRESS)
+- Passionate Work: Deep love for what we do
+- Relentless Growth: Continuous improvement mindset
+- Empowered Action: Taking ownership and initiative
+- Sense of Urgency: Moving fast and decisively
+- Seeing Possibilities: Innovation and creative problem-solving
+
+${jobId ? `## Position: ${jobTitle}${jobDescription ? `\n${jobDescription.slice(0, 600)}` : ''}` : '## General Interview Questions'}
+
+## Interview Type
+${interviewTypeName}
+
+## Question Categories to Generate
+${targetCategories?.join(', ') || 'behavioral, situational, technical, motivational, culture'}
+
+${customPrompt?.trim() ? `## Additional Instructions\n${customPrompt}` : ''}
+
+## Response Format (JSON array)
+Return ONLY a valid JSON array of questions. Each question must have:
+{
+  "text": "The main question (be specific and probing)",
+  "followUp": "A follow-up question to dig deeper",
+  "category": "situational|behavioral|technical|motivational|culture",
+  "tags": ["Tag1", "Tag2", "Tag3"],
+  "reasoning": "Why this is a good interview question (1-2 sentences)"
+}
+
+Generate questions that:
+1. Are insightful and thought-provoking
+2. Can reveal candidate capabilities and fit
+3. Assess cultural fit with PRESS values
+4. Cover different aspects of the role${jobId ? ' and job requirements' : ''}
+5. Include appropriate follow-up questions to dig deeper
+
+Respond ONLY with a valid JSON array, no additional text.`
+
+      // Helper to clean AI response
+      const cleanJsonResponse = (text: string): string => {
+        let cleaned = text.trim()
+        if (cleaned.startsWith('```json')) {
+          cleaned = cleaned.slice(7)
+        } else if (cleaned.startsWith('```')) {
+          cleaned = cleaned.slice(3)
+        }
+        if (cleaned.endsWith('```')) {
+          cleaned = cleaned.slice(0, -3)
+        }
+        return cleaned.trim()
+      }
+
+      // Helper to parse AI response
+      const parseAIResponse = (text: string): unknown[] => {
+        const cleaned = cleanJsonResponse(text)
+        try {
+          const parsed = JSON.parse(cleaned)
+          if (Array.isArray(parsed)) return parsed
+          if (parsed && typeof parsed === 'object' && Array.isArray(parsed.questions)) {
+            return parsed.questions
+          }
+          if (parsed && typeof parsed === 'object' && 'text' in parsed && 'category' in parsed) {
+            return [parsed]
+          }
+          return []
+        } catch {
+          console.error('Failed to parse AI response:', text.slice(0, 200))
+          return []
+        }
+      }
+
+      // Call AI based on provider
+      let responseText = ''
+
+      if (aiSettings?.provider === 'ANTHROPIC') {
+        const Anthropic = (await import('@anthropic-ai/sdk')).default
+        const anthropic = new Anthropic({ apiKey: encryptedApiKey })
+        const response = await anthropic.messages.create({
+          model: aiModel || 'claude-sonnet-4-20250514',
+          max_tokens: 4000,
+          messages: [{ role: 'user', content: prompt }],
+        })
+        responseText = response.content[0].type === 'text' ? response.content[0].text : ''
+      } else if (aiSettings?.provider === 'OPENAI') {
+        const OpenAI = (await import('openai')).default
+        const openai = new OpenAI({ apiKey: encryptedApiKey })
+        const response = await openai.chat.completions.create({
+          model: aiModel || 'gpt-4-turbo-preview',
+          messages: [{ role: 'user', content: prompt }],
+          max_tokens: 4000,
+        })
+        responseText = response.choices[0]?.message?.content || ''
+      } else if (aiSettings?.provider === 'GEMINI') {
+        const { GoogleGenerativeAI } = await import('@google/generative-ai')
+        const genAI = new GoogleGenerativeAI(encryptedApiKey)
+        const model = genAI.getGenerativeModel({ model: aiModel || 'gemini-pro' })
+        const result = await model.generateContent(prompt)
+        responseText = result.response.text()
+      }
+
+      if (!responseText) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'AI did not return a response',
+        })
+      }
+
+      const parsedQuestions = parseAIResponse(responseText)
+
+      if (!parsedQuestions.length) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'AI returned no valid questions. Please try again.',
+        })
+      }
+
+      // Process and return questions
+      const questions = parsedQuestions.map((q: unknown, idx: number) => {
+        const question = q as {
+          text?: string
+          followUp?: string
+          category?: string
+          tags?: string[]
+          reasoning?: string
+        }
+        return {
+          id: `bank-gen-${Date.now()}-${idx}`,
+          text: question.text || '',
+          followUp: question.followUp || '',
+          category: question.category || 'behavioral',
+          tags: question.tags || [],
+          reasoning: question.reasoning || '',
+        }
+      })
+
+      return {
+        questions,
+        jobTitle,
+        interviewTypeName,
+      }
+    }),
 })

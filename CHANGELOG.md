@@ -194,6 +194,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Onboarding Bitbucket options query now guards against missing app IDs
 - Onboarding workflow progress calculation now uses explicit task typing
 - Onboarding workflow task helpers now share a common task type
+- Onboarding task app account matching now uses explicit account typing
+- Onboarding app account rendering now uses explicit account typing
+- Onboarding app account details now include external account fields in typing
+- Integration settings now guard optional connection test status
+- Public careers application now always sends a linkedin URL string
+- Public careers detail page now safely accesses job description content
+- Public recruiter submissions now always send a linkedin URL string
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off
