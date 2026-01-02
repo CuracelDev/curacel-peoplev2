@@ -23,6 +23,11 @@ import {
   SlidersHorizontal,
   Settings,
   Briefcase,
+  Mail,
+  FileEdit,
+  Zap,
+  ClipboardCheck,
+  FileType,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -80,6 +85,23 @@ const settingsSections = [
     ],
   },
   {
+    title: 'Email',
+    items: [
+      {
+        title: 'Email Templates',
+        description: 'Create and manage email templates.',
+        icon: FileEdit,
+        href: '/settings/email-templates',
+      },
+      {
+        title: 'Email Settings',
+        description: 'Configure email sender and tracking.',
+        icon: Mail,
+        href: '/settings/email-settings',
+      },
+    ],
+  },
+  {
     title: 'Hiring',
     items: [
       {
@@ -93,6 +115,18 @@ const settingsSections = [
         description: 'Manage job postings, forms, recruiters, and careers page.',
         icon: Briefcase,
         href: '/settings/job-settings',
+      },
+      {
+        title: 'Interest Forms',
+        description: 'Customize candidate application forms.',
+        icon: ClipboardCheck,
+        href: '/hiring/settings/interest-forms',
+      },
+      {
+        title: 'JD Templates',
+        description: 'Job description templates.',
+        icon: FileType,
+        href: '/hiring/settings/jd-templates',
       },
       {
         title: 'Hiring Flows',
