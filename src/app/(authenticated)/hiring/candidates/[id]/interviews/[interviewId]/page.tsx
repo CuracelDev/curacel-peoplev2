@@ -210,6 +210,20 @@ export default function InterviewDetailPage() {
     },
   })
 
+  const generateTokensMutation = trpc.interview.generateMissingTokens.useMutation({
+    onSuccess: (data) => {
+      if (data.created > 0) {
+        toast.success(`Generated ${data.created} interviewer link(s)`)
+      } else {
+        toast.info('All interviewers already have links')
+      }
+      utils.interview.get.invalidate({ id: interviewId })
+    },
+    onError: (error) => {
+      toast.error('Failed to generate links', { description: error.message })
+    },
+  })
+
   // Derived data
   const interviewers = useMemo(() => {
     if (!interview?.interviewers) return []
@@ -247,15 +261,27 @@ export default function InterviewDetailPage() {
     return Math.round((totalScore / interview.evaluations.length) * 20) // Convert 1-5 to percentage
   }, [interview?.evaluations])
 
-  // Generate public link (placeholder until Phase 2)
+  // Check if tokens exist
+  const hasTokens = interview?.interviewerTokens && interview.interviewerTokens.length > 0
+  const hasInterviewers = interviewers.length > 0
+
+  // Generate public link
   const publicLink = useMemo(() => {
     if (!interview?.interviewerTokens?.[0]) {
-      return `${typeof window !== 'undefined' ? window.location.origin : ''}/interview/${interviewId}`
+      return hasInterviewers ? null : `${typeof window !== 'undefined' ? window.location.origin : ''}/interview/${interviewId}`
     }
     return `${typeof window !== 'undefined' ? window.location.origin : ''}/interview/${interview.interviewerTokens[0].token}`
-  }, [interview?.interviewerTokens, interviewId])
+  }, [interview?.interviewerTokens, interviewId, hasInterviewers])
+
+  const handleGenerateTokens = () => {
+    generateTokensMutation.mutate({ interviewId })
+  }
 
   const handleCopyLink = () => {
+    if (!publicLink) {
+      toast.error('No link available. Generate interviewer links first.')
+      return
+    }
     navigator.clipboard.writeText(publicLink)
     setCopiedLink(true)
     toast.success('Link copied to clipboard')
@@ -472,49 +498,76 @@ export default function InterviewDetailPage() {
                 </div>
               </div>
             </div>
-            <div className="flex items-center gap-2 overflow-hidden">
-              <div className="px-2 sm:px-3 py-1.5 bg-card rounded-lg text-xs sm:text-sm font-mono text-foreground/80 border flex-1 sm:flex-none sm:max-w-xs truncate">
-                {publicLink}
+            {hasInterviewers && !hasTokens ? (
+              // Show generate button when interviewers exist but no tokens
+              <div className="flex items-center gap-2">
+                <div className="text-xs text-amber-700 bg-amber-100 px-2 py-1 rounded">
+                  Links not generated yet
+                </div>
+                <Button
+                  size="sm"
+                  onClick={handleGenerateTokens}
+                  disabled={generateTokensMutation.isPending}
+                >
+                  {generateTokensMutation.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Link2 className="h-4 w-4 mr-2" />
+                  )}
+                  Generate Links
+                </Button>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyLink}
-                className={cn('flex-shrink-0', copiedLink && 'bg-success/10 border-success/30 text-success')}
-              >
-                {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex-shrink-0">
-                    <Send className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Send</span>
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-64">
-                  <div className="p-2">
-                    <div className="text-xs font-medium text-muted-foreground mb-2">
-                      Send to interviewers:
-                    </div>
-                    {interviewers.map((interviewer) => (
-                      <DropdownMenuItem
-                        key={interviewer.id}
-                        onClick={() => {
-                          toast.info(`Email functionality coming soon`)
-                        }}
-                      >
-                        <Mail className="h-4 w-4 mr-2" />
-                        {interviewer.email}
+            ) : publicLink ? (
+              // Show link and actions when link exists
+              <div className="flex items-center gap-2 overflow-hidden">
+                <div className="px-2 sm:px-3 py-1.5 bg-card rounded-lg text-xs sm:text-sm font-mono text-foreground/80 border flex-1 sm:flex-none sm:max-w-xs truncate">
+                  {publicLink}
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyLink}
+                  className={cn('flex-shrink-0', copiedLink && 'bg-success/10 border-success/30 text-success')}
+                >
+                  {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="flex-shrink-0">
+                      <Send className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Send</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64">
+                    <div className="p-2">
+                      <div className="text-xs font-medium text-muted-foreground mb-2">
+                        Send to interviewers:
+                      </div>
+                      {interviewers.map((interviewer) => (
+                        <DropdownMenuItem
+                          key={interviewer.id}
+                          onClick={() => {
+                            toast.info(`Email functionality coming soon`)
+                          }}
+                        >
+                          <Mail className="h-4 w-4 mr-2" />
+                          {interviewer.email}
+                        </DropdownMenuItem>
+                      ))}
+                      <DropdownMenuItem>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add new email...
                       </DropdownMenuItem>
-                    ))}
-                    <DropdownMenuItem>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add new email...
-                    </DropdownMenuItem>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
+                    </div>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              // No interviewers
+              <div className="text-xs text-muted-foreground">
+                Add interviewers to generate links
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

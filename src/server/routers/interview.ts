@@ -315,6 +315,22 @@ export const interviewRouter = router({
         },
       })
 
+      // Generate interviewer tokens for each interviewer
+      if (input.interviewers?.length) {
+        const tokenExpiresAt = new Date()
+        tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 30) // 30 days expiry
+
+        await ctx.prisma.interviewerToken.createMany({
+          data: input.interviewers.map((interviewer) => ({
+            interviewId: interview.id,
+            interviewerId: interviewer.employeeId,
+            interviewerName: interviewer.name,
+            interviewerEmail: interviewer.email,
+            expiresAt: tokenExpiresAt,
+          })),
+        })
+      }
+
       // Assign questions if provided
       if (input.questionIds?.length || input.customQuestions?.length) {
         const assignedQuestions = []
@@ -514,6 +530,34 @@ export const interviewRouter = router({
           interviewType: true,
         },
       })
+
+      // Generate tokens for new interviewers (if interviewers were updated)
+      if (interviewers && interviewers.length > 0) {
+        // Get existing tokens for this interview
+        const existingTokens = await ctx.prisma.interviewerToken.findMany({
+          where: { interviewId: id },
+          select: { interviewerEmail: true },
+        })
+        const existingEmails = new Set(existingTokens.map(t => t.interviewerEmail))
+
+        // Find new interviewers that don't have tokens yet
+        const newInterviewers = interviewers.filter(i => !existingEmails.has(i.email))
+
+        if (newInterviewers.length > 0) {
+          const tokenExpiresAt = new Date()
+          tokenExpiresAt.setDate(tokenExpiresAt.getDate() + 30) // 30 days expiry
+
+          await ctx.prisma.interviewerToken.createMany({
+            data: newInterviewers.map((interviewer) => ({
+              interviewId: id,
+              interviewerId: interviewer.employeeId,
+              interviewerName: interviewer.name,
+              interviewerEmail: interviewer.email,
+              expiresAt: tokenExpiresAt,
+            })),
+          })
+        }
+      }
 
       return {
         ...interview,
@@ -767,6 +811,72 @@ export const interviewRouter = router({
       })
 
       return token
+    }),
+
+  // Generate tokens for all interviewers who don't have one yet
+  generateMissingTokens: protectedProcedure
+    .input(
+      z.object({
+        interviewId: z.string(),
+        expiresInDays: z.number().optional().default(30),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      // Get interview with interviewers
+      const interview = await ctx.prisma.candidateInterview.findUnique({
+        where: { id: input.interviewId },
+      })
+
+      if (!interview) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Interview not found',
+        })
+      }
+
+      const interviewers = (interview.interviewers as Array<{
+        employeeId?: string
+        name: string
+        email: string
+      }>) || []
+
+      if (!interviewers.length) {
+        return { created: 0, tokens: [] }
+      }
+
+      // Get existing tokens
+      const existingTokens = await ctx.prisma.interviewerToken.findMany({
+        where: { interviewId: input.interviewId },
+        select: { interviewerEmail: true },
+      })
+      const existingEmails = new Set(existingTokens.map(t => t.interviewerEmail))
+
+      // Find interviewers without tokens
+      const newInterviewers = interviewers.filter(i => !existingEmails.has(i.email))
+
+      if (!newInterviewers.length) {
+        return { created: 0, tokens: [] }
+      }
+
+      const expiresAt = new Date()
+      expiresAt.setDate(expiresAt.getDate() + input.expiresInDays)
+
+      // Create tokens for new interviewers
+      const createdTokens = await Promise.all(
+        newInterviewers.map((interviewer) =>
+          ctx.prisma.interviewerToken.create({
+            data: {
+              interviewId: input.interviewId,
+              interviewerId: interviewer.employeeId,
+              interviewerName: interviewer.name,
+              interviewerEmail: interviewer.email,
+              expiresAt,
+            },
+          })
+        )
+      )
+
+      return { created: createdTokens.length, tokens: createdTokens }
     }),
 
   // Revoke an interviewer token
