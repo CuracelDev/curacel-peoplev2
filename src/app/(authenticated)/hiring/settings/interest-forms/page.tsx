@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Plus, FileQuestion, Trash2, Pencil, Search, MoreHorizontal, ChevronDown, ChevronUp } from 'lucide-react'
+import { Plus, FileQuestion, Trash2, Pencil, Search, MoreHorizontal, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
@@ -75,21 +75,31 @@ export default function InterestFormsPage() {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center gap-4">
+        <Link href="/settings/job-settings">
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+        </Link>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-foreground">Interest Forms</h1>
+          <p className="text-sm text-foreground/80">
+            Create and manage application forms for candidates to express interest in positions.
+          </p>
+        </div>
+        <Link href="/hiring/settings/interest-forms/new">
+          <Button>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Form
+          </Button>
+        </Link>
+      </div>
       <Card>
         <CardHeader className="p-5 border-b">
           <div className="flex justify-between items-start">
             <div>
-              <h2 className="text-lg font-semibold">Interest Forms</h2>
-              <p className="text-sm text-muted-foreground">
-                Create and manage application forms for candidates to express interest in positions.
-              </p>
+              <h3 className="text-lg font-semibold">All Forms</h3>
             </div>
-            <Link href="/hiring/settings/interest-forms/new">
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Create Form
-              </Button>
-            </Link>
           </div>
         </CardHeader>
         <CardContent className="p-5">

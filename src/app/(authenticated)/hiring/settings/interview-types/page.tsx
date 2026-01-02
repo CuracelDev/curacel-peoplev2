@@ -14,13 +14,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { trpc } from '@/lib/trpc-client'
+import { toast } from 'sonner'
 
 export default function InterviewTypesPage() {
   const [searchQuery, setSearchQuery] = useState('')
 
   const interviewTypesQuery = trpc.interviewType.list.useQuery()
   const deleteTypeMutation = trpc.interviewType.delete.useMutation({
-    onSuccess: () => interviewTypesQuery.refetch(),
+    onSuccess: () => {
+      toast.success('Interview type deleted')
+      interviewTypesQuery.refetch()
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete interview type')
+    },
   })
 
   const types = interviewTypesQuery.data || []
