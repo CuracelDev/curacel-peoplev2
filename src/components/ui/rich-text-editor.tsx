@@ -71,9 +71,13 @@ export function RichTextEditor({
         },
       }),
       Underline,
-      TextStyle,
-      Color,
-      FontFamily,
+      TextStyle.configure(),
+      Color.configure({
+        types: ['textStyle'],
+      }),
+      FontFamily.configure({
+        types: ['textStyle'],
+      }),
     ],
     content,
     editable: !disabled,
