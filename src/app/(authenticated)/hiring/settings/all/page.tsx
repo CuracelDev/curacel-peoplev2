@@ -386,6 +386,17 @@ export default function SettingsPage() {
     updateEditedFlow({ stages: nextStages })
   }
 
+  const moveStage = (index: number, direction: 'up' | 'down') => {
+    if (!editedFlow) return
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    if (newIndex < 0 || newIndex >= editedFlow.stages.length) return
+    const nextStages = [...editedFlow.stages]
+    const temp = nextStages[index]
+    nextStages[index] = nextStages[newIndex]
+    nextStages[newIndex] = temp
+    updateEditedFlow({ stages: nextStages })
+  }
+
   const handleSaveFlows = async () => {
     if (!activeFlowId || !editedFlow) return
 
@@ -931,8 +942,28 @@ export default function SettingsPage() {
                       </div>
                       <div className="space-y-2">
                         {(editedFlow?.stages ?? []).map((stage, index) => (
-                          <div key={`${activeFlowId}-stage-${index}`} className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-lg bg-muted text-foreground/80 flex items-center justify-center text-sm font-semibold">
+                          <div key={`${activeFlowId}-stage-${index}`} className="flex items-center gap-2">
+                            <div className="flex flex-col">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5"
+                                onClick={() => moveStage(index, 'up')}
+                                disabled={index === 0}
+                              >
+                                <ChevronUp className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-5 w-5"
+                                onClick={() => moveStage(index, 'down')}
+                                disabled={index === (editedFlow?.stages.length ?? 0) - 1}
+                              >
+                                <ChevronDown className="h-3 w-3" />
+                              </Button>
+                            </div>
+                            <div className="h-9 w-9 rounded-lg bg-muted text-foreground/80 flex items-center justify-center text-sm font-semibold flex-shrink-0">
                               {index + 1}
                             </div>
                             <Input
