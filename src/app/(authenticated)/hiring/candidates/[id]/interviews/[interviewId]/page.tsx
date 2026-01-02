@@ -431,16 +431,16 @@ export default function InterviewDetailPage() {
     <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       {/* Header Card */}
       <Card className="mb-6">
-        <CardContent className="p-6">
+        <CardContent className="p-5">
           {/* Title and Stage Badge */}
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-semibold">
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2.5">
+              <h1 className="text-xl font-semibold">
                 {interview.stageDisplayName || interview.stageName || interview.stage}
               </h1>
-              <Badge className="bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-1">
-                <span className="flex items-center gap-1.5">
-                  <span className="text-xs">●</span>
+              <Badge className="bg-indigo-600 text-white hover:bg-indigo-700 px-2.5 py-0.5">
+                <span className="flex items-center gap-1.5 text-xs">
+                  <span>●</span>
                   Stage {interview.stageNumber || 5} of {interview.totalStages || 6}
                 </span>
               </Badge>
@@ -448,20 +448,20 @@ export default function InterviewDetailPage() {
 
             {/* Navigation */}
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" disabled className="text-muted-foreground">
-                <ChevronLeft className="h-4 w-4 mr-1" />
+              <Button variant="ghost" size="sm" disabled className="text-muted-foreground text-xs">
+                <ChevronLeft className="h-3.5 w-3.5 mr-1" />
                 Previous
               </Button>
-              <span className="text-sm text-muted-foreground">/</span>
-              <Button variant="ghost" size="sm" disabled className="text-muted-foreground">
+              <span className="text-xs text-muted-foreground">/</span>
+              <Button variant="ghost" size="sm" disabled className="text-muted-foreground text-xs">
                 Next Stage
-                <ChevronRight className="h-4 w-4 ml-1" />
+                <ChevronRight className="h-3.5 w-3.5 ml-1" />
               </Button>
             </div>
           </div>
 
           {/* Candidate Link */}
-          <div className="mb-3">
+          <div className="mb-2">
             <span className="text-sm text-muted-foreground">Candidate: </span>
             <Link
               href={`/hiring/candidates/${candidateId}`}
