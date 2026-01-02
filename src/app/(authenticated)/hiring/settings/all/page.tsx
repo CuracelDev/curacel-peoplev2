@@ -1544,13 +1544,27 @@ export default function SettingsPage() {
 
           {/* Webhooks Section */}
           {activeSection === 'webhooks' && (
+            <>
+            <div className="flex items-center gap-4 mb-6">
+              <Link href="/settings">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Webhook Integration</h1>
+                <p className="text-sm text-foreground/80">
+                  Configure webhooks to automatically push job data to external systems like n8n, Zapier, or your own APIs.
+                </p>
+              </div>
+            </div>
             <Card id="webhooks">
               <CardHeader className="p-5 border-b">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h2 className="text-lg font-semibold">Webhook Integration</h2>
+                    <h3 className="text-lg font-semibold">Global Webhook</h3>
                     <p className="text-sm text-muted-foreground">
-                      Configure webhooks to automatically push job data to external systems like n8n, Zapier, or your own APIs.
+                      This webhook receives events for all jobs.
                     </p>
                   </div>
                 </div>
@@ -1558,8 +1572,6 @@ export default function SettingsPage() {
               <CardContent className="p-5 space-y-6">
                 {/* Global Webhook */}
                 <div className="space-y-4">
-                  <h3 className="font-medium">Global Webhook</h3>
-                  <p className="text-sm text-muted-foreground">This webhook receives events for all jobs.</p>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label>Webhook URL</Label>
@@ -1654,6 +1666,7 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+            </>
           )}
 
           {/* External Recruiters Section */}
