@@ -435,12 +435,22 @@ export default function EmployeeDetailPage() {
         {/* Right Content */}
         <div className="lg:col-span-3">
           <Tabs defaultValue="personal" className="space-y-4">
-            <TabsList className="w-full">
-              <TabsTrigger value="personal" className="flex-1">Personal</TabsTrigger>
-              <TabsTrigger value="employment" className="flex-1">Employment</TabsTrigger>
-              <TabsTrigger value="personality" className="flex-1">Personality</TabsTrigger>
-              <TabsTrigger value="contract" className="flex-1">Contract</TabsTrigger>
-              <TabsTrigger value="applications" className="flex-1">Applications</TabsTrigger>
+            <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
+              <TabsTrigger value="personal" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+                Personal
+              </TabsTrigger>
+              <TabsTrigger value="employment" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+                Employment
+              </TabsTrigger>
+              <TabsTrigger value="personality" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+                Personality
+              </TabsTrigger>
+              <TabsTrigger value="contract" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+                Contract
+              </TabsTrigger>
+              <TabsTrigger value="applications" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+                Applications
+              </TabsTrigger>
             </TabsList>
 
             {/* Personal Tab */}

@@ -252,7 +252,7 @@ export default function CandidatesListPage() {
 
   if (!job) {
     return (
-      <div className="p-6 text-center">
+      <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5 text-center">
         <h2 className="text-xl font-semibold text-foreground">Job not found</h2>
         <p className="text-muted-foreground mt-2">The job you&apos;re looking for doesn&apos;t exist.</p>
         <Link href="/hiring/positions">
@@ -263,7 +263,7 @@ export default function CandidatesListPage() {
   }
 
   return (
-    <div className="p-6">
+    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5">
       {/* Job Header */}
       <div className="flex items-start justify-between mb-6">
         <div>

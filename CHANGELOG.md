@@ -112,7 +112,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Decision Support now focuses on Personality Templates and Team Profiles only.
 - Personality Templates and Team Profiles now live under Settings > Teams.
 - Interview type deletion now requires typing DELETE and deactivates types in use.
-- Renamed the candidate profile Values tab to Curacel Fit.
+- Renamed the candidate profile Values tab to Values & Fit.
+- Reduced side padding on Candidates, Jobs, Job Details, and Interview Details pages.
+- Switched candidate profile tabs to the line-style navigation.
 - **App-Wide Responsiveness Enhancement**
   - Onboarding page: Stats grid now 2-column on mobile, workflow cards stack vertically
   - Offboarding page: Same responsive improvements as onboarding

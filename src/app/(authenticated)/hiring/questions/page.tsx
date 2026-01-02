@@ -374,12 +374,12 @@ export default function QuestionsPage() {
       {/* Main Tabs */}
       <Tabs defaultValue="bank" className="space-y-4">
         <div className="flex justify-between items-center">
-          <TabsList>
-            <TabsTrigger value="bank" className="gap-2">
+          <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
+            <TabsTrigger value="bank" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
               <BookOpen className="h-4 w-4" />
               Question Bank
             </TabsTrigger>
-            <TabsTrigger value="ai" className="gap-2">
+            <TabsTrigger value="ai" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
               <Sparkles className="h-4 w-4" />
               AuntyPelz AI
             </TabsTrigger>

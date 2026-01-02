@@ -122,11 +122,19 @@ export default function AssessmentAnalyticsPage() {
       </div>
 
       <Tabs defaultValue="funnel" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="funnel">Completion Funnel</TabsTrigger>
-          <TabsTrigger value="trends">Trends</TabsTrigger>
-          <TabsTrigger value="benchmarks">Role Benchmarks</TabsTrigger>
-          <TabsTrigger value="ai">AI Accuracy</TabsTrigger>
+        <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
+          <TabsTrigger value="funnel" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            Completion Funnel
+          </TabsTrigger>
+          <TabsTrigger value="trends" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            Trends
+          </TabsTrigger>
+          <TabsTrigger value="benchmarks" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            Role Benchmarks
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            AI Accuracy
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="funnel" className="space-y-4">
