@@ -69,6 +69,7 @@ interface EditInterviewDialogProps {
     scheduledAt?: Date | null
     duration?: number | null
     meetingLink?: string | null
+    googleMeetLink?: string | null
     feedback?: string | null
     interviewers?: Interviewer[] | null
     interviewTypeId?: string | null
@@ -103,7 +104,7 @@ export function EditInterviewDialog({
       : '10:00'
   )
   const [duration, setDuration] = useState(interview.duration || 60)
-  const [meetingLink, setMeetingLink] = useState(interview.meetingLink || '')
+  const [meetingLink, setMeetingLink] = useState(interview.meetingLink || interview.googleMeetLink || '')
   const [notes, setNotes] = useState(interview.feedback || '')
   const [interviewTypeId, setInterviewTypeId] = useState(interview.interviewTypeId || '')
 
@@ -143,7 +144,7 @@ export function EditInterviewDialog({
           : '10:00'
       )
       setDuration(interview.duration || 60)
-      setMeetingLink(interview.meetingLink || '')
+      setMeetingLink(interview.meetingLink || interview.googleMeetLink || '')
       setNotes(interview.feedback || '')
       setInterviewTypeId(interview.interviewTypeId || '')
       setInterviewers((interview.interviewers as Interviewer[]) || [])

@@ -482,6 +482,7 @@ export default function InterviewsPage() {
             scheduledAt: selectedInterview.scheduledAt ? new Date(selectedInterview.scheduledAt) : null,
             duration: selectedInterview.duration,
             meetingLink: selectedInterview.meetingLink,
+            googleMeetLink: (selectedInterview as { googleMeetLink?: string | null }).googleMeetLink,
             feedback: selectedInterview.feedback,
             interviewers: selectedInterview.interviewers as Array<{ employeeId?: string; name: string; email: string }> || [],
             interviewTypeId: (selectedInterview as { interviewTypeId?: string | null }).interviewTypeId,
