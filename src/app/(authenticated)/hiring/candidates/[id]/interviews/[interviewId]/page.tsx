@@ -508,6 +508,19 @@ export default function InterviewDetailPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                {peopleTeamLink && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        window.open(peopleTeamLink, '_blank')
+                      }}
+                    >
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      View Interview
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
                   <Pencil className="h-4 w-4 mr-2" />
                   Edit
@@ -550,53 +563,6 @@ export default function InterviewDetailPage() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-          </div>
-        </CardContent>
-      </Card>
-
-
-      {/* People Team Link Card */}
-      <Card className="mb-6 bg-indigo-50 border-indigo-200">
-        <CardContent className="p-3 sm:p-4">
-          <div className="flex items-center gap-3">
-            <div className="h-9 w-9 sm:h-10 sm:w-10 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-              <Users className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600" />
-            </div>
-            <div className="flex-1">
-              <div className="font-semibold text-indigo-900 text-sm sm:text-base">
-                People Team Link
-              </div>
-              <div className="text-xs sm:text-sm text-indigo-700">
-                View-only access to all questions and interviewer responses
-              </div>
-            </div>
-            {!peopleTeamToken ? (
-              <Button
-                size="sm"
-                onClick={handleGenerateTokens}
-                disabled={generateTokensMutation.isPending}
-              >
-                {generateTokensMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Link2 className="h-4 w-4 mr-2" />
-                )}
-                Generate Link
-              </Button>
-            ) : (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyPeopleTeamLink}
-              >
-                {copiedLink ? (
-                  <Check className="h-3.5 w-3.5 mr-1" />
-                ) : (
-                  <Copy className="h-3.5 w-3.5 mr-1" />
-                )}
-                {copiedLink ? 'Copied!' : 'Copy Link'}
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>
