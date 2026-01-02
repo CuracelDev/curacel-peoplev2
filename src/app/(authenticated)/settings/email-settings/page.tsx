@@ -10,16 +10,7 @@ import { Switch } from '@/components/ui/switch'
 import { Separator } from '@/components/ui/separator'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import { AutoSendStageSettings } from '@/components/settings/auto-send-stage-settings'
-import {
-  Mail,
-  CheckCircle2,
-  XCircle,
-  RefreshCw,
-  Settings,
-  Eye,
-  MousePointer2,
-  Loader2,
-} from 'lucide-react'
+import { Settings, Eye, MousePointer2, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 export default function EmailSettingsPage() {
@@ -27,9 +18,7 @@ export default function EmailSettingsPage() {
   const [trackOpens, setTrackOpens] = useState(true)
   const [trackClicks, setTrackClicks] = useState(true)
   const [autoSendOnApplication, setAutoSendOnApplication] = useState(true)
-  const [isTesting, setIsTesting] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
-  const [testResult, setTestResult] = useState<{ success: boolean; error?: string } | null>(null)
 
   // Fetch email settings
   const { data: emailSettings, isLoading } = trpc.emailSettings.get.useQuery()
@@ -44,28 +33,6 @@ export default function EmailSettingsPage() {
       setAutoSendOnApplication(emailSettings.autoSendOnApplication ?? true)
     }
   }, [emailSettings])
-
-  // Test Gmail connection
-  const testConnection = trpc.candidateEmail.testGmailConnection.useQuery(undefined, {
-    enabled: false,
-    retry: false,
-  })
-
-  const handleTestConnection = async () => {
-    setIsTesting(true)
-    setTestResult(null)
-    try {
-      const result = await testConnection.refetch()
-      setTestResult(result.data || { success: false, error: 'Unknown error' })
-    } catch (error) {
-      setTestResult({
-        success: false,
-        error: error instanceof Error ? error.message : 'Connection failed',
-      })
-    } finally {
-      setIsTesting(false)
-    }
-  }
 
   const handleSaveSettings = async () => {
     setIsSaving(true)
@@ -97,68 +64,8 @@ export default function EmailSettingsPage() {
     <div className="space-y-6">
       <SettingsPageHeader
         title="Email Settings"
-        description="Configure email sending, tracking, and Gmail integration for candidate communications"
+        description="Configure email sending and tracking for candidate communications"
       />
-
-      {/* Gmail Connection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Mail className="h-4 w-4" />
-            Gmail Integration
-          </CardTitle>
-          <CardDescription>
-            Uses Google Workspace integration for sending emails as recruiters with domain-wide delegation
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
-            <div className="flex items-center gap-3">
-              {testResult === null ? (
-                <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Mail className="h-4 w-4 text-gray-400" />
-                </div>
-              ) : testResult.success ? (
-                <div className="h-8 w-8 rounded-full bg-success/10 flex items-center justify-center">
-                  <CheckCircle2 className="h-4 w-4 text-success" />
-                </div>
-              ) : (
-                <div className="h-8 w-8 rounded-full bg-red-100 flex items-center justify-center">
-                  <XCircle className="h-4 w-4 text-red-600" />
-                </div>
-              )}
-              <div>
-                <p className="font-medium text-sm">
-                  {testResult === null
-                    ? 'Gmail Connection'
-                    : testResult.success
-                      ? 'Connected'
-                      : 'Connection Failed'}
-                </p>
-                <p className="text-xs text-muted-foreground">
-                  {testResult === null
-                    ? 'Click test to verify Google Workspace connection'
-                    : testResult.success
-                      ? 'Gmail API is working via Google Workspace'
-                      : testResult.error}
-                </p>
-              </div>
-            </div>
-            <Button variant="outline" size="sm" onClick={handleTestConnection} disabled={isTesting}>
-              {isTesting ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <RefreshCw className="h-4 w-4 mr-2" />
-              )}
-              Test Connection
-            </Button>
-          </div>
-
-          <p className="text-xs text-muted-foreground">
-            Gmail integration uses the Google Workspace credentials configured in Settings → Integrations.
-          </p>
-        </CardContent>
-      </Card>
 
       {/* Sender Settings */}
       <Card>
