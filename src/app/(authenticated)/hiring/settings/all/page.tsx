@@ -695,6 +695,36 @@ export default function SettingsPage() {
                     </div>
                     <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
                   </Link>
+                  <Link
+                    href="/hiring/settings/all?section=rubrics"
+                    className="flex items-center gap-4 p-6 hover:bg-muted transition-colors"
+                  >
+                    <div className="bg-indigo-100 p-3 rounded-lg flex-shrink-0">
+                      <ClipboardList className="h-6 w-6 text-indigo-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-foreground mb-1">Interview Rubrics</h3>
+                      <p className="text-sm text-foreground/80">
+                        Define scoring criteria for interview stages and panels.
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  </Link>
+                  <Link
+                    href="/hiring/settings/all?section=scoring"
+                    className="flex items-center gap-4 p-6 hover:bg-muted transition-colors"
+                  >
+                    <div className="bg-indigo-100 p-3 rounded-lg flex-shrink-0">
+                      <Layers className="h-6 w-6 text-indigo-600" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-base font-semibold text-foreground mb-1">Candidate Scoring</h3>
+                      <p className="text-sm text-foreground/80">
+                        Weight inputs that drive overall candidate scores.
+                      </p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+                  </Link>
                 </div>
               </CardContent>
             </Card>

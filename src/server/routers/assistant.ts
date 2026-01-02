@@ -118,6 +118,7 @@ You can manage contracts (create, update, send, resend, cancel), manage onboardi
 - get_employee: Look up employee by ID or name/email
 - count_employees: Get total employee count (defaults to active, can filter by status)
 - count_hires_by_year: Get hiring analytics by year
+- flexible_query: Answer ANY database question using natural language (text-to-SQL)
 
 ### Onboarding
 - start_onboarding: Start onboarding workflow (requires confirmation)
@@ -310,6 +311,35 @@ const TOOL_DEFINITIONS = [
             description: 'If true, count all employees regardless of status. Otherwise counts only ACTIVE.',
           },
         },
+      },
+    },
+  },
+  // V5 Flexible Query Tool - Text-to-SQL
+  {
+    type: 'function' as const,
+    function: {
+      name: 'flexible_query',
+      description: `Answer ANY database question using natural language. Use this when no specific tool exists for the query.
+
+Examples of questions this can answer:
+- "How many candidates applied this month?"
+- "Which department has the most employees?"
+- "List all jobs with more than 5 candidates"
+- "What's the average time to hire?"
+- "Show me employees who started in the last 30 days"
+- "Count contracts by status"
+- "Which jobs are in ACTIVE status?"
+
+Available data: Employee, Job, JobCandidate, Offer, OnboardingWorkflow, OffboardingWorkflow, App, AppAccount, AuditLog, Team, CandidateInterview, CandidateAssessment, CandidateAIAnalysis`,
+      parameters: {
+        type: 'object',
+        properties: {
+          question: {
+            type: 'string',
+            description: 'The natural language question to answer about the database',
+          },
+        },
+        required: ['question'],
       },
     },
   },
@@ -747,6 +777,7 @@ const TOOL_PERMISSIONS: Record<string, string[]> = {
     'get_offboarding_status',
     'count_hires_by_year',
     'count_employees',
+    'flexible_query',
     'get_daily_brief',
     'list_notifications',
     // V4 Hiring Pipeline (read-only)
@@ -970,6 +1001,9 @@ async function executeTool(
         break
       case 'count_employees':
         result = await countEmployees(args, ctx)
+        break
+      case 'flexible_query':
+        result = await flexibleQuery(args, ctx)
         break
       // V2 Contract Tools
       case 'update_contract_draft':
@@ -1776,6 +1810,271 @@ async function countEmployees(
     status: 'ok',
     data: { count, statusBreakdown },
     message: `You have ${count} ${description}.${!includeAll && !status ? ` Total across all statuses: ${(Object.values(statusBreakdown) as number[]).reduce((a, b) => a + b, 0)}.` : ''}`,
+  }
+}
+
+// ============================================
+// V5 FLEXIBLE QUERY (Text-to-Prisma)
+// ============================================
+
+const SCHEMA_CONTEXT = `
+Available Prisma models and their key fields:
+
+Employee:
+- id, fullName, personalEmail, workEmail, status (CANDIDATE|OFFER_SENT|OFFER_SIGNED|HIRED_PENDING_START|ACTIVE|OFFBOARDING|EXITED)
+- jobTitle, department, location, employmentType (FULL_TIME|PART_TIME|CONTRACTOR|INTERN)
+- startDate, endDate, managerId, createdAt, updatedAt
+
+Job:
+- id, title, department, status (DRAFT|ACTIVE|PAUSED|HIRED), priority (1-5)
+- employmentType, salaryMin, salaryMax, salaryCurrency, deadline, hiresCount
+- hiringManagerId, isPublic, createdAt, updatedAt
+- Relations: candidates (JobCandidate[]), hiringManager (Employee)
+
+JobCandidate:
+- id, jobId, name, email, phone, resumeUrl, linkedinUrl
+- currentRole, currentCompany, yearsOfExperience, location
+- stage (APPLIED|HR_SCREEN|TEAM_CHAT|ADVISOR_CHAT|TECHNICAL|PANEL|TRIAL|CEO_CHAT|OFFER|HIRED|REJECTED|ARCHIVED)
+- score (0-100), experienceMatchScore, skillsMatchScore
+- createdAt, updatedAt
+- Relations: job (Job), interviews (CandidateInterview[]), assessments (CandidateAssessment[])
+
+Offer (Contract):
+- id, employeeId, candidateEmail, candidateName, templateId
+- status (DRAFT|SENT|VIEWED|SIGNED|DECLINED|EXPIRED|CANCELLED)
+- variables (JSON with role, salary, etc), createdAt, updatedAt
+
+OnboardingWorkflow:
+- id, employeeId, status (PENDING|IN_PROGRESS|COMPLETED|FAILED|CANCELLED)
+- startedAt, completedAt, createdAt
+- Relations: employee (Employee), tasks (OnboardingTask[])
+
+OffboardingWorkflow:
+- id, employeeId, status, scheduledFor, isImmediate, reason
+- startedAt, completedAt, createdAt
+- Relations: employee (Employee), tasks (OffboardingTask[])
+
+CandidateInterview:
+- id, candidateId, scheduledAt, duration, status (SCHEDULED|COMPLETED|CANCELLED|NO_SHOW)
+- meetingUrl, location, notes, createdAt
+- Relations: candidate (JobCandidate), evaluations (InterviewEvaluation[])
+
+CandidateAssessment:
+- id, candidateId, type, status (NOT_STARTED|INVITED|IN_PROGRESS|COMPLETED|EXPIRED|CANCELLED)
+- score, maxScore, percentile, completedAt, createdAt
+- Relations: candidate (JobCandidate)
+
+CandidateAIAnalysis:
+- id, candidateId, analysisType, recommendation (STRONG_YES|YES|MAYBE|NO|STRONG_NO)
+- confidence, overallScore, summary, strengths, concerns
+- createdAt
+- Relations: candidate (JobCandidate)
+
+Team:
+- id, name, description, color, leaderId, parentId, isActive
+
+AuditLog:
+- id, actorId, actorEmail, action, resourceType, resourceId, metadata, createdAt
+
+App:
+- id, type, name, description, isEnabled, createdAt
+
+AppAccount:
+- id, employeeId, appId, externalUserId, status (PENDING|PROVISIONING|ACTIVE|FAILED|DISABLED|DEPROVISIONED)
+`
+
+const QUERY_GENERATION_PROMPT = `You are a Prisma query generator. Given a natural language question, generate a safe Prisma query.
+
+RULES:
+1. Only use findMany, count, aggregate, or groupBy operations (READ-ONLY)
+2. Always include a take: 50 limit for findMany to prevent overwhelming results
+3. Never include sensitive fields like: salaryAmount, bankName, accountNumber, taxId, passwordHash
+4. Use proper date handling for time-based queries
+5. Return ONLY valid JSON with the query structure, no explanation
+
+RESPONSE FORMAT (JSON only):
+{
+  "model": "employee|job|jobCandidate|offer|onboardingWorkflow|offboardingWorkflow|candidateInterview|candidateAssessment|candidateAIAnalysis|team|auditLog|app|appAccount",
+  "operation": "findMany|count|aggregate|groupBy",
+  "args": { ... prisma args ... },
+  "format": "description of how to format the result"
+}
+
+${SCHEMA_CONTEXT}
+`
+
+async function flexibleQuery(
+  args: Record<string, unknown>,
+  ctx: { prisma: any }
+): Promise<ToolResult> {
+  const { question } = args as { question?: string }
+
+  if (!question) {
+    return { status: 'missing_fields', missingFields: ['question'], message: 'Please provide a question.' }
+  }
+
+  try {
+    // Get AI settings for the query generation
+    const aiSettingsDelegate = getAISettingsDelegate(ctx)
+    const settings = await aiSettingsDelegate.findFirst()
+
+    if (!settings?.provider || !settings?.apiKey) {
+      return {
+        status: 'error',
+        message: 'AI is not configured. Please set up an AI provider in Settings > Blue AI.',
+      }
+    }
+
+    const decryptedKey = decrypt(settings.apiKey)
+
+    // Generate the Prisma query using AI
+    let querySpec: { model: string; operation: string; args: Record<string, unknown>; format: string }
+
+    if (settings.provider === 'OPENAI') {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${decryptedKey}`,
+        },
+        body: JSON.stringify({
+          model: settings.model || 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: QUERY_GENERATION_PROMPT },
+            { role: 'user', content: `Question: ${question}` },
+          ],
+          temperature: 0,
+          response_format: { type: 'json_object' },
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`OpenAI API error: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      querySpec = JSON.parse(data.choices[0].message.content)
+    } else if (settings.provider === 'ANTHROPIC') {
+      const response = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': decryptedKey,
+          'anthropic-version': '2023-06-01',
+        },
+        body: JSON.stringify({
+          model: settings.model || 'claude-3-haiku-20240307',
+          max_tokens: 1024,
+          system: QUERY_GENERATION_PROMPT,
+          messages: [{ role: 'user', content: `Question: ${question}\n\nRespond with JSON only.` }],
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`Anthropic API error: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      const content = data.content[0].text
+      // Extract JSON from response
+      const jsonMatch = content.match(/\{[\s\S]*\}/)
+      if (!jsonMatch) throw new Error('No valid JSON in response')
+      querySpec = JSON.parse(jsonMatch[0])
+    } else {
+      return { status: 'error', message: `Provider ${settings.provider} not supported for flexible queries.` }
+    }
+
+    // Validate the query spec
+    const allowedModels = ['employee', 'job', 'jobCandidate', 'offer', 'onboardingWorkflow', 'offboardingWorkflow',
+                          'candidateInterview', 'candidateAssessment', 'candidateAIAnalysis', 'team', 'auditLog', 'app', 'appAccount']
+    const allowedOps = ['findMany', 'count', 'aggregate', 'groupBy']
+
+    if (!allowedModels.includes(querySpec.model)) {
+      return { status: 'error', message: `Invalid model: ${querySpec.model}` }
+    }
+    if (!allowedOps.includes(querySpec.operation)) {
+      return { status: 'error', message: `Invalid operation: ${querySpec.operation}. Only read operations allowed.` }
+    }
+
+    // Ensure safety limits
+    if (querySpec.operation === 'findMany') {
+      querySpec.args = querySpec.args || {}
+      querySpec.args.take = Math.min((querySpec.args.take as number) || 50, 50)
+    }
+
+    // Remove sensitive fields from select if present
+    const sensitiveFields = ['salaryAmount', 'bankName', 'accountNumber', 'accountSortCode', 'taxId', 'passwordHash', 'configEncrypted', 'apiKey']
+    if (querySpec.args?.select) {
+      for (const field of sensitiveFields) {
+        delete (querySpec.args.select as Record<string, unknown>)[field]
+      }
+    }
+
+    // Execute the query
+    const prismaModel = ctx.prisma[querySpec.model]
+    if (!prismaModel) {
+      return { status: 'error', message: `Model ${querySpec.model} not found in Prisma client.` }
+    }
+
+    const result = await prismaModel[querySpec.operation](querySpec.args)
+
+    // Format the response
+    let message = ''
+    if (querySpec.operation === 'count') {
+      message = `Found ${result} ${querySpec.model}(s) matching your query.`
+    } else if (querySpec.operation === 'groupBy') {
+      const groups = Array.isArray(result) ? result : [result]
+      message = `Results grouped:\n${groups.map((g: Record<string, unknown>) =>
+        Object.entries(g).map(([k, v]) => `${k}: ${v}`).join(', ')
+      ).join('\n')}`
+    } else if (querySpec.operation === 'aggregate') {
+      message = `Aggregate results: ${JSON.stringify(result, null, 2)}`
+    } else {
+      // findMany
+      const items = Array.isArray(result) ? result : [result]
+      if (items.length === 0) {
+        message = 'No results found.'
+      } else {
+        message = `Found ${items.length} result(s):\n${items.slice(0, 10).map((item: Record<string, unknown>, i: number) =>
+          `${i + 1}. ${formatQueryResult(item, querySpec.model)}`
+        ).join('\n')}${items.length > 10 ? `\n... and ${items.length - 10} more` : ''}`
+      }
+    }
+
+    return {
+      status: 'ok',
+      data: { query: querySpec, result },
+      message: querySpec.format ? `${querySpec.format}\n\n${message}` : message,
+    }
+  } catch (error) {
+    return {
+      status: 'error',
+      message: `Query failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    }
+  }
+}
+
+function formatQueryResult(item: Record<string, unknown>, model: string): string {
+  switch (model) {
+    case 'employee':
+      return `${item.fullName} (${item.status}) - ${item.jobTitle || 'No title'}, ${item.department || 'No dept'}`
+    case 'job':
+      return `${item.title} (${item.status}) - ${item.department || 'No dept'}`
+    case 'jobCandidate':
+      return `${item.name} (${item.stage}) - ${item.email}`
+    case 'offer':
+      return `${item.candidateName} - ${item.status}`
+    case 'onboardingWorkflow':
+    case 'offboardingWorkflow':
+      return `Workflow ${item.id} - ${item.status}`
+    case 'candidateInterview':
+      return `Interview ${item.id} - ${item.status} on ${item.scheduledAt}`
+    case 'candidateAssessment':
+      return `Assessment ${item.id} - ${item.type}: ${item.status}`
+    case 'team':
+      return `${item.name}${item.description ? ` - ${item.description}` : ''}`
+    default:
+      return JSON.stringify(item).slice(0, 100)
   }
 }
 
