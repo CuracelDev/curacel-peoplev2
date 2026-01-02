@@ -41,6 +41,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
@@ -168,6 +169,8 @@ export default function InterviewDetailPage() {
   const [addInterviewerDialogOpen, setAddInterviewerDialogOpen] = useState(false)
   const [removeInterviewerDialogOpen, setRemoveInterviewerDialogOpen] = useState(false)
   const [interviewerToRemove, setInterviewerToRemove] = useState<{ email: string; name: string } | null>(null)
+  const [transcriptSearchTerm, setTranscriptSearchTerm] = useState('')
+  const [showTranscriptSearch, setShowTranscriptSearch] = useState(false)
 
   // Fetch interview data
   const {
@@ -598,34 +601,88 @@ export default function InterviewDetailPage() {
             <div className="space-y-5">
               {/* Transcript */}
               <Card>
-                <CardHeader className="flex flex-row items-center justify-between py-4 px-5">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <FileText className="h-4 w-4" />
-                    Interview Transcript
-                  </CardTitle>
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
-                      <Upload className="h-4 w-4 mr-2" />
-                      Upload
-                    </Button>
-                    <Button variant="outline" size="sm">
-                      <Search className="h-4 w-4 mr-2" />
-                      Fireflies Search
-                    </Button>
-                  </div>
-                </CardHeader>
-                <CardContent className="px-5 pb-5 max-h-96 overflow-y-auto">
-                  {interview.firefliesTranscript ? (
-                    <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
-                      {interview.firefliesTranscript}
+                <CardHeader className="py-4 px-5">
+                  <div className="flex flex-row items-center justify-between">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <FileText className="h-4 w-4" />
+                      Interview Transcript
+                    </CardTitle>
+                    <div className="flex gap-2">
+                      {interview.transcriptUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => window.open(interview.transcriptUrl, '_blank')}
+                        >
+                          <ExternalLink className="h-4 w-4 mr-2" />
+                          Open Fireflies
+                        </Button>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowTranscriptSearch(!showTranscriptSearch)}
+                      >
+                        <Search className="h-4 w-4 mr-2" />
+                        Search
+                      </Button>
                     </div>
-                  ) : (
-                    <div className="text-center py-10 text-muted-foreground">
-                      <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p className="text-sm">No transcript available yet</p>
-                      <p className="text-xs mt-1">Upload a transcript or use Fireflies to auto-capture</p>
+                  </div>
+                  {showTranscriptSearch && (
+                    <div className="mt-3">
+                      <Input
+                        placeholder="Search transcript..."
+                        value={transcriptSearchTerm}
+                        onChange={(e) => setTranscriptSearchTerm(e.target.value)}
+                        className="w-full"
+                      />
                     </div>
                   )}
+                </CardHeader>
+                <CardContent className="px-5 pb-5">
+                  <div className="max-h-96 overflow-y-auto border rounded-md p-4">
+                    {interview.firefliesTranscript ? (
+                      <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                        {transcriptSearchTerm ? (
+                          (() => {
+                            const parts = interview.firefliesTranscript.split(
+                              new RegExp(`(${transcriptSearchTerm})`, 'gi')
+                            )
+                            return parts.map((part, i) =>
+                              part.toLowerCase() === transcriptSearchTerm.toLowerCase() ? (
+                                <mark key={i} className="bg-yellow-200 text-foreground">
+                                  {part}
+                                </mark>
+                              ) : (
+                                <span key={i}>{part}</span>
+                              )
+                            )
+                          })()
+                        ) : (
+                          interview.firefliesTranscript
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-center py-10 text-muted-foreground">
+                        <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <p className="text-sm">No transcript available yet</p>
+                        <p className="text-xs mt-1">
+                          {interview.transcriptUrl ? (
+                            <Button
+                              variant="link"
+                              size="sm"
+                              onClick={() => window.open(interview.transcriptUrl, '_blank')}
+                              className="h-auto p-0 text-xs"
+                            >
+                              View on Fireflies
+                            </Button>
+                          ) : (
+                            'Transcript will appear here after the interview is recorded'
+                          )}
+                        </p>
+                      </div>
+                    )}
+                  </div>
                 </CardContent>
               </Card>
 
