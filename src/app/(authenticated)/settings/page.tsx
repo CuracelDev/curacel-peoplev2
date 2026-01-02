@@ -23,7 +23,6 @@ import {
   SlidersHorizontal,
   Settings,
   Briefcase,
-  Mail,
   FileEdit,
   Zap,
   ClipboardCheck,
@@ -85,23 +84,6 @@ const settingsSections = [
     ],
   },
   {
-    title: 'Email',
-    items: [
-      {
-        title: 'Email Templates',
-        description: 'Create and manage email templates.',
-        icon: FileEdit,
-        href: '/settings/email-templates',
-      },
-      {
-        title: 'Email Settings',
-        description: 'Configure email sender and tracking.',
-        icon: Mail,
-        href: '/settings/email-settings',
-      },
-    ],
-  },
-  {
     title: 'Hiring',
     items: [
       {
@@ -145,6 +127,18 @@ const settingsSections = [
         description: 'Configure tests and assessments.',
         icon: ClipboardList,
         href: '/hiring/settings/assessments',
+      },
+      {
+        title: 'Email Templates',
+        description: 'Create candidate email templates.',
+        icon: FileEdit,
+        href: '/settings/email-templates',
+      },
+      {
+        title: 'Auto Send Settings',
+        description: 'Configure automatic stage emails.',
+        icon: Zap,
+        href: '/settings/email-settings',
       },
       {
         title: 'Personality Profiles',
