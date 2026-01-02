@@ -126,9 +126,9 @@ export const employeeStatusColors: Record<string, string> = {
   OFFER_SENT: 'bg-blue-100 text-blue-800',
   OFFER_SIGNED: 'bg-indigo-100 text-indigo-800',
   HIRED_PENDING_START: 'bg-purple-100 text-purple-800',
-  ACTIVE: 'bg-success/10 text-success-foreground',
+  ACTIVE: 'bg-success/10 text-success',
   OFFBOARDING: 'bg-orange-100 text-orange-800',
-  EXITED: 'bg-destructive/10 text-destructive-foreground',
+  EXITED: 'bg-destructive/10 text-destructive',
 }
 
 export const offerStatusLabels: Record<string, string> = {
