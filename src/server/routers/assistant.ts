@@ -1918,14 +1918,36 @@ async function flexibleQuery(
     const aiSettingsDelegate = getAISettingsDelegate(ctx)
     const settings = await aiSettingsDelegate.findFirst()
 
-    if (!settings?.provider || !settings?.apiKey) {
+    if (!settings?.provider) {
       return {
         status: 'error',
         message: 'AI is not configured. Please set up an AI provider in Settings > Blue AI.',
       }
     }
 
-    const decryptedKey = decrypt(settings.apiKey)
+    // Get the correct API key based on provider
+    let encryptedKey: string | null = null
+    let modelToUse: string = ''
+
+    if (settings.provider === 'OPENAI') {
+      encryptedKey = settings.openaiKeyEncrypted
+      modelToUse = settings.openaiModel || 'gpt-4o-mini'
+    } else if (settings.provider === 'ANTHROPIC') {
+      encryptedKey = settings.anthropicKeyEncrypted
+      modelToUse = settings.anthropicModel || 'claude-3-haiku-20240307'
+    } else if (settings.provider === 'GEMINI') {
+      encryptedKey = settings.geminiKeyEncrypted
+      modelToUse = settings.geminiModel || 'gemini-pro'
+    }
+
+    if (!encryptedKey) {
+      return {
+        status: 'error',
+        message: `${settings.provider} API key not configured. Please add your API key in Settings > Blue AI.`,
+      }
+    }
+
+    const decryptedKey = decrypt(encryptedKey)
 
     // Generate the Prisma query using AI
     let querySpec: { model: string; operation: string; args: Record<string, unknown>; format: string }
@@ -1938,7 +1960,7 @@ async function flexibleQuery(
           'Authorization': `Bearer ${decryptedKey}`,
         },
         body: JSON.stringify({
-          model: settings.model || 'gpt-4o-mini',
+          model: modelToUse,
           messages: [
             { role: 'system', content: QUERY_GENERATION_PROMPT },
             { role: 'user', content: `Question: ${question}` },
@@ -1963,7 +1985,7 @@ async function flexibleQuery(
           'anthropic-version': '2023-06-01',
         },
         body: JSON.stringify({
-          model: settings.model || 'claude-3-haiku-20240307',
+          model: modelToUse,
           max_tokens: 1024,
           system: QUERY_GENERATION_PROMPT,
           messages: [{ role: 'user', content: `Question: ${question}\n\nRespond with JSON only.` }],

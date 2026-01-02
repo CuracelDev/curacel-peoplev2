@@ -86,7 +86,7 @@ export async function GET(
       },
       interviewType: {
         include: {
-          rubric: {
+          rubricTemplate: {
             include: {
               criteria: true,
             },
@@ -116,23 +116,25 @@ export async function GET(
   // Build questions section from assigned questions
   const assignedQuestions = interview.assignedQuestions || []
   const questionsHtml = assignedQuestions.length > 0
-    ? assignedQuestions.map((aq: { question: { category?: string; questionText?: string; followUpQuestions?: string[] } }, idx: number) => `
+    ? assignedQuestions.map((aq, idx) => {
+        const q = aq.question
+        if (!q) return ''
+        return `
         <div class="question-card">
           <div class="question-header">
             <span class="question-number">${idx + 1}</span>
-            <span class="category-badge">${escapeHtml(aq.question?.category || 'General')}</span>
+            <span class="category-badge">${escapeHtml(q.category || 'General')}</span>
           </div>
-          <p class="question-text">${escapeHtml(aq.question?.questionText || '')}</p>
-          ${aq.question?.followUpQuestions?.length ? `
+          <p class="question-text">${escapeHtml(q.text || '')}</p>
+          ${q.followUp ? `
             <div class="follow-ups">
-              <strong>Follow-ups:</strong>
-              <ul>
-                ${(aq.question.followUpQuestions as string[]).map((fu: string) => `<li>${escapeHtml(fu)}</li>`).join('')}
-              </ul>
+              <strong>Follow-up:</strong>
+              <p>${escapeHtml(q.followUp)}</p>
             </div>
           ` : ''}
         </div>
-      `).join('')
+      `
+      }).join('')
     : '<p class="muted">No questions configured for this interview.</p>'
 
   // Build interviewer responses section
@@ -461,7 +463,7 @@ export async function GET(
         </div>
 
         <div class="section">
-          <div class="section-title"><h2>Interview Questions (${questions.length})</h2></div>
+          <div class="section-title"><h2>Interview Questions (${assignedQuestions.length})</h2></div>
           ${questionsHtml}
         </div>
 
