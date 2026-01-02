@@ -119,7 +119,9 @@ export class GoogleSheetsService {
 
   /**
    * Fetch task catalog from Google Sheet
-   * Expected columns: ID, Section, Title, URL, Notes, Is Conditional, Conditional Label, Applies To
+   * Supports two formats:
+   * 1. Each row has section in column B: ID, Section, Title, URL, Notes, Conditional, Label, AppliesTo
+   * 2. Section headers as separate rows: "To do", "To Read", "To Watch" in column B with tasks below
    */
   async fetchTaskCatalog(): Promise<TaskCatalogRow[]> {
     const sheets = await this.getSheetsClient()
@@ -130,21 +132,66 @@ export class GoogleSheetsService {
     })
 
     const rows = response.data.values || []
+    const tasks: TaskCatalogRow[] = []
+    let currentSection: TaskCatalogRow['section'] = 'todo'
+    let taskCounter = 1
 
-    return rows.map((row): TaskCatalogRow => {
-      // Columns: ID, Section, Title, URL, Notes, Is Conditional, Conditional Label, Applies To
-      const sectionRaw = (row[1] || 'todo').toLowerCase().trim()
-      let section: TaskCatalogRow['section'] = 'todo'
-      if (sectionRaw === 'to_read' || sectionRaw === 'to read' || sectionRaw === 'read') {
+    for (const row of rows) {
+      const colA = (row[0] || '').toString().trim()
+      const colB = (row[1] || '').toString().trim()
+      const colC = (row[2] || '').toString().trim()
+      const colBLower = colB.toLowerCase()
+
+      // Check if this row is a section header (column B has section name, column C is empty)
+      const isSectionHeader = !colC && (
+        colBLower === 'to do' || colBLower === 'todo' ||
+        colBLower === 'to read' || colBLower === 'to_read' || colBLower === 'read' ||
+        colBLower === 'to watch' || colBLower === 'to_watch' || colBLower === 'watch'
+      )
+
+      if (isSectionHeader) {
+        // Update current section
+        if (colBLower === 'to do' || colBLower === 'todo') {
+          currentSection = 'todo'
+        } else if (colBLower === 'to read' || colBLower === 'to_read' || colBLower === 'read') {
+          currentSection = 'to_read'
+        } else if (colBLower === 'to watch' || colBLower === 'to_watch' || colBLower === 'watch') {
+          currentSection = 'to_watch'
+        }
+        continue // Skip section header rows
+      }
+
+      // Determine the title - could be in column B or C depending on format
+      let title = colC
+      let section = currentSection
+
+      // If column C is empty but column B has content (and it's not a section), use column B as title
+      if (!colC && colB && !isSectionHeader) {
+        title = colB
+      }
+
+      // If column B has a valid section value, use it
+      if (colBLower === 'todo' || colBLower === 'to do') {
+        section = 'todo'
+      } else if (colBLower === 'to_read' || colBLower === 'to read' || colBLower === 'read') {
         section = 'to_read'
-      } else if (sectionRaw === 'to_watch' || sectionRaw === 'to watch' || sectionRaw === 'watch') {
+      } else if (colBLower === 'to_watch' || colBLower === 'to watch' || colBLower === 'watch') {
         section = 'to_watch'
       }
 
-      const isConditionalRaw = (row[5] || '').toLowerCase().trim()
+      // Skip rows without a title
+      if (!title) continue
+
+      // Skip rows that look like category headers (e.g., "General Onboarding", "Onboarding / Induction")
+      const titleLower = title.toLowerCase()
+      if (titleLower.includes('onboarding') && !titleLower.includes('sign') && title.length < 30) {
+        continue
+      }
+
+      const isConditionalRaw = (row[5] || '').toString().toLowerCase().trim()
       const isConditional = isConditionalRaw === 'true' || isConditionalRaw === 'yes' || isConditionalRaw === '1'
 
-      const appliesToRaw = (row[7] || 'all').toLowerCase().trim()
+      const appliesToRaw = (row[7] || 'all').toString().toLowerCase().trim()
       let appliesTo: TaskCatalogRow['appliesTo'] = 'all'
       if (appliesToRaw === 'full_time' || appliesToRaw === 'full time' || appliesToRaw === 'fulltime') {
         appliesTo = 'full_time'
@@ -152,17 +199,19 @@ export class GoogleSheetsService {
         appliesTo = 'contract'
       }
 
-      return {
-        id: row[0] || `task_${Math.random().toString(36).slice(2, 11)}`,
+      tasks.push({
+        id: colA || `task_${String(taskCounter++).padStart(3, '0')}`,
         section,
-        title: row[2] || '',
+        title,
         url: row[3] || undefined,
         notes: row[4] || undefined,
         isConditional,
         conditionalLabel: row[6] || undefined,
         appliesTo,
-      }
-    }).filter(task => task.title) // Filter out rows without titles
+      })
+    }
+
+    return tasks
   }
 
   /**
