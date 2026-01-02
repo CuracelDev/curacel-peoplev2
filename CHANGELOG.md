@@ -115,6 +115,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Renamed the candidate profile Values tab to Values & Fit.
 - Reduced side padding on Candidates, Jobs, Job Details, and Interview Details pages.
 - Switched candidate profile tabs to the line-style navigation.
+- Increased side padding on Candidates, Jobs, Job Details, and Interview Details pages after the reduction.
 - **App-Wide Responsiveness Enhancement**
   - Onboarding page: Stats grid now 2-column on mobile, workflow cards stack vertically
   - Offboarding page: Same responsive improvements as onboarding

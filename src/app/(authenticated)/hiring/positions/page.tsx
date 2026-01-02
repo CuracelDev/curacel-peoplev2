@@ -12,12 +12,9 @@ import {
   Palette,
   TrendingUp,
   Loader2,
-  Globe,
-  Lock,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Switch } from '@/components/ui/switch'
 import {
   Select,
   SelectContent,
@@ -139,7 +136,7 @@ export default function PositionsPage() {
   }
 
   return (
-    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5">
+    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       <PageActions>
         <Link href="/hiring/positions/new">
           <Button>
@@ -229,23 +226,6 @@ export default function PositionsPage() {
                         {PRIORITY_BADGES[job.priority]?.label || 'Medium'}
                       </Badge>
                     )}
-                    <div className="flex items-center gap-2">
-                      {job.isPublic ? (
-                        <Globe className="h-3.5 w-3.5 text-success" />
-                      ) : (
-                        <Lock className="h-3.5 w-3.5 text-muted-foreground" />
-                      )}
-                      <span className="text-xs text-muted-foreground">
-                        {job.isPublic ? 'Public' : 'Private'}
-                      </span>
-                      <Switch
-                        checked={job.isPublic}
-                        onCheckedChange={(checked) => {
-                          toggleJobPublicMutation.mutate({ jobId: job.id, isPublic: checked })
-                        }}
-                        className="h-5 w-9 [&>span]:h-4 [&>span]:w-4 [&>span]:data-[state=checked]:translate-x-4"
-                      />
-                    </div>
                   </div>
 
                   {/* Job Meta */}

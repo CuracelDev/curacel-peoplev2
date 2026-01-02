@@ -637,7 +637,7 @@ export default function CandidateProfilePage() {
   }
 
   return (
-    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5">
+    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       {/* Profile Header */}
       <Card className="mb-6">
         <CardContent className="p-4 sm:p-6">

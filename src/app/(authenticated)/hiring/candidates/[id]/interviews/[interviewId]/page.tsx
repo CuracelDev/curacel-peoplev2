@@ -353,7 +353,7 @@ export default function InterviewDetailPage() {
   // Loading state
   if (isLoading) {
     return (
-      <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5 flex items-center justify-center min-h-[400px]">
+      <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4 flex items-center justify-center min-h-[400px]">
         <div className="text-center">
           <Loader2 className="h-8 w-8 animate-spin mx-auto text-muted-foreground" />
           <p className="mt-2 text-sm text-muted-foreground">Loading interview...</p>
@@ -365,7 +365,7 @@ export default function InterviewDetailPage() {
   // Error state
   if (error) {
     return (
-      <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5">
+      <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
         <Card className="max-w-md mx-auto text-center py-12">
           <CardContent>
             <AlertCircle className="h-12 w-12 mx-auto text-red-500 mb-4" />
@@ -384,7 +384,7 @@ export default function InterviewDetailPage() {
   // No data state
   if (!interview) {
     return (
-      <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5">
+      <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
         <Card className="max-w-md mx-auto text-center py-12">
           <CardContent>
             <CalendarX className="h-12 w-12 mx-auto text-muted-foreground/60 mb-4" />
@@ -406,7 +406,7 @@ export default function InterviewDetailPage() {
   const isPast = scheduledDate < new Date()
 
   return (
-    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5">
+    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       {/* Header */}
       <div className="mb-6">
         <Link

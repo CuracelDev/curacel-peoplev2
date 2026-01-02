@@ -1232,7 +1232,7 @@ model Job {
 
   // Public page settings
   slug                String?     @unique  // URL slug for public page (e.g., "senior-backend-engineer")
-  isPublic            Boolean     @default(false)  // Whether to show on public careers page
+  isPublic            Boolean     @default(true)  // Whether to show on public careers page
 
   // Webhook configuration
   webhookUrl          String?     // URL to push job postings to
