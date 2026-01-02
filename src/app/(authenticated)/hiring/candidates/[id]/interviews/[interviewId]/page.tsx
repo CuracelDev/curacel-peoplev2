@@ -517,7 +517,7 @@ export default function InterviewDetailPage() {
                 View-only access to all questions and interviewer responses
               </div>
             </div>
-            {!hasTokens ? (
+            {!peopleTeamToken ? (
               <Button
                 size="sm"
                 onClick={handleGenerateTokens}
@@ -528,14 +528,13 @@ export default function InterviewDetailPage() {
                 ) : (
                   <Link2 className="h-4 w-4 mr-2" />
                 )}
-                Generate Links
+                Generate Link
               </Button>
             ) : (
               <Button
                 variant="outline"
                 size="sm"
                 onClick={handleCopyPeopleTeamLink}
-                disabled={!peopleTeamLink}
               >
                 {copiedLink ? (
                   <Check className="h-3.5 w-3.5 mr-1" />
