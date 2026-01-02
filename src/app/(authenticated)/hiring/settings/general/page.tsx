@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { SlidersHorizontal } from 'lucide-react'
+import Link from 'next/link'
+import { SlidersHorizontal, Webhook, ArrowRight } from 'lucide-react'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import { Card, CardContent } from '@/components/ui/card'
 import {
@@ -62,6 +63,28 @@ export default function HiringGeneralSettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Webhooks */}
+      <Link href="/hiring/settings/all?section=webhooks">
+        <Card className="border border-border rounded-2xl hover:border-indigo-300 hover:shadow-sm transition-all cursor-pointer">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+                  <Webhook className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div>
+                  <div className="text-lg font-semibold">Webhooks</div>
+                  <p className="text-sm text-muted-foreground">
+                    Configure webhooks to push job data to external systems.
+                  </p>
+                </div>
+              </div>
+              <ArrowRight className="h-5 w-5 text-muted-foreground" />
+            </div>
+          </CardContent>
+        </Card>
+      </Link>
     </div>
   )
 }

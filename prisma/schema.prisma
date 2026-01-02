@@ -1515,6 +1515,9 @@ model InterviewerToken {
   // Custom questions added by this interviewer
   customQuestions Json?    // Array of { question, answer, score }
 
+  // Question responses (scores and notes for assigned interview questions)
+  questionResponses Json?  // Record<questionId, { score: 1-5, notes: string }>
+
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
 

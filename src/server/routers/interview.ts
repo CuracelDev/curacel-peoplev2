@@ -1088,6 +1088,38 @@ export const interviewRouter = router({
         }
       }
 
+      // Fetch assigned questions for this interview
+      const assignedQuestions = await ctx.prisma.interviewAssignedQuestion.findMany({
+        where: { interviewId: tokenRecord.interviewId },
+        include: {
+          question: true,
+        },
+        orderBy: { sortOrder: 'asc' },
+      })
+
+      // Map questions with assignment info
+      const interviewQuestions = assignedQuestions.map(aq => ({
+        id: aq.id,
+        questionId: aq.questionId,
+        text: aq.question?.text || aq.customText || '',
+        category: aq.question?.category || aq.category || 'general',
+        followUp: aq.question?.followUp || null,
+        isRequired: aq.isRequired,
+        isCustom: !aq.questionId,
+        assignedToInterviewerId: aq.assignedToInterviewerId,
+        assignedToInterviewerName: aq.assignedToInterviewerName,
+        // Check if this question is assigned to the current interviewer
+        isAssignedToMe: aq.assignedToInterviewerId === tokenRecord.interviewerId ||
+                        aq.assignedToInterviewerName === tokenRecord.interviewerName,
+      }))
+
+      // Calculate lockout date (3 days after interview)
+      const lockoutDays = 3 // Could be made configurable per organization
+      const lockoutDate = tokenRecord.interview.scheduledAt
+        ? new Date(tokenRecord.interview.scheduledAt.getTime() + (lockoutDays * 24 * 60 * 60 * 1000))
+        : null
+      const isLocked = lockoutDate ? new Date() > lockoutDate : false
+
       return {
         tokenId: tokenRecord.id,
         interviewer: {
@@ -1117,6 +1149,7 @@ export const interviewRouter = router({
           department: tokenRecord.interview.candidate.job.department,
         } : null,
         rubricCriteria,
+        interviewQuestions,
         panelMembers: allTokens.map(t => ({
           name: t.interviewerName,
           role: t.interviewerRole,
@@ -1128,11 +1161,14 @@ export const interviewRouter = router({
           recommendation: e.recommendation,
         })),
         evaluationStatus: tokenRecord.evaluationStatus,
+        isLocked,
+        lockoutDate,
         savedDraft: tokenRecord.evaluationNotes ? {
           overallRating: tokenRecord.overallRating,
           recommendation: tokenRecord.recommendation,
           notes: tokenRecord.evaluationNotes,
           customQuestions: tokenRecord.customQuestions,
+          questionResponses: tokenRecord.questionResponses,
         } : null,
       }
     }),
@@ -1155,11 +1191,21 @@ export const interviewRouter = router({
             score: z.number().min(1).max(5).nullable(),
           })
         ).optional(),
+        // Question responses: scores and notes for each interview question
+        questionResponses: z.record(z.string(), z.object({
+          score: z.number().min(1).max(5).nullable(),
+          notes: z.string(),
+        })).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       const tokenRecord = await ctx.prisma.interviewerToken.findUnique({
         where: { token: input.token },
+        include: {
+          interview: {
+            select: { scheduledAt: true },
+          },
+        },
       })
 
       if (!tokenRecord) {
@@ -1183,6 +1229,18 @@ export const interviewRouter = router({
         })
       }
 
+      // Check lockout (3 days after interview)
+      const lockoutDays = 3
+      if (tokenRecord.interview.scheduledAt) {
+        const lockoutDate = new Date(tokenRecord.interview.scheduledAt.getTime() + (lockoutDays * 24 * 60 * 60 * 1000))
+        if (new Date() > lockoutDate) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Feedback period has ended. Responses are now locked.',
+          })
+        }
+      }
+
       // Save draft data to the token record
       await ctx.prisma.interviewerToken.update({
         where: { id: tokenRecord.id },
@@ -1195,6 +1253,7 @@ export const interviewRouter = router({
             overallNotes: input.overallNotes,
           }),
           customQuestions: input.customQuestions,
+          questionResponses: input.questionResponses,
           evaluationStatus: 'IN_PROGRESS',
         },
       })
@@ -1220,6 +1279,11 @@ export const interviewRouter = router({
             score: z.number().min(1).max(5).nullable(),
           })
         ).optional(),
+        // Question responses: scores and notes for each interview question
+        questionResponses: z.record(z.string(), z.object({
+          score: z.number().min(1).max(5).nullable(),
+          notes: z.string(),
+        })).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -1256,6 +1320,18 @@ export const interviewRouter = router({
           code: 'BAD_REQUEST',
           message: 'Evaluation has already been submitted',
         })
+      }
+
+      // Check lockout (3 days after interview)
+      const lockoutDays = 3
+      if (tokenRecord.interview.scheduledAt) {
+        const lockoutDate = new Date(tokenRecord.interview.scheduledAt.getTime() + (lockoutDays * 24 * 60 * 60 * 1000))
+        if (new Date() > lockoutDate) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Feedback period has ended. Responses are now locked.',
+          })
+        }
       }
 
       const now = new Date()
@@ -1310,6 +1386,7 @@ export const interviewRouter = router({
           recommendation: input.recommendation,
           evaluationNotes: input.overallNotes,
           customQuestions: input.customQuestions,
+          questionResponses: input.questionResponses,
         },
       })
 
