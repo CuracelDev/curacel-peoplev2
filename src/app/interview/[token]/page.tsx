@@ -207,15 +207,15 @@ export default function PublicInterviewPage() {
 
   // Auto-save every 30 seconds when there are changes
   useEffect(() => {
-    const hasContent = Object.keys(scores).length > 0 || overallRating || recommendation || overallNotes
-    if (!hasContent || interviewData?.evaluationStatus === 'SUBMITTED') return
+    const hasContent = Object.keys(scores).length > 0 || Object.keys(questionResponses).length > 0 || overallRating || recommendation || overallNotes
+    if (!hasContent || interviewData?.evaluationStatus === 'SUBMITTED' || interviewData?.isLocked) return
 
     const interval = setInterval(() => {
       handleSaveDraft()
     }, 30000)
 
     return () => clearInterval(interval)
-  }, [scores, overallRating, recommendation, overallNotes, interviewData?.evaluationStatus, handleSaveDraft])
+  }, [scores, questionResponses, overallRating, recommendation, overallNotes, interviewData?.evaluationStatus, interviewData?.isLocked, handleSaveDraft])
 
   const handleSubmit = async () => {
     // Validate rubric scores
@@ -359,39 +359,48 @@ export default function PublicInterviewPage() {
               </div>
             </div>
             <div className="flex items-center gap-2 sm:gap-3">
-              {lastSaved && (
-                <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">
-                  Saved: {lastSaved.toLocaleTimeString()}
-                </span>
+              {interviewData?.isLocked ? (
+                <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                  <Lock className="h-3 w-3 mr-1" />
+                  Feedback Period Ended
+                </Badge>
+              ) : (
+                <>
+                  {lastSaved && (
+                    <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">
+                      Saved: {lastSaved.toLocaleTimeString()}
+                    </span>
+                  )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleSaveDraft}
+                    disabled={saveDraftMutation.isPending}
+                    className="text-xs sm:text-sm"
+                  >
+                    {saveDraftMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
+                    ) : (
+                      <Save className="h-4 w-4 sm:mr-2" />
+                    )}
+                    <span className="hidden sm:inline">Save Draft</span>
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleSubmit}
+                    disabled={submitMutation.isPending}
+                    className="text-xs sm:text-sm"
+                  >
+                    {submitMutation.isPending ? (
+                      <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
+                    ) : (
+                      <Send className="h-4 w-4 sm:mr-2" />
+                    )}
+                    <span className="hidden sm:inline">Submit</span>
+                    <span className="sm:hidden">Submit</span>
+                  </Button>
+                </>
               )}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSaveDraft}
-                disabled={saveDraftMutation.isPending}
-                className="text-xs sm:text-sm"
-              >
-                {saveDraftMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
-                ) : (
-                  <Save className="h-4 w-4 sm:mr-2" />
-                )}
-                <span className="hidden sm:inline">Save Draft</span>
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleSubmit}
-                disabled={submitMutation.isPending}
-                className="text-xs sm:text-sm"
-              >
-                {submitMutation.isPending ? (
-                  <Loader2 className="h-4 w-4 sm:mr-2 animate-spin" />
-                ) : (
-                  <Send className="h-4 w-4 sm:mr-2" />
-                )}
-                <span className="hidden sm:inline">Submit</span>
-                <span className="sm:hidden">Submit</span>
-              </Button>
             </div>
           </div>
         </div>
@@ -628,13 +637,183 @@ export default function PublicInterviewPage() {
                   </Card>
                 ))}
               </div>
-            ) : (
-              // No rubric configured - show general feedback section
+            ) : null}
+
+            {/* Interview Questions Section */}
+            {interviewData?.interviewQuestions && interviewData.interviewQuestions.length > 0 && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-lg">Interview Questions</h3>
+                  {interviewData.isLocked && (
+                    <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                      <Lock className="h-3 w-3 mr-1" />
+                      Read Only
+                    </Badge>
+                  )}
+                </div>
+                {interviewData.lockoutDate && !interviewData.isLocked && (
+                  <p className="text-xs text-muted-foreground">
+                    Responses can be edited until {new Date(interviewData.lockoutDate).toLocaleDateString()} at {new Date(interviewData.lockoutDate).toLocaleTimeString()}
+                  </p>
+                )}
+
+                {interviewData.interviewQuestions.map((question, qIdx) => {
+                  const response = questionResponses[question.id] || { score: null, notes: '' }
+                  const isExpanded = expandedInterviewQuestion === question.id
+                  const isAssignedToMe = question.isAssignedToMe
+                  const isLocked = interviewData.isLocked
+
+                  return (
+                    <Card
+                      key={question.id}
+                      className={cn(
+                        response.score && 'border-success/20 bg-success/5',
+                        isAssignedToMe && !response.score && 'border-primary/30 bg-primary/5'
+                      )}
+                    >
+                      <CardHeader
+                        className="cursor-pointer"
+                        onClick={() =>
+                          setExpandedInterviewQuestion(isExpanded ? null : question.id)
+                        }
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-start gap-3">
+                            <div
+                              className={cn(
+                                'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
+                                response.score
+                                  ? 'bg-success text-white'
+                                  : isAssignedToMe
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'bg-muted text-foreground/80'
+                              )}
+                            >
+                              {response.score ? (
+                                <Check className="h-4 w-4" />
+                              ) : (
+                                qIdx + 1
+                              )}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 flex-wrap mb-1">
+                                <Badge
+                                  variant="outline"
+                                  className={cn(
+                                    'text-xs',
+                                    question.category === 'technical' && 'border-pink-300 bg-pink-50 text-pink-700',
+                                    question.category === 'behavioral' && 'border-green-300 bg-green-50 text-green-700',
+                                    question.category === 'situational' && 'border-indigo-300 bg-indigo-50 text-indigo-700',
+                                    question.category === 'motivational' && 'border-amber-300 bg-amber-50 text-amber-700',
+                                    question.category === 'culture' && 'border-cyan-300 bg-cyan-50 text-cyan-700'
+                                  )}
+                                >
+                                  {question.category}
+                                </Badge>
+                                {isAssignedToMe && (
+                                  <Badge className="bg-primary/10 text-primary text-xs">
+                                    <Star className="h-3 w-3 mr-1 fill-primary" />
+                                    Assigned to you
+                                  </Badge>
+                                )}
+                                {question.assignedToInterviewerName && !isAssignedToMe && (
+                                  <Badge variant="outline" className="text-xs text-muted-foreground">
+                                    <User className="h-3 w-3 mr-1" />
+                                    {question.assignedToInterviewerName}
+                                  </Badge>
+                                )}
+                                {question.isRequired && (
+                                  <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
+                                )}
+                              </div>
+                              <h4 className="font-medium text-sm sm:text-base">{question.text}</h4>
+                              {question.followUp && (
+                                <p className="text-xs text-muted-foreground mt-1 italic">
+                                  Follow-up: {question.followUp}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {response.score && (
+                              <Badge
+                                className={cn(
+                                  response.score >= 4
+                                    ? 'bg-green-500'
+                                    : response.score >= 3
+                                    ? 'bg-warning'
+                                    : 'bg-destructive'
+                                )}
+                              >
+                                {response.score}/5
+                              </Badge>
+                            )}
+                            {isExpanded ? (
+                              <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+
+                      {isExpanded && (
+                        <CardContent className="border-t pt-4">
+                          {/* Score Input */}
+                          <div className="mb-4">
+                            <Label className="text-sm font-medium mb-2 block">
+                              Your Score {question.isRequired && <span className="text-destructive">*</span>}
+                            </Label>
+                            <div className="flex gap-2">
+                              {[1, 2, 3, 4, 5].map((score) => (
+                                <button
+                                  key={score}
+                                  type="button"
+                                  onClick={() => !isLocked && handleQuestionResponseScore(question.id, score)}
+                                  disabled={isLocked}
+                                  className={cn(
+                                    'flex-1 h-12 rounded-lg font-bold text-lg transition-all',
+                                    response.score === score
+                                      ? ratingDescriptions[score - 1].color + ' text-white shadow-md'
+                                      : 'bg-muted text-muted-foreground hover:bg-muted',
+                                    isLocked && 'opacity-60 cursor-not-allowed'
+                                  )}
+                                >
+                                  {score}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Notes */}
+                          <div>
+                            <Label className="text-sm font-medium mb-2 block">
+                              Notes (Candidate&apos;s response and your observations)
+                            </Label>
+                            <Textarea
+                              placeholder="Document the candidate's response and your observations..."
+                              value={response.notes}
+                              onChange={(e) => !isLocked && handleQuestionResponseNotes(question.id, e.target.value)}
+                              disabled={isLocked}
+                              className={cn('min-h-[100px]', isLocked && 'opacity-60')}
+                            />
+                          </div>
+                        </CardContent>
+                      )}
+                    </Card>
+                  )
+                })}
+              </div>
+            )}
+
+            {/* General Feedback Section (when no rubric and no questions) */}
+            {(!interviewData?.rubricCriteria || interviewData.rubricCriteria.length === 0) &&
+             (!interviewData?.interviewQuestions || interviewData.interviewQuestions.length === 0) && (
               <Card>
                 <CardHeader>
                   <CardTitle className="text-base">Interview Feedback</CardTitle>
                   <CardDescription>
-                    No specific evaluation criteria configured for this interview type.
+                    No specific questions configured for this interview.
                     Please provide general feedback below.
                   </CardDescription>
                 </CardHeader>
@@ -644,6 +823,7 @@ export default function PublicInterviewPage() {
                     value={overallNotes}
                     onChange={(e) => setOverallNotes(e.target.value)}
                     className="min-h-[200px]"
+                    disabled={interviewData?.isLocked}
                   />
                 </CardContent>
               </Card>
