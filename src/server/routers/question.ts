@@ -1055,6 +1055,14 @@ Respond ONLY with a valid JSON array, no additional text.`
         })
       }
 
+      // Check if we got valid questions
+      if (!generatedQuestions || generatedQuestions.length === 0) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'AI returned no questions. Please try again or adjust the context.',
+        })
+      }
+
       return {
         questions: generatedQuestions.map((q, idx) => ({
           id: `ai-${Date.now()}-${idx}`,

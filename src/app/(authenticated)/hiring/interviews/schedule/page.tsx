@@ -399,7 +399,7 @@ export default function ScheduleInterviewPage() {
   }, [availableSlots])
 
   return (
-    <div className="px-3 py-4 max-w-5xl mx-auto">
+    <div className={cn("px-3 py-4 mx-auto", currentStep === 2 ? "max-w-7xl" : "max-w-5xl")}>
       {/* Step 1: Interview Details */}
       {currentStep === 1 && (
         <Card>
@@ -952,7 +952,7 @@ export default function ScheduleInterviewPage() {
 
       {/* Step 2: Question Selection - Two Column Layout */}
       {currentStep === 2 && (
-        <div className="grid grid-cols-[420px_1fr] gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Left Panel: Question Sources (Bank or AI) */}
           <div>
             <Card className="sticky top-4 h-[580px] flex flex-col">
