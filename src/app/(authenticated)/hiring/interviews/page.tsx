@@ -50,14 +50,18 @@ import {
   AlertCircle,
   Plus,
   Play,
+  BookOpen,
+  Pencil,
 } from 'lucide-react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { format, isPast, isToday, isTomorrow } from 'date-fns'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-// Schedule dialog replaced with full page at /recruiting/interviews/schedule
 import { toast } from 'sonner'
+import { ViewQuestionsDialog } from '@/components/hiring/view-questions-dialog'
+import { EditInterviewDialog } from '@/components/hiring/edit-interview-dialog'
+import { RescheduleDialog } from '@/components/hiring/reschedule-dialog'
 
 // Default counts when no data
 const defaultCounts = {
@@ -96,6 +100,10 @@ export default function InterviewsPage() {
   // Dialog states
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(null)
+  const [viewQuestionsOpen, setViewQuestionsOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
+  const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false)
+  const [selectedInterview, setSelectedInterview] = useState<typeof interviews[0] | null>(null)
 
   // Fetch interviews
   const { data: dbInterviews, isLoading } = trpc.interview.list.useQuery({
@@ -337,46 +345,80 @@ export default function InterviewsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             {(interview.status === 'SCHEDULED' || interview.status === 'IN_PROGRESS') && (
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  router.push(`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}?reschedule=true`)
-                                }}
-                              >
-                                <Calendar className="h-4 w-4 mr-2" />
-                                Reschedule
-                              </DropdownMenuItem>
-                            )}
-                            {(interview.status === 'SCHEDULED' || interview.status === 'IN_PROGRESS') && (
-                              <DropdownMenuItem
-                                className="text-destructive"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  setSelectedInterviewId(interview.id)
-                                  setCancelDialogOpen(true)
-                                }}
-                              >
-                                <XCircle className="h-4 w-4 mr-2" />
-                                Cancel
-                              </DropdownMenuItem>
-                            )}
-                            {interview.status === 'COMPLETED' && (
-                              interview.recordingUrl ? (
+                              <>
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    window.open(interview.recordingUrl as string, '_blank')
+                                    setSelectedInterview(interview)
+                                    setRescheduleDialogOpen(true)
                                   }}
                                 >
-                                  <Play className="h-4 w-4 mr-2" />
-                                  View Fireflies
+                                  <Calendar className="h-4 w-4 mr-2" />
+                                  Reschedule
                                 </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem disabled>
-                                  <Play className="h-4 w-4 mr-2" />
-                                  Fireflies unavailable
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setSelectedInterview(interview)
+                                    setViewQuestionsOpen(true)
+                                  }}
+                                >
+                                  <BookOpen className="h-4 w-4 mr-2" />
+                                  View Questions
                                 </DropdownMenuItem>
-                              )
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setSelectedInterview(interview)
+                                    setEditDialogOpen(true)
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4 mr-2" />
+                                  Edit Details
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  className="text-destructive"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setSelectedInterviewId(interview.id)
+                                    setCancelDialogOpen(true)
+                                  }}
+                                >
+                                  <XCircle className="h-4 w-4 mr-2" />
+                                  Cancel
+                                </DropdownMenuItem>
+                              </>
+                            )}
+                            {interview.status === 'COMPLETED' && (
+                              <>
+                                <DropdownMenuItem
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    setSelectedInterview(interview)
+                                    setViewQuestionsOpen(true)
+                                  }}
+                                >
+                                  <BookOpen className="h-4 w-4 mr-2" />
+                                  View Questions
+                                </DropdownMenuItem>
+                                {interview.recordingUrl ? (
+                                  <DropdownMenuItem
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      window.open(interview.recordingUrl as string, '_blank')
+                                    }}
+                                  >
+                                    <Play className="h-4 w-4 mr-2" />
+                                    View Fireflies
+                                  </DropdownMenuItem>
+                                ) : (
+                                  <DropdownMenuItem disabled>
+                                    <Play className="h-4 w-4 mr-2" />
+                                    Fireflies unavailable
+                                  </DropdownMenuItem>
+                                )}
+                              </>
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -419,6 +461,51 @@ export default function InterviewsPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* View Questions Dialog */}
+      {selectedInterview && (
+        <ViewQuestionsDialog
+          open={viewQuestionsOpen}
+          onOpenChange={setViewQuestionsOpen}
+          interviewId={selectedInterview.id}
+          interviewers={selectedInterview.interviewers as Array<{ id?: string; employeeId?: string; name: string; email?: string }> || []}
+        />
+      )}
+
+      {/* Edit Interview Dialog */}
+      {selectedInterview && (
+        <EditInterviewDialog
+          open={editDialogOpen}
+          onOpenChange={setEditDialogOpen}
+          interview={{
+            id: selectedInterview.id,
+            scheduledAt: selectedInterview.scheduledAt ? new Date(selectedInterview.scheduledAt) : null,
+            duration: selectedInterview.duration,
+            meetingLink: selectedInterview.meetingLink,
+            feedback: selectedInterview.feedback,
+            interviewers: selectedInterview.interviewers as Array<{ employeeId?: string; name: string; email: string }> || [],
+          }}
+          onSuccess={() => {
+            utils.interview.list.invalidate()
+            utils.interview.getCounts.invalidate()
+          }}
+        />
+      )}
+
+      {/* Reschedule Dialog */}
+      {selectedInterview && (
+        <RescheduleDialog
+          open={rescheduleDialogOpen}
+          onOpenChange={setRescheduleDialogOpen}
+          interviewId={selectedInterview.id}
+          currentScheduledAt={selectedInterview.scheduledAt ? new Date(selectedInterview.scheduledAt) : undefined}
+          currentDuration={selectedInterview.duration || 60}
+          onSuccess={() => {
+            utils.interview.list.invalidate()
+            utils.interview.getCounts.invalidate()
+          }}
+        />
+      )}
     </div>
   )
 }

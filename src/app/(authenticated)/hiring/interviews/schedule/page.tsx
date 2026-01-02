@@ -57,6 +57,7 @@ import {
 import { format, addDays, startOfDay, endOfDay } from 'date-fns'
 import { toast } from 'sonner'
 import { AIQuestionGenerator } from '@/components/hiring/ai-question-generator'
+import { InterviewerQuestionAssignment } from '@/components/hiring/interviewer-question-assignment'
 
 interface AvailableSlot {
   start: Date
@@ -114,6 +115,9 @@ export default function ScheduleInterviewPage() {
   const [customQuestionCategory, setCustomQuestionCategory] = useState('behavioral')
   const [saveCustomToBank, setSaveCustomToBank] = useState(false)
   const [questionSearch, setQuestionSearch] = useState('')
+
+  // Step 3: Interviewer Question Assignments (questionIndex -> interviewerId)
+  const [questionAssignments, setQuestionAssignments] = useState<Record<string, string>>({})
 
   // Popover states
   const [interviewerOpen, setInterviewerOpen] = useState(false)
@@ -352,10 +356,18 @@ export default function ScheduleInterviewPage() {
   // Check if Step 1 is valid
   const isStep1Valid = selectedCandidateId && interviewTypeId && date && selectedInterviewers.length > 0
 
+  // Check if Step 3 should be shown (only if 2+ interviewers)
+  const showStep3 = selectedInterviewers.length >= 2 && selectedQuestions.length > 0
+
+  // Total steps based on whether Step 3 should be shown
+  const totalSteps = showStep3 ? 3 : 2
+
   // Handle next step
   const handleNext = () => {
     if (currentStep === 1 && isStep1Valid) {
       setCurrentStep(2)
+    } else if (currentStep === 2 && showStep3) {
+      setCurrentStep(3)
     }
   }
 
@@ -363,7 +375,14 @@ export default function ScheduleInterviewPage() {
   const handleBack = () => {
     if (currentStep === 2) {
       setCurrentStep(1)
+    } else if (currentStep === 3) {
+      setCurrentStep(2)
     }
+  }
+
+  // Handle skip step 3
+  const handleSkipStep3 = () => {
+    handleSubmit(false) // Submit with current questions but no assignments
   }
 
   // Handle submit
@@ -378,12 +397,42 @@ export default function ScheduleInterviewPage() {
     scheduledAt.setHours(hours, minutes, 0, 0)
 
     const questionIds = skipQuestions ? [] : selectedQuestions.filter(q => !q.isCustom).map(q => q.id!)
-    const customQuestions = skipQuestions ? [] : selectedQuestions.filter(q => q.isCustom).map(q => ({
-      text: q.text,
-      category: q.category,
-      isRequired: q.isRequired,
-      saveToBank: q.saveToBank,
-    }))
+
+    // Build custom questions with interviewer assignments
+    const customQuestions = skipQuestions ? [] : selectedQuestions.filter(q => q.isCustom).map((q, idx) => {
+      const questionKey = `question-${selectedQuestions.indexOf(q)}`
+      const assignedInterviewerId = questionAssignments[questionKey]
+      const assignedInterviewer = assignedInterviewerId
+        ? selectedInterviewers.find(i => i.id === assignedInterviewerId)
+        : null
+
+      return {
+        text: q.text,
+        category: q.category,
+        isRequired: q.isRequired,
+        saveToBank: q.saveToBank,
+        assignedToInterviewerId: assignedInterviewerId || undefined,
+        assignedToInterviewerName: assignedInterviewer?.name || undefined,
+      }
+    })
+
+    // Build question assignments for bank questions
+    const questionAssignmentsData: Record<string, { interviewerId: string; interviewerName: string }> = {}
+    selectedQuestions.forEach((q, idx) => {
+      if (!q.isCustom && q.id) {
+        const questionKey = `question-${idx}`
+        const assignedInterviewerId = questionAssignments[questionKey]
+        if (assignedInterviewerId) {
+          const assignedInterviewer = selectedInterviewers.find(i => i.id === assignedInterviewerId)
+          if (assignedInterviewer) {
+            questionAssignmentsData[q.id] = {
+              interviewerId: assignedInterviewerId,
+              interviewerName: assignedInterviewer.name,
+            }
+          }
+        }
+      }
+    })
 
     try {
       await scheduleMutation.mutateAsync({
@@ -400,6 +449,7 @@ export default function ScheduleInterviewPage() {
         notes: notes || undefined,
         questionIds: questionIds.length > 0 ? questionIds : undefined,
         customQuestions: customQuestions.length > 0 ? customQuestions : undefined,
+        questionAssignments: Object.keys(questionAssignmentsData).length > 0 ? questionAssignmentsData : undefined,
       })
     } catch {
       // Error is already handled by onError callback in the mutation
@@ -437,7 +487,7 @@ export default function ScheduleInterviewPage() {
   }, [availableSlots]);
 
   return (
-    <div className={cn("px-1 sm:px-2 py-2", currentStep === 2 ? "max-w-7xl mx-auto" : "")}>
+    <div className={cn("px-1 sm:px-2 py-2", (currentStep === 2 || currentStep === 3) ? "max-w-7xl mx-auto" : "")}>
       {/* Step 1: Interview Details */}
       {currentStep === 1 && (
         <Card>
@@ -1261,6 +1311,26 @@ export default function ScheduleInterviewPage() {
         </div>
       )}
 
+      {/* Step 3: Assign Questions to Interviewers */}
+      {currentStep === 3 && showStep3 && (
+        <Card>
+          <CardHeader className="px-4 py-3">
+            <CardTitle>Assign Questions to Interviewers</CardTitle>
+            <CardDescription>
+              Drag questions to assign them to specific interviewers. This helps structure who asks what during the interview.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <InterviewerQuestionAssignment
+              questions={selectedQuestions}
+              interviewers={selectedInterviewers}
+              assignments={questionAssignments}
+              onAssignmentsChange={setQuestionAssignments}
+            />
+          </CardContent>
+        </Card>
+      )}
+
       {/* Footer Actions */}
       <div className="flex items-center justify-between mt-3">
         <div>
@@ -1269,7 +1339,7 @@ export default function ScheduleInterviewPage() {
               <Button variant="outline">Cancel</Button>
             </Link>
           )}
-          {currentStep === 2 && (
+          {(currentStep === 2 || currentStep === 3) && (
             <Button variant="outline" onClick={handleBack}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
@@ -1305,6 +1375,39 @@ export default function ScheduleInterviewPage() {
               >
                 {scheduleMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 Schedule Without Questions
+              </Button>
+              {showStep3 ? (
+                <Button
+                  onClick={handleNext}
+                  disabled={selectedQuestions.length === 0}
+                >
+                  Next: Assign to Interviewers
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  onClick={() => handleSubmit(false)}
+                  disabled={scheduleMutation.isPending}
+                >
+                  {scheduleMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Schedule Interview
+                  {selectedQuestions.length > 0 && (
+                    <Badge variant="secondary" className="ml-2">
+                      {selectedQuestions.length} questions
+                    </Badge>
+                  )}
+                </Button>
+              )}
+            </>
+          )}
+          {currentStep === 3 && (
+            <>
+              <Button
+                variant="outline"
+                onClick={handleSkipStep3}
+                disabled={scheduleMutation.isPending}
+              >
+                Skip Assignments
               </Button>
               <Button
                 onClick={() => handleSubmit(false)}

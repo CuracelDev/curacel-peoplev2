@@ -1414,6 +1414,9 @@ model JobCandidate {
   // AI analysis versions
   aiAnalyses   CandidateAIAnalysis[]
 
+  // Queued stage transition emails
+  queuedEmails QueuedStageEmail[]
+
   @@unique([jobId, email])
   @@index([jobId, stage])
   @@index([email])
@@ -2217,11 +2220,16 @@ model InterviewAssignedQuestion {
   // Track if custom question should be saved to bank
   saveToBank      Boolean  @default(false)
 
+  // Interviewer assignment (for multi-interviewer interviews)
+  assignedToInterviewerId   String?  // ID of the assigned interviewer
+  assignedToInterviewerName String?  // Name for display (since interviewers are stored as JSON)
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([interviewId])
   @@index([questionId])
+  @@index([assignedToInterviewerId])
 }
 
 // ============================================
