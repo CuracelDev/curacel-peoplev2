@@ -75,6 +75,10 @@ function getDepartmentInfo(department: string | null) {
   return DEPARTMENTS.find(d => d.value === department) || { icon: Briefcase, color: 'text-muted-foreground bg-muted/50' }
 }
 
+function stripHtml(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/&nbsp;/g, ' ').trim()
+}
+
 export default function JDsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [departmentFilter, setDepartmentFilter] = useState<string>('all')
@@ -105,7 +109,7 @@ export default function JDsPage() {
   const filteredJDs = (jds || []).filter(jd => {
     const matchesSearch = jd.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (jd.department?.toLowerCase() || '').includes(searchQuery.toLowerCase()) ||
-      jd.content.toLowerCase().includes(searchQuery.toLowerCase())
+      stripHtml(jd.content).toLowerCase().includes(searchQuery.toLowerCase())
     const matchesDepartment = departmentFilter === 'all' || jd.department === departmentFilter
     const matchesStatus = statusFilter === 'all' ||
       (statusFilter === 'published' && jd.isActive) ||
@@ -217,7 +221,7 @@ export default function JDsPage() {
                             {jd.name}
                           </Link>
                           <p className="text-sm text-muted-foreground line-clamp-1 max-w-[300px]">
-                            {jd.content.substring(0, 100)}...
+                            {stripHtml(jd.content).substring(0, 100)}...
                           </p>
                         </div>
                       </div>
