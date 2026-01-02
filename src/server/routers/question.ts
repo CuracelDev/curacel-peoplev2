@@ -645,6 +645,12 @@ export const questionRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { prisma, session } = ctx
+      if (!session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'You must be signed in to create questions.',
+        })
+      }
 
       const user = await prisma.user.findUnique({
         where: { id: session.user.id },
@@ -1117,8 +1123,10 @@ Respond ONLY with a valid JSON array, no additional text.`
             const model = aiModel || 'gpt-4o'
             console.log('Calling OpenAI API with model:', model)
 
-            // o1/o3 models don't support system messages or temperature
-            const isReasoningModel = model.startsWith('o1') || model.startsWith('o3')
+            // Many newer models (o1, o3, gpt-5.x, etc.) don't support system messages or temperature
+            // Only standard GPT-4/GPT-3.5 models reliably support these parameters
+            const isStandardModel = model.startsWith('gpt-4') || model.startsWith('gpt-3')
+            const isReasoningModel = !isStandardModel
 
             const systemMessage = `You are an expert interviewer. Always respond with a valid JSON array of question objects. Never wrap the array in another object. Return exactly the number of questions requested.`
 
