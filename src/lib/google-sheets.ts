@@ -58,7 +58,8 @@ export class GoogleSheetsService {
   }
 
   private async getSheetsClient(): Promise<sheets_v4.Sheets> {
-    if (this.sheets) return this.sheets
+    // Don't cache - create fresh client each time to avoid stale auth issues
+    // if (this.sheets) return this.sheets
 
     // Try to get credentials from environment variables first
     let serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
@@ -78,18 +79,50 @@ export class GoogleSheetsService {
     }
 
     const serviceAccount = JSON.parse(serviceAccountKey)
+    console.log('[GoogleSheets] Service account email:', serviceAccount.client_email)
+    console.log('[GoogleSheets] Admin email for impersonation:', adminEmail)
 
-    // Use domain-wide delegation with impersonation if admin email is available
-    // This requires the sheets scope to be enabled in Google Admin Console
-    const auth = new google.auth.JWT({
+    // Try direct service account access first (works if sheet is shared with service account)
+    // This avoids needing domain-wide delegation
+    const directAuth = new google.auth.JWT({
       email: serviceAccount.client_email,
       key: serviceAccount.private_key,
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-      subject: adminEmail, // Impersonate admin for domain-wide access
+      // No subject - direct access without impersonation
     })
 
-    this.sheets = google.sheets({ version: 'v4', auth })
-    return this.sheets
+    const directClient = google.sheets({ version: 'v4', auth: directAuth })
+
+    // Test if direct access works
+    try {
+      console.log('[GoogleSheets] Trying direct service account access...')
+      await directClient.spreadsheets.get({
+        spreadsheetId: this.config.spreadsheetId,
+        fields: 'spreadsheetId',
+      })
+      console.log('[GoogleSheets] Direct access succeeded!')
+      this.sheets = directClient
+      return this.sheets
+    } catch (directError: any) {
+      console.log('[GoogleSheets] Direct access failed:', directError?.message || directError)
+
+      // If direct access fails and we have admin email, try domain-wide delegation
+      if (adminEmail) {
+        console.log('[GoogleSheets] Trying domain-wide delegation with impersonation...')
+        const delegatedAuth = new google.auth.JWT({
+          email: serviceAccount.client_email,
+          key: serviceAccount.private_key,
+          scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
+          subject: adminEmail, // Impersonate admin for domain-wide access
+        })
+
+        this.sheets = google.sheets({ version: 'v4', auth: delegatedAuth })
+        return this.sheets
+      }
+
+      // No admin email and direct access failed - throw the original error
+      throw directError
+    }
   }
 
   /**
