@@ -213,6 +213,42 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Interest form public payload now includes team data for department labels
 - Interest form submissions now store denormalized candidate name and email
 - Interest form submission no longer attempts to write a non-existent candidate response link
+- Interview stage criteria updates now use the correct stage id field
+- Interview evaluation creation no longer writes a non-existent candidate id field
+- Interview evaluations now require an interview id before creation
+- Interview evaluation mutations now guard against missing user sessions
+- Interview evaluation creation now maps rating and notes to schema fields
+- Interview evaluations now populate evaluator name and email on creation
+- Interview evaluation queries no longer include a non-existent evaluator relation
+- Interview evaluation updates now map ratings/notes to schema fields
+- Interview evaluation lookups now filter via interview candidate ids
+- Interview evaluation summaries now use overall scores and guard nulls
+- Interview question creation now uses session employee ids correctly
+- Interview rubric criteria now sort by the correct sortOrder field
+- Interview rubric payload now omits unsupported guide notes
+- Interview scoring UI no longer references missing guide note fields
+- Interview Fireflies reset now clears JSON fields with Prisma JsonNull
+- Interview calendar sync no longer writes a non-existent event id field
+- Interview calendar sync now only updates the stored meeting link
+- Interview calendar endpoints now return safe responses without stored event ids
+- Interview calendar sync now always creates a new event and stores only meeting links
+- Interview transcript analysis now uses provider-specific AI settings and keys
+- Interview transcript rubric criteria now sort by sortOrder
+- Interview custom question creation now uses session employee ids correctly
+- Job candidate stage filtering now uses typed stage enums
+- Public job lookup now uses typed job status filters
+- Job candidate filters now use a shared schema for type safety
+- Job candidate filters now apply explicit defaults when input is missing
+- Job import field matching now uses provider-specific AI keys and models
+- Job candidate import now guards missing session ids when setting addedById
+- Legal entity listing now casts raw SQL results explicitly
+- Offboarding settings now clear Google transfer apps with Prisma JsonNull
+- Onboarding offer events now store BYOD notes in the description field
+- Interview question listing now uses explicit Prisma where input typing
+- Interview question creation now guards missing sessions
+- Interview question relevance queries now use explicit Prisma where typing
+- Interview question usage tracking now guards missing sessions
+- Interview AI analysis now returns results without persisting missing fields
 - Public careers application now always sends a linkedin URL string
 - Public careers detail page now safely accesses job description content
 - Public recruiter submissions now always send a linkedin URL string

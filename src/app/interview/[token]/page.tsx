@@ -562,21 +562,6 @@ export default function PublicInterviewPage() {
 
                     {expandedQuestion === criteria.id && (
                       <CardContent className="border-t pt-4">
-                        {/* Guide Notes */}
-                        {criteria.guideNotes && (
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                            <div className="flex items-start gap-2">
-                              <AlertCircle className="h-4 w-4 text-blue-600 mt-0.5" />
-                              <div>
-                                <div className="text-sm font-medium text-blue-900">
-                                  Guide Notes
-                                </div>
-                                <p className="text-sm text-blue-700">{criteria.guideNotes}</p>
-                              </div>
-                            </div>
-                          </div>
-                        )}
-
                         {/* Score Input */}
                         <div className="mb-4">
                           <Label className="text-sm font-medium mb-2 block">Your Score *</Label>

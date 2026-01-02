@@ -981,7 +981,7 @@ export const onboardingRouter = router({
               data: {
                 offerId: byodOffer.id,
                 type: 'created',
-                details: { note: 'BYOD agreement created during onboarding (device task skipped)' },
+                description: 'BYOD agreement created during onboarding (device task skipped)',
               },
             })
           }

@@ -19,10 +19,11 @@ function hasLegalEntityClient(ctx: { prisma: any }): boolean {
 
 async function listLegalEntitiesRaw(ctx: { prisma: any }, organizationId: string): Promise<LegalEntityRow[]> {
   try {
-    return await ctx.prisma.$queryRawUnsafe<LegalEntityRow[]>(
+    const rows = await ctx.prisma.$queryRawUnsafe(
       'select "id", "organizationId", "name", "isActive", "createdAt", "updatedAt" from "LegalEntity" where "organizationId" = $1 and "isActive" = true order by "name" asc',
       organizationId
     )
+    return rows as LegalEntityRow[]
   } catch (error) {
     console.error('Legal entity raw list failed:', error)
     throw new TRPCError({

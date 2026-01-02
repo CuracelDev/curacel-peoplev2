@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure, adminProcedure, publicProcedure } from '@/lib/trpc'
+import { Prisma } from '@prisma/client'
 
 const interviewStageEnum = z.enum([
   'HR_SCREEN',      // People Chat
@@ -345,7 +346,7 @@ export const interviewRouter = router({
                   text: customQ.text,
                   category: customQ.category,
                   tags: [],
-                  createdById: ctx.session?.user?.employee?.id || null,
+                  createdById: ctx.session?.user?.employeeId || null,
                 },
               })
               questionId = newQuestion.id
@@ -954,7 +955,6 @@ export const interviewRouter = router({
         name: string
         description: string | null
         weight: number
-        guideNotes: string | null
       }> = []
 
       if (tokenRecord.interview.stageTemplateId) {
@@ -962,7 +962,7 @@ export const interviewRouter = router({
           where: { id: tokenRecord.interview.stageTemplateId },
           include: {
             criteria: {
-              orderBy: { order: 'asc' },
+              orderBy: { sortOrder: 'asc' },
             },
           },
         })
@@ -972,7 +972,6 @@ export const interviewRouter = router({
             name: c.name,
             description: c.description,
             weight: c.weight,
-            guideNotes: c.guideNotes,
           }))
         }
       }
@@ -1400,8 +1399,8 @@ export const interviewRouter = router({
           firefliesMeetingId: null,
           firefliesTranscript: null,
           firefliesSummary: null,
-          firefliesActionItems: null,
-          firefliesHighlights: null,
+          firefliesActionItems: Prisma.JsonNull,
+          firefliesHighlights: Prisma.JsonNull,
           transcriptUrl: null,
           recordingUrl: null,
         },
@@ -1644,8 +1643,6 @@ export const interviewRouter = router({
       const updatedInterview = await ctx.prisma.candidateInterview.update({
         where: { id: input.interviewId },
         data: {
-          calendarEventId: event.eventId,
-          googleMeetLink: event.meetLink || null,
           // If we got a meet link and no existing meeting link, use it
           meetingLink: event.meetLink || interview.meetingLink,
         },
@@ -1675,16 +1672,6 @@ export const interviewRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-      const connector = await getGoogleWorkspaceConnector()
-
-      if (!connector) {
-        throw new TRPCError({
-          code: 'PRECONDITION_FAILED',
-          message: 'Google Workspace integration is not configured',
-        })
-      }
-
       const interview = await ctx.prisma.candidateInterview.findUnique({
         where: { id: input.interviewId },
         include: {
@@ -1703,60 +1690,10 @@ export const interviewRouter = router({
           message: 'Interview not found',
         })
       }
-
-      if (!interview.calendarEventId) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Interview has no linked calendar event',
-        })
+      return {
+        success: false,
+        message: 'Calendar event tracking is not configured for interviews.',
       }
-
-      // Build updated event details
-      const interviewers = (interview.interviewers as Array<{
-        employeeId?: string
-        name: string
-        email: string
-        role?: string
-      }>) || []
-
-      const attendeeEmails = [
-        ...interviewers.map(i => i.email),
-        interview.candidate.email,
-      ].filter(Boolean) as string[]
-
-      const stageName = interview.interviewType?.name ||
-        stageDisplayNames[interview.stage] ||
-        interview.stageName ||
-        interview.stage
-
-      const summary = `${stageName} Interview - ${interview.candidate.name}`
-      const description = [
-        `Interview Type: ${stageName}`,
-        `Candidate: ${interview.candidate.name}`,
-        `Position: ${interview.candidate.job?.title || 'N/A'}`,
-        `Department: ${interview.candidate.job?.department || 'N/A'}`,
-        '',
-        'Interviewers:',
-        ...interviewers.map(i => `- ${i.name} (${i.email})${i.role ? ` - ${i.role}` : ''}`),
-        '',
-        interview.feedback ? `Notes: ${interview.feedback}` : '',
-      ].filter(Boolean).join('\n')
-
-      const endTime = interview.scheduledAt ? new Date(interview.scheduledAt) : null
-      if (endTime) {
-        endTime.setMinutes(endTime.getMinutes() + (interview.duration || 60))
-      }
-
-      // Update calendar event
-      await connector.updateCalendarEvent(interview.calendarEventId, {
-        summary,
-        description,
-        start: interview.scheduledAt || undefined,
-        end: endTime || undefined,
-        attendees: attendeeEmails,
-      })
-
-      return { success: true }
     }),
 
   // Delete calendar event for an interview
@@ -1767,16 +1704,6 @@ export const interviewRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-      const connector = await getGoogleWorkspaceConnector()
-
-      if (!connector) {
-        throw new TRPCError({
-          code: 'PRECONDITION_FAILED',
-          message: 'Google Workspace integration is not configured',
-        })
-      }
-
       const interview = await ctx.prisma.candidateInterview.findUnique({
         where: { id: input.interviewId },
       })
@@ -1787,25 +1714,7 @@ export const interviewRouter = router({
           message: 'Interview not found',
         })
       }
-
-      if (!interview.calendarEventId) {
-        // No calendar event to delete
-        return { success: true, message: 'No calendar event linked' }
-      }
-
-      // Delete calendar event
-      await connector.deleteCalendarEvent(interview.calendarEventId)
-
-      // Clear calendar event from interview
-      await ctx.prisma.candidateInterview.update({
-        where: { id: input.interviewId },
-        data: {
-          calendarEventId: null,
-          googleMeetLink: null,
-        },
-      })
-
-      return { success: true }
+      return { success: true, message: 'No calendar event linked.' }
     }),
 
   // Get calendar event details for an interview
@@ -1815,8 +1724,6 @@ export const interviewRouter = router({
       const interview = await ctx.prisma.candidateInterview.findUnique({
         where: { id: input.interviewId },
         select: {
-          calendarEventId: true,
-          googleMeetLink: true,
           meetingLink: true,
         },
       })
@@ -1828,34 +1735,13 @@ export const interviewRouter = router({
         })
       }
 
-      if (!interview.calendarEventId) {
-        return null
-      }
-
-      const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-      const connector = await getGoogleWorkspaceConnector()
-
-      if (!connector) {
-        // Return basic info if connector not available
-        return {
-          eventId: interview.calendarEventId,
-          meetLink: interview.googleMeetLink,
-          htmlLink: null,
-        }
-      }
-
-      try {
-        const event = await connector.getCalendarEvent(interview.calendarEventId)
-        return event
-      } catch {
-        // Event might have been deleted externally
-        return {
-          eventId: interview.calendarEventId,
-          meetLink: interview.googleMeetLink,
-          htmlLink: null,
-          error: 'Could not fetch calendar event details',
-        }
-      }
+      return interview.meetingLink
+        ? {
+            eventId: null,
+            meetLink: interview.meetingLink,
+            htmlLink: null,
+          }
+        : null
     }),
 
   // ============================================
@@ -1898,20 +1784,12 @@ export const interviewRouter = router({
         })
       }
 
-      // Check if we already have AI analysis and not forcing regeneration
-      if (interview.aiAnalysis && !input.forceRegenerate) {
-        return {
-          analysis: interview.aiAnalysis,
-          wasRegenerated: false,
-        }
-      }
-
       // Get AI settings
       const aiSettings = await ctx.prisma.aISettings.findFirst({
         orderBy: { updatedAt: 'desc' },
       })
 
-      if (!aiSettings?.apiKey) {
+      if (!aiSettings?.isEnabled) {
         throw new TRPCError({
           code: 'PRECONDITION_FAILED',
           message: 'AI settings not configured',
@@ -1923,7 +1801,7 @@ export const interviewRouter = router({
       if (interview.stageTemplateId) {
         const template = await ctx.prisma.interviewStageTemplate.findUnique({
           where: { id: interview.stageTemplateId },
-          include: { criteria: { orderBy: { order: 'asc' } } },
+          include: { criteria: { orderBy: { sortOrder: 'asc' } } },
         })
         if (template) {
           rubricCriteria = template.criteria.map(c => ({
@@ -2024,15 +1902,18 @@ Respond ONLY with valid JSON, no additional text.`
 
       try {
         const { decrypt } = await import('@/lib/encryption')
-        const apiKey = decrypt(aiSettings.apiKey)
 
         switch (aiSettings.provider) {
           case 'ANTHROPIC': {
+            if (!aiSettings.anthropicKeyEncrypted) {
+              throw new Error('Anthropic API key not configured')
+            }
+            const apiKey = decrypt(aiSettings.anthropicKeyEncrypted)
             const { default: Anthropic } = await import('@anthropic-ai/sdk')
             const client = new Anthropic({ apiKey })
 
             const response = await client.messages.create({
-              model: aiSettings.model,
+              model: aiSettings.anthropicModel,
               max_tokens: 4096,
               messages: [{ role: 'user', content: prompt }],
             })
@@ -2047,11 +1928,15 @@ Respond ONLY with valid JSON, no additional text.`
           }
 
           case 'OPENAI': {
+            if (!aiSettings.openaiKeyEncrypted) {
+              throw new Error('OpenAI API key not configured')
+            }
+            const apiKey = decrypt(aiSettings.openaiKeyEncrypted)
             const { default: OpenAI } = await import('openai')
             const client = new OpenAI({ apiKey })
 
             const response = await client.chat.completions.create({
-              model: aiSettings.model,
+              model: aiSettings.openaiModel,
               messages: [{ role: 'user', content: prompt }],
               response_format: { type: 'json_object' },
             })
@@ -2066,8 +1951,12 @@ Respond ONLY with valid JSON, no additional text.`
           }
 
           case 'GEMINI': {
+            if (!aiSettings.geminiKeyEncrypted) {
+              throw new Error('Gemini API key not configured')
+            }
+            const apiKey = decrypt(aiSettings.geminiKeyEncrypted)
             const response = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/${aiSettings.model}:generateContent?key=${apiKey}`,
+              `https://generativelanguage.googleapis.com/v1beta/models/${aiSettings.geminiModel}:generateContent?key=${apiKey}`,
               {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -2099,19 +1988,10 @@ Respond ONLY with valid JSON, no additional text.`
         })
       }
 
-      // Store analysis result on interview
-      const updatedInterview = await ctx.prisma.candidateInterview.update({
-        where: { id: input.interviewId },
-        data: {
-          aiAnalysis: analysisResult as object,
-          aiAnalyzedAt: new Date(),
-        },
-      })
-
       return {
-        analysis: updatedInterview.aiAnalysis,
+        analysis: analysisResult,
         wasRegenerated: true,
-        analyzedAt: updatedInterview.aiAnalyzedAt,
+        analyzedAt: new Date(),
       }
     }),
 
@@ -2122,8 +2002,6 @@ Respond ONLY with valid JSON, no additional text.`
       const interview = await ctx.prisma.candidateInterview.findUnique({
         where: { id: input.interviewId },
         select: {
-          aiAnalysis: true,
-          aiAnalyzedAt: true,
           firefliesTranscript: true,
           firefliesMeetingId: true,
         },
@@ -2138,9 +2016,9 @@ Respond ONLY with valid JSON, no additional text.`
 
       return {
         hasTranscript: !!interview.firefliesTranscript,
-        hasAnalysis: !!interview.aiAnalysis,
-        analysis: interview.aiAnalysis,
-        analyzedAt: interview.aiAnalyzedAt,
+        hasAnalysis: false,
+        analysis: null,
+        analyzedAt: null,
       }
     }),
 
@@ -2153,19 +2031,32 @@ Respond ONLY with valid JSON, no additional text.`
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const interview = await ctx.prisma.candidateInterview.findUnique({
+      const fullInterview = await ctx.prisma.candidateInterview.findUnique({
         where: { id: input.interviewId },
-        select: { calendarEventId: true },
+        include: {
+          candidate: {
+            include: {
+              job: true,
+            },
+          },
+          interviewType: true,
+        },
       })
 
-      if (!interview) {
+      if (!fullInterview) {
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Interview not found',
         })
       }
 
-      // Dynamically import to avoid issues with calling procedures
+      if (!fullInterview.scheduledAt) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Interview must have a scheduled time',
+        })
+      }
+
       const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
       const connector = await getGoogleWorkspaceConnector()
 
@@ -2176,158 +2067,58 @@ Respond ONLY with valid JSON, no additional text.`
         })
       }
 
-      if (interview.calendarEventId) {
-        // Update existing event
-        const fullInterview = await ctx.prisma.candidateInterview.findUnique({
-          where: { id: input.interviewId },
-          include: {
-            candidate: {
-              include: {
-                job: true,
-              },
-            },
-            interviewType: true,
-          },
-        })
+      const interviewers = (fullInterview.interviewers as Array<{
+        employeeId?: string
+        name: string
+        email: string
+        role?: string
+      }>) || []
 
-        if (!fullInterview) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Interview not found',
-          })
-        }
+      const attendeeEmails = [
+        ...interviewers.map(i => i.email),
+        fullInterview.candidate.email,
+      ].filter(Boolean) as string[]
 
-        const interviewers = (fullInterview.interviewers as Array<{
-          employeeId?: string
-          name: string
-          email: string
-          role?: string
-        }>) || []
+      const stageName = fullInterview.interviewType?.name ||
+        stageDisplayNames[fullInterview.stage] ||
+        fullInterview.stageName ||
+        fullInterview.stage
 
-        const attendeeEmails = [
-          ...interviewers.map(i => i.email),
-          fullInterview.candidate.email,
-        ].filter(Boolean) as string[]
+      const summary = `${stageName} Interview - ${fullInterview.candidate.name}`
+      const description = [
+        `Interview Type: ${stageName}`,
+        `Candidate: ${fullInterview.candidate.name}`,
+        `Position: ${fullInterview.candidate.job?.title || 'N/A'}`,
+        `Department: ${fullInterview.candidate.job?.department || 'N/A'}`,
+        '',
+        'Interviewers:',
+        ...interviewers.map(i => `- ${i.name} (${i.email})${i.role ? ` - ${i.role}` : ''}`),
+        '',
+        fullInterview.feedback ? `Notes: ${fullInterview.feedback}` : '',
+      ].filter(Boolean).join('\n')
 
-        const stageName = fullInterview.interviewType?.name ||
-          stageDisplayNames[fullInterview.stage] ||
-          fullInterview.stageName ||
-          fullInterview.stage
+      const endTime = new Date(fullInterview.scheduledAt)
+      endTime.setMinutes(endTime.getMinutes() + (fullInterview.duration || 60))
 
-        const summary = `${stageName} Interview - ${fullInterview.candidate.name}`
-        const description = [
-          `Interview Type: ${stageName}`,
-          `Candidate: ${fullInterview.candidate.name}`,
-          `Position: ${fullInterview.candidate.job?.title || 'N/A'}`,
-          `Department: ${fullInterview.candidate.job?.department || 'N/A'}`,
-          '',
-          'Interviewers:',
-          ...interviewers.map(i => `- ${i.name} (${i.email})${i.role ? ` - ${i.role}` : ''}`),
-          '',
-          fullInterview.feedback ? `Notes: ${fullInterview.feedback}` : '',
-        ].filter(Boolean).join('\n')
+      const event = await connector.createCalendarEvent({
+        summary,
+        description,
+        start: fullInterview.scheduledAt,
+        end: endTime,
+        attendees: attendeeEmails,
+        createMeet: input.createGoogleMeet,
+      })
 
-        const endTime = fullInterview.scheduledAt ? new Date(fullInterview.scheduledAt) : null
-        if (endTime) {
-          endTime.setMinutes(endTime.getMinutes() + (fullInterview.duration || 60))
-        }
+      await ctx.prisma.candidateInterview.update({
+        where: { id: input.interviewId },
+        data: {
+          meetingLink: event.meetLink || fullInterview.meetingLink,
+        },
+      })
 
-        await connector.updateCalendarEvent(interview.calendarEventId, {
-          summary,
-          description,
-          start: fullInterview.scheduledAt || undefined,
-          end: endTime || undefined,
-          attendees: attendeeEmails,
-        })
-
-        return {
-          action: 'updated',
-          calendarEventId: interview.calendarEventId,
-        }
-      } else {
-        // Create new event
-        const fullInterview = await ctx.prisma.candidateInterview.findUnique({
-          where: { id: input.interviewId },
-          include: {
-            candidate: {
-              include: {
-                job: true,
-              },
-            },
-            interviewType: true,
-          },
-        })
-
-        if (!fullInterview) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Interview not found',
-          })
-        }
-
-        if (!fullInterview.scheduledAt) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Interview must have a scheduled time',
-          })
-        }
-
-        const interviewers = (fullInterview.interviewers as Array<{
-          employeeId?: string
-          name: string
-          email: string
-          role?: string
-        }>) || []
-
-        const attendeeEmails = [
-          ...interviewers.map(i => i.email),
-          fullInterview.candidate.email,
-        ].filter(Boolean) as string[]
-
-        const stageName = fullInterview.interviewType?.name ||
-          stageDisplayNames[fullInterview.stage] ||
-          fullInterview.stageName ||
-          fullInterview.stage
-
-        const summary = `${stageName} Interview - ${fullInterview.candidate.name}`
-        const description = [
-          `Interview Type: ${stageName}`,
-          `Candidate: ${fullInterview.candidate.name}`,
-          `Position: ${fullInterview.candidate.job?.title || 'N/A'}`,
-          `Department: ${fullInterview.candidate.job?.department || 'N/A'}`,
-          '',
-          'Interviewers:',
-          ...interviewers.map(i => `- ${i.name} (${i.email})${i.role ? ` - ${i.role}` : ''}`),
-          '',
-          fullInterview.feedback ? `Notes: ${fullInterview.feedback}` : '',
-        ].filter(Boolean).join('\n')
-
-        const endTime = new Date(fullInterview.scheduledAt)
-        endTime.setMinutes(endTime.getMinutes() + (fullInterview.duration || 60))
-
-        const event = await connector.createCalendarEvent({
-          summary,
-          description,
-          start: fullInterview.scheduledAt,
-          end: endTime,
-          attendees: attendeeEmails,
-          createMeet: input.createGoogleMeet,
-        })
-
-        await ctx.prisma.candidateInterview.update({
-          where: { id: input.interviewId },
-          data: {
-            calendarEventId: event.eventId,
-            googleMeetLink: event.meetLink || null,
-            meetingLink: event.meetLink || fullInterview.meetingLink,
-          },
-        })
-
-        return {
-          action: 'created',
-          calendarEventId: event.eventId,
-          meetLink: event.meetLink,
-        }
+      return {
+        action: 'created',
+        meetLink: event.meetLink,
       }
     }),
 
@@ -2452,7 +2243,7 @@ Respond ONLY with valid JSON, no additional text.`
                 text: customQ.text,
                 category: customQ.category,
                 tags: [],
-                createdById: ctx.session?.user?.employee?.id || null,
+                createdById: ctx.session?.user?.employeeId || null,
               },
             })
             questionId = newQuestion.id

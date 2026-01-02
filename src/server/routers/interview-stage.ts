@@ -139,13 +139,13 @@ export const interviewStageRouter = router({
       // If criteria provided, replace all
       if (criteria !== undefined) {
         await ctx.prisma.interviewStageCriteria.deleteMany({
-          where: { stageTemplateId: id },
+          where: { stageId: id },
         })
 
         if (criteria.length > 0) {
           await ctx.prisma.interviewStageCriteria.createMany({
             data: criteria.map((c, index) => ({
-              stageTemplateId: id,
+              stageId: id,
               name: c.name.trim(),
               description: c.description?.trim(),
               weight: c.weight,
@@ -204,16 +204,31 @@ export const interviewStageRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { criteriaScores, ...evaluationData } = input
 
+      if (!evaluationData.interviewId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Interview ID is required to submit an evaluation.',
+        })
+      }
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'You must be signed in to submit an evaluation.',
+        })
+      }
+      const evaluatorName = ctx.session.user.name || ctx.session.user.email || 'Evaluator'
+
       // Create the evaluation
       const evaluation = await ctx.prisma.interviewEvaluation.create({
         data: {
           stageTemplateId: evaluationData.stageTemplateId,
-          candidateId: evaluationData.candidateId,
           interviewId: evaluationData.interviewId,
           evaluatorId: ctx.session.user.id,
-          overallRating: evaluationData.overallRating,
+          evaluatorName,
+          evaluatorEmail: ctx.session.user.email ?? null,
+          overallScore: evaluationData.overallRating,
           recommendation: evaluationData.recommendation,
-          notes: evaluationData.notes?.trim(),
+          overallNotes: evaluationData.notes?.trim(),
           submittedAt: new Date(),
           criteriaScores: {
             create: criteriaScores.map((cs) => ({
@@ -228,9 +243,6 @@ export const interviewStageRouter = router({
             include: {
               criteria: true,
             },
-          },
-          evaluator: {
-            select: { id: true, firstName: true, lastName: true, email: true },
           },
         },
       })
@@ -251,16 +263,13 @@ export const interviewStageRouter = router({
     .input(z.object({ candidateId: z.string() }))
     .query(async ({ ctx, input }) => {
       return ctx.prisma.interviewEvaluation.findMany({
-        where: { candidateId: input.candidateId },
+        where: { interview: { candidateId: input.candidateId } },
         include: {
           stageTemplate: true,
           criteriaScores: {
             include: {
               criteria: true,
             },
-          },
-          evaluator: {
-            select: { id: true, firstName: true, lastName: true, email: true },
           },
         },
         orderBy: { submittedAt: 'desc' },
@@ -278,7 +287,7 @@ export const interviewStageRouter = router({
     .query(async ({ ctx, input }) => {
       return ctx.prisma.interviewEvaluation.findMany({
         where: {
-          candidateId: input.candidateId,
+          interview: { candidateId: input.candidateId },
           stageTemplateId: input.stageTemplateId,
         },
         include: {
@@ -286,9 +295,6 @@ export const interviewStageRouter = router({
             include: {
               criteria: true,
             },
-          },
-          evaluator: {
-            select: { id: true, firstName: true, lastName: true, email: true },
           },
         },
         orderBy: { submittedAt: 'asc' },
@@ -327,6 +333,12 @@ export const interviewStageRouter = router({
           message: 'Evaluation not found',
         })
       }
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'You must be signed in to update evaluations.',
+        })
+      }
 
       // Check if user is the evaluator
       if (existing.evaluatorId !== ctx.session.user.id) {
@@ -355,18 +367,15 @@ export const interviewStageRouter = router({
       return ctx.prisma.interviewEvaluation.update({
         where: { id },
         data: {
-          ...(data.overallRating && { overallRating: data.overallRating }),
+          ...(data.overallRating !== undefined && { overallScore: data.overallRating }),
           ...(data.recommendation && { recommendation: data.recommendation }),
-          ...(data.notes !== undefined && { notes: data.notes?.trim() }),
+          ...(data.notes !== undefined && { overallNotes: data.notes?.trim() }),
         },
         include: {
           criteriaScores: {
             include: {
               criteria: true,
             },
-          },
-          evaluator: {
-            select: { id: true, firstName: true, lastName: true, email: true },
           },
         },
       })
@@ -384,6 +393,12 @@ export const interviewStageRouter = router({
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Evaluation not found',
+        })
+      }
+      if (!ctx.session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'You must be signed in to delete evaluations.',
         })
       }
 
@@ -407,14 +422,11 @@ export const interviewStageRouter = router({
     .input(z.object({ candidateId: z.string() }))
     .query(async ({ ctx, input }) => {
       const evaluations = await ctx.prisma.interviewEvaluation.findMany({
-        where: { candidateId: input.candidateId },
+        where: { interview: { candidateId: input.candidateId } },
         include: {
           stageTemplate: true,
           criteriaScores: {
             include: { criteria: true },
-          },
-          evaluator: {
-            select: { id: true, firstName: true, lastName: true },
           },
         },
         orderBy: [
@@ -444,9 +456,12 @@ export const interviewStageRouter = router({
       // Calculate averages
       Object.keys(byStage).forEach((stage) => {
         const evals = byStage[stage].evaluations
+        const scored = evals.filter((e) => e.overallScore !== null)
         byStage[stage].totalEvaluators = evals.length
         byStage[stage].avgRating =
-          evals.reduce((sum, e) => sum + e.overallRating, 0) / evals.length
+          scored.length > 0
+            ? scored.reduce((sum, e) => sum + (e.overallScore ?? 0), 0) / scored.length
+            : 0
       })
 
       return byStage
