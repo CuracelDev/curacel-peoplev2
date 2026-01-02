@@ -116,6 +116,7 @@ You can manage contracts (create, update, send, resend, cancel), manage onboardi
 
 ### Employees & Analytics
 - get_employee: Look up employee by ID or name/email
+- count_employees: Get total employee count (defaults to active, can filter by status)
 - count_hires_by_year: Get hiring analytics by year
 
 ### Onboarding
@@ -288,6 +289,27 @@ const TOOL_DEFINITIONS = [
           year: { type: 'number', description: 'The year to count hires for (e.g., 2024)' },
         },
         required: ['year'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'count_employees',
+      description: 'Get the total count of employees, optionally filtered by status. Use this to answer questions like "how many employees do we have" or "total active employees".',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['ACTIVE', 'HIRED_PENDING_START', 'OFFBOARDING', 'EXITED', 'OFFER_SIGNED'],
+            description: 'Filter by employee status. If not provided, returns count of all ACTIVE employees by default.',
+          },
+          includeAll: {
+            type: 'boolean',
+            description: 'If true, count all employees regardless of status. Otherwise counts only ACTIVE.',
+          },
+        },
       },
     },
   },
@@ -724,6 +746,7 @@ const TOOL_PERMISSIONS: Record<string, string[]> = {
     'get_onboarding_status',
     'get_offboarding_status',
     'count_hires_by_year',
+    'count_employees',
     'get_daily_brief',
     'list_notifications',
     // V4 Hiring Pipeline (read-only)
@@ -944,6 +967,9 @@ async function executeTool(
         break
       case 'count_hires_by_year':
         result = await countHiresByYear(args, ctx)
+        break
+      case 'count_employees':
+        result = await countEmployees(args, ctx)
         break
       // V2 Contract Tools
       case 'update_contract_draft':
@@ -1708,6 +1734,48 @@ async function countHiresByYear(
     status: 'ok',
     data: { year, count, hireStatuses },
     message: `${count} employees hired in ${year}.`,
+  }
+}
+
+async function countEmployees(
+  args: Record<string, unknown>,
+  ctx: { prisma: any }
+): Promise<ToolResult> {
+  const { status, includeAll } = args as { status?: EmployeeStatus; includeAll?: boolean }
+
+  let whereClause: Record<string, unknown> = {}
+  let description = ''
+
+  if (includeAll) {
+    // Count all employees regardless of status
+    description = 'all employees (any status)'
+  } else if (status) {
+    // Count by specific status
+    whereClause = { status }
+    description = `employees with status ${status}`
+  } else {
+    // Default: count active employees
+    whereClause = { status: 'ACTIVE' }
+    description = 'active employees'
+  }
+
+  const count = await ctx.prisma.employee.count({ where: whereClause })
+
+  // Also get breakdown by status for context
+  const breakdown = await ctx.prisma.employee.groupBy({
+    by: ['status'],
+    _count: { id: true },
+  })
+
+  const statusBreakdown = breakdown.reduce((acc: Record<string, number>, item: { status: string; _count: { id: number } }) => {
+    acc[item.status] = item._count.id
+    return acc
+  }, {} as Record<string, number>)
+
+  return {
+    status: 'ok',
+    data: { count, statusBreakdown },
+    message: `You have ${count} ${description}.${!includeAll && !status ? ` Total across all statuses: ${(Object.values(statusBreakdown) as number[]).reduce((a, b) => a + b, 0)}.` : ''}`,
   }
 }
 

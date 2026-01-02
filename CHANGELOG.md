@@ -108,6 +108,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Matched assessments filter cards/button styling to the interviews pill layout.
 - Interest forms are now selected per job with no global default.
 - Decision Support settings now open a sub-menu list before entering Personality or Team pages.
+- Auto Send Settings now contains Email Settings and Email Templates under a single menu.
 - **App-Wide Responsiveness Enhancement**
   - Onboarding page: Stats grid now 2-column on mobile, workflow cards stack vertically
   - Offboarding page: Same responsive improvements as onboarding
