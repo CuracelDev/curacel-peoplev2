@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Plus, GripVertical, X, ClipboardCheck, Users, Briefcase, UserCheck, Building2, Target, FileText } from 'lucide-react'
+import { ArrowLeft, Plus, GripVertical, X, ClipboardCheck, Loader2, MessageSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -26,16 +26,6 @@ type Criteria = {
   weight: number
 }
 
-const stageOptions = [
-  { value: 'HR_SCREEN', label: 'HR Screen', icon: Users, description: 'Initial screening with HR team' },
-  { value: 'TECHNICAL', label: 'Technical', icon: Target, description: 'Technical skills assessment' },
-  { value: 'PANEL', label: 'Panel', icon: Building2, description: 'Interview with multiple stakeholders' },
-  { value: 'CASE_STUDY', label: 'Case Study', icon: FileText, description: 'Problem-solving and presentation' },
-  { value: 'CULTURE_FIT', label: 'Culture Fit', icon: UserCheck, description: 'Team and culture alignment' },
-  { value: 'FINAL', label: 'Final', icon: Briefcase, description: 'Final decision-making round' },
-  { value: 'OTHER', label: 'Other', icon: ClipboardCheck, description: 'Custom interview stage' },
-]
-
 export default function NewRubricPage() {
   const router = useRouter()
 
@@ -43,6 +33,9 @@ export default function NewRubricPage() {
   const [rubricDescription, setRubricDescription] = useState('')
   const [rubricStage, setRubricStage] = useState<string>('')
   const [rubricCriteria, setRubricCriteria] = useState<Criteria[]>([])
+
+  const interviewTypesQuery = trpc.interviewType.list.useQuery()
+  const interviewTypes = interviewTypesQuery.data || []
 
   const createRubricMutation = trpc.interviewStage.createTemplate.useMutation({
     onSuccess: () => {
@@ -80,7 +73,7 @@ export default function NewRubricPage() {
     createRubricMutation.mutate({
       name: rubricName,
       description: rubricDescription || undefined,
-      stage: rubricStage as 'HR_SCREEN' | 'TECHNICAL' | 'PANEL' | 'CASE_STUDY' | 'CULTURE_FIT' | 'FINAL' | 'OTHER',
+      stage: rubricStage,
       criteria: rubricCriteria.filter(c => c.name).map((c) => ({
         name: c.name,
         description: c.description || undefined,
@@ -113,43 +106,60 @@ export default function NewRubricPage() {
         </Button>
       </div>
 
-      {/* Interview Stage Selection */}
+      {/* Interview Type Selection */}
       <Card>
         <CardHeader>
-          <CardTitle>Interview Stage</CardTitle>
-          <CardDescription>Select which interview stage this rubric is for</CardDescription>
+          <CardTitle>Interview Type</CardTitle>
+          <CardDescription>Select which interview type this rubric is for</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            {stageOptions.map((stage) => (
-              <button
-                key={stage.value}
-                type="button"
-                onClick={() => setRubricStage(stage.value)}
-                className={cn(
-                  'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-center',
-                  rubricStage === stage.value
-                    ? 'border-indigo-600 bg-indigo-50'
-                    : 'border-border hover:border-indigo-300 hover:bg-muted/50'
-                )}
-              >
-                <div className={cn(
-                  'w-10 h-10 rounded-lg flex items-center justify-center',
-                  rubricStage === stage.value
-                    ? 'bg-indigo-600 text-white'
-                    : 'bg-muted text-muted-foreground'
-                )}>
-                  <stage.icon className="h-5 w-5" />
-                </div>
-                <span className={cn(
-                  'font-medium text-sm',
-                  rubricStage === stage.value ? 'text-indigo-600' : 'text-foreground'
-                )}>
-                  {stage.label}
-                </span>
-              </button>
-            ))}
-          </div>
+          {interviewTypesQuery.isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            </div>
+          ) : interviewTypes.length === 0 ? (
+            <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg">
+              <MessageSquare className="h-10 w-10 mx-auto mb-3 text-muted-foreground/50" />
+              <p className="font-medium">No interview types configured</p>
+              <p className="text-sm mt-1">
+                <Link href="/hiring/settings/interview-types" className="text-indigo-600 hover:underline">
+                  Create interview types
+                </Link>{' '}
+                to assign rubrics.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {interviewTypes.map((type) => (
+                <button
+                  key={type.id}
+                  type="button"
+                  onClick={() => setRubricStage(type.slug)}
+                  className={cn(
+                    'flex flex-col items-center gap-2 p-4 rounded-xl border-2 transition-all text-center',
+                    rubricStage === type.slug
+                      ? 'border-indigo-600 bg-indigo-50'
+                      : 'border-border hover:border-indigo-300 hover:bg-muted/50'
+                  )}
+                >
+                  <div className={cn(
+                    'w-10 h-10 rounded-lg flex items-center justify-center',
+                    rubricStage === type.slug
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-muted text-muted-foreground'
+                  )}>
+                    <MessageSquare className="h-5 w-5" />
+                  </div>
+                  <span className={cn(
+                    'font-medium text-sm',
+                    rubricStage === type.slug ? 'text-indigo-600' : 'text-foreground'
+                  )}>
+                    {type.name}
+                  </span>
+                </button>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Plus, ClipboardCheck, Trash2, ChevronDown, ChevronRight, Pencil, Search, MoreHorizontal, ArrowLeft } from 'lucide-react'
@@ -16,22 +16,13 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { trpc } from '@/lib/trpc-client'
 
-const stageConfig: Record<string, { label: string; color: string }> = {
-  HR_SCREEN: { label: 'HR Screen', color: 'bg-blue-100 text-blue-800' },
-  TECHNICAL: { label: 'Technical', color: 'bg-purple-100 text-purple-800' },
-  PANEL: { label: 'Panel', color: 'bg-amber-100 text-amber-800' },
-  CASE_STUDY: { label: 'Case Study', color: 'bg-success/10 text-success-foreground' },
-  CULTURE_FIT: { label: 'Culture Fit', color: 'bg-pink-100 text-pink-800' },
-  FINAL: { label: 'Final', color: 'bg-indigo-100 text-indigo-800' },
-  OTHER: { label: 'Other', color: 'bg-gray-100 text-gray-800' },
-}
-
 export default function RubricsPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [stageFilter, setStageFilter] = useState<string>('all')
 
   const rubricTemplatesQuery = trpc.interviewStage.listTemplates.useQuery()
+  const interviewTypesQuery = trpc.interviewType.list.useQuery()
   const deleteRubricMutation = trpc.interviewStage.deleteTemplate.useMutation({
     onSuccess: () => {
       rubricTemplatesQuery.refetch()
@@ -39,6 +30,21 @@ export default function RubricsPage() {
   })
 
   const rubrics = rubricTemplatesQuery.data || []
+  const interviewTypes = interviewTypesQuery.data || []
+
+  // Create a map of slug to interview type for quick lookup
+  const interviewTypeMap = useMemo(() => {
+    const map: Record<string, { name: string; slug: string }> = {}
+    interviewTypes.forEach(type => {
+      map[type.slug] = { name: type.name, slug: type.slug }
+    })
+    return map
+  }, [interviewTypes])
+
+  // Helper to get interview type name from slug
+  const getTypeName = (slug: string) => {
+    return interviewTypeMap[slug]?.name || slug.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())
+  }
 
   // Filter rubrics
   const filteredRubrics = rubrics.filter((rubric) => {
@@ -93,17 +99,17 @@ export default function RubricsPage() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline">
-                  {stageFilter === 'all' ? 'All Stages' : stageConfig[stageFilter]?.label || stageFilter}
+                  {stageFilter === 'all' ? 'All Types' : getTypeName(stageFilter)}
                   <ChevronDown className="h-4 w-4 ml-2" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent>
                 <DropdownMenuItem onClick={() => setStageFilter('all')}>
-                  All Stages
+                  All Types
                 </DropdownMenuItem>
-                {Object.entries(stageConfig).map(([key, config]) => (
-                  <DropdownMenuItem key={key} onClick={() => setStageFilter(key)}>
-                    {config.label}
+                {interviewTypes.map((type) => (
+                  <DropdownMenuItem key={type.id} onClick={() => setStageFilter(type.slug)}>
+                    {type.name}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -133,8 +139,8 @@ export default function RubricsPage() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold">{rubric.name}</span>
-                      <Badge className={stageConfig[rubric.stage]?.color || 'bg-gray-100 text-gray-800'}>
-                        {stageConfig[rubric.stage]?.label || rubric.stage.replace('_', ' ')}
+                      <Badge className="bg-indigo-100 text-indigo-800">
+                        {getTypeName(rubric.stage)}
                       </Badge>
                     </div>
                     <div className="text-sm text-muted-foreground">

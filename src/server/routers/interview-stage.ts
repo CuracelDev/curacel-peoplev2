@@ -2,15 +2,8 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, adminProcedure, protectedProcedure } from '@/lib/trpc'
 
-const stageTypeEnum = z.enum([
-  'HR_SCREEN',
-  'TECHNICAL',
-  'PANEL',
-  'CASE_STUDY',
-  'CULTURE_FIT',
-  'FINAL',
-  'OTHER',
-])
+// Stage is now a dynamic string that maps to InterviewType slugs
+const stageTypeSchema = z.string().min(1).max(100)
 
 const recommendationEnum = z.enum([
   'STRONG_HIRE',
@@ -75,7 +68,7 @@ export const interviewStageRouter = router({
       z.object({
         name: z.string().min(2).max(200),
         description: z.string().max(1000).optional(),
-        stage: stageTypeEnum,
+        stage: stageTypeSchema,
         sortOrder: z.number().optional(),
         jobId: z.string().optional(),
         criteria: z.array(criteriaSchema).optional(),
@@ -117,7 +110,7 @@ export const interviewStageRouter = router({
         id: z.string(),
         name: z.string().min(2).max(200).optional(),
         description: z.string().max(1000).optional().nullable(),
-        stage: stageTypeEnum.optional(),
+        stage: stageTypeSchema.optional(),
         sortOrder: z.number().optional(),
         criteria: z.array(criteriaSchema).optional(),
       })
