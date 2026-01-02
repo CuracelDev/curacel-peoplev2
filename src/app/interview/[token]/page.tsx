@@ -46,6 +46,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn, getInitials } from '@/lib/utils'
 import { toast } from 'sonner'
 import { PeopleTeamView } from '@/components/interview/people-team-view'
+import { EditQuestionsTab } from '@/components/interview/edit-questions-tab'
 
 // Rating descriptions
 const ratingDescriptions = [
@@ -422,6 +423,32 @@ export default function PublicInterviewPage() {
       </div>
 
       <div className="max-w-5xl mx-auto px-3 sm:px-4 py-4 sm:py-6">
+        {/* Tabs for Score Questions / Edit Questions */}
+        {!interviewData.isLocked && myQuestions.length > 0 && (
+          <div className="mb-6">
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="score" className="flex items-center gap-2">
+                  <ClipboardList className="h-4 w-4" />
+                  Score Questions
+                </TabsTrigger>
+                <TabsTrigger value="edit" className="flex items-center gap-2">
+                  <Edit3 className="h-4 w-4" />
+                  Edit Questions
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+        )}
+
+        {activeTab === 'edit' && !interviewData.isLocked ? (
+          <EditQuestionsTab
+            token={token}
+            myQuestions={myQuestions}
+            isLocked={interviewData.isLocked || false}
+            onQuestionsUpdated={() => refetch()}
+          />
+        ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-4 sm:space-y-6">
@@ -654,28 +681,37 @@ export default function PublicInterviewPage() {
               </div>
             ) : null}
 
-            {/* Interview Questions Section */}
+            {/* Interview Questions Section - Reorganized */}
             {interviewData?.interviewQuestions && interviewData.interviewQuestions.length > 0 && (
               <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-lg">Interview Questions</h3>
-                  {interviewData.isLocked && (
-                    <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
-                      <Lock className="h-3 w-3 mr-1" />
-                      Read Only
-                    </Badge>
-                  )}
-                </div>
-                {interviewData.lockoutDate && !interviewData.isLocked && (
-                  <p className="text-xs text-muted-foreground">
-                    Responses can be edited until {new Date(interviewData.lockoutDate).toLocaleDateString()} at {new Date(interviewData.lockoutDate).toLocaleTimeString()}
-                  </p>
+                {/* Your Questions Section */}
+                {myQuestions.length > 0 && (
+                  <>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-semibold text-lg">Your Questions</h3>
+                        <Badge className="bg-primary/10 text-primary text-xs">
+                          {myQuestions.length}
+                        </Badge>
+                      </div>
+                      {interviewData.isLocked && (
+                        <Badge variant="outline" className="text-amber-600 border-amber-300 bg-amber-50">
+                          <Lock className="h-3 w-3 mr-1" />
+                          Read Only
+                        </Badge>
+                      )}
+                    </div>
+                    {interviewData.lockoutDate && !interviewData.isLocked && (
+                      <p className="text-xs text-muted-foreground">
+                        Responses can be edited until {new Date(interviewData.lockoutDate).toLocaleDateString()} at {new Date(interviewData.lockoutDate).toLocaleTimeString()}
+                      </p>
+                    )}
+                  </>
                 )}
 
-                {interviewData.interviewQuestions.map((question, qIdx) => {
+                {myQuestions.map((question, qIdx) => {
                   const response = questionResponses[question.id] || { score: null, notes: '' }
                   const isExpanded = expandedInterviewQuestion === question.id
-                  const isAssignedToMe = question.isAssignedToMe
                   const isLocked = interviewData.isLocked
 
                   return (
@@ -683,7 +719,7 @@ export default function PublicInterviewPage() {
                       key={question.id}
                       className={cn(
                         response.score && 'border-success/20 bg-success/5',
-                        isAssignedToMe && !response.score && 'border-primary/30 bg-primary/5'
+                        !response.score && 'border-primary/30 bg-primary/5'
                       )}
                     >
                       <CardHeader
@@ -699,9 +735,7 @@ export default function PublicInterviewPage() {
                                 'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
                                 response.score
                                   ? 'bg-success text-white'
-                                  : isAssignedToMe
-                                  ? 'bg-primary text-primary-foreground'
-                                  : 'bg-muted text-foreground/80'
+                                  : 'bg-primary text-primary-foreground'
                               )}
                             >
                               {response.score ? (
@@ -725,18 +759,6 @@ export default function PublicInterviewPage() {
                                 >
                                   {question.category}
                                 </Badge>
-                                {isAssignedToMe && (
-                                  <Badge className="bg-primary/10 text-primary text-xs">
-                                    <Star className="h-3 w-3 mr-1 fill-primary" />
-                                    Assigned to you
-                                  </Badge>
-                                )}
-                                {question.assignedToInterviewerName && !isAssignedToMe && (
-                                  <Badge variant="outline" className="text-xs text-muted-foreground">
-                                    <User className="h-3 w-3 mr-1" />
-                                    {question.assignedToInterviewerName}
-                                  </Badge>
-                                )}
                                 {question.isRequired && (
                                   <Star className="h-3 w-3 fill-amber-400 text-amber-400" />
                                 )}
@@ -774,7 +796,6 @@ export default function PublicInterviewPage() {
 
                       {isExpanded && (
                         <CardContent className="border-t pt-4">
-                          {/* Score Input */}
                           <div className="mb-4">
                             <Label className="text-sm font-medium mb-2 block">
                               Your Score {question.isRequired && <span className="text-destructive">*</span>}
@@ -799,8 +820,6 @@ export default function PublicInterviewPage() {
                               ))}
                             </div>
                           </div>
-
-                          {/* Notes */}
                           <div>
                             <Label className="text-sm font-medium mb-2 block">
                               Notes (Candidate&apos;s response and your observations)
@@ -818,6 +837,81 @@ export default function PublicInterviewPage() {
                     </Card>
                   )
                 })}
+
+                {/* Other Interviewer Questions - Collapsed by Default */}
+                {otherQuestions.length > 0 && (
+                  <div className="mt-6">
+                    <Card
+                      className="cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => setOtherQuestionsExpanded(!otherQuestionsExpanded)}
+                    >
+                      <CardHeader className="py-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <User className="h-5 w-5 text-muted-foreground" />
+                            <h3 className="font-medium">Other Interviewer Questions</h3>
+                            <Badge variant="outline" className="text-xs">
+                              {otherQuestions.length}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>{otherQuestionsExpanded ? 'Click to collapse' : 'Click to expand'}</span>
+                            {otherQuestionsExpanded ? (
+                              <ChevronUp className="h-5 w-5" />
+                            ) : (
+                              <ChevronDown className="h-5 w-5" />
+                            )}
+                          </div>
+                        </div>
+                      </CardHeader>
+                    </Card>
+
+                    {otherQuestionsExpanded && (
+                      <div className="space-y-3 mt-3">
+                        {otherQuestions.map((question, qIdx) => (
+                          <Card key={question.id} className="bg-muted/30">
+                            <CardContent className="p-4">
+                              <div className="flex items-start gap-3">
+                                <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
+                                  {qIdx + 1}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 flex-wrap mb-1">
+                                    <Badge
+                                      variant="outline"
+                                      className={cn(
+                                        'text-xs',
+                                        question.category === 'technical' && 'border-pink-300 bg-pink-50 text-pink-700',
+                                        question.category === 'behavioral' && 'border-green-300 bg-green-50 text-green-700',
+                                        question.category === 'situational' && 'border-indigo-300 bg-indigo-50 text-indigo-700',
+                                        question.category === 'motivational' && 'border-amber-300 bg-amber-50 text-amber-700',
+                                        question.category === 'culture' && 'border-cyan-300 bg-cyan-50 text-cyan-700'
+                                      )}
+                                    >
+                                      {question.category}
+                                    </Badge>
+                                    {question.assignedToInterviewerName && (
+                                      <Badge variant="outline" className="text-xs text-muted-foreground">
+                                        <User className="h-3 w-3 mr-1" />
+                                        {question.assignedToInterviewerName}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground">{question.text}</p>
+                                  {question.followUp && (
+                                    <p className="text-xs text-muted-foreground/70 mt-1 italic">
+                                      Follow-up: {question.followUp}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1219,6 +1313,7 @@ export default function PublicInterviewPage() {
             </Card>
           </div>
         </div>
+        )}
       </div>
     </div>
   )

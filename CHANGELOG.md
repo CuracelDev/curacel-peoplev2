@@ -106,6 +106,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Adjusted assessments filter cards layout for consistent sizing and spacing.
 - Simplified assessments list columns and allowed assessment names to wrap.
 - Matched assessments filter cards/button styling to the interviews pill layout.
+- Interest forms are now selected per job with no global default.
+- Decision Support settings now open a sub-menu list before entering Personality or Team pages.
 - **App-Wide Responsiveness Enhancement**
   - Onboarding page: Stats grid now 2-column on mobile, workflow cards stack vertically
   - Offboarding page: Same responsive improvements as onboarding
@@ -125,6 +127,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Fixed
 - Improved dark mode legibility for the interview scheduling calendar access warning text.
 - Made the JD templates row action menu visible without hover.
+- Removed the barely visible interest form default badge and default option.
 - Interview settings is now the single entry point for interview types, rubrics, scoring, and question bank in Settings
 - Jobs list public toggle now sits beside the priority badge and uses a smaller control
 - Job list stage stats now link into filtered job candidates views

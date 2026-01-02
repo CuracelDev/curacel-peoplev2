@@ -541,6 +541,7 @@ const docSections: DocSection[] = [
         title: 'Link to jobs',
         items: [
           'When creating or editing a job, select an interest form to attach.',
+          'Every job needs an interest form before candidates can apply.',
           'Candidates see and complete this form on the public apply page.',
           'View submitted responses in the candidate profile.',
         ],

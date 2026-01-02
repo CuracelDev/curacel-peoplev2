@@ -224,6 +224,15 @@ export default function InterviewDetailPage() {
     },
   })
 
+  const resendEmailMutation = trpc.interview.resendInterviewerEmail.useMutation({
+    onSuccess: () => {
+      toast.success('Interview invite email sent')
+    },
+    onError: (error) => {
+      toast.error('Failed to send email', { description: error.message })
+    },
+  })
+
   // Derived data
   const interviewers = useMemo(() => {
     if (!interview?.interviewers) return []
@@ -927,12 +936,17 @@ export default function InterviewDetailPage() {
                                   <Button
                                     variant="outline"
                                     size="sm"
+                                    disabled={resendEmailMutation.isPending}
                                     onClick={(e) => {
                                       e.stopPropagation()
-                                      toast.info('Email functionality coming soon')
+                                      resendEmailMutation.mutate({ tokenId: token.id })
                                     }}
                                   >
-                                    <Send className="h-3.5 w-3.5 mr-1" />
+                                    {resendEmailMutation.isPending ? (
+                                      <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />
+                                    ) : (
+                                      <Send className="h-3.5 w-3.5 mr-1" />
+                                    )}
                                     Send
                                   </Button>
                                 </div>
