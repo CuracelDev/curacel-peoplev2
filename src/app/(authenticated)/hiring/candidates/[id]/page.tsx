@@ -730,32 +730,13 @@ export default function CandidateProfilePage() {
                   <span className="hidden sm:inline">View Stages</span>
                 </Button>
               </Link>
+              <Link href={`/hiring/candidates/${candidateId}/emails`} className="flex-1 sm:flex-none">
+                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
+                  <Mail className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">View Emails</span>
+                </Button>
+              </Link>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Email Communication Section */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
-                <Mail className="h-6 w-6 text-indigo-600" />
-              </div>
-              <div>
-                <h3 className="font-semibold">Email Communication</h3>
-                <p className="text-sm text-muted-foreground">
-                  View and manage emails with {candidate.name}
-                </p>
-              </div>
-            </div>
-            <Link href={`/hiring/candidates/${candidateId}/emails`}>
-              <Button variant="outline">
-                View Emails
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
           </div>
         </CardContent>
       </Card>
