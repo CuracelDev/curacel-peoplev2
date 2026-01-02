@@ -428,10 +428,10 @@ export default function InterviewDetailPage() {
     .join(', ')
 
   return (
-    <div className="pt-6 pb-3 sm:pt-8 sm:pb-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
+    <div className="pt-3 pb-3 sm:pt-4 sm:pb-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       {/* Header Card */}
       <Card className="mb-6">
-        <CardContent className="p-5">
+        <CardContent className="pt-8 pb-5 px-5 sm:pt-9">
           {/* Title and Stage Badge */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2.5">
@@ -447,7 +447,7 @@ export default function InterviewDetailPage() {
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center">
               <Button variant="ghost" size="sm" disabled className="text-muted-foreground text-xs">
                 <ChevronLeft className="h-3.5 w-3.5 mr-1" />
                 Previous
