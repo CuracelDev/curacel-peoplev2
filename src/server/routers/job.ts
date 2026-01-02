@@ -1616,4 +1616,90 @@ IMPORTANT: Return ONLY valid JSON, no additional text.`
         errors: errors.slice(0, 10), // Return first 10 errors
       }
     }),
+
+  // Auto-assign hiring flows to jobs without one
+  autoAssignHiringFlows: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      // Find all jobs without a hiring flow
+      const jobsWithoutFlow = await ctx.prisma.job.findMany({
+        where: {
+          hiringFlowSnapshotId: null,
+        },
+        select: {
+          id: true,
+          department: true,
+        },
+      })
+
+      if (jobsWithoutFlow.length === 0) {
+        return {
+          success: true,
+          updatedCount: 0,
+          message: 'All jobs already have hiring flows assigned',
+        }
+      }
+
+      // Get all hiring flows
+      const hiringFlows = await ctx.prisma.hiringFlow.findMany({
+        include: {
+          snapshots: {
+            orderBy: { version: 'desc' },
+            take: 1,
+          },
+        },
+      })
+
+      // Find the standard flow (or first flow as fallback)
+      const standardFlow = hiringFlows.find(
+        (flow) => flow.name.toLowerCase().includes('standard')
+      ) || hiringFlows[0]
+
+      if (!standardFlow || !standardFlow.snapshots[0]) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'No hiring flows available. Please create a hiring flow first.',
+        })
+      }
+
+      // Create a map of department to hiring flow
+      const departmentFlowMap = new Map<string, string>()
+      hiringFlows.forEach((flow) => {
+        if (flow.snapshots[0]) {
+          // Match flow name with department (e.g., "Engineering Flow" -> "Engineering")
+          const department = flow.name.split(' ')[0].toLowerCase()
+          departmentFlowMap.set(department, flow.snapshots[0].id)
+        }
+      })
+
+      // Update jobs
+      let updatedCount = 0
+      for (const job of jobsWithoutFlow) {
+        let flowSnapshotId = standardFlow.snapshots[0].id
+
+        // Try to match by department
+        if (job.department) {
+          const departmentKey = job.department.toLowerCase()
+          const matchedFlowId = departmentFlowMap.get(departmentKey)
+          if (matchedFlowId) {
+            flowSnapshotId = matchedFlowId
+          }
+        }
+
+        await ctx.prisma.job.update({
+          where: { id: job.id },
+          data: {
+            hiringFlowSnapshotId: flowSnapshotId,
+            hiringFlowId: standardFlow.id, // Keep legacy field updated
+          },
+        })
+
+        updatedCount++
+      }
+
+      return {
+        success: true,
+        updatedCount,
+        message: `Successfully assigned hiring flows to ${updatedCount} job(s)`,
+      }
+    }),
 })
