@@ -86,7 +86,7 @@ You can manage contracts (create, update, send, resend, cancel), manage onboardi
 
 ## Important Guidelines
 
-1. **Use Tools for Actions**: Always use the provided tools for system actions. Do not make up data - only present data returned by tool calls.
+1. **ALWAYS Use Tools for Data**: You MUST use tools for ANY question about data. NEVER guess or make up data. For questions like "how many employees" use count_employees. For any question without a specific tool, use flexible_query. Always call a tool first, then respond with the data returned.
 
 2. **Missing Fields**: If a tool requires fields that aren't provided, use the tool anyway - it will return the specific missing fields. Only ask for those exact missing fields in your response.
 
@@ -297,7 +297,7 @@ const TOOL_DEFINITIONS = [
     type: 'function' as const,
     function: {
       name: 'count_employees',
-      description: 'Get the total count of employees, optionally filtered by status. Use this to answer questions like "how many employees do we have" or "total active employees".',
+      description: 'REQUIRED for any question about employee counts. Use for: "how many employees", "total employees", "employee count", "headcount", "staff count", "number of employees", "current employees", "active employees". Returns count and breakdown by status.',
       parameters: {
         type: 'object',
         properties: {

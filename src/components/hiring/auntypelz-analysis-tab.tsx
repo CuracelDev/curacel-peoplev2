@@ -25,7 +25,35 @@ import {
   History,
   ArrowRight,
   BarChart3,
+  Shield,
+  FileText,
+  MessageSquare,
+  ClipboardCheck,
+  Link2,
+  Briefcase,
+  GraduationCap,
+  User,
+  GitBranch,
+  Save,
 } from 'lucide-react'
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  ResponsiveContainer,
+  ReferenceLine,
+  Area,
+  AreaChart,
+} from 'recharts'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -53,9 +81,28 @@ interface AuntyPelzAnalysisTabProps {
   candidateName: string
 }
 
+// Evidence source types for citations
+type EvidenceSource = {
+  type: 'resume' | 'interview' | 'assessment' | 'reference'
+  label: string
+  detail?: string
+  score?: number
+}
+
+// Risk factor type
+type RiskFactor = {
+  risk: string
+  severity: 'high' | 'medium' | 'low'
+  mitigation: string
+}
+
 export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAnalysisTabProps) {
   const [selectedVersionId, setSelectedVersionId] = useState<string | null>(null)
   const [showAllVersions, setShowAllVersions] = useState(false)
+  const [showScoreTimeline, setShowScoreTimeline] = useState(true)
+  const [showRiskFactors, setShowRiskFactors] = useState(true)
+  const [decisionNotes, setDecisionNotes] = useState('')
+  const [isSavingDecision, setIsSavingDecision] = useState(false)
 
   // Fetch latest analysis
   const { data: latestAnalysis, isLoading: latestLoading, refetch: refetchLatest } =
@@ -163,6 +210,98 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
     empoweredAction: { label: 'Empowered Action', icon: Zap },
     senseOfUrgency: { label: 'Sense of Urgency', icon: Target },
     seeingPossibilities: { label: 'Seeing Possibilities', icon: Lightbulb },
+  }
+
+  // Build score timeline data from versions
+  const scoreTimelineData = versions
+    ?.slice()
+    .reverse()
+    .map((v, idx) => ({
+      version: `v${v.version}`,
+      label: v.analysisType.replace('_', ' '),
+      score: v.overallScore ?? 0,
+      sentiment: v.sentimentScore ?? 0,
+      date: format(new Date(v.createdAt), 'MMM d'),
+      stage: v.triggerStage || 'Application',
+    })) || []
+
+  // Extract evidence sources from analysis data
+  const extractEvidenceSources = (analysis: typeof displayAnalysis): EvidenceSource[] => {
+    if (!analysis) return []
+    const sources: EvidenceSource[] = []
+
+    // Add resume-based evidence
+    if (analysis.analysisType === 'APPLICATION_REVIEW' || analysis.analysisType === 'COMPREHENSIVE') {
+      sources.push({
+        type: 'resume',
+        label: 'Resume Analysis',
+        detail: 'Experience, skills, and education evaluated',
+        score: analysis.scoreBreakdown ? (analysis.scoreBreakdown as Record<string, number>).experience : undefined,
+      })
+    }
+
+    // Add interview-based evidence
+    if (analysis.triggerStage && analysis.triggerStage !== 'APPLICATION') {
+      sources.push({
+        type: 'interview',
+        label: `${analysis.triggerStage} Interview`,
+        detail: 'Interviewer feedback and scoring',
+        score: analysis.scoreBreakdown ? (analysis.scoreBreakdown as Record<string, number>).technicalSkills : undefined,
+      })
+    }
+
+    // Add assessment evidence if comprehensive
+    if (analysis.analysisType === 'COMPREHENSIVE') {
+      sources.push({
+        type: 'assessment',
+        label: 'Assessments',
+        detail: 'Technical and behavioral assessments',
+        score: analysis.scoreBreakdown ? (analysis.scoreBreakdown as Record<string, number>).problemSolving : undefined,
+      })
+    }
+
+    return sources
+  }
+
+  // Extract risk factors from concerns with severity
+  const extractRiskFactors = (analysis: typeof displayAnalysis): RiskFactor[] => {
+    if (!analysis) return []
+    const concerns = normalizeTextList(analysis.concerns)
+    const mustValidate = normalizeTextList(analysis.mustValidatePoints)
+
+    const risks: RiskFactor[] = []
+
+    // Convert concerns to risk factors with inferred severity
+    concerns.forEach((concern, idx) => {
+      const severity: RiskFactor['severity'] =
+        concern.toLowerCase().includes('critical') || concern.toLowerCase().includes('major')
+          ? 'high'
+          : concern.toLowerCase().includes('minor') || concern.toLowerCase().includes('small')
+            ? 'low'
+            : 'medium'
+
+      // Look for matching mitigation in must-validate points
+      const mitigation = mustValidate[idx] || 'Address in next interview stage'
+
+      risks.push({
+        risk: concern,
+        severity,
+        mitigation,
+      })
+    })
+
+    return risks.slice(0, 5) // Limit to top 5 risks
+  }
+
+  const evidenceSources = extractEvidenceSources(displayAnalysis)
+  const riskFactors = extractRiskFactors(displayAnalysis)
+
+  // Evidence icon mapping
+  const evidenceIcons: Record<EvidenceSource['type'], React.ElementType> = {
+    resume: FileText,
+    interview: MessageSquare,
+    assessment: ClipboardCheck,
+    reference: User,
   }
 
   if (latestLoading) {
@@ -300,8 +439,160 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
             </CardHeader>
             <CardContent>
               <p className="text-sm text-foreground/80">{displayAnalysis.summary}</p>
+
+              {/* Evidence Citations */}
+              {evidenceSources.length > 0 && (
+                <div className="mt-4 pt-4 border-t">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Link2 className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                      Based on Evidence From
+                    </span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {evidenceSources.map((source, idx) => {
+                      const SourceIcon = evidenceIcons[source.type]
+                      return (
+                        <TooltipProvider key={idx}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="outline"
+                                className="flex items-center gap-1.5 cursor-help"
+                              >
+                                <SourceIcon className="h-3 w-3" />
+                                <span>{source.label}</span>
+                                {source.score !== undefined && (
+                                  <span className="text-muted-foreground">
+                                    ({source.score})
+                                  </span>
+                                )}
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="text-xs">{source.detail}</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )
+                    })}
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
+
+          {/* Score Timeline Chart */}
+          {scoreTimelineData.length > 1 && (
+            <Collapsible open={showScoreTimeline} onOpenChange={setShowScoreTimeline}>
+              <Card>
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="pb-2 cursor-pointer hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <BarChart3 className="h-4 w-4 text-indigo-600" />
+                        Score Timeline
+                      </CardTitle>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                        {showScoreTimeline ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <CardDescription>Track score changes across analysis versions</CardDescription>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent>
+                    <div className="h-[200px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={scoreTimelineData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="scoreGradient" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
+                              <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                          <XAxis
+                            dataKey="version"
+                            tick={{ fontSize: 11 }}
+                            tickLine={false}
+                            axisLine={{ stroke: '#e5e7eb' }}
+                          />
+                          <YAxis
+                            domain={[0, 100]}
+                            tick={{ fontSize: 11 }}
+                            tickLine={false}
+                            axisLine={{ stroke: '#e5e7eb' }}
+                          />
+                          <RechartsTooltip
+                            content={({ active, payload }) => {
+                              if (active && payload && payload.length) {
+                                const data = payload[0].payload
+                                return (
+                                  <div className="bg-white border rounded-lg shadow-lg p-3 text-xs">
+                                    <div className="font-medium mb-1">{data.version} - {data.label}</div>
+                                    <div className="text-muted-foreground">{data.date}</div>
+                                    <div className="mt-2 space-y-1">
+                                      <div className="flex items-center justify-between gap-4">
+                                        <span>Score:</span>
+                                        <span className={cn(
+                                          'font-medium',
+                                          data.score >= 80 ? 'text-success' :
+                                          data.score >= 65 ? 'text-warning' : 'text-red-600'
+                                        )}>
+                                          {data.score}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center justify-between gap-4">
+                                        <span>Sentiment:</span>
+                                        <span>{data.sentiment > 0 ? '+' : ''}{data.sentiment}</span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )
+                              }
+                              return null
+                            }}
+                          />
+                          <ReferenceLine y={65} stroke="#f59e0b" strokeDasharray="5 5" />
+                          <ReferenceLine y={80} stroke="#22c55e" strokeDasharray="5 5" />
+                          <Area
+                            type="monotone"
+                            dataKey="score"
+                            stroke="#6366f1"
+                            strokeWidth={2}
+                            fill="url(#scoreGradient)"
+                          />
+                          <Line
+                            type="monotone"
+                            dataKey="score"
+                            stroke="#6366f1"
+                            strokeWidth={2}
+                            dot={{ fill: '#6366f1', strokeWidth: 2, r: 4 }}
+                            activeDot={{ r: 6 }}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+                    <div className="flex items-center justify-center gap-4 mt-2 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-0.5 bg-green-500" style={{ borderStyle: 'dashed' }} />
+                        <span>Strong (80+)</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-0.5 bg-amber-500" style={{ borderStyle: 'dashed' }} />
+                        <span>Moderate (65)</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
+          )}
 
           {/* Strengths & Concerns */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -343,6 +634,78 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
               </CardContent>
             </Card>
           </div>
+
+          {/* Risk Factors & Mitigations */}
+          {riskFactors.length > 0 && (
+            <Collapsible open={showRiskFactors} onOpenChange={setShowRiskFactors}>
+              <Card className="border-amber-200 bg-amber-50/30">
+                <CollapsibleTrigger asChild>
+                  <CardHeader className="pb-2 cursor-pointer hover:bg-amber-50/50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm flex items-center gap-2">
+                        <Shield className="h-4 w-4 text-amber-600" />
+                        Risk Factors & Mitigations
+                      </CardTitle>
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                        {showRiskFactors ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                    <CardDescription>
+                      {riskFactors.length} potential risk{riskFactors.length > 1 ? 's' : ''} identified with mitigation strategies
+                    </CardDescription>
+                  </CardHeader>
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <CardContent className="space-y-3">
+                    {riskFactors.map((factor, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          'p-3 rounded-lg border',
+                          factor.severity === 'high'
+                            ? 'bg-red-50 border-red-200'
+                            : factor.severity === 'medium'
+                              ? 'bg-amber-50 border-amber-200'
+                              : 'bg-gray-50 border-gray-200'
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <Badge
+                                variant="outline"
+                                className={cn(
+                                  'text-[10px] uppercase',
+                                  factor.severity === 'high'
+                                    ? 'border-red-400 text-red-700'
+                                    : factor.severity === 'medium'
+                                      ? 'border-amber-400 text-amber-700'
+                                      : 'border-gray-400 text-gray-700'
+                                )}
+                              >
+                                {factor.severity} risk
+                              </Badge>
+                            </div>
+                            <p className="text-sm font-medium text-foreground mb-2">
+                              {factor.risk}
+                            </p>
+                            <div className="flex items-start gap-2 text-xs">
+                              <span className="text-muted-foreground font-medium">Mitigation:</span>
+                              <span className="text-muted-foreground">{factor.mitigation}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </CardContent>
+                </CollapsibleContent>
+              </Card>
+            </Collapsible>
+          )}
 
           {/* Must Validate Points */}
           {mustValidatePoints.length > 0 && (
@@ -410,6 +773,77 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
               </CardContent>
             </Card>
           )}
+
+          {/* Human Decision Capture */}
+          <Card className="border-indigo-200 bg-indigo-50/30">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <ClipboardCheck className="h-4 w-4 text-indigo-600" />
+                Your Decision
+              </CardTitle>
+              <CardDescription>
+                Record your hiring decision and reasoning for this candidate
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Decision Buttons */}
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { value: 'STRONG_YES', label: 'Strong Yes', icon: ThumbsUp, className: 'bg-green-100 text-green-700 hover:bg-green-200 border-green-300' },
+                  { value: 'YES', label: 'Yes', icon: ThumbsUp, className: 'bg-green-50 text-green-600 hover:bg-green-100 border-green-200' },
+                  { value: 'MAYBE', label: 'Maybe', icon: HelpCircle, className: 'bg-amber-50 text-amber-600 hover:bg-amber-100 border-amber-200' },
+                  { value: 'NO', label: 'No', icon: ThumbsDown, className: 'bg-red-50 text-red-600 hover:bg-red-100 border-red-200' },
+                  { value: 'STRONG_NO', label: 'Strong No', icon: ThumbsDown, className: 'bg-red-100 text-red-700 hover:bg-red-200 border-red-300' },
+                ].map((option) => {
+                  const Icon = option.icon
+                  return (
+                    <Button
+                      key={option.value}
+                      variant="outline"
+                      size="sm"
+                      className={cn('border', option.className)}
+                    >
+                      <Icon className="h-3.5 w-3.5 mr-1.5" />
+                      {option.label}
+                    </Button>
+                  )
+                })}
+              </div>
+
+              {/* Decision Notes */}
+              <div className="space-y-2">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Decision Notes (optional)
+                </label>
+                <Textarea
+                  placeholder="Add your reasoning, key observations, or next steps..."
+                  value={decisionNotes}
+                  onChange={(e) => setDecisionNotes(e.target.value)}
+                  className="min-h-[80px] text-sm"
+                />
+              </div>
+
+              {/* AI vs Human Comparison */}
+              <div className="flex items-center justify-between pt-2 border-t">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <Sparkles className="h-3.5 w-3.5 text-indigo-500" />
+                  <span>AI recommends: <span className={cn('font-medium', recStyle.text)}>{recommendationLabel}</span></span>
+                </div>
+                <Button
+                  size="sm"
+                  disabled={isSavingDecision}
+                  className="bg-indigo-600 hover:bg-indigo-700"
+                >
+                  {isSavingDecision ? (
+                    <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                  ) : (
+                    <Save className="h-3.5 w-3.5 mr-1.5" />
+                  )}
+                  Save Decision
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Right Column - Scores & Metrics */}
@@ -456,6 +890,81 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
                     <Progress value={value} className="h-1.5" />
                   </div>
                 ))}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Stage-by-Stage Score Comparison */}
+          {scoreTimelineData.length > 1 && (
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <GitBranch className="h-4 w-4 text-indigo-600" />
+                  Stage Comparison
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {scoreTimelineData.map((stage, idx) => {
+                  const prevScore = idx > 0 ? scoreTimelineData[idx - 1].score : null
+                  const change = prevScore !== null ? stage.score - prevScore : null
+                  return (
+                    <div key={idx} className="flex items-center gap-2">
+                      <div className="w-12 text-xs text-muted-foreground">{stage.version}</div>
+                      <div className="flex-1">
+                        <Progress value={stage.score} className="h-2" />
+                      </div>
+                      <div className="w-8 text-right">
+                        <span className={cn(
+                          'text-xs font-medium',
+                          stage.score >= 80 ? 'text-success' :
+                          stage.score >= 65 ? 'text-warning' : 'text-red-600'
+                        )}>
+                          {stage.score}
+                        </span>
+                      </div>
+                      <div className="w-12 text-right">
+                        {change !== null && (
+                          <span className={cn(
+                            'text-xs',
+                            change > 0 ? 'text-success' : change < 0 ? 'text-red-600' : 'text-gray-400'
+                          )}>
+                            {change > 0 ? '+' : ''}{change}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+                <div className="pt-2 border-t mt-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Overall trend:</span>
+                    <span className={cn(
+                      'font-medium flex items-center gap-1',
+                      scoreTimelineData.length > 1 && scoreTimelineData[scoreTimelineData.length - 1].score > scoreTimelineData[0].score
+                        ? 'text-success'
+                        : scoreTimelineData.length > 1 && scoreTimelineData[scoreTimelineData.length - 1].score < scoreTimelineData[0].score
+                          ? 'text-red-600'
+                          : 'text-gray-600'
+                    )}>
+                      {scoreTimelineData.length > 1 && scoreTimelineData[scoreTimelineData.length - 1].score > scoreTimelineData[0].score ? (
+                        <>
+                          <TrendingUp className="h-3 w-3" />
+                          Improving
+                        </>
+                      ) : scoreTimelineData.length > 1 && scoreTimelineData[scoreTimelineData.length - 1].score < scoreTimelineData[0].score ? (
+                        <>
+                          <TrendingDown className="h-3 w-3" />
+                          Declining
+                        </>
+                      ) : (
+                        <>
+                          <Minus className="h-3 w-3" />
+                          Stable
+                        </>
+                      )}
+                    </span>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           )}
