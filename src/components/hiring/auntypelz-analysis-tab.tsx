@@ -226,6 +226,7 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
   const recommendations = normalizeTextList(displayAnalysis.recommendations)
   const overallScore = displayAnalysis.overallScore ?? 0
   const overallScoreLabel = displayAnalysis.overallScore ?? '—'
+  const sentimentScore = displayAnalysis.sentimentScore ?? 0
 
   return (
     <div className="space-y-6">
@@ -464,7 +465,7 @@ export function AuntyPelzAnalysisTab({ candidateId, candidateName }: AuntyPelzAn
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 Sentiment
-                {getSentimentIcon(displayAnalysis.sentimentScore, displayAnalysis.sentimentChange)}
+                {getSentimentIcon(sentimentScore, displayAnalysis.sentimentChange ?? undefined)}
               </CardTitle>
             </CardHeader>
             <CardContent>

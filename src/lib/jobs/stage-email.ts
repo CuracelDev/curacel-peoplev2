@@ -122,9 +122,8 @@ export async function stageEmailHandler(job: PgBoss.Job<StageEmailJobData>): Pro
 
     // Create reminder if enabled in settings
     const emailSettings = await prisma.emailSettings.findFirst()
-    const stageConfig = (emailSettings?.autoSendStages as Record<string, AutoSendStageConfig>)?.[
-      queuedEmail.toStage
-    ]
+    const autoSendStages = emailSettings?.autoSendStages as unknown as Record<string, AutoSendStageConfig> | null
+    const stageConfig = autoSendStages?.[queuedEmail.toStage]
 
     if (stageConfig?.reminderEnabled && result.emailId) {
       await createEmailReminder(
@@ -157,7 +156,7 @@ export async function stageEmailHandler(job: PgBoss.Job<StageEmailJobData>): Pro
  * Initialize the stage email job handler
  */
 export function initStageEmailJob(boss: PgBoss): void {
-  boss.work(STAGE_EMAIL_JOB_NAME, { batchSize: 10 }, stageEmailHandler)
+  boss.work(STAGE_EMAIL_JOB_NAME, stageEmailHandler)
   console.log(`[StageEmail] Job handler registered: ${STAGE_EMAIL_JOB_NAME}`)
 }
 
@@ -204,7 +203,7 @@ export async function queueStageEmail(
 
   // Get email settings for delay and enabled status
   const emailSettings = await prisma.emailSettings.findFirst()
-  const autoSendStages = emailSettings?.autoSendStages as Record<string, AutoSendStageConfig> | null
+  const autoSendStages = emailSettings?.autoSendStages as unknown as Record<string, AutoSendStageConfig> | null
   const stageConfig = autoSendStages?.[data.toStage]
 
   // Check if auto-send is enabled for this stage
