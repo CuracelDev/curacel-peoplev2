@@ -176,6 +176,7 @@ export default function JDsPage() {
       <SettingsPageHeader
         title="Job Descriptions"
         description="Manage job descriptions for your hiring pipeline. Create new JDs or new versions of existing ones."
+        backHref="/settings/job-settings"
         actions={
           <Button asChild>
             <Link href="/hiring/settings/jd-templates/new">

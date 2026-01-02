@@ -1671,19 +1671,30 @@ export default function SettingsPage() {
 
           {/* External Recruiters Section */}
           {activeSection === 'recruiters' && (
+            <>
+            <div className="flex items-center gap-4 mb-6">
+              <Link href="/settings/job-settings">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div className="flex-1">
+                <h1 className="text-2xl font-bold text-foreground">External Recruiters</h1>
+                <p className="text-sm text-foreground/80">
+                  Manage external recruiters and their access to job postings. Recruiters get unique portal links.
+                </p>
+              </div>
+              <Button onClick={() => handleRecruiterDialogChange(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Recruiter
+              </Button>
+            </div>
             <Card id="recruiters">
               <CardHeader className="p-5 border-b">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h2 className="text-lg font-semibold">External Recruiters</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Manage external recruiters and their access to job postings. Recruiters get unique portal links.
-                    </p>
+                    <h3 className="text-lg font-semibold">All Recruiters</h3>
                   </div>
-                  <Button onClick={() => handleRecruiterDialogChange(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Recruiter
-                  </Button>
                 </div>
               </CardHeader>
               <CardContent className="p-5">
@@ -1781,16 +1792,28 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+            </>
           )}
 
           {/* Source Channels Section */}
           {activeSection === 'sources' && (
-            <Card id="sources">
-              <CardHeader className="p-5 border-b">
-                <h2 className="text-lg font-semibold">Source Channels</h2>
-                <p className="text-sm text-muted-foreground">
+            <>
+            <div className="flex items-center gap-4 mb-6">
+              <Link href="/settings/job-settings">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Source Channels</h1>
+                <p className="text-sm text-foreground/80">
                   Configure candidate source channels for tracking where candidates come from.
                 </p>
+              </div>
+            </div>
+            <Card id="sources">
+              <CardHeader className="p-5 border-b">
+                <h3 className="text-lg font-semibold">Channel Configuration</h3>
               </CardHeader>
               <CardContent className="p-5 space-y-6">
                 {/* Inbound Channels */}
@@ -1850,16 +1873,28 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+            </>
           )}
 
           {/* Public Careers Section */}
           {activeSection === 'careers' && (
-            <Card id="careers">
-              <CardHeader className="p-5 border-b">
-                <h2 className="text-lg font-semibold">Public Careers Page</h2>
-                <p className="text-sm text-muted-foreground">
+            <>
+            <div className="flex items-center gap-4 mb-6">
+              <Link href="/settings/job-settings">
+                <Button variant="ghost" size="icon">
+                  <ArrowLeft className="h-5 w-5" />
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground">Public Careers Page</h1>
+                <p className="text-sm text-foreground/80">
                   Configure your public-facing careers page and manage which jobs are publicly visible.
                 </p>
+              </div>
+            </div>
+            <Card id="careers">
+              <CardHeader className="p-5 border-b">
+                <h3 className="text-lg font-semibold">Page Configuration</h3>
               </CardHeader>
               <CardContent className="p-5 space-y-6">
                 {/* Company Branding */}
@@ -1965,6 +2000,7 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
+            </>
           )}
         </div>
 
