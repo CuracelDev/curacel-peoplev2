@@ -71,7 +71,7 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
 
     // Trigger AI grading in the background
     // We don't wait for this to complete to give quick response to candidate
-    gradeAndAnalyzeInBackground(assessment.id)
+    gradeAndAnalyzeInBackground(assessment.id, responses)
 
     return NextResponse.json({
       success: true,
@@ -87,17 +87,23 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   }
 }
 
-async function gradeAndAnalyzeInBackground(assessmentId: string) {
+async function gradeAndAnalyzeInBackground(assessmentId: string, responses: Response[]) {
   try {
     // Grade the responses
-    const gradingResult = await gradeAssessmentResponses(assessmentId)
+    const gradingResult = await gradeAssessmentResponses({
+      assessmentId,
+      responses: responses.map((response) => ({
+        questionId: response.questionId,
+        response: response.response,
+      })),
+    })
 
     // Calculate overall score from grading
     let totalScore = 0
     let maxPossibleScore = 0
 
-    if (gradingResult.grades && Array.isArray(gradingResult.grades)) {
-      for (const grade of gradingResult.grades) {
+    if (Array.isArray(gradingResult)) {
+      for (const grade of gradingResult) {
         totalScore += grade.score || 0
         maxPossibleScore += grade.maxScore || 10
       }
@@ -112,8 +118,7 @@ async function gradeAndAnalyzeInBackground(assessmentId: string) {
       where: { id: assessmentId },
       data: {
         overallScore,
-        scores: gradingResult.grades,
-        dimensionScores: gradingResult.dimensionScores,
+        scores: gradingResult,
       },
     })
 
