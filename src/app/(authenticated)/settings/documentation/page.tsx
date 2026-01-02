@@ -528,7 +528,7 @@ const docSections: DocSection[] = [
         title: 'Create or edit a form',
         ordered: true,
         items: [
-          'Go to Settings > Hiring > Interest Forms.',
+          'Go to Recruiting > Settings > Interest Forms.',
           'Click Create Form or Edit on an existing form.',
           'Enter a form name and optional description.',
           'Add questions with the appropriate field type (Short Text, Long Text, Dropdown, Multi-Select, Rating Scale, etc).',
@@ -544,6 +544,35 @@ const docSections: DocSection[] = [
           'Every job needs an interest form before candidates can apply.',
           'Candidates see and complete this form on the public apply page.',
           'View submitted responses in the candidate profile.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'auto-send-settings',
+    title: 'Auto Send Settings',
+    description: 'Manage candidate email templates and sending behavior.',
+    blocks: [
+      {
+        title: 'Where to configure',
+        items: [
+          'Go to Settings > Hiring > Auto Send Settings.',
+          'Choose Email Settings or Email Templates from the list.',
+        ],
+      },
+      {
+        title: 'Email Settings',
+        items: [
+          'Set default CC and tracking preferences for candidate emails.',
+          'Enable or disable auto-send on application.',
+          'Configure auto-send behavior by stage.',
+        ],
+      },
+      {
+        title: 'Email Templates',
+        items: [
+          'Create and update templates for hiring stages and candidate messages.',
+          'Use templates in auto-send rules and manual sends.',
         ],
       },
     ],
