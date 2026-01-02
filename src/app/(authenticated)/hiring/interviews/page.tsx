@@ -43,7 +43,6 @@ import {
   Calendar,
   MoreHorizontal,
   Loader2,
-  Video,
   User,
   Clock,
   CheckCircle,
@@ -110,17 +109,6 @@ export default function InterviewsPage() {
 
   // Mutations
   const utils = trpc.useUtils()
-  const updateStatusMutation = trpc.interview.updateStatus.useMutation({
-    onSuccess: () => {
-      utils.interview.list.invalidate()
-      utils.interview.getCounts.invalidate()
-      toast.success('Interview status updated')
-    },
-    onError: (error) => {
-      toast.error(error.message || 'Failed to update interview status')
-    },
-  })
-
   const cancelMutation = trpc.interview.cancel.useMutation({
     onSuccess: () => {
       utils.interview.list.invalidate()
@@ -135,18 +123,6 @@ export default function InterviewsPage() {
   })
 
   // Action handlers
-  const handleMarkComplete = (interviewId: string) => {
-    updateStatusMutation.mutate({ id: interviewId, status: 'COMPLETED' })
-  }
-
-  const handleJoinMeeting = (meetingLink: string | null) => {
-    if (meetingLink) {
-      window.open(meetingLink, '_blank')
-    } else {
-      toast.error('No meeting link available')
-    }
-  }
-
   const handleCancelInterview = () => {
     if (selectedInterviewId) {
       cancelMutation.mutate({ id: selectedInterviewId, reason: 'Cancelled by user' })
@@ -360,75 +336,47 @@ export default function InterviewsPage() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            {interview.status === 'SCHEDULED' && interview.meetingLink && (
+                            {(interview.status === 'SCHEDULED' || interview.status === 'IN_PROGRESS') && (
                               <DropdownMenuItem
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  handleJoinMeeting(interview.meetingLink as string | null)
+                                  router.push(`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}?reschedule=true`)
                                 }}
                               >
-                                <Video className="h-4 w-4 mr-2" />
-                                Join Meeting
+                                <Calendar className="h-4 w-4 mr-2" />
+                                Reschedule
                               </DropdownMenuItem>
                             )}
-                            {interview.status === 'SCHEDULED' && (
-                              <>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    router.push(`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}?reschedule=true`)
-                                  }}
-                                >
-                                  <Calendar className="h-4 w-4 mr-2" />
-                                  Reschedule
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleMarkComplete(interview.id)
-                                  }}
-                                  disabled={updateStatusMutation.isPending}
-                                >
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  Mark Complete
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                  className="text-destructive"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    setSelectedInterviewId(interview.id)
-                                    setCancelDialogOpen(true)
-                                  }}
-                                >
-                                  <XCircle className="h-4 w-4 mr-2" />
-                                  Cancel
-                                </DropdownMenuItem>
-                              </>
+                            {(interview.status === 'SCHEDULED' || interview.status === 'IN_PROGRESS') && (
+                              <DropdownMenuItem
+                                className="text-destructive"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  setSelectedInterviewId(interview.id)
+                                  setCancelDialogOpen(true)
+                                }}
+                              >
+                                <XCircle className="h-4 w-4 mr-2" />
+                                Cancel
+                              </DropdownMenuItem>
                             )}
                             {interview.status === 'COMPLETED' && (
-                              <>
-                                {interview.recordingUrl && (
-                                  <DropdownMenuItem
-                                    onClick={(e) => {
-                                      e.stopPropagation()
-                                      window.open(interview.recordingUrl as string, '_blank')
-                                    }}
-                                  >
-                                    <Play className="h-4 w-4 mr-2" />
-                                    View Fireflies
-                                  </DropdownMenuItem>
-                                )}
+                              interview.recordingUrl ? (
                                 <DropdownMenuItem
                                   onClick={(e) => {
                                     e.stopPropagation()
-                                    router.push(`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}`)
+                                    window.open(interview.recordingUrl as string, '_blank')
                                   }}
                                 >
-                                  <CheckCircle className="h-4 w-4 mr-2" />
-                                  View Feedback
+                                  <Play className="h-4 w-4 mr-2" />
+                                  View Fireflies
                                 </DropdownMenuItem>
-                              </>
+                              ) : (
+                                <DropdownMenuItem disabled>
+                                  <Play className="h-4 w-4 mr-2" />
+                                  Fireflies unavailable
+                                </DropdownMenuItem>
+                              )
                             )}
                           </DropdownMenuContent>
                         </DropdownMenu>
