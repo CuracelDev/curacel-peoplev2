@@ -1260,8 +1260,19 @@ export const onboardingRouter = router({
         if (sheetId) {
           const sheetsService = getGoogleSheetsService({ spreadsheetId: sheetId })
 
-          // Check if Task Catalog sheet exists
-          const hasTaskCatalog = await sheetsService.sheetExists('Task Catalog')
+          // Check if Task Catalog sheet exists (case-insensitive)
+          const sheetNames = await sheetsService.getSheetNames()
+          const hasTaskCatalog = sheetNames.some(name => name.toLowerCase().trim() === 'task catalog')
+
+          if (!hasTaskCatalog && sheetNames.length > 0) {
+            // Sheet exists but no Task Catalog tab - provide helpful message
+            return {
+              tasks: ONBOARDING_TASKS,
+              sections: TASK_SECTIONS,
+              source: 'static',
+              error: `Task Catalog sheet not found. Found sheets: ${sheetNames.join(', ')}`,
+            }
+          }
 
           if (hasTaskCatalog) {
             const sheetTasks = await sheetsService.fetchTaskCatalog()
@@ -1329,14 +1340,15 @@ export const onboardingRouter = router({
         }
 
         const sheetsService = getGoogleSheetsService({ spreadsheetId: sheetId })
-        const hasTaskCatalog = await sheetsService.sheetExists('Task Catalog')
+        const sheetNames = await sheetsService.getSheetNames()
+        const hasTaskCatalog = sheetNames.some(name => name.toLowerCase().trim() === 'task catalog')
 
         if (!hasTaskCatalog) {
           return {
             success: false,
             taskCount: ONBOARDING_TASKS.length,
             source: 'static',
-            error: 'Task Catalog sheet not found. Create a "Task Catalog" tab in your Google Sheet.',
+            error: `Task Catalog sheet not found. Found sheets: ${sheetNames.join(', ') || 'none'}. Create a "Task Catalog" tab in your Google Sheet.`,
           }
         }
 
