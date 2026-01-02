@@ -10,6 +10,7 @@ import {
   Briefcase,
   MessageSquare,
   Plus,
+  Minus,
   Check,
   Loader2,
   Brain,
@@ -22,13 +23,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
+import { Input } from '@/components/ui/input'
 import {
   Collapsible,
   CollapsibleContent,
@@ -103,7 +98,7 @@ export function AIQuestionGenerator({
 
   // State for generation
   const [customPrompt, setCustomPrompt] = useState('')
-  const [questionCount, setQuestionCount] = useState('10')
+  const [questionCount, setQuestionCount] = useState(10)
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([])
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
   const [showContextPanel, setShowContextPanel] = useState(false)
@@ -156,7 +151,7 @@ export function AIQuestionGenerator({
       candidateId,
       interviewTypeId,
       jobId,
-      count: parseInt(questionCount),
+      count: questionCount,
       contextSources: {
         ...contextSources,
         includePreviousInterviews: contextSources.includePreviousInterviews.length > 0
@@ -167,11 +162,18 @@ export function AIQuestionGenerator({
     })
   }
 
+  // Increment/decrement question count
+  const incrementCount = () => setQuestionCount(prev => Math.min(prev + 1, 20))
+  const decrementCount = () => setQuestionCount(prev => Math.max(prev - 1, 1))
+
+  // Track which questions have already been added to prevent duplicates
+  const [addedQuestionIds, setAddedQuestionIds] = useState<Set<string>>(new Set())
+
   // Handle adding selected questions
   const handleAddSelected = async () => {
-    const selectedQuestions = generatedQuestions.filter(q => selectedIds.has(q.id))
+    const selectedQuestions = generatedQuestions.filter(q => selectedIds.has(q.id) && !addedQuestionIds.has(q.id))
     if (selectedQuestions.length === 0) {
-      toast.error('No questions selected')
+      toast.error('No new questions selected')
       return
     }
 
@@ -198,9 +200,15 @@ export function AIQuestionGenerator({
         isRequired: q.addressesCritical || false,
       })))
 
-      toast.success(`Added ${selectedQuestions.length} questions and saved to bank`)
-      setGeneratedQuestions([])
+      // Mark these questions as added (don't clear generated questions)
+      const newAddedIds = new Set(addedQuestionIds)
+      selectedQuestions.forEach(q => newAddedIds.add(q.id))
+      setAddedQuestionIds(newAddedIds)
+
+      // Clear selection but keep generated questions visible
       setSelectedIds(new Set())
+
+      toast.success(`Added ${selectedQuestions.length} questions to interview`)
     } catch {
       toast.error('Failed to save questions')
     }
@@ -217,8 +225,8 @@ export function AIQuestionGenerator({
     setSelectedIds(newSet)
   }
 
-  // Select/deselect all
-  const selectAll = () => setSelectedIds(new Set(generatedQuestions.map(q => q.id)))
+  // Select/deselect all (only non-added questions)
+  const selectAll = () => setSelectedIds(new Set(generatedQuestions.filter(q => !addedQuestionIds.has(q.id)).map(q => q.id)))
   const deselectAll = () => setSelectedIds(new Set())
 
   // Toggle reasoning expansion
@@ -479,16 +487,38 @@ export function AIQuestionGenerator({
 
         {/* Generate Controls */}
         <div className="flex items-center gap-3">
-          <Select value={questionCount} onValueChange={setQuestionCount}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5 questions</SelectItem>
-              <SelectItem value="10">10 questions</SelectItem>
-              <SelectItem value="15">15 questions</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Question count input with +/- buttons */}
+          <div className="flex items-center">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-r-none"
+              onClick={decrementCount}
+              disabled={questionCount <= 1}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <Input
+              type="number"
+              value={questionCount}
+              onChange={(e) => {
+                const val = parseInt(e.target.value) || 1
+                setQuestionCount(Math.max(1, Math.min(20, val)))
+              }}
+              className="h-9 w-14 rounded-none border-x-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              min={1}
+              max={20}
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-9 w-9 rounded-l-none"
+              onClick={incrementCount}
+              disabled={questionCount >= 20}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
 
           <Button
             onClick={handleGenerate}
@@ -540,22 +570,27 @@ export function AIQuestionGenerator({
             </div>
 
             <div className={cn("space-y-2 overflow-y-auto pr-2", compact ? "max-h-[300px]" : "max-h-[400px]")}>
-              {generatedQuestions.map((question) => (
+              {generatedQuestions.map((question) => {
+                const isAdded = addedQuestionIds.has(question.id)
+                return (
                 <div
                   key={question.id}
                   className={cn(
                     'p-3 rounded-lg border transition-colors',
-                    selectedIds.has(question.id)
-                      ? 'border-primary/50 bg-primary/5'
-                      : 'border-border hover:border-primary/30',
-                    question.addressesCritical && 'ring-1 ring-warning/30'
+                    isAdded
+                      ? 'border-success/50 bg-success/5 opacity-60'
+                      : selectedIds.has(question.id)
+                        ? 'border-primary/50 bg-primary/5'
+                        : 'border-border hover:border-primary/30',
+                    question.addressesCritical && !isAdded && 'ring-1 ring-warning/30'
                   )}
                 >
                   <div className="flex items-start gap-3">
                     <Checkbox
-                      checked={selectedIds.has(question.id)}
-                      onCheckedChange={() => toggleSelection(question.id)}
+                      checked={isAdded || selectedIds.has(question.id)}
+                      onCheckedChange={() => !isAdded && toggleSelection(question.id)}
                       className="mt-1"
+                      disabled={isAdded}
                     />
                     <div className="flex-1 space-y-2">
                       <div className="flex items-start justify-between gap-2">
@@ -563,25 +598,33 @@ export function AIQuestionGenerator({
                           <Badge className={cn('text-xs', categoryColors[question.category] || 'bg-gray-100')}>
                             {question.category}
                           </Badge>
-                          {question.addressesCritical && (
+                          {isAdded && (
+                            <Badge variant="secondary" className="text-xs bg-success/20 text-success">
+                              <Check className="h-3 w-3 mr-1" />
+                              Added
+                            </Badge>
+                          )}
+                          {question.addressesCritical && !isAdded && (
                             <Badge variant="outline" className="text-xs border-warning/30 text-warning">
                               <Flag className="h-3 w-3 mr-1" />
                               Critical
                             </Badge>
                           )}
                         </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-6 w-6 p-0"
-                          onClick={() => toggleSelection(question.id)}
-                        >
-                          {selectedIds.has(question.id) ? (
-                            <X className="h-3 w-3" />
-                          ) : (
-                            <Plus className="h-3 w-3" />
-                          )}
-                        </Button>
+                        {!isAdded && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0"
+                            onClick={() => toggleSelection(question.id)}
+                          >
+                            {selectedIds.has(question.id) ? (
+                              <X className="h-3 w-3" />
+                            ) : (
+                              <Plus className="h-3 w-3" />
+                            )}
+                          </Button>
+                        )}
                       </div>
 
                       <p className="text-sm">{question.text}</p>
@@ -629,28 +672,44 @@ export function AIQuestionGenerator({
                     </div>
                   </div>
                 </div>
-              ))}
+              )})
             </div>
 
             {/* Add Selected Button */}
-            <Button
-              onClick={handleAddSelected}
-              disabled={selectedIds.size === 0 || saveQuestionsMutation.isPending}
-              className="w-full"
-              size={compact ? "sm" : "default"}
-            >
-              {saveQuestionsMutation.isPending ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Add {selectedIds.size} Selected Question{selectedIds.size !== 1 ? 's' : ''}
-                </>
-              )}
-            </Button>
+            {(() => {
+              const nonAddedSelectedCount = Array.from(selectedIds).filter(id => !addedQuestionIds.has(id)).length
+              const allAdded = generatedQuestions.every(q => addedQuestionIds.has(q.id))
+
+              if (allAdded) {
+                return (
+                  <div className="w-full text-center text-sm text-success py-2">
+                    <Check className="h-4 w-4 inline mr-2" />
+                    All questions added to interview
+                  </div>
+                )
+              }
+
+              return (
+                <Button
+                  onClick={handleAddSelected}
+                  disabled={nonAddedSelectedCount === 0 || saveQuestionsMutation.isPending}
+                  className="w-full"
+                  size={compact ? "sm" : "default"}
+                >
+                  {saveQuestionsMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Adding...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add {nonAddedSelectedCount > 0 ? nonAddedSelectedCount : ''} Selected Question{nonAddedSelectedCount !== 1 ? 's' : ''} to Interview
+                    </>
+                  )}
+                </Button>
+              )
+            })()}
           </div>
         )}
     </div>

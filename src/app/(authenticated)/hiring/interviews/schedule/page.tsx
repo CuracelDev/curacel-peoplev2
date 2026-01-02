@@ -1054,8 +1054,8 @@ export default function ScheduleInterviewPage() {
                     )}
                   </TabsContent>
 
-                  {/* AI Generator Tab */}
-                  <TabsContent value="ai" className="px-0.5 pb-2 !mt-0 flex-1 overflow-auto">
+                  {/* AI Generator Tab - forceMount to preserve state on tab switch */}
+                  <TabsContent value="ai" className="px-0.5 pb-2 !mt-0 flex-1 overflow-auto" forceMount>
                     {selectedCandidateId ? (
                       <div className="-mt-6">
                         <AIQuestionGenerator
