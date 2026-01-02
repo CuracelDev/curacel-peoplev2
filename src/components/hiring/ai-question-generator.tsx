@@ -113,13 +113,18 @@ export function AIQuestionGenerator({
   // Generate questions mutation
   const generateMutation = trpc.question.generateAIQuestions.useMutation({
     onSuccess: (data) => {
+      if (!data.questions || data.questions.length === 0) {
+        toast.warning('No questions were generated. Please try again or adjust context.')
+        return
+      }
       setGeneratedQuestions(data.questions as GeneratedQuestion[])
       // Select all by default
       setSelectedIds(new Set(data.questions.map(q => q.id)))
       toast.success(`Generated ${data.questions.length} questions for ${data.candidateName}`)
     },
     onError: (error) => {
-      toast.error(error.message || 'Failed to generate questions')
+      console.error('Generate questions error:', error)
+      toast.error(error.message || 'Failed to generate questions. Check AI configuration in Settings.')
     },
   })
 
