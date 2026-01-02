@@ -16,6 +16,7 @@ import {
   Mail,
   Mic,
   MoreHorizontal,
+  Pencil,
   Plus,
   Send,
   Star,
@@ -60,6 +61,7 @@ import { cn, getInitials } from '@/lib/utils'
 import { format, formatDistanceToNow } from 'date-fns'
 import { RescheduleDialog } from '@/components/hiring/reschedule-dialog'
 import { AddInterviewerDialog } from '@/components/hiring/add-interviewer-dialog'
+import { EditInterviewDialog } from '@/components/hiring/edit-interview-dialog'
 
 // Rating scale component
 function RatingScale({
@@ -156,6 +158,7 @@ export default function InterviewDetailPage() {
   const [expandedInterviewer, setExpandedInterviewer] = useState<string | null>(null)
   const [copiedLink, setCopiedLink] = useState(false)
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false)
+  const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const [addInterviewerDialogOpen, setAddInterviewerDialogOpen] = useState(false)
   const [removeInterviewerDialogOpen, setRemoveInterviewerDialogOpen] = useState(false)
@@ -468,6 +471,10 @@ export default function InterviewDetailPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </DropdownMenuItem>
                 {interview.status === 'SCHEDULED' && (
                   <>
                     <DropdownMenuItem onClick={() => setRescheduleDialogOpen(true)}>
@@ -1005,6 +1012,27 @@ export default function InterviewDetailPage() {
         interviewId={interviewId}
         currentScheduledAt={interview.scheduledAt ?? undefined}
         currentDuration={interview.duration ?? undefined}
+      />
+
+      {/* Edit Interview Dialog */}
+      <EditInterviewDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        interview={{
+          id: interview.id,
+          scheduledAt: interview.scheduledAt ? new Date(interview.scheduledAt) : null,
+          duration: interview.duration,
+          meetingLink: interview.meetingLink,
+          googleMeetLink: (interview as { googleMeetLink?: string | null }).googleMeetLink,
+          feedback: interview.feedback,
+          interviewers: interview.interviewers as Array<{ employeeId?: string; name: string; email: string }> || [],
+          interviewTypeId: (interview as { interviewTypeId?: string | null }).interviewTypeId,
+          stageName: (interview as { stageName?: string | null }).stageName,
+        }}
+        onSuccess={() => {
+          utils.interview.get.invalidate({ id: interviewId })
+          utils.interview.list.invalidate()
+        }}
       />
 
       {/* Cancel Confirmation Dialog */}
