@@ -12,7 +12,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { trpc } from '@/lib/trpc-client'
-import { AutoSendStageSettings } from '@/components/settings/auto-send-stage-settings'
 
 export default function HiringGeneralSettingsPage() {
   const { data: hiringSettings } = trpc.hiringSettings.get.useQuery()
@@ -63,9 +62,6 @@ export default function HiringGeneralSettingsPage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* Auto-Send Email Settings */}
-      <AutoSendStageSettings />
     </div>
   )
 }
