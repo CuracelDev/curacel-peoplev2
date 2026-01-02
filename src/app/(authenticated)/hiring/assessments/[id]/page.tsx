@@ -282,21 +282,21 @@ export default function AssessmentDetailPage() {
           <CardContent className="space-y-6">
             {/* Submission Type Tabs */}
             <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as SubmissionType)}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
                 {candidateSubmissionTypes.includes('TEXT') && (
-                  <TabsTrigger value="TEXT" className="flex items-center gap-2">
+                  <TabsTrigger value="TEXT" className="flex items-center gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
                     <Type className="h-4 w-4" />
                     Text
                   </TabsTrigger>
                 )}
                 {candidateSubmissionTypes.includes('FILE') && (
-                  <TabsTrigger value="FILE" className="flex items-center gap-2">
+                  <TabsTrigger value="FILE" className="flex items-center gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
                     <Upload className="h-4 w-4" />
                     File
                   </TabsTrigger>
                 )}
                 {candidateSubmissionTypes.includes('URL') && (
-                  <TabsTrigger value="URL" className="flex items-center gap-2">
+                  <TabsTrigger value="URL" className="flex items-center gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
                     <Link2 className="h-4 w-4" />
                     URL
                   </TabsTrigger>

@@ -726,12 +726,12 @@ export default function ScheduleInterviewPage() {
               <div className="md:col-span-2 grid gap-1">
                 <Label>Schedule Time *</Label>
                 <Tabs value={schedulingMode} onValueChange={(v) => setSchedulingMode(v as 'manual' | 'suggested')}>
-                  <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="suggested">
+                  <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
+                    <TabsTrigger value="suggested" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
                       <Sparkles className="mr-2 h-4 w-4" />
                       Smart Scheduling
                     </TabsTrigger>
-                    <TabsTrigger value="manual">
+                    <TabsTrigger value="manual" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
                       <CalendarIcon className="mr-2 h-4 w-4" />
                       Manual
                     </TabsTrigger>
@@ -1060,12 +1060,12 @@ export default function ScheduleInterviewPage() {
               </CardHeader>
               <CardContent className="p-0 flex-1 flex flex-col overflow-hidden min-h-0">
                 <Tabs defaultValue="bank" className="flex-1 flex flex-col min-h-0">
-                  <TabsList className="mx-0 mb-2 grid grid-cols-2 p-0">
-                    <TabsTrigger value="bank">
+                  <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent px-0 py-0">
+                    <TabsTrigger value="bank" className="rounded-none border-b-2 border-transparent px-0 pb-2 data-[state=active]:border-primary data-[state=active]:text-primary">
                       <BookOpen className="h-4 w-4 mr-2" />
                       Question Bank
                     </TabsTrigger>
-                    <TabsTrigger value="ai">
+                    <TabsTrigger value="ai" className="rounded-none border-b-2 border-transparent px-0 pb-2 data-[state=active]:border-primary data-[state=active]:text-primary">
                       <Sparkles className="h-4 w-4 mr-2" />
                       AuntyPelz AI
                     </TabsTrigger>

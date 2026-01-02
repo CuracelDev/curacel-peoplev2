@@ -295,16 +295,16 @@ export default function NewJDPage() {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-3 max-w-md">
-          <TabsTrigger value="manual" className="gap-2">
+        <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0 max-w-md">
+          <TabsTrigger value="manual" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
             <Pencil className="h-4 w-4" />
             Manual
           </TabsTrigger>
-          <TabsTrigger value="upload" className="gap-2">
+          <TabsTrigger value="upload" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
             <Upload className="h-4 w-4" />
             Upload Files
           </TabsTrigger>
-          <TabsTrigger value="import" className="gap-2">
+          <TabsTrigger value="import" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
             <Globe className="h-4 w-4" />
             Import URL
           </TabsTrigger>

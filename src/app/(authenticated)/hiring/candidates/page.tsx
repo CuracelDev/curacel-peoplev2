@@ -362,7 +362,7 @@ export default function CandidatesPage() {
   }
 
   return (
-    <div className="space-y-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5">
+    <div className="space-y-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       <PageActions>
         <div className="flex flex-wrap items-center gap-3">
           <Select value={teamFilter} onValueChange={setTeamFilter}>
@@ -474,9 +474,13 @@ export default function CandidatesPage() {
               </DialogHeader>
 
               <Tabs value={addMode} onValueChange={(v) => setAddMode(v as 'single' | 'bulk')} className="w-full">
-                <TabsList className="w-full mb-4">
-                  <TabsTrigger value="single" className="flex-1">Single Candidate</TabsTrigger>
-                  <TabsTrigger value="bulk" className="flex-1">Bulk Upload</TabsTrigger>
+                <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0 mb-4">
+                  <TabsTrigger value="single" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+                    Single Candidate
+                  </TabsTrigger>
+                  <TabsTrigger value="bulk" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+                    Bulk Upload
+                  </TabsTrigger>
                 </TabsList>
 
                 {/* Single Candidate Tab */}
