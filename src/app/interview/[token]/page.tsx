@@ -73,6 +73,9 @@ export default function PublicInterviewPage() {
   const [newQuestion, setNewQuestion] = useState('')
   const [expandedQuestion, setExpandedQuestion] = useState<string | null>(null)
   const [lastSaved, setLastSaved] = useState<Date | null>(null)
+  // Question responses (scores and notes for each interview question)
+  const [questionResponses, setQuestionResponses] = useState<Record<string, { score: number | null; notes: string }>>({})
+  const [expandedInterviewQuestion, setExpandedInterviewQuestion] = useState<string | null>(null)
 
   // Fetch interview data
   const {
@@ -130,10 +133,16 @@ export default function PublicInterviewPage() {
       if (draft.customQuestions) {
         setCustomQuestions(draft.customQuestions as CustomQuestion[])
       }
+      // Restore question responses
+      if (draft.questionResponses) {
+        setQuestionResponses(draft.questionResponses as Record<string, { score: number | null; notes: string }>)
+      }
     }
-    // Set expanded question to first rubric criteria
+    // Set expanded question to first rubric criteria or first interview question
     if (interviewData?.rubricCriteria && interviewData.rubricCriteria.length > 0) {
       setExpandedQuestion(interviewData.rubricCriteria[0].id)
+    } else if (interviewData?.interviewQuestions && interviewData.interviewQuestions.length > 0) {
+      setExpandedInterviewQuestion(interviewData.interviewQuestions[0].id)
     }
   }, [interviewData])
 
@@ -143,6 +152,21 @@ export default function PublicInterviewPage() {
 
   const handleNotesChange = (questionId: string, value: string) => {
     setNotes((prev) => ({ ...prev, [questionId]: value }))
+  }
+
+  // Handle interview question responses
+  const handleQuestionResponseScore = (questionId: string, score: number) => {
+    setQuestionResponses((prev) => ({
+      ...prev,
+      [questionId]: { ...prev[questionId], score, notes: prev[questionId]?.notes || '' },
+    }))
+  }
+
+  const handleQuestionResponseNotes = (questionId: string, notesText: string) => {
+    setQuestionResponses((prev) => ({
+      ...prev,
+      [questionId]: { ...prev[questionId], notes: notesText, score: prev[questionId]?.score ?? null },
+    }))
   }
 
   const handleAddCustomQuestion = () => {
@@ -177,8 +201,9 @@ export default function PublicInterviewPage() {
       recommendation,
       overallNotes,
       customQuestions,
+      questionResponses,
     })
-  }, [token, scores, notes, overallRating, recommendation, overallNotes, customQuestions, saveDraftMutation])
+  }, [token, scores, notes, overallRating, recommendation, overallNotes, customQuestions, questionResponses, saveDraftMutation])
 
   // Auto-save every 30 seconds when there are changes
   useEffect(() => {
@@ -217,6 +242,7 @@ export default function PublicInterviewPage() {
       recommendation: recommendation as 'STRONG_HIRE' | 'HIRE' | 'MAYBE' | 'NO_HIRE' | 'STRONG_NO_HIRE',
       overallNotes,
       customQuestions,
+      questionResponses,
     })
   }
 
