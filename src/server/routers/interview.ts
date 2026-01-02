@@ -258,6 +258,8 @@ export const interviewRouter = router({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      console.log('Schedule mutation input:', JSON.stringify(input, null, 2))
+
       // Check candidate exists
       const candidate = await ctx.prisma.jobCandidate.findUnique({
         where: { id: input.candidateId },
