@@ -526,7 +526,7 @@ export default function OnboardingDetailPage() {
                     ? 'SLACK'
                     : (task.automationConfig as any)?.appType
                 const provisionedAccount = workflow.employee.appAccounts?.find(
-                  (acc) => acc.app.type === taskAppType
+                  (acc: { app: { type: string } }) => acc.app.type === taskAppType
                 )
 
                 return (
@@ -763,7 +763,7 @@ export default function OnboardingDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3 md:grid-cols-2">
-              {workflow.employee.appAccounts.map((account) => (
+              {workflow.employee.appAccounts.map((account: { id: string; app: { type: string; name?: string | null }; email?: string | null; externalEmail?: string | null; externalUsername?: string | null; status: string; createdAt: Date }) => (
                 <div key={account.id} className="flex items-center gap-3 p-3 border rounded-lg">
                   {account.app.type === 'GOOGLE_WORKSPACE' ? (
                     <Cloud className="h-6 w-6 text-blue-500" />

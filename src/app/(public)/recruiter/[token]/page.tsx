@@ -173,7 +173,7 @@ export default function RecruiterPortalPage() {
         name: formData.name,
         email: formData.email,
         phone: formData.phone || undefined,
-        linkedinUrl: formData.linkedinUrl || undefined,
+        linkedinUrl: formData.linkedinUrl || '',
         bio: formData.bio || undefined,
         notes: formData.notes || undefined,
         resumeUrl: formData.resumeUrl || undefined,

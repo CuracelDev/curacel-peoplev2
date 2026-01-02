@@ -202,7 +202,7 @@ export default function PublicCareersPage() {
         name: formData.name,
         email: formData.email,
         phone: formData.phone || undefined,
-        linkedinUrl: formData.linkedinUrl || undefined,
+        linkedinUrl: formData.linkedinUrl || '',
         bio: formData.bio || undefined,
         coverLetter: formData.coverLetter,
         resumeUrl: formData.resumeUrl || undefined,
@@ -214,6 +214,9 @@ export default function PublicCareersPage() {
       setIsSubmitting(false)
     }
   }
+
+  const jobDescriptionContent = (job as { jobDescription?: { content?: string | null } } | null)
+    ?.jobDescription?.content
 
   // Loading state
   if (isLoading) {
@@ -321,10 +324,10 @@ export default function PublicCareersPage() {
             <CardTitle>About This Role</CardTitle>
           </CardHeader>
           <CardContent>
-            {job.jobDescription?.content ? (
+            {jobDescriptionContent ? (
               <div
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: job.jobDescription.content }}
+                dangerouslySetInnerHTML={{ __html: jobDescriptionContent }}
               />
             ) : (
               <p className="text-muted-foreground">No description available.</p>

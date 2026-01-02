@@ -20,6 +20,11 @@ import {
   Trash2,
   Edit2,
   X,
+  Sparkles,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  Minus,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -42,6 +47,8 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { toast } from 'sonner'
 
@@ -122,6 +129,23 @@ export default function QuestionsPage() {
     tags: '',
   })
 
+  // AI generation state
+  const [aiJobId, setAiJobId] = useState<string>('')
+  const [aiInterviewTypeId, setAiInterviewTypeId] = useState<string>('')
+  const [aiCategories, setAiCategories] = useState<string[]>(['behavioral', 'situational', 'technical'])
+  const [aiCustomPrompt, setAiCustomPrompt] = useState('')
+  const [aiQuestionCount, setAiQuestionCount] = useState(10)
+  const [generatedQuestions, setGeneratedQuestions] = useState<Array<{
+    id: string
+    text: string
+    followUp: string
+    category: string
+    tags: string[]
+    reasoning: string
+  }>>([])
+  const [selectedGeneratedIds, setSelectedGeneratedIds] = useState<Set<string>>(new Set())
+  const [expandedReasonings, setExpandedReasonings] = useState<Set<string>>(new Set())
+
   // Fetch data
   const { data: jobs } = trpc.job.list.useQuery({ status: 'ACTIVE' })
   const { data: interviewTypes } = trpc.interviewType.list.useQuery()
@@ -201,6 +225,37 @@ export default function QuestionsPage() {
     },
   })
 
+  // AI generation mutation
+  const generateBankMutation = trpc.question.generateBankQuestions.useMutation({
+    onSuccess: (data) => {
+      if (!data.questions || data.questions.length === 0) {
+        toast.warning('No questions were generated. Please try again.')
+        return
+      }
+      setGeneratedQuestions(data.questions)
+      setSelectedGeneratedIds(new Set(data.questions.map(q => q.id)))
+      toast.success(`Generated ${data.questions.length} questions for ${data.jobTitle}`)
+    },
+    onError: (err) => {
+      toast.error('Failed to generate questions', { description: err.message })
+    },
+  })
+
+  // Save generated questions mutation
+  const saveGeneratedMutation = trpc.question.saveAIQuestions.useMutation({
+    onSuccess: (result) => {
+      utils.question.list.invalidate()
+      utils.question.getCategories.invalidate()
+      toast.success(`${result.count} questions added to bank`)
+      // Clear generated questions and selection
+      setGeneratedQuestions([])
+      setSelectedGeneratedIds(new Set())
+    },
+    onError: (err) => {
+      toast.error('Failed to save questions', { description: err.message })
+    },
+  })
+
   const toggleCategory = (categoryId: string) => {
     setSelectedCategories((prev) =>
       prev.includes(categoryId)
@@ -239,6 +294,67 @@ export default function QuestionsPage() {
     toast.success('Copied to clipboard')
   }
 
+  // AI generation handlers
+  const handleGenerateQuestions = () => {
+    generateBankMutation.mutate({
+      jobId: aiJobId || undefined,
+      interviewTypeId: aiInterviewTypeId || undefined,
+      categories: aiCategories.length > 0 ? aiCategories as ('behavioral' | 'situational' | 'technical' | 'motivational' | 'culture')[] : undefined,
+      count: aiQuestionCount,
+      customPrompt: aiCustomPrompt.trim() || undefined,
+    })
+  }
+
+  const handleAddGeneratedToBank = () => {
+    const selectedQuestions = generatedQuestions.filter(q => selectedGeneratedIds.has(q.id))
+    if (selectedQuestions.length === 0) {
+      toast.error('No questions selected')
+      return
+    }
+
+    saveGeneratedMutation.mutate({
+      questions: selectedQuestions.map(q => ({
+        text: q.text,
+        followUp: q.followUp || undefined,
+        category: q.category as 'behavioral' | 'situational' | 'technical' | 'motivational' | 'culture',
+        tags: q.tags || [],
+      })),
+      jobId: aiJobId || undefined,
+      interviewTypeId: aiInterviewTypeId || undefined,
+    })
+  }
+
+  const toggleGeneratedSelection = (id: string) => {
+    const newSet = new Set(selectedGeneratedIds)
+    if (newSet.has(id)) {
+      newSet.delete(id)
+    } else {
+      newSet.add(id)
+    }
+    setSelectedGeneratedIds(newSet)
+  }
+
+  const toggleAiCategory = (categoryId: string) => {
+    setAiCategories(prev =>
+      prev.includes(categoryId)
+        ? prev.filter(c => c !== categoryId)
+        : [...prev, categoryId]
+    )
+  }
+
+  const toggleReasoning = (id: string) => {
+    const newSet = new Set(expandedReasonings)
+    if (newSet.has(id)) {
+      newSet.delete(id)
+    } else {
+      newSet.add(id)
+    }
+    setExpandedReasonings(newSet)
+  }
+
+  const selectAllGenerated = () => setSelectedGeneratedIds(new Set(generatedQuestions.map(q => q.id)))
+  const deselectAllGenerated = () => setSelectedGeneratedIds(new Set())
+
   // Group questions by category
   const questionsByCategory = questionsData?.questions.reduce((acc, q) => {
     if (!selectedCategories.includes(q.category)) return acc
@@ -252,37 +368,52 @@ export default function QuestionsPage() {
 
   return (
     <div className="p-6">
-      {/* Action Bar */}
-      <div className="flex justify-between items-center gap-3 mb-6">
-        <div className="flex items-center gap-3">
-          <Input
-            placeholder="Search questions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-64"
-          />
-          <Button
-            variant={showFavoritesOnly ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-          >
-            <Star className={cn('h-4 w-4 mr-2', showFavoritesOnly && 'fill-current')} />
-            Favorites
-          </Button>
+      {/* Main Tabs */}
+      <Tabs defaultValue="bank" className="space-y-4">
+        <div className="flex justify-between items-center">
+          <TabsList>
+            <TabsTrigger value="bank" className="gap-2">
+              <BookOpen className="h-4 w-4" />
+              Question Bank
+            </TabsTrigger>
+            <TabsTrigger value="ai" className="gap-2">
+              <Sparkles className="h-4 w-4" />
+              AuntyPelz AI
+            </TabsTrigger>
+          </TabsList>
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setCreateDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Question
+            </Button>
+            <Button variant="outline">
+              <Download className="h-4 w-4 mr-2" />
+              Export PDF
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-3">
-          <Button variant="outline" onClick={() => setCreateDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Question
-          </Button>
-          <Button variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Export PDF
-          </Button>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-[320px_1fr] gap-6">
+        {/* Question Bank Tab */}
+        <TabsContent value="bank" className="mt-4">
+          {/* Search Bar */}
+          <div className="flex items-center gap-3 mb-6">
+            <Input
+              placeholder="Search questions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-64"
+            />
+            <Button
+              variant={showFavoritesOnly ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            >
+              <Star className={cn('h-4 w-4 mr-2', showFavoritesOnly && 'fill-current')} />
+              Favorites
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-[320px_1fr] gap-6">
         {/* Sidebar - Filters */}
         <div className="space-y-5">
           <Card className="sticky top-20">
@@ -568,7 +699,277 @@ export default function QuestionsPage() {
               )
             })}
         </div>
-      </div>
+          </div>
+        </TabsContent>
+
+        {/* AuntyPelz AI Tab */}
+        <TabsContent value="ai" className="mt-4">
+          <div className="grid grid-cols-[400px_1fr] gap-6">
+            {/* Left Panel - Generation Controls */}
+            <Card>
+              <CardContent className="p-5 space-y-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <Sparkles className="h-5 w-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold">Generate with AuntyPelz</h3>
+                    <p className="text-xs text-muted-foreground">AI-powered questions for your bank</p>
+                  </div>
+                </div>
+
+                {/* Job Selection */}
+                <div className="space-y-2">
+                  <Label>Job Position (optional)</Label>
+                  <Select value={aiJobId || 'all'} onValueChange={(v) => setAiJobId(v === 'all' ? '' : v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All positions" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">General questions</SelectItem>
+                      {jobs?.map((job) => (
+                        <SelectItem key={job.id} value={job.id}>
+                          {job.title}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Interview Type */}
+                <div className="space-y-2">
+                  <Label>Interview Type (optional)</Label>
+                  <Select value={aiInterviewTypeId || 'all'} onValueChange={(v) => setAiInterviewTypeId(v === 'all' ? '' : v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All types" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">General interview</SelectItem>
+                      {interviewTypes?.map((type) => (
+                        <SelectItem key={type.id} value={type.id}>
+                          {type.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Categories */}
+                <div className="space-y-2">
+                  <Label>Question Categories</Label>
+                  <div className="space-y-2">
+                    {categoryOrder.map((catId) => {
+                      const category = categoryConfig[catId]
+                      const Icon = category.icon
+                      return (
+                        <button
+                          key={catId}
+                          onClick={() => toggleAiCategory(catId)}
+                          className={cn(
+                            'w-full flex items-center gap-3 p-2 border rounded-lg transition-all text-left text-sm',
+                            aiCategories.includes(catId)
+                              ? 'border-primary bg-primary/5'
+                              : 'border-border hover:border-border'
+                          )}
+                        >
+                          <div
+                            className={cn(
+                              'w-4 h-4 rounded flex items-center justify-center flex-shrink-0',
+                              aiCategories.includes(catId)
+                                ? 'bg-primary text-white'
+                                : 'border border-border'
+                            )}
+                          >
+                            {aiCategories.includes(catId) && <Check className="h-3 w-3" />}
+                          </div>
+                          <div className={cn('w-6 h-6 rounded flex items-center justify-center', category.color)}>
+                            <Icon className="h-3 w-3" />
+                          </div>
+                          <span className="flex-1">{category.name}</span>
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                {/* Custom Prompt */}
+                <div className="space-y-2">
+                  <Label>Additional Instructions (optional)</Label>
+                  <Textarea
+                    placeholder="E.g., Focus on leadership skills, technical problem-solving, remote work experience..."
+                    value={aiCustomPrompt}
+                    onChange={(e) => setAiCustomPrompt(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                {/* Question Count */}
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 rounded-r-none"
+                      onClick={() => setAiQuestionCount(prev => Math.max(1, prev - 1))}
+                      disabled={aiQuestionCount <= 1}
+                    >
+                      <Minus className="h-4 w-4" />
+                    </Button>
+                    <Input
+                      type="number"
+                      value={aiQuestionCount}
+                      onChange={(e) => setAiQuestionCount(Math.max(1, Math.min(20, parseInt(e.target.value) || 1)))}
+                      className="h-9 w-14 rounded-none border-x-0 text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                      min={1}
+                      max={20}
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-9 w-9 rounded-l-none"
+                      onClick={() => setAiQuestionCount(prev => Math.min(20, prev + 1))}
+                      disabled={aiQuestionCount >= 20}
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <Button
+                    onClick={handleGenerateQuestions}
+                    disabled={generateBankMutation.isPending}
+                    className="flex-1 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                  >
+                    {generateBankMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        Generating...
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="h-4 w-4 mr-2" />
+                        Generate
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Right Panel - Generated Questions */}
+            <Card>
+              <CardContent className="p-5">
+                {generatedQuestions.length === 0 ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                    <Sparkles className="h-12 w-12 mb-4 opacity-20" />
+                    <p className="text-center">
+                      Generate questions using AuntyPelz AI.<br />
+                      <span className="text-sm">Questions will appear here for review before adding to the bank.</span>
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Generated Questions ({generatedQuestions.length})</span>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" onClick={selectAllGenerated}>
+                          Select All
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={deselectAllGenerated}>
+                          Clear
+                        </Button>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
+                      {generatedQuestions.map((question) => (
+                        <div
+                          key={question.id}
+                          className={cn(
+                            'p-3 rounded-lg border transition-colors',
+                            selectedGeneratedIds.has(question.id)
+                              ? 'border-primary/50 bg-primary/5'
+                              : 'border-border hover:border-primary/30'
+                          )}
+                        >
+                          <div className="flex items-start gap-3">
+                            <Checkbox
+                              checked={selectedGeneratedIds.has(question.id)}
+                              onCheckedChange={() => toggleGeneratedSelection(question.id)}
+                              className="mt-1"
+                            />
+                            <div className="flex-1 space-y-2">
+                              <div className="flex items-center gap-2">
+                                <Badge className={categoryConfig[question.category]?.badgeColor || 'bg-gray-100'}>
+                                  {categoryConfig[question.category]?.name || question.category}
+                                </Badge>
+                              </div>
+                              <p className="text-sm">{question.text}</p>
+                              {question.followUp && (
+                                <p className="text-sm text-muted-foreground italic">
+                                  Follow-up: {question.followUp}
+                                </p>
+                              )}
+                              {question.tags?.length > 0 && (
+                                <div className="flex flex-wrap gap-1">
+                                  {question.tags.map((tag, i) => (
+                                    <Badge key={i} variant="secondary" className="text-xs">
+                                      {tag}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              )}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto py-1 px-2 text-xs text-muted-foreground"
+                                onClick={() => toggleReasoning(question.id)}
+                              >
+                                {expandedReasonings.has(question.id) ? (
+                                  <>
+                                    <ChevronUp className="h-3 w-3 mr-1" />
+                                    Hide reasoning
+                                  </>
+                                ) : (
+                                  <>
+                                    <ChevronDown className="h-3 w-3 mr-1" />
+                                    Why this question?
+                                  </>
+                                )}
+                              </Button>
+                              {expandedReasonings.has(question.id) && (
+                                <p className="text-xs text-muted-foreground bg-muted/50 p-2 rounded">
+                                  {question.reasoning}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    <Button
+                      onClick={handleAddGeneratedToBank}
+                      disabled={selectedGeneratedIds.size === 0 || saveGeneratedMutation.isPending}
+                      className="w-full"
+                    >
+                      {saveGeneratedMutation.isPending ? (
+                        <>
+                          <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                          Adding to Bank...
+                        </>
+                      ) : (
+                        <>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add {selectedGeneratedIds.size} Question{selectedGeneratedIds.size !== 1 ? 's' : ''} to Bank
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       {/* Create Question Dialog */}
       <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>

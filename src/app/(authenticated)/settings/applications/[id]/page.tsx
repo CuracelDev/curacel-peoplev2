@@ -243,13 +243,14 @@ export default function ApplicationSettingsDetailPage() {
 
   const hasConnection = Boolean(connectionId)
 
+  const lastTestStatus = summary && 'lastTestStatus' in summary ? summary.lastTestStatus : undefined
   const connectionLabel = (() => {
     if (!hasConnection) return { text: 'Not connected', tone: 'neutral' as const }
     if (testConnection.isPending) return { text: 'Testing...', tone: 'neutral' as const }
     if (testConnection.data?.success === true) return { text: 'Connected', tone: 'success' as const }
     if (testConnection.data && !testConnection.data.success) return { text: 'Configured (Disconnected)', tone: 'error' as const }
-    if (summary?.lastTestStatus === 'SUCCESS') return { text: 'Connected', tone: 'success' as const }
-    if (summary?.lastTestStatus === 'FAILED') return { text: 'Configured (Disconnected)', tone: 'error' as const }
+    if (lastTestStatus === 'SUCCESS') return { text: 'Connected', tone: 'success' as const }
+    if (lastTestStatus === 'FAILED') return { text: 'Configured (Disconnected)', tone: 'error' as const }
     return { text: 'Configured', tone: 'neutral' as const }
   })()
   const secrets = summary?.secrets ?? {}
