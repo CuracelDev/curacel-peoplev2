@@ -65,7 +65,7 @@ const typeConfig: Record<string, { label: string; color: string; icon: React.Com
   COMPETENCY_TEST: { label: 'Competency Test', color: 'bg-purple-100 text-purple-800', icon: ClipboardCheck },
   CODING_TEST: { label: 'Coding Test', color: 'bg-blue-100 text-blue-800', icon: Code },
   PERSONALITY_TEST: { label: 'Personality Test', color: 'bg-pink-100 text-pink-800', icon: Brain },
-  WORK_TRIAL: { label: 'Work Trial', color: 'bg-success/10 text-success-foreground', icon: Briefcase },
+  WORK_TRIAL: { label: 'Work Trial', color: 'bg-success/10 text-success', icon: Briefcase },
   CUSTOM: { label: 'Custom', color: 'bg-muted text-foreground', icon: FileText },
 }
 
@@ -73,8 +73,8 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   NOT_STARTED: { label: 'Not Started', color: 'bg-muted text-foreground/80' },
   INVITED: { label: 'Invited', color: 'bg-blue-100 text-blue-800' },
   IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800' },
-  COMPLETED: { label: 'Completed', color: 'bg-success/10 text-success-foreground' },
-  EXPIRED: { label: 'Expired', color: 'bg-destructive/10 text-destructive-foreground' },
+  COMPLETED: { label: 'Completed', color: 'bg-success/10 text-success' },
+  EXPIRED: { label: 'Expired', color: 'bg-destructive/10 text-destructive' },
   CANCELLED: { label: 'Cancelled', color: 'bg-muted text-muted-foreground' },
 }
 

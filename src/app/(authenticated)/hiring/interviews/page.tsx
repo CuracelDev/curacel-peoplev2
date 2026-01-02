@@ -82,9 +82,9 @@ const stageConfig: Record<string, { label: string; color: string }> = {
 const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
   SCHEDULED: { label: 'Scheduled', color: 'bg-blue-100 text-blue-800', icon: Calendar },
   IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800', icon: Clock },
-  COMPLETED: { label: 'Completed', color: 'bg-success/10 text-success-foreground', icon: CheckCircle },
+  COMPLETED: { label: 'Completed', color: 'bg-success/10 text-success', icon: CheckCircle },
   CANCELLED: { label: 'Cancelled', color: 'bg-muted text-foreground', icon: XCircle },
-  NO_SHOW: { label: 'No Show', color: 'bg-destructive/10 text-destructive-foreground', icon: AlertCircle },
+  NO_SHOW: { label: 'No Show', color: 'bg-destructive/10 text-destructive', icon: AlertCircle },
 }
 
 export default function InterviewsPage() {
