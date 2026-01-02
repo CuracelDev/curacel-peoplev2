@@ -190,7 +190,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Hiring settings now guards job score display values before applying state
 - Interest form edit screen now normalizes stored question fields on load
 - Interest form list preview now renders question/required fields and normalizes options
+- Interview schedule page now explicitly terminates the slots memo for build parsing
 - Onboarding Bitbucket options query now guards against missing app IDs
+- Onboarding workflow progress calculation now uses explicit task typing
+- Onboarding workflow task helpers now share a common task type
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off

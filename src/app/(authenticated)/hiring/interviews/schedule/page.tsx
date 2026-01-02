@@ -434,24 +434,24 @@ export default function ScheduleInterviewPage() {
       grouped[dateKey].push(slot)
     })
     return grouped
-  }, [availableSlots])
+  }, [availableSlots]);
 
   return (
-    <div className={cn("px-6 py-4 mx-auto", currentStep === 2 ? "max-w-7xl" : "max-w-6xl")}>
+    <div className={cn("px-1 sm:px-2 py-2", currentStep === 2 ? "max-w-7xl mx-auto" : "")}>
       {/* Step 1: Interview Details */}
       {currentStep === 1 && (
         <Card>
-          <CardHeader>
+          <CardHeader className="px-4 py-3">
             <CardTitle>Interview Details</CardTitle>
             <CardDescription>
               Select the candidate, interview type, interviewers, and schedule time.
             </CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+          <CardContent className="px-4 py-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
             {/* Row 1: Candidate & Interview Type */}
             {/* Candidate Selection */}
-            <div className="grid gap-2">
+            <div className="grid gap-1">
               <Label>Candidate *</Label>
               {selectedCandidate ? (
                 <div className="flex items-center gap-2">
@@ -527,7 +527,7 @@ export default function ScheduleInterviewPage() {
             </div>
 
             {/* Interview Type (Row 1 - Right) */}
-            <div className="grid gap-2">
+            <div className="grid gap-1">
               <Label htmlFor="type">Interview Type *</Label>
               <Select value={interviewTypeId} onValueChange={handleInterviewTypeChange}>
                 <SelectTrigger>
@@ -559,9 +559,9 @@ export default function ScheduleInterviewPage() {
 
             {/* Row 2: Interviewers & Duration */}
             {/* Interviewers (Row 2 - Left) */}
-            <div className="grid gap-2">
+            <div className="grid gap-1">
               <Label>Interviewers *</Label>
-              <div className="flex flex-wrap gap-2 mb-2">
+              <div className="flex flex-wrap gap-1 mb-1">
                 {selectedInterviewers.map((interviewer) => (
                   <Badge key={interviewer.id} variant="secondary" className="gap-1">
                     {interviewer.name}
@@ -655,7 +655,7 @@ export default function ScheduleInterviewPage() {
             </div>
 
             {/* Duration (Row 2 - Right) */}
-            <div className="grid gap-2">
+            <div className="grid gap-1">
               <Label htmlFor="duration">Duration</Label>
               <Select value={duration.toString()} onValueChange={(v) => setDuration(Number(v))}>
                 <SelectTrigger>
@@ -673,7 +673,7 @@ export default function ScheduleInterviewPage() {
 
             {/* Row 3: Date & Time Selection (Full Width) */}
             {calendarConfig?.configured && selectedInterviewers.length > 0 ? (
-              <div className="md:col-span-2 grid gap-2">
+              <div className="md:col-span-2 grid gap-1">
                 <Label>Schedule Time *</Label>
                 <Tabs value={schedulingMode} onValueChange={(v) => setSchedulingMode(v as 'manual' | 'suggested')}>
                   <TabsList className="grid w-full grid-cols-2">
@@ -815,9 +815,9 @@ export default function ScheduleInterviewPage() {
                     )}
                   </TabsContent>
 
-                  <TabsContent value="manual" className="mt-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="grid gap-2">
+                  <TabsContent value="manual" className="mt-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="grid gap-1">
                         <Label>Date *</Label>
                         <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                           <PopoverTrigger asChild>
@@ -846,7 +846,7 @@ export default function ScheduleInterviewPage() {
                           </PopoverContent>
                         </Popover>
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid gap-1">
                         <Label htmlFor="time">Time *</Label>
                         <Input
                           id="time"
@@ -860,9 +860,9 @@ export default function ScheduleInterviewPage() {
                 </Tabs>
               </div>
             ) : (
-              <div className="md:col-span-2 grid gap-2">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
+              <div className="md:col-span-2 grid gap-1">
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="grid gap-1">
                     <Label>Date *</Label>
                     <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
                       <PopoverTrigger asChild>
@@ -891,7 +891,7 @@ export default function ScheduleInterviewPage() {
                       </PopoverContent>
                     </Popover>
                   </div>
-                  <div className="grid gap-2">
+                  <div className="grid gap-1">
                     <Label htmlFor="time">Time *</Label>
                     <Input
                       id="time"
@@ -902,7 +902,7 @@ export default function ScheduleInterviewPage() {
                   </div>
                 </div>
                 {selectedInterviewers.length > 0 && !calendarConfig?.configured && (
-                  <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg text-sm">
+                  <div className="flex items-start gap-1 p-2 bg-amber-50 border border-amber-200 rounded-lg text-sm">
                     <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
                     <div className="text-amber-800">
                       <p className="font-medium">Smart scheduling unavailable</p>
@@ -917,7 +917,7 @@ export default function ScheduleInterviewPage() {
 
             {/* Row 4: Meeting Link (Full Width) */}
             {(!calendarConfig?.configured || !syncToCalendar || !createGoogleMeet) ? (
-              <div className="md:col-span-2 grid gap-2">
+              <div className="md:col-span-2 grid gap-1">
                 <Label htmlFor="meetingLink">Meeting Link</Label>
                 <div className="relative">
                   <Video className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -931,7 +931,7 @@ export default function ScheduleInterviewPage() {
                 </div>
               </div>
             ) : (
-              <div className="md:col-span-2 flex items-center gap-2 p-3 bg-success/10 dark:bg-green-900/20 border border-success/20 dark:border-success/30 rounded-lg text-sm">
+              <div className="md:col-span-2 flex items-center gap-1 p-2 bg-success/10 dark:bg-green-900/20 border border-success/20 dark:border-success/30 rounded-lg text-sm">
                 <Video className="h-4 w-4 text-success dark:text-success" />
                 <span className="text-success dark:text-success">Google Meet link will be auto-generated</span>
               </div>
@@ -939,8 +939,8 @@ export default function ScheduleInterviewPage() {
 
             {/* Row 5: Calendar Integration Options (Full Width) */}
             {calendarConfig?.configured && (
-              <div className="md:col-span-2 space-y-4 p-4 border rounded-lg bg-muted/30">
-                <h4 className="text-sm font-medium flex items-center gap-2">
+              <div className="md:col-span-2 space-y-2 p-2 border rounded-lg bg-muted/30">
+                <h4 className="text-sm font-medium flex items-center gap-1">
                   <CalendarCheckIcon className="h-4 w-4" />
                   Calendar Options
                 </h4>
@@ -976,14 +976,14 @@ export default function ScheduleInterviewPage() {
             )}
 
             {/* Row 6: Notes (Full Width) */}
-            <div className="md:col-span-2 grid gap-2">
+            <div className="md:col-span-2 grid gap-1">
               <Label htmlFor="notes">Notes (optional)</Label>
               <Textarea
                 id="notes"
                 placeholder="Any special instructions or topics to cover..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
-                rows={3}
+                rows={2}
               />
             </div>
             </div>{/* End of grid container */}
@@ -1262,7 +1262,7 @@ export default function ScheduleInterviewPage() {
       )}
 
       {/* Footer Actions */}
-      <div className="flex items-center justify-between mt-6">
+      <div className="flex items-center justify-between mt-3">
         <div>
           {currentStep === 1 && (
             <Link href="/hiring/interviews">
