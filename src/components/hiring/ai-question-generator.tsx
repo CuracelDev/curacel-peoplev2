@@ -672,7 +672,8 @@ export function AIQuestionGenerator({
                     </div>
                   </div>
                 </div>
-              )})
+                )
+              })}
             </div>
 
             {/* Add Selected Button */}
