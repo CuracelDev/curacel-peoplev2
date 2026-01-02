@@ -5,9 +5,9 @@ import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
 import Link from '@tiptap/extension-link'
 import Underline from '@tiptap/extension-underline'
-import TextStyle from '@tiptap/extension-text-style'
-import Color from '@tiptap/extension-color'
-import FontFamily from '@tiptap/extension-font-family'
+import { Extension as TextStyle } from '@tiptap/extension-text-style'
+import { Extension as Color } from '@tiptap/extension-color'
+import { Extension as FontFamily } from '@tiptap/extension-font-family'
 import {
   Bold,
   Italic,
