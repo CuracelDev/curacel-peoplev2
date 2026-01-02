@@ -1107,7 +1107,6 @@ Respond ONLY with a valid JSON array, no additional text.`
           jobId: input.jobId,
           interviewTypeId: input.interviewTypeId,
           createdById: user?.employeeId,
-          source: 'AI_GENERATED',
         })),
       })
 
