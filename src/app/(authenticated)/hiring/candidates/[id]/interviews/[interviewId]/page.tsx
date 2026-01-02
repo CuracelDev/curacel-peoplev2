@@ -681,7 +681,7 @@ export default function InterviewDetailPage() {
             <div className="space-y-5">
               {/* Score Summary */}
               <div className="flex items-center gap-4 p-4 bg-success/10 border border-success/20 rounded-xl">
-                <div className="text-4xl font-bold text-success">{averageScore || 'N/A'}</div>
+                <div className="text-4xl font-bold text-success">{overallScore || 'N/A'}</div>
                 <div>
                   <div className="font-semibold">Stage Score</div>
                   <div className="text-sm text-success">
