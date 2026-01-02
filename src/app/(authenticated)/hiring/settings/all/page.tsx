@@ -1675,7 +1675,7 @@ export default function SettingsPage() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => window.open(`/careers/${job.id}`, '_blank')}
+                              onClick={() => window.open(`/careers/${job.id}?preview=true`, '_blank')}
                             >
                               <ExternalLink className="h-4 w-4 mr-1" />
                               Preview
