@@ -24,7 +24,7 @@ export default function AutoSendSettingsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Link href="/settings/hiring">
+        <Link href="/settings">
           <Button variant="ghost" size="icon">
             <ArrowLeft className="h-5 w-5" />
           </Button>

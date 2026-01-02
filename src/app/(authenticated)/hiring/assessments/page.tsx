@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import {
   Table,
   TableBody,
@@ -189,6 +190,11 @@ export default function AssessmentsPage() {
 
   return (
     <div className="space-y-6">
+      <SettingsPageHeader
+        title="Assessments"
+        description="Configure assessments for candidate evaluations"
+        backHref="/settings/hiring"
+      />
       {/* Header with Filter Cards */}
       <div className="flex items-center justify-between">
         <div className="flex gap-1.5 flex-nowrap">
