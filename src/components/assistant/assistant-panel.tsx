@@ -280,12 +280,12 @@ export function AssistantPanel({ open, onOpenChange }: AssistantPanelProps) {
                       message.role === 'user'
                         ? 'bg-primary text-primary-foreground'
                         : message.isError
-                        ? 'border border-red-200 bg-red-50 text-red-800'
+                        ? 'border border-destructive/30 bg-destructive/10 text-destructive-foreground'
                         : 'bg-white text-foreground shadow-sm'
                     )}
                   >
                     {message.isError && (
-                      <div className="flex items-center gap-1 mb-1 text-xs font-medium text-red-600">
+                      <div className="flex items-center gap-1 mb-1 text-xs font-medium text-destructive">
                         <AlertCircle className="h-3 w-3" />
                         Error
                       </div>
@@ -330,7 +330,7 @@ export function AssistantPanel({ open, onOpenChange }: AssistantPanelProps) {
               variant="outline"
               className={cn(
                 'shrink-0',
-                isRecording && 'bg-red-50 border-red-300 text-red-600 hover:bg-red-100 hover:text-red-700'
+                isRecording && 'bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 hover:text-destructive'
               )}
               title={isRecording ? 'Stop recording' : 'Start voice input'}
             >

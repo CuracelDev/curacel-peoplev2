@@ -98,7 +98,7 @@ export default function EmployeesPage() {
                     {...register('fullName', { required: 'Name is required' })}
                   />
                   {errors.fullName && (
-                    <p className="text-sm text-red-500">{errors.fullName.message}</p>
+                    <p className="text-sm text-destructive">{errors.fullName.message}</p>
                   )}
                 </div>
                 <div className="grid gap-2">
@@ -109,7 +109,7 @@ export default function EmployeesPage() {
                     {...register('personalEmail', { required: 'Email is required' })}
                   />
                   {errors.personalEmail && (
-                    <p className="text-sm text-red-500">{errors.personalEmail.message}</p>
+                    <p className="text-sm text-destructive">{errors.personalEmail.message}</p>
                   )}
                 </div>
                 <div className="grid gap-2">

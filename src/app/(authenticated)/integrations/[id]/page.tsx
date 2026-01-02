@@ -254,7 +254,7 @@ export default function IntegrationDetailPage() {
   if (getApp.isError || !getApp.data) {
     return (
       <div className="p-6 space-y-4">
-        <p className="text-sm text-red-600">Failed to load integration.</p>
+        <p className="text-sm text-destructive">Failed to load integration.</p>
         <Button variant="outline" onClick={() => router.push('/integrations')}>
           Back to Applications
         </Button>
@@ -463,7 +463,7 @@ export default function IntegrationDetailPage() {
               </div>
             )}
             {connectionState === 'disconnected' && lastConnectionError ? (
-              <p className="px-3 text-xs text-red-600">{lastConnectionError}</p>
+              <p className="px-3 text-xs text-destructive">{lastConnectionError}</p>
             ) : null}
 
             {app.type === 'BITBUCKET' ? (
@@ -664,7 +664,7 @@ export default function IntegrationDetailPage() {
                       <p className="text-xs text-muted-foreground">Loading groups...</p>
                     )}
                     {googleGroupsQuery.data?.error && (
-                      <p className="text-xs text-red-600">{googleGroupsQuery.data.error}</p>
+                      <p className="text-xs text-destructive">{googleGroupsQuery.data.error}</p>
                     )}
                     {!googleGroupsQuery.isLoading && !googleGroupsQuery.data?.error && filteredGoogleGroups.length === 0 && (
                       <p className="text-xs text-muted-foreground">No groups found.</p>
@@ -776,7 +776,7 @@ export default function IntegrationDetailPage() {
                       <p className="text-xs text-muted-foreground">Loading groups...</p>
                     )}
                     {bitbucketOptionsQuery.data?.error && (
-                      <p className="text-xs text-red-600">{bitbucketOptionsQuery.data.error}</p>
+                      <p className="text-xs text-destructive">{bitbucketOptionsQuery.data.error}</p>
                     )}
                     {!bitbucketOptionsQuery.isLoading &&
                       !bitbucketOptionsQuery.data?.error &&
@@ -815,7 +815,7 @@ export default function IntegrationDetailPage() {
                       <p className="text-xs text-muted-foreground">Loading repositories...</p>
                     )}
                     {bitbucketOptionsQuery.data?.error && (
-                      <p className="text-xs text-red-600">{bitbucketOptionsQuery.data.error}</p>
+                      <p className="text-xs text-destructive">{bitbucketOptionsQuery.data.error}</p>
                     )}
                     {!bitbucketOptionsQuery.isLoading &&
                       !bitbucketOptionsQuery.data?.error &&
@@ -966,7 +966,7 @@ export default function IntegrationDetailPage() {
                       <p className="text-xs text-muted-foreground">Loading groups...</p>
                     )}
                     {jiraGroupsQuery.data?.error && (
-                      <p className="text-xs text-red-600">{jiraGroupsQuery.data.error}</p>
+                      <p className="text-xs text-destructive">{jiraGroupsQuery.data.error}</p>
                     )}
                     {!jiraGroupsQuery.isLoading && !jiraGroupsQuery.data?.error && filteredJiraGroups.length === 0 && (
                       <p className="text-xs text-muted-foreground">No groups found.</p>
@@ -1014,7 +1014,7 @@ export default function IntegrationDetailPage() {
                       <p className="text-xs text-muted-foreground">Loading boards...</p>
                     )}
                     {jiraBoardsQuery.data?.error && (
-                      <p className="text-xs text-red-600">{jiraBoardsQuery.data.error}</p>
+                      <p className="text-xs text-destructive">{jiraBoardsQuery.data.error}</p>
                     )}
                     {!jiraBoardsQuery.isLoading && !jiraBoardsQuery.data?.error && filteredJiraBoards.length === 0 && (
                       <p className="text-xs text-muted-foreground">No boards found.</p>
@@ -1059,7 +1059,7 @@ export default function IntegrationDetailPage() {
                             {!projectId ? (
                               <p className="text-xs text-muted-foreground">Project information not available for this board.</p>
                             ) : roleInfo?.error ? (
-                              <p className="text-xs text-red-600">{roleInfo.error}</p>
+                              <p className="text-xs text-destructive">{roleInfo.error}</p>
                             ) : roles.length === 0 ? (
                               <p className="text-xs text-muted-foreground">Loading roles...</p>
                             ) : (

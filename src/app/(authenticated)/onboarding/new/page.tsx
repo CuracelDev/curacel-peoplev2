@@ -296,7 +296,7 @@ export default function NewOnboardingPage() {
             {/* Candidate */}
             <div>
               <Label htmlFor="employeeId" className="text-sm font-medium">
-                Candidate <span className="text-red-500">*</span>
+                Candidate <span className="text-destructive">*</span>
               </Label>
               <Controller
                 name="employeeId"
@@ -318,7 +318,7 @@ export default function NewOnboardingPage() {
                 )}
               />
               {errors.employeeId && (
-                <p className="text-sm text-red-500 mt-1">{errors.employeeId.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.employeeId.message}</p>
               )}
               <p className="text-xs text-muted-foreground mt-1">
                 You can add a new candidate <Link href="/employees?action=create" className="text-blue-600 hover:underline">here</Link>.
@@ -399,7 +399,7 @@ export default function NewOnboardingPage() {
             {/* Email Provider */}
             <div>
               <Label htmlFor="emailProvider" className="text-sm font-medium">
-                Select email provider <span className="text-red-500">*</span>
+                Select email provider <span className="text-destructive">*</span>
               </Label>
               <Controller
                 name="emailProvider"
@@ -425,7 +425,7 @@ export default function NewOnboardingPage() {
                 )}
               />
               {errors.emailProvider && (
-                <p className="text-sm text-red-500 mt-1">{errors.emailProvider.message}</p>
+                <p className="text-sm text-destructive mt-1">{errors.emailProvider.message}</p>
               )}
               <p className="text-xs text-muted-foreground mt-1">
                 Personal uses the candidate&apos;s existing email. Google Workspace creates a company mailbox.
@@ -525,7 +525,7 @@ export default function NewOnboardingPage() {
               {!jiraApp ? (
                 <p className="text-sm text-muted-foreground">Connect Jira in Settings to enable board selection.</p>
               ) : jiraNeedsBoard && jiraBoardsQuery.data?.error ? (
-                <p className="text-sm text-red-600">{jiraBoardsQuery.data.error}</p>
+                <p className="text-sm text-destructive">{jiraBoardsQuery.data.error}</p>
               ) : (
                 <>
                   {jiraNeedsBoard && (

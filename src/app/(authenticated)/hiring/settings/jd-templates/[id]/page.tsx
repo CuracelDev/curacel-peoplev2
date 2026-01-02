@@ -241,7 +241,7 @@ export default function EditJDPage() {
         </div>
         <Button
           variant="outline"
-          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+          className="text-destructive hover:text-destructive hover:bg-destructive/10"
           onClick={() => setDeleteDialogOpen(true)}
         >
           <Trash2 className="h-4 w-4 mr-2" />
@@ -342,7 +342,7 @@ export default function EditJDPage() {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDelete}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-destructive hover:bg-destructive/90"
             >
               Delete
             </AlertDialogAction>

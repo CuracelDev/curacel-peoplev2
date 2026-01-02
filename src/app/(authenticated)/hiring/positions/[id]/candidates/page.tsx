@@ -161,7 +161,7 @@ function getStageBadge(stage: string) {
     case 'HIRED':
       return <Badge className="bg-emerald-100 text-emerald-600 hover:bg-emerald-100">Hired</Badge>
     case 'REJECTED':
-      return <Badge className="bg-red-100 text-red-600 hover:bg-red-100">Rejected</Badge>
+      return <Badge className="bg-destructive/10 text-destructive hover:bg-destructive/10">Rejected</Badge>
     case 'WITHDRAWN':
       return <Badge className="bg-muted text-muted-foreground hover:bg-muted">Withdrawn</Badge>
     default:

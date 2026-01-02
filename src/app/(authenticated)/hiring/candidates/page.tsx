@@ -898,8 +898,8 @@ export default function CandidatesPage() {
                       {/* Error Details */}
                       {importResult.errors.length > 0 && (
                         <div className="space-y-2">
-                          <Label className="text-sm font-medium text-red-600">Errors</Label>
-                          <div className="border border-red-200 rounded-lg divide-y max-h-[150px] overflow-y-auto">
+                          <Label className="text-sm font-medium text-destructive">Errors</Label>
+                          <div className="border border-destructive/20 rounded-lg divide-y max-h-[150px] overflow-y-auto">
                             {importResult.errors.map((err, i) => (
                               <div key={i} className="px-3 py-2 text-sm">
                                 <span className="text-muted-foreground">Row {err.row}:</span> {err.error}

@@ -265,7 +265,7 @@ export default function EmployeeDetailPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'ACTIVE':
-        return 'bg-success/10 text-success-foreground'
+        return 'bg-success/10 text-success'
       case 'OFFBOARDING':
         return 'bg-yellow-100 text-yellow-800'
       case 'EXITED':
@@ -392,7 +392,7 @@ export default function EmployeeDetailPage() {
                   {activeOffboarding ? (
                     <Button
                       asChild
-                      className="w-full border-red-300 text-red-600 hover:bg-red-50"
+                      className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
                       variant="outline"
                     >
                       <Link href={`/offboarding/${existingOffboarding.id}`}>
@@ -402,7 +402,7 @@ export default function EmployeeDetailPage() {
                     </Button>
                   ) : (
                     <Button
-                      className="w-full border-red-500 text-red-600 hover:bg-red-50"
+                      className="w-full border-destructive text-destructive hover:bg-destructive/10"
                       variant="outline"
                       onClick={() => {
                         setIsImmediate(false)
@@ -996,7 +996,7 @@ export default function EmployeeDetailPage() {
                                   <span>Created: {formatDate(account.provisionedAt)}</span>
                                 )}
                                 {account.deprovisionedAt && (
-                                  <span className="text-red-600">
+                                  <span className="text-destructive">
                                     Deprovisioned: {formatDate(account.deprovisionedAt)}
                                   </span>
                                 )}
@@ -1030,7 +1030,7 @@ export default function EmployeeDetailPage() {
             </DialogHeader>
             <input type="hidden" {...register('profileImageUrl')} />
             {updateEmployee.error ? (
-              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <div className="mt-3 rounded-lg border border-destructive/20 bg-destructive/10 px-3 py-2 text-sm text-destructive">
                 {updateEmployee.error.message}
               </div>
             ) : null}
@@ -1045,7 +1045,7 @@ export default function EmployeeDetailPage() {
                       {...register('fullName', { required: 'Full name is required' })}
                     />
                     {errors.fullName ? (
-                      <p className="text-xs text-red-600">{errors.fullName.message}</p>
+                      <p className="text-xs text-destructive">{errors.fullName.message}</p>
                     ) : null}
                   </div>
                   <div className="grid gap-2">
@@ -1056,7 +1056,7 @@ export default function EmployeeDetailPage() {
                       {...register('personalEmail', { required: 'Personal email is required' })}
                     />
                     {errors.personalEmail ? (
-                      <p className="text-xs text-red-600">{errors.personalEmail.message}</p>
+                      <p className="text-xs text-destructive">{errors.personalEmail.message}</p>
                     ) : null}
                   </div>
                   <div className="grid gap-2">
@@ -1080,7 +1080,7 @@ export default function EmployeeDetailPage() {
                           className="text-sm"
                         />
                         {profileUploadError ? (
-                          <p className="text-xs text-red-600">{profileUploadError}</p>
+                          <p className="text-xs text-destructive">{profileUploadError}</p>
                         ) : (
                           <p className="text-xs text-muted-foreground">Max file size 2MB.</p>
                         )}
@@ -1375,7 +1375,7 @@ export default function EmployeeDetailPage() {
                           {googleUsersQuery.isLoading ? (
                             <div className="px-3 py-2 text-sm text-muted-foreground">Loading Google Workspace users...</div>
                           ) : googleUsersQuery.data?.error ? (
-                            <div className="px-3 py-2 text-sm text-red-600">{googleUsersQuery.data.error}</div>
+                            <div className="px-3 py-2 text-sm text-destructive">{googleUsersQuery.data.error}</div>
                           ) : filteredGoogleUsers.length === 0 ? (
                             <div className="px-3 py-2 text-sm text-muted-foreground">No matching users</div>
                           ) : (
@@ -1457,7 +1457,7 @@ export default function EmployeeDetailPage() {
                           {googleUsersQuery.isLoading ? (
                             <div className="px-3 py-2 text-sm text-muted-foreground">Loading Google Workspace users...</div>
                           ) : googleUsersQuery.data?.error ? (
-                            <div className="px-3 py-2 text-sm text-red-600">{googleUsersQuery.data.error}</div>
+                            <div className="px-3 py-2 text-sm text-destructive">{googleUsersQuery.data.error}</div>
                           ) : filteredTransferUsers.length === 0 ? (
                             <div className="px-3 py-2 text-sm text-muted-foreground">No matching users</div>
                           ) : (

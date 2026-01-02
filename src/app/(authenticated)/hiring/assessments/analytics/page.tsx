@@ -353,9 +353,9 @@ export default function AssessmentAnalyticsPage() {
                         {aiAccuracy.breakdown.holdRecommended}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
-                      <span className="font-medium text-red-700">NO HIRE</span>
-                      <span className="text-2xl font-bold text-red-700">
+                    <div className="flex items-center justify-between p-3 bg-destructive/10 rounded-lg">
+                      <span className="font-medium text-destructive">NO HIRE</span>
+                      <span className="text-2xl font-bold text-destructive">
                         {aiAccuracy.breakdown.noHireRecommended}
                       </span>
                     </div>

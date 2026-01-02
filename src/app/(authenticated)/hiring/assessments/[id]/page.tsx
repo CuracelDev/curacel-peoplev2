@@ -55,7 +55,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   INVITED: { label: 'Invited', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
   IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' },
   COMPLETED: { label: 'Completed', color: 'bg-success/10 text-success-foreground dark:bg-success/30 dark:text-success' },
-  EXPIRED: { label: 'Expired', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' },
+  EXPIRED: { label: 'Expired', color: 'bg-destructive/10 text-destructive-foreground dark:bg-destructive/30 dark:text-destructive' },
   CANCELLED: { label: 'Cancelled', color: 'bg-muted text-muted-foreground' },
 }
 
@@ -150,7 +150,7 @@ export default function AssessmentDetailPage() {
     if (score === null) return 'text-muted-foreground'
     if (score >= 80) return 'text-success dark:text-success'
     if (score >= 60) return 'text-amber-600 dark:text-amber-400'
-    return 'text-red-600 dark:text-red-400'
+    return 'text-destructive dark:text-destructive'
   }
 
   const handleSaveResult = () => {
@@ -385,7 +385,7 @@ export default function AssessmentDetailPage() {
                       <Button
                         type="button"
                         variant={recommendation === 'NO_HIRE' ? 'default' : 'outline'}
-                        className={cn('flex-1', recommendation === 'NO_HIRE' && 'bg-red-600 hover:bg-red-700')}
+                        className={cn('flex-1', recommendation === 'NO_HIRE' && 'bg-destructive hover:bg-destructive/90')}
                         onClick={() => setRecommendation('NO_HIRE')}
                       >
                         <ThumbsDown className="h-4 w-4 mr-2" />
@@ -522,7 +522,7 @@ export default function AssessmentDetailPage() {
                             type="button"
                             size="sm"
                             variant={recommendation === 'NO_HIRE' ? 'default' : 'outline'}
-                            className={cn(recommendation === 'NO_HIRE' && 'bg-red-600')}
+                            className={cn(recommendation === 'NO_HIRE' && 'bg-destructive')}
                             onClick={() => setRecommendation('NO_HIRE')}
                           >
                             No Hire
@@ -619,7 +619,7 @@ export default function AssessmentDetailPage() {
                       'text-lg px-4 py-2',
                       assessment.recommendation === 'HIRE' && 'bg-success/10 text-success-foreground dark:bg-success/30 dark:text-success',
                       assessment.recommendation === 'HOLD' && 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
-                      assessment.recommendation === 'NO_HIRE' && 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
+                      assessment.recommendation === 'NO_HIRE' && 'bg-destructive/10 text-destructive-foreground dark:bg-destructive/30 dark:text-destructive'
                     )}
                   >
                     {assessment.recommendation === 'HIRE' && 'Hire'}

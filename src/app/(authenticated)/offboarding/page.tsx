@@ -75,7 +75,7 @@ export default function OffboardingPage() {
       case 'COMPLETED': return 'bg-success/10 text-success-foreground'
       case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800'
       case 'PENDING': return 'bg-yellow-100 text-yellow-800'
-      case 'FAILED': return 'bg-red-100 text-red-800'
+      case 'FAILED': return 'bg-destructive/10 text-destructive-foreground'
       case 'CANCELLED': return 'bg-muted text-foreground'
       default: return 'bg-muted text-foreground'
     }
@@ -200,7 +200,7 @@ export default function OffboardingPage() {
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-red-100 rounded-lg">
-                <AlertCircle className="h-5 w-5 text-red-600" />
+                <AlertCircle className="h-5 w-5 text-destructive" />
               </div>
               <div>
                 <p className="text-2xl font-bold">
@@ -430,7 +430,7 @@ export default function OffboardingPage() {
                             {googleUsersQuery.isLoading ? (
                               <div className="px-3 py-2 text-sm text-muted-foreground">Loading Google Workspace users...</div>
                             ) : googleUsersQuery.data?.error ? (
-                              <div className="px-3 py-2 text-sm text-red-600">{googleUsersQuery.data.error}</div>
+                              <div className="px-3 py-2 text-sm text-destructive">{googleUsersQuery.data.error}</div>
                             ) : filteredTransferUsers.length === 0 ? (
                               <div className="px-3 py-2 text-sm text-muted-foreground">No matching users</div>
                             ) : (
@@ -517,7 +517,7 @@ export default function OffboardingPage() {
                         {googleUsersQuery.isLoading ? (
                           <div className="px-3 py-2 text-sm text-muted-foreground">Loading Google Workspace users...</div>
                         ) : googleUsersQuery.data?.error ? (
-                          <div className="px-3 py-2 text-sm text-red-600">{googleUsersQuery.data.error}</div>
+                          <div className="px-3 py-2 text-sm text-destructive">{googleUsersQuery.data.error}</div>
                         ) : filteredGoogleUsers.length === 0 ? (
                           <div className="px-3 py-2 text-sm text-muted-foreground">No matching users</div>
                         ) : (
