@@ -188,6 +188,14 @@ export default function OnboardingDetailPage() {
     },
   })
 
+  // Check if the selected task is a device-related task (must be before early returns)
+  const selectedTask = workflow?.tasks.find((t: { id: string }) => t.id === selectedTaskId)
+  const isDeviceTask = useMemo(() => {
+    if (!selectedTask) return false
+    const name = (selectedTask as { name: string }).name.toLowerCase()
+    return name.includes('laptop') || name.includes('hardware') || name.includes('device') || name.includes('ship')
+  }, [selectedTask])
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -417,14 +425,6 @@ export default function OnboardingDetailPage() {
       })
     }
   }
-
-  // Check if the selected task is a device-related task
-  const selectedTask = workflow?.tasks.find((t: { id: string }) => t.id === selectedTaskId)
-  const isDeviceTask = useMemo(() => {
-    if (!selectedTask) return false
-    const name = (selectedTask as { name: string }).name.toLowerCase()
-    return name.includes('laptop') || name.includes('hardware') || name.includes('device') || name.includes('ship')
-  }, [selectedTask])
 
   return (
     <div className="space-y-4">
