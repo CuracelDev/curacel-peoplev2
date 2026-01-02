@@ -428,7 +428,7 @@ export default function InterviewDetailPage() {
     .join(', ')
 
   return (
-    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
+    <div className="pt-6 pb-3 sm:pt-8 sm:pb-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       {/* Header Card */}
       <Card className="mb-6">
         <CardContent className="p-5">
@@ -472,51 +472,26 @@ export default function InterviewDetailPage() {
           </div>
 
           {/* Interview Details */}
-          <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
-            <span className="flex items-center gap-1.5">
-              <Calendar className="h-4 w-4" />
-              {format(scheduledDate, 'MMMM d, yyyy \'at\' h:mm a')}
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Clock className="h-4 w-4" />
-              {interview.duration} minutes
-            </span>
-            <span className="flex items-center gap-1.5">
-              <Users className="h-4 w-4" />
-              Interviewers: {interviewerNames || 'None assigned'}
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+          <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <span className="flex items-center gap-1.5">
+                <Calendar className="h-4 w-4" />
+                {format(scheduledDate, 'MMMM d, yyyy \'at\' h:mm a')}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Clock className="h-4 w-4" />
+                {interview.duration} minutes
+              </span>
+              <span className="flex items-center gap-1.5">
+                <Users className="h-4 w-4" />
+                Interviewers: {interviewerNames || 'None assigned'}
+              </span>
+            </div>
 
-      {/* Action Buttons */}
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div className="flex items-start gap-3 sm:gap-4 flex-1" />
-
-          <div className="flex items-center gap-2 sm:gap-3">
-            {overallScore !== null && (
-              <div className="text-center px-3 sm:px-4 py-2 bg-success/10 rounded-lg border border-success/20">
-                <div className="text-xl sm:text-2xl font-bold text-success">{overallScore}</div>
-                <div className="text-[10px] sm:text-xs text-muted-foreground">Score</div>
-              </div>
-            )}
-
-            {/* Action buttons */}
-            {interview.status === 'SCHEDULED' && (
-              <>
-                {interview.meetingLink && (
-                  <Button onClick={handleJoinMeeting} size="sm">
-                    <Video className="h-4 w-4 mr-2" />
-                    Join
-                  </Button>
-                )}
-              </>
-            )}
-
+            {/* Menu */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon">
+                <Button variant="ghost" size="icon" className="h-8 w-8">
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -564,8 +539,9 @@ export default function InterviewDetailPage() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
+
 
       {/* People Team Link Card */}
       <Card className="mb-6 bg-indigo-50 border-indigo-200">
