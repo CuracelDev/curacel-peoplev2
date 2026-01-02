@@ -84,9 +84,18 @@ export async function GET(
           },
         },
       },
-      stageTemplate: {
+      interviewType: {
         include: {
-          questions: true,
+          rubric: {
+            include: {
+              criteria: true,
+            },
+          },
+        },
+      },
+      assignedQuestions: {
+        include: {
+          question: true,
         },
       },
       interviewerTokens: true,
@@ -104,21 +113,21 @@ export async function GET(
     email: string
   }>) || []
 
-  // Build questions section
-  const questions = interview.stageTemplate?.questions || []
-  const questionsHtml = questions.length > 0
-    ? questions.map((q, idx) => `
+  // Build questions section from assigned questions
+  const assignedQuestions = interview.assignedQuestions || []
+  const questionsHtml = assignedQuestions.length > 0
+    ? assignedQuestions.map((aq: { question: { category?: string; questionText?: string; followUpQuestions?: string[] } }, idx: number) => `
         <div class="question-card">
           <div class="question-header">
             <span class="question-number">${idx + 1}</span>
-            <span class="category-badge">${escapeHtml((q as { category?: string }).category || 'General')}</span>
+            <span class="category-badge">${escapeHtml(aq.question?.category || 'General')}</span>
           </div>
-          <p class="question-text">${escapeHtml((q as { text?: string }).text || '')}</p>
-          ${(q as { followUpQuestions?: string[] }).followUpQuestions?.length ? `
+          <p class="question-text">${escapeHtml(aq.question?.questionText || '')}</p>
+          ${aq.question?.followUpQuestions?.length ? `
             <div class="follow-ups">
               <strong>Follow-ups:</strong>
               <ul>
-                ${(q as { followUpQuestions: string[] }).followUpQuestions.map(fu => `<li>${escapeHtml(fu)}</li>`).join('')}
+                ${(aq.question.followUpQuestions as string[]).map((fu: string) => `<li>${escapeHtml(fu)}</li>`).join('')}
               </ul>
             </div>
           ` : ''}
