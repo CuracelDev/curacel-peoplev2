@@ -102,6 +102,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - Adjusted assessments filter cards layout for consistent sizing and spacing.
 - Simplified assessments list columns and allowed assessment names to wrap.
+- Restyled interview filter cards to match the pill layout in the designs.
 - **App-Wide Responsiveness Enhancement**
   - Onboarding page: Stats grid now 2-column on mobile, workflow cards stack vertically
   - Offboarding page: Same responsive improvements as onboarding
