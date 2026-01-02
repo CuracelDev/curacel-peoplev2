@@ -9,16 +9,6 @@ import { Badge } from '@/components/ui/badge'
 import { trpc } from '@/lib/trpc-client'
 import { cn } from '@/lib/utils'
 
-const stageConfig: Record<string, { label: string; color: string }> = {
-  HR_SCREEN: { label: 'HR Screen', color: 'bg-blue-100 text-blue-800' },
-  TECHNICAL: { label: 'Technical', color: 'bg-purple-100 text-purple-800' },
-  PANEL: { label: 'Panel', color: 'bg-amber-100 text-amber-800' },
-  CASE_STUDY: { label: 'Case Study', color: 'bg-success/10 text-success-foreground' },
-  CULTURE_FIT: { label: 'Culture Fit', color: 'bg-pink-100 text-pink-800' },
-  FINAL: { label: 'Final', color: 'bg-indigo-100 text-indigo-800' },
-  OTHER: { label: 'Other', color: 'bg-gray-100 text-gray-800' },
-}
-
 const scoreScaleLabels = [
   { score: 1, label: 'Poor', description: 'No evidence', color: 'text-red-600' },
   { score: 2, label: 'Below Average', description: 'Limited evidence', color: 'text-orange-600' },
@@ -32,7 +22,12 @@ export default function ViewRubricPage() {
   const id = params.id as string
 
   const rubricQuery = trpc.interviewStage.getTemplate.useQuery({ id }, { enabled: !!id })
+  const interviewTypesQuery = trpc.interviewType.list.useQuery()
   const rubric = rubricQuery.data
+  const interviewTypes = interviewTypesQuery.data || []
+
+  // Find the interview type that matches the rubric's stage slug
+  const interviewType = interviewTypes.find(t => t.slug === rubric?.stage)
 
   if (rubricQuery.isLoading) {
     return (
@@ -65,8 +60,8 @@ export default function ViewRubricPage() {
         <div className="flex-1">
           <div className="flex items-center gap-3">
             <h1 className="text-2xl font-semibold">{rubric.name}</h1>
-            <Badge className={stageConfig[rubric.stage]?.color || 'bg-gray-100 text-gray-800'}>
-              {stageConfig[rubric.stage]?.label || rubric.stage.replace('_', ' ')}
+            <Badge className="bg-indigo-100 text-indigo-800">
+              {interviewType?.name || rubric.stage.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
             </Badge>
           </div>
           {rubric.description && (
