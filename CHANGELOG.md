@@ -131,6 +131,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Made the JD templates row action menu visible without hover.
 - Removed the barely visible interest form default badge and default option.
 - Fixed Decision Support section routing when using `section=decision-support`.
+- Interview profile Questions tab now loads assigned interview questions.
 - Interview settings is now the single entry point for interview types, rubrics, scoring, and question bank in Settings
 - Jobs list public toggle now sits beside the priority badge and uses a smaller control
 - Job list stage stats now link into filtered job candidates views
