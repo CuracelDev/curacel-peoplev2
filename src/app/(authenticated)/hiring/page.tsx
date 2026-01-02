@@ -132,23 +132,26 @@ export default function RecruitingDashboard() {
   })) || []
 
   // Build upcoming interviews from database
-  const upcomingInterviews = dashboardStats?.upcomingInterviews.map(interview => {
-    const scheduledDate = interview.scheduledAt instanceof Date
-      ? interview.scheduledAt
-      : new Date(interview.scheduledAt)
-    return {
-      id: interview.id,
-      candidate: interview.candidate.name,
-      email: '',
-      initials: getInitials(interview.candidate.name),
-      color: getAvatarColor(interview.candidate.name),
-      position: interview.candidate.job?.title || 'Unknown Position',
-      stage: interview.stageName || interview.stage,
-      stageBadge: 'secondary' as const,
-      date: format(scheduledDate, 'MMM d, h:mm a'),
-      dateSubtext: formatDistanceToNow(scheduledDate, { addSuffix: true }),
-    }
-  }) || []
+  const upcomingInterviews = (dashboardStats?.upcomingInterviews || [])
+    .map((interview) => {
+      if (!interview.scheduledAt) return null
+      const scheduledDate = interview.scheduledAt instanceof Date
+        ? interview.scheduledAt
+        : new Date(interview.scheduledAt)
+      return {
+        id: interview.id,
+        candidate: interview.candidate.name,
+        email: '',
+        initials: getInitials(interview.candidate.name),
+        color: getAvatarColor(interview.candidate.name),
+        position: interview.candidate.job?.title || 'Unknown Position',
+        stage: interview.stageName || interview.stage,
+        stageBadge: 'secondary' as const,
+        date: format(scheduledDate, 'MMM d, h:mm a'),
+        dateSubtext: formatDistanceToNow(scheduledDate, { addSuffix: true }),
+      }
+    })
+    .filter((interview): interview is NonNullable<typeof interview> => Boolean(interview))
 
   const conversionRate = pipelineData
     ? (pipelineData.hiresLast30Days / Math.max(pipelineData.applicationsLast30Days, 1) * 100).toFixed(1)

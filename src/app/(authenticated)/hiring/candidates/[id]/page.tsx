@@ -133,8 +133,31 @@ export default function CandidateProfilePage() {
       values.length > 0 ? Math.round(values.reduce((sum, value) => sum + value, 0) / values.length) : null
 
     // Parse JSON fields with type safety
-    const workExperience = Array.isArray(c.workExperience) ? c.workExperience : []
-    const education = Array.isArray(c.education) ? c.education : []
+    const workExperience = Array.isArray(c.workExperience)
+      ? (c.workExperience as Array<Record<string, unknown>>).map((item) => ({
+          title: typeof item?.title === 'string' ? item.title : null,
+          company: typeof item?.company === 'string' ? item.company : null,
+          startDate: typeof item?.startDate === 'string' ? item.startDate : null,
+          endDate: typeof item?.endDate === 'string' ? item.endDate : null,
+          isCurrent: typeof item?.isCurrent === 'boolean' ? item.isCurrent : false,
+          description: typeof item?.description === 'string' ? item.description : null,
+          highlights: Array.isArray(item?.highlights)
+            ? item.highlights.filter((highlight): highlight is string => typeof highlight === 'string')
+            : [],
+          skills: Array.isArray(item?.skills)
+            ? item.skills.filter((skill): skill is string => typeof skill === 'string')
+            : [],
+        }))
+      : []
+    const education = Array.isArray(c.education)
+      ? (c.education as Array<Record<string, unknown>>).map((item) => ({
+          degree: typeof item?.degree === 'string' ? item.degree : '',
+          field: typeof item?.field === 'string' ? item.field : '',
+          institution: typeof item?.institution === 'string' ? item.institution : '',
+          honors: typeof item?.honors === 'string' ? item.honors : '',
+          years: typeof item?.years === 'string' ? item.years : '',
+        }))
+      : []
     const skillsData = (c.skills as {
       languages?: string[]
       databases?: string[]
@@ -1286,7 +1309,10 @@ export default function CandidateProfilePage() {
                 </Link>
                 <CardContent>
                   <div className="space-y-6">
-                    {evaluation.evaluators.map((evaluator, evIdx) => (
+                    {evaluation.evaluators.map((evaluator, evIdx) => {
+                      const rating = typeof evaluator.overallRating === 'number' ? evaluator.overallRating : null
+
+                      return (
                       <div key={evIdx} className={cn(evIdx > 0 && 'pt-6 border-t')}>
                         {/* Evaluator Header */}
                         <div className="flex items-center justify-between mb-4">
@@ -1304,14 +1330,14 @@ export default function CandidateProfilePage() {
                           <div className="flex items-center gap-4">
                             <div className="text-right">
                               <div className="text-sm text-muted-foreground">Rating</div>
-                              {typeof evaluator.overallRating === 'number' ? (
+                              {rating !== null ? (
                                 <div className="flex items-center gap-1">
                                   {[1, 2, 3, 4, 5].map((star) => (
                                     <Star
                                       key={star}
                                       className={cn(
                                         'h-4 w-4',
-                                        star <= evaluator.overallRating
+                                        star <= rating
                                           ? 'fill-amber-400 text-amber-400'
                                           : 'text-muted-foreground/40'
                                       )}
@@ -1377,7 +1403,8 @@ export default function CandidateProfilePage() {
                           </div>
                         )}
                       </div>
-                    ))}
+                      )
+                    })}
                   </div>
                 </CardContent>
               </Card>

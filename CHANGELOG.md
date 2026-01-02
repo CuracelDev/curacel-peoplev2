@@ -168,6 +168,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - JD template editor color picker no longer throws a runtime error
 - JD templates breadcrumb label now uses the correct "JD" casing
 - JD template detail breadcrumbs now drop the "JD" slug prefix from titles
+- JD template editor now registers the text style mark for color changes
+- Restored branded email template helper for password reset emails
+- Rich text editor now accepts form `value` props without breaking types
+- Employee update API now accepts bank detail fields from the profile editor
+- Hiring assessment analytics now guard against missing chart percentages
+- Cleaned up unused assessment list type to satisfy build checks
+- Candidate work experience parsing now guards JSON field types
+- Candidate work experience parsing now normalizes highlights and skills arrays
+- Candidate education parsing now normalizes JSON field values
+- Candidate evaluation star ratings now guard null values during render
+- Archived candidate restore now uses the current update candidate mutation
+- Archived candidates list now reads job titles from the related job record
+- Interview scheduling advisor selection now matches interviewer input types
+- Hiring dashboard upcoming interviews now skip entries without scheduled dates
+- Candidate list applied date formatter now always returns a string
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off

@@ -627,7 +627,6 @@ export default function ScheduleInterviewPage() {
                                       id: advisor.id,
                                       fullName: advisor.fullName,
                                       email: advisor.email,
-                                      jobTitle: advisor.title || 'Advisor',
                                     })}
                                     className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
                                   >
