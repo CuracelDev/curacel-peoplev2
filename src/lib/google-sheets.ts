@@ -62,14 +62,12 @@ export class GoogleSheetsService {
 
     // Try to get credentials from environment variables first
     let serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
-    let adminEmail = process.env.GOOGLE_WORKSPACE_ADMIN_EMAIL
 
     // If not in env, try to get from database (same as Google Workspace integration)
     if (!serviceAccountKey) {
       const dbConfig = await this.getGoogleConfigFromDatabase()
       if (dbConfig) {
         serviceAccountKey = dbConfig.serviceAccountKey
-        adminEmail = dbConfig.adminEmail
       }
     }
 
@@ -79,11 +77,14 @@ export class GoogleSheetsService {
 
     const serviceAccount = JSON.parse(serviceAccountKey)
 
+    // For Sheets API, we don't need to impersonate (subject).
+    // The sheet just needs to be shared with the service account email.
+    // This avoids needing domain-wide delegation for the Sheets scope.
     const auth = new google.auth.JWT({
       email: serviceAccount.client_email,
       key: serviceAccount.private_key,
       scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-      subject: adminEmail, // Impersonate admin for domain-wide access
+      // Note: No 'subject' - direct service account access, sheet must be shared with service account email
     })
 
     this.sheets = google.sheets({ version: 'v4', auth })
