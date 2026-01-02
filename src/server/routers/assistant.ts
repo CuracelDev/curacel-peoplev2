@@ -79,10 +79,10 @@ function encryptKeyOrThrow(key: string) {
 // SYSTEM PROMPT
 // ============================================
 
-const SYSTEM_PROMPT = `You are an AI assistant for the Curacel People HR platform. You help HR administrators with contracts, onboarding, offboarding, integrations, and employee management.
+const SYSTEM_PROMPT = `You are an AI assistant for the Curacel People HR platform. You help HR administrators with contracts, onboarding, offboarding, integrations, employee management, hiring pipeline, and candidate analysis.
 
 ## Your Capabilities
-You can manage contracts (create, update, send, resend, cancel), manage onboarding and offboarding workflows, control onboarding/offboarding tasks, view integrations and test connections, search audit logs, view notifications, and provide analytics.
+You can manage contracts (create, update, send, resend, cancel), manage onboarding and offboarding workflows, control onboarding/offboarding tasks, view integrations and test connections, search audit logs, view notifications, provide analytics, search and view candidates in the hiring pipeline, list jobs and view their pipelines, and get AI-powered candidate analysis and recommendations.
 
 ## Important Guidelines
 
@@ -91,11 +91,12 @@ You can manage contracts (create, update, send, resend, cancel), manage onboardi
 2. **Missing Fields**: If a tool requires fields that aren't provided, use the tool anyway - it will return the specific missing fields. Only ask for those exact missing fields in your response.
 
 3. **Confirmation Required**: For high-impact actions, you MUST get explicit user confirmation before executing:
-   - **Requires confirmation**: send_contract, resend_contract, cancel_contract, start_onboarding, start_offboarding
+   - **Requires confirmation**: send_contract, resend_contract, cancel_contract, start_onboarding, start_offboarding, analyze_candidate
    - First call the tool with confirmed=false to get a summary
    - Present the summary and ask "Please confirm to proceed"
    - Only call with confirmed=true after user confirms with "yes", "confirm", "proceed", or similar
    - For cancel_contract, emphasize that this action cannot be undone
+   - For analyze_candidate, explain that this will use AI credits and generate a fresh analysis
 
 4. **Response Style**: Keep responses short, professional, and business-friendly. Use bullet points for lists. Don't explain what you're about to do - just do it and report results.
 
@@ -143,6 +144,18 @@ You can manage contracts (create, update, send, resend, cancel), manage onboardi
 - bulk_start_onboarding: Start onboarding for multiple employees (use dryRun=true first)
 - bulk_resend_contracts: Resend contracts viewed for N days (use dryRun=true first)
 - bulk_deprovision_access: Deprovision access for exited employees (use dryRun=true first)
+
+### Candidates & Jobs (V4)
+- search_candidates: Search candidates by name/email, filter by job or pipeline stage
+- get_candidate: Get full candidate profile with AI analysis summary
+- get_candidate_timeline: View candidate journey (applications, interviews, assessments)
+- list_jobs: List job postings with optional status filter (DRAFT, ACTIVE, PAUSED, HIRED)
+- get_job_pipeline: View pipeline breakdown for a job (candidates grouped by stage)
+
+### AI Analysis (V4)
+- get_candidate_analysis: Get the latest AI hiring analysis for a candidate
+- analyze_candidate: Generate a new AI analysis for a candidate (requires confirmation)
+- get_candidate_sentiment_history: Track candidate sentiment changes over evaluations
 
 ## V3 Bulk Operation Rules
 For bulk operations, you MUST follow this two-step process:
@@ -531,6 +544,136 @@ const TOOL_DEFINITIONS = [
       },
     },
   },
+  // V4 Hiring Pipeline Tools
+  {
+    type: 'function' as const,
+    function: {
+      name: 'search_candidates',
+      description: 'Search for candidates by name or email. Optionally filter by job or pipeline stage.',
+      parameters: {
+        type: 'object',
+        properties: {
+          query: { type: 'string', description: 'Name or email to search' },
+          jobId: { type: 'string', description: 'Filter by specific job ID' },
+          stage: {
+            type: 'string',
+            enum: ['APPLIED', 'HR_SCREEN', 'TEAM_CHAT', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED', 'REJECTED', 'ARCHIVED'],
+            description: 'Filter by pipeline stage',
+          },
+          limit: { type: 'number', description: 'Maximum number of results (default 10)' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'get_candidate',
+      description: 'Get detailed candidate profile including AI analysis summary, scores, and recommendations.',
+      parameters: {
+        type: 'object',
+        properties: {
+          candidateId: { type: 'string', description: 'ID of the candidate' },
+        },
+        required: ['candidateId'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'get_candidate_timeline',
+      description: 'View a candidate\'s journey: applications, interviews, assessments, and stage transitions.',
+      parameters: {
+        type: 'object',
+        properties: {
+          candidateId: { type: 'string', description: 'ID of the candidate' },
+        },
+        required: ['candidateId'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'list_jobs',
+      description: 'List job postings. Filter by status (DRAFT, ACTIVE, PAUSED, HIRED).',
+      parameters: {
+        type: 'object',
+        properties: {
+          status: {
+            type: 'string',
+            enum: ['DRAFT', 'ACTIVE', 'PAUSED', 'HIRED'],
+            description: 'Filter by job status',
+          },
+          limit: { type: 'number', description: 'Maximum number of results (default 10)' },
+        },
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'get_job_pipeline',
+      description: 'View candidates at each pipeline stage for a specific job.',
+      parameters: {
+        type: 'object',
+        properties: {
+          jobId: { type: 'string', description: 'ID of the job' },
+        },
+        required: ['jobId'],
+      },
+    },
+  },
+  // V4 AI Analysis Tools
+  {
+    type: 'function' as const,
+    function: {
+      name: 'get_candidate_analysis',
+      description: 'Get the latest AI hiring analysis for a candidate including recommendation, scores, strengths, and concerns.',
+      parameters: {
+        type: 'object',
+        properties: {
+          candidateId: { type: 'string', description: 'ID of the candidate' },
+        },
+        required: ['candidateId'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'analyze_candidate',
+      description: 'Trigger a new AI analysis for a candidate. Requires confirmation before executing.',
+      parameters: {
+        type: 'object',
+        properties: {
+          candidateId: { type: 'string', description: 'ID of the candidate to analyze' },
+          analysisType: {
+            type: 'string',
+            enum: ['APPLICATION_REVIEW', 'INTERVIEW_ANALYSIS', 'ASSESSMENT_REVIEW', 'STAGE_SUMMARY', 'COMPREHENSIVE'],
+            description: 'Type of analysis to generate (default: COMPREHENSIVE)',
+          },
+          confirmed: { type: 'boolean', description: 'Set to true to confirm and generate the analysis' },
+        },
+        required: ['candidateId'],
+      },
+    },
+  },
+  {
+    type: 'function' as const,
+    function: {
+      name: 'get_candidate_sentiment_history',
+      description: 'Track sentiment and recommendation changes for a candidate across all evaluation stages.',
+      parameters: {
+        type: 'object',
+        properties: {
+          candidateId: { type: 'string', description: 'ID of the candidate' },
+        },
+        required: ['candidateId'],
+      },
+    },
+  },
 ]
 
 // ============================================
@@ -583,6 +726,14 @@ const TOOL_PERMISSIONS: Record<string, string[]> = {
     'count_hires_by_year',
     'get_daily_brief',
     'list_notifications',
+    // V4 Hiring Pipeline (read-only)
+    'search_candidates',
+    'get_candidate',
+    'get_candidate_timeline',
+    'list_jobs',
+    'get_job_pipeline',
+    'get_candidate_analysis',
+    'get_candidate_sentiment_history',
   ],
 
   // EMPLOYEE: minimal profile queries only
@@ -848,6 +999,32 @@ async function executeTool(
         break
       case 'bulk_deprovision_access':
         result = await bulkDeprovisionAccess(args, ctx)
+        break
+      // V4 Hiring Pipeline Tools
+      case 'search_candidates':
+        result = await searchCandidates(args, ctx)
+        break
+      case 'get_candidate':
+        result = await getCandidate(args, ctx)
+        break
+      case 'get_candidate_timeline':
+        result = await getCandidateTimeline(args, ctx)
+        break
+      case 'list_jobs':
+        result = await listJobs(args, ctx)
+        break
+      case 'get_job_pipeline':
+        result = await getJobPipeline(args, ctx)
+        break
+      // V4 AI Analysis Tools
+      case 'get_candidate_analysis':
+        result = await getCandidateAnalysis(args, ctx)
+        break
+      case 'analyze_candidate':
+        result = await analyzeCandidate(args, ctx)
+        break
+      case 'get_candidate_sentiment_history':
+        result = await getCandidateSentimentHistory(args, ctx)
         break
       default:
         result = { status: 'error', message: `Unknown tool: ${toolName}` }
@@ -1541,13 +1718,15 @@ async function countHiresByYear(
 const BASE_URL = process.env.NEXTAUTH_URL || ''
 
 // Helper to build deep links
-function buildDeepLink(type: 'contract' | 'employee' | 'onboarding' | 'offboarding' | 'integration', id: string): string {
+function buildDeepLink(type: 'contract' | 'employee' | 'onboarding' | 'offboarding' | 'integration' | 'candidate' | 'job', id: string): string {
   const paths: Record<string, string> = {
     contract: `/contracts/${id}`,
     employee: `/employees/${id}`,
     onboarding: `/onboarding/${id}`,
     offboarding: `/offboarding/${id}`,
     integration: `/integrations/${id}`,
+    candidate: `/hiring/candidates/${id}`,
+    job: `/hiring/positions/${id}`,
   }
   return `${BASE_URL}${paths[type]}`
 }
@@ -3484,6 +3663,580 @@ async function getAIClient(settings: {
     }
     default:
       throw new Error(`Unknown AI provider: ${settings.provider}`)
+  }
+}
+
+// ============================================
+// V4 HIRING PIPELINE TOOL IMPLEMENTATIONS
+// ============================================
+
+async function searchCandidates(
+  args: Record<string, unknown>,
+  ctx: { prisma: any }
+): Promise<ToolResult> {
+  const { query, jobId, stage, limit = 10 } = args as {
+    query?: string
+    jobId?: string
+    stage?: string
+    limit?: number
+  }
+
+  const where: Record<string, unknown> = {}
+
+  if (query) {
+    where.OR = [
+      { name: { contains: query, mode: 'insensitive' } },
+      { email: { contains: query, mode: 'insensitive' } },
+    ]
+  }
+
+  if (jobId) where.jobId = jobId
+  if (stage) where.stage = stage
+
+  const candidates = await ctx.prisma.jobCandidate.findMany({
+    where,
+    take: Math.min(limit, 50),
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      job: { select: { id: true, title: true } },
+    },
+  })
+
+  const results = candidates.map((c: any) => ({
+    id: c.id,
+    name: c.name,
+    email: c.email,
+    stage: c.stage,
+    jobTitle: c.job?.title || null,
+    jobId: c.job?.id || null,
+    appliedAt: c.appliedAt,
+    url: buildDeepLink('candidate', c.id),
+  }))
+
+  return {
+    status: 'ok',
+    data: { candidates: results, total: results.length },
+    message: results.length === 0
+      ? 'No candidates found matching your criteria.'
+      : `Found ${results.length} candidate(s).`,
+  }
+}
+
+async function getCandidate(
+  args: Record<string, unknown>,
+  ctx: { prisma: any }
+): Promise<ToolResult> {
+  const { candidateId } = args as { candidateId?: string }
+
+  if (!candidateId) {
+    return { status: 'missing_fields', missingFields: ['candidateId'], message: 'Please provide the candidate ID.' }
+  }
+
+  const candidate = await ctx.prisma.jobCandidate.findUnique({
+    where: { id: candidateId },
+    include: {
+      job: { select: { id: true, title: true, department: true } },
+      interviews: {
+        orderBy: { scheduledAt: 'desc' },
+        take: 3,
+        select: {
+          id: true,
+          stageName: true,
+          status: true,
+          scheduledAt: true,
+          overallScore: true,
+        },
+      },
+      assessments: {
+        orderBy: { createdAt: 'desc' },
+        take: 3,
+        select: {
+          id: true,
+          status: true,
+          overallScore: true,
+          recommendation: true,
+        },
+      },
+    },
+  })
+
+  if (!candidate) {
+    return { status: 'error', message: 'Candidate not found.' }
+  }
+
+  // Get latest AI analysis
+  const analysis = await ctx.prisma.candidateAIAnalysis.findFirst({
+    where: { candidateId, isLatest: true },
+    select: {
+      recommendation: true,
+      confidence: true,
+      overallScore: true,
+      summary: true,
+      strengths: true,
+      concerns: true,
+    },
+  })
+
+  const profile = {
+    id: candidate.id,
+    name: candidate.name,
+    email: candidate.email,
+    phone: candidate.phone,
+    stage: candidate.stage,
+    source: candidate.source,
+    appliedAt: candidate.appliedAt,
+    job: candidate.job,
+    // Scores
+    experienceScore: candidate.experienceScore,
+    skillsScore: candidate.skillsScore,
+    domainScore: candidate.domainScore,
+    overallAIScore: candidate.overallAIScore,
+    // AI Analysis summary
+    aiAnalysis: analysis ? {
+      recommendation: analysis.recommendation,
+      confidence: analysis.confidence,
+      overallScore: analysis.overallScore,
+      summary: analysis.summary,
+      strengths: analysis.strengths?.slice(0, 3),
+      concerns: (analysis.concerns as any[])?.slice(0, 3)?.map((c: any) => c.title || c),
+    } : null,
+    // Recent activity
+    recentInterviews: candidate.interviews,
+    recentAssessments: candidate.assessments,
+    url: buildDeepLink('candidate', candidate.id),
+  }
+
+  return {
+    status: 'ok',
+    data: { candidate: profile },
+    message: `${candidate.name} - ${candidate.stage} stage for ${candidate.job?.title || 'Unknown Role'}`,
+  }
+}
+
+async function getCandidateTimeline(
+  args: Record<string, unknown>,
+  ctx: { prisma: any }
+): Promise<ToolResult> {
+  const { candidateId } = args as { candidateId?: string }
+
+  if (!candidateId) {
+    return { status: 'missing_fields', missingFields: ['candidateId'], message: 'Please provide the candidate ID.' }
+  }
+
+  const candidate = await ctx.prisma.jobCandidate.findUnique({
+    where: { id: candidateId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      stage: true,
+      appliedAt: true,
+      job: { select: { title: true } },
+    },
+  })
+
+  if (!candidate) {
+    return { status: 'error', message: 'Candidate not found.' }
+  }
+
+  // Get interviews
+  const interviews = await ctx.prisma.candidateInterview.findMany({
+    where: { candidateId },
+    orderBy: { scheduledAt: 'asc' },
+    select: {
+      id: true,
+      stageName: true,
+      status: true,
+      scheduledAt: true,
+      completedAt: true,
+      overallScore: true,
+    },
+  })
+
+  // Get assessments
+  const assessments = await ctx.prisma.candidateAssessment.findMany({
+    where: { candidateId },
+    orderBy: { createdAt: 'asc' },
+    select: {
+      id: true,
+      status: true,
+      overallScore: true,
+      createdAt: true,
+      completedAt: true,
+      template: { select: { name: true } },
+    },
+  })
+
+  // Get AI analyses
+  const analyses = await ctx.prisma.candidateAIAnalysis.findMany({
+    where: { candidateId },
+    orderBy: { createdAt: 'asc' },
+    select: {
+      id: true,
+      analysisType: true,
+      recommendation: true,
+      createdAt: true,
+    },
+  })
+
+  // Build timeline
+  const timeline: Array<{ date: Date; type: string; title: string; status?: string; score?: number }> = []
+
+  // Add application
+  if (candidate.appliedAt) {
+    timeline.push({
+      date: candidate.appliedAt,
+      type: 'APPLICATION',
+      title: `Applied for ${candidate.job?.title || 'position'}`,
+    })
+  }
+
+  // Add interviews
+  interviews.forEach((i: any) => {
+    timeline.push({
+      date: i.scheduledAt,
+      type: 'INTERVIEW',
+      title: i.stageName || 'Interview',
+      status: i.status,
+      score: i.overallScore,
+    })
+  })
+
+  // Add assessments
+  assessments.forEach((a: any) => {
+    timeline.push({
+      date: a.createdAt,
+      type: 'ASSESSMENT',
+      title: a.template?.name || 'Assessment',
+      status: a.status,
+      score: a.overallScore,
+    })
+  })
+
+  // Add AI analyses
+  analyses.forEach((a: any) => {
+    timeline.push({
+      date: a.createdAt,
+      type: 'AI_ANALYSIS',
+      title: `${a.analysisType} - ${a.recommendation || 'Pending'}`,
+    })
+  })
+
+  // Sort by date
+  timeline.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+
+  return {
+    status: 'ok',
+    data: {
+      candidate: { id: candidate.id, name: candidate.name, currentStage: candidate.stage },
+      timeline,
+    },
+    message: `Timeline for ${candidate.name}: ${timeline.length} events`,
+  }
+}
+
+async function listJobs(
+  args: Record<string, unknown>,
+  ctx: { prisma: any }
+): Promise<ToolResult> {
+  const { status, limit = 10 } = args as { status?: string; limit?: number }
+
+  const where: Record<string, unknown> = {}
+  if (status) where.status = status
+
+  const jobs = await ctx.prisma.job.findMany({
+    where,
+    take: Math.min(limit, 50),
+    orderBy: { updatedAt: 'desc' },
+    include: {
+      _count: { select: { candidates: true } },
+    },
+  })
+
+  const results = jobs.map((j: any) => ({
+    id: j.id,
+    title: j.title,
+    status: j.status,
+    department: j.department,
+    location: j.location,
+    employmentType: j.employmentType,
+    candidateCount: j._count.candidates,
+    createdAt: j.createdAt,
+    url: buildDeepLink('job', j.id),
+  }))
+
+  return {
+    status: 'ok',
+    data: { jobs: results, total: results.length },
+    message: results.length === 0
+      ? 'No jobs found matching your criteria.'
+      : `Found ${results.length} job(s).`,
+  }
+}
+
+async function getJobPipeline(
+  args: Record<string, unknown>,
+  ctx: { prisma: any }
+): Promise<ToolResult> {
+  const { jobId } = args as { jobId?: string }
+
+  if (!jobId) {
+    return { status: 'missing_fields', missingFields: ['jobId'], message: 'Please provide the job ID.' }
+  }
+
+  const job = await ctx.prisma.job.findUnique({
+    where: { id: jobId },
+    select: {
+      id: true,
+      title: true,
+      status: true,
+      department: true,
+    },
+  })
+
+  if (!job) {
+    return { status: 'error', message: 'Job not found.' }
+  }
+
+  // Get candidates grouped by stage
+  const candidates = await ctx.prisma.jobCandidate.findMany({
+    where: { jobId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      stage: true,
+      overallAIScore: true,
+    },
+    orderBy: { updatedAt: 'desc' },
+  })
+
+  // Group by stage
+  const stageOrder = ['APPLIED', 'HR_SCREEN', 'TEAM_CHAT', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED', 'REJECTED', 'ARCHIVED']
+  const pipeline: Record<string, Array<{ id: string; name: string; email: string; score?: number }>> = {}
+
+  stageOrder.forEach(stage => {
+    pipeline[stage] = []
+  })
+
+  candidates.forEach((c: any) => {
+    if (pipeline[c.stage]) {
+      pipeline[c.stage].push({
+        id: c.id,
+        name: c.name,
+        email: c.email,
+        score: c.overallAIScore,
+      })
+    }
+  })
+
+  // Build summary
+  const activeCandidates = candidates.filter((c: any) => !['REJECTED', 'ARCHIVED', 'HIRED'].includes(c.stage))
+  const summary = {
+    total: candidates.length,
+    active: activeCandidates.length,
+    hired: pipeline['HIRED'].length,
+    rejected: pipeline['REJECTED'].length,
+  }
+
+  return {
+    status: 'ok',
+    data: { job, pipeline, summary },
+    message: `${job.title}: ${summary.active} active candidates across stages. ${summary.hired} hired, ${summary.rejected} rejected.`,
+  }
+}
+
+// ============================================
+// V4 AI ANALYSIS TOOL IMPLEMENTATIONS
+// ============================================
+
+async function getCandidateAnalysis(
+  args: Record<string, unknown>,
+  ctx: { prisma: any }
+): Promise<ToolResult> {
+  const { candidateId } = args as { candidateId?: string }
+
+  if (!candidateId) {
+    return { status: 'missing_fields', missingFields: ['candidateId'], message: 'Please provide the candidate ID.' }
+  }
+
+  const candidate = await ctx.prisma.jobCandidate.findUnique({
+    where: { id: candidateId },
+    select: { id: true, name: true, stage: true },
+  })
+
+  if (!candidate) {
+    return { status: 'error', message: 'Candidate not found.' }
+  }
+
+  const analysis = await ctx.prisma.candidateAIAnalysis.findFirst({
+    where: { candidateId, isLatest: true },
+  })
+
+  if (!analysis) {
+    return {
+      status: 'ok',
+      data: null,
+      message: `No AI analysis found for ${candidate.name}. Use analyze_candidate to generate one.`,
+    }
+  }
+
+  const result = {
+    id: analysis.id,
+    version: analysis.version,
+    analysisType: analysis.analysisType,
+    recommendation: analysis.recommendation,
+    confidence: analysis.confidence,
+    overallScore: analysis.overallScore,
+    summary: analysis.summary,
+    strengths: analysis.strengths,
+    concerns: analysis.concerns,
+    mustValidatePoints: analysis.mustValidatePoints,
+    nextStageQuestions: analysis.nextStageQuestions,
+    scoreBreakdown: analysis.scoreBreakdown,
+    sentimentScore: analysis.sentimentScore,
+    sentimentReason: analysis.sentimentReason,
+    pressValues: analysis.pressValues,
+    createdAt: analysis.createdAt,
+    candidateUrl: buildDeepLink('candidate', candidateId),
+  }
+
+  return {
+    status: 'ok',
+    data: { analysis: result },
+    message: `${candidate.name}: ${analysis.recommendation} (${analysis.confidence}% confidence). Score: ${analysis.overallScore}/100`,
+  }
+}
+
+async function analyzeCandidate(
+  args: Record<string, unknown>,
+  ctx: { prisma: any; user: { id: string } }
+): Promise<ToolResult> {
+  const { candidateId, analysisType = 'COMPREHENSIVE', confirmed } = args as {
+    candidateId?: string
+    analysisType?: string
+    confirmed?: boolean
+  }
+
+  if (!candidateId) {
+    return { status: 'missing_fields', missingFields: ['candidateId'], message: 'Please provide the candidate ID.' }
+  }
+
+  const candidate = await ctx.prisma.jobCandidate.findUnique({
+    where: { id: candidateId },
+    include: { job: { select: { title: true } } },
+  })
+
+  if (!candidate) {
+    return { status: 'error', message: 'Candidate not found.' }
+  }
+
+  // If not confirmed, return confirmation request
+  if (!confirmed) {
+    return {
+      status: 'confirmation_required',
+      missingFields: ['confirmed'],
+      summary: `Ready to generate ${analysisType} analysis for ${candidate.name} (${candidate.job?.title || 'candidate'}).`,
+      message: 'This will use AI credits. Please confirm to proceed.',
+      data: { candidateId, candidateName: candidate.name, analysisType },
+    }
+  }
+
+  // Generate analysis using the AI analysis library
+  try {
+    const { generateCandidateAnalysis } = await import('@/lib/ai/hiring/analysis')
+    const analysis = await generateCandidateAnalysis({
+      candidateId,
+      analysisType: analysisType as any,
+      triggerEvent: 'assistant_request',
+    })
+
+    return {
+      status: 'ok',
+      data: {
+        analysisId: analysis.id,
+        recommendation: analysis.recommendation,
+        confidence: analysis.confidence,
+        overallScore: analysis.overallScore,
+        summary: analysis.summary,
+      },
+      message: `Analysis generated for ${candidate.name}: ${analysis.recommendation} (${analysis.confidence}% confidence). [View candidate](${buildDeepLink('candidate', candidateId)})`,
+    }
+  } catch (error) {
+    return {
+      status: 'error',
+      message: `Failed to generate analysis: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    }
+  }
+}
+
+async function getCandidateSentimentHistory(
+  args: Record<string, unknown>,
+  ctx: { prisma: any }
+): Promise<ToolResult> {
+  const { candidateId } = args as { candidateId?: string }
+
+  if (!candidateId) {
+    return { status: 'missing_fields', missingFields: ['candidateId'], message: 'Please provide the candidate ID.' }
+  }
+
+  const candidate = await ctx.prisma.jobCandidate.findUnique({
+    where: { id: candidateId },
+    select: { id: true, name: true },
+  })
+
+  if (!candidate) {
+    return { status: 'error', message: 'Candidate not found.' }
+  }
+
+  const analyses = await ctx.prisma.candidateAIAnalysis.findMany({
+    where: { candidateId },
+    orderBy: { createdAt: 'asc' },
+    select: {
+      id: true,
+      version: true,
+      analysisType: true,
+      recommendation: true,
+      confidence: true,
+      overallScore: true,
+      sentimentScore: true,
+      sentimentChange: true,
+      sentimentReason: true,
+      triggerStage: true,
+      createdAt: true,
+    },
+  })
+
+  if (analyses.length === 0) {
+    return {
+      status: 'ok',
+      data: { history: [] },
+      message: `No analysis history found for ${candidate.name}.`,
+    }
+  }
+
+  const history = analyses.map((a: any) => ({
+    version: a.version,
+    type: a.analysisType,
+    stage: a.triggerStage,
+    recommendation: a.recommendation,
+    confidence: a.confidence,
+    overallScore: a.overallScore,
+    sentimentScore: a.sentimentScore,
+    sentimentChange: a.sentimentChange,
+    sentimentReason: a.sentimentReason,
+    date: a.createdAt,
+  }))
+
+  // Calculate trend
+  const firstScore = history[0]?.overallScore || 0
+  const lastScore = history[history.length - 1]?.overallScore || 0
+  const trend = lastScore > firstScore ? 'improving' : lastScore < firstScore ? 'declining' : 'stable'
+
+  return {
+    status: 'ok',
+    data: { candidate: { id: candidate.id, name: candidate.name }, history, trend },
+    message: `${candidate.name}: ${history.length} analyses. Trend: ${trend}. Latest: ${history[history.length - 1]?.recommendation || 'N/A'}`,
   }
 }
 
