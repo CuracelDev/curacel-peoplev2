@@ -51,7 +51,7 @@ function getActivityIcon(type: string) {
 function getActivityColor(type: string) {
   switch (type) {
     case 'new':
-      return 'bg-green-50 text-green-600'
+      return 'bg-success/10 text-success'
     case 'score':
       return 'bg-amber-50 text-amber-600'
     case 'interview':
@@ -64,9 +64,9 @@ function getActivityColor(type: string) {
 }
 
 function getScoreColor(score: number) {
-  if (score >= 80) return 'bg-green-50 text-green-600'
-  if (score >= 60) return 'bg-amber-50 text-amber-600'
-  return 'bg-red-50 text-red-600'
+  if (score >= 80) return 'bg-success/10 text-success'
+  if (score >= 60) return 'bg-warning/10 text-warning'
+  return 'bg-destructive/10 text-destructive'
 }
 
 function getRankStyle(rank: number) {
@@ -171,7 +171,7 @@ export default function RecruitingDashboard() {
             <CardContent className="p-5">
               <div className="text-sm text-muted-foreground mb-1">{stat.label}</div>
               <div className="text-3xl font-semibold text-foreground">{stat.value}</div>
-              <div className={`text-sm mt-2 flex items-center gap-1 ${stat.positive ? 'text-green-600' : 'text-red-600'}`}>
+              <div className={`text-sm mt-2 flex items-center gap-1 ${stat.positive ? 'text-success' : 'text-red-600'}`}>
                 {stat.positive ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
                 {stat.change}
               </div>
@@ -322,7 +322,7 @@ export default function RecruitingDashboard() {
             </Link>
 
             <Link href="/hiring/questions" className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors">
-              <div className="w-10 h-10 rounded-lg bg-green-500 text-white flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-success text-white flex items-center justify-center">
                 <HelpCircle className="h-5 w-5" />
               </div>
               <div>

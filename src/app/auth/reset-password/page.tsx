@@ -111,8 +111,8 @@ export default function ResetPasswordPage() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="p-3 bg-red-100 rounded-full">
-                <XCircle className="h-8 w-8 text-red-600" />
+              <div className="p-3 bg-destructive/10 rounded-full">
+                <XCircle className="h-8 w-8 text-destructive" />
               </div>
             </div>
             <CardTitle className="text-2xl">Invalid Link</CardTitle>
@@ -134,8 +134,8 @@ export default function ResetPasswordPage() {
         <Card className="w-full max-w-md">
           <CardHeader className="text-center">
             <div className="flex justify-center mb-4">
-              <div className="p-3 bg-green-100 rounded-full">
-                <CheckCircle className="h-8 w-8 text-green-600" />
+              <div className="p-3 bg-success/10 rounded-full">
+                <CheckCircle className="h-8 w-8 text-success" />
               </div>
             </div>
             <CardTitle className="text-2xl">Password Reset!</CardTitle>
@@ -176,7 +176,7 @@ export default function ResetPasswordPage() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+              <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm">
                 {error}
               </div>
             )}

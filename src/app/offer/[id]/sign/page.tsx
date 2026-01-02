@@ -144,7 +144,7 @@ export default function OfferSigningPage() {
                   disabled={isSigned || signOffer.isPending}
                   className="text-sm"
                 />
-                {uploadError && <p className="text-xs text-red-600">{uploadError}</p>}
+                {uploadError && <p className="text-xs text-destructive">{uploadError}</p>}
                 {signatureImage && (
                   <div className="border rounded-md p-2 inline-block bg-card">
                     <p className="text-xs text-slate-500 mb-1">Preview</p>
@@ -177,7 +177,7 @@ export default function OfferSigningPage() {
                   {signOffer.isPending ? 'Signing...' : 'Sign and submit'}
                 </Button>
               ) : (
-                <div className="text-sm text-green-700 bg-green-50 border border-green-100 rounded-md p-3">
+                <div className="text-sm text-success bg-success/10 border border-success/20 rounded-md p-3">
                   You have already signed this offer. Thank you!
                 </div>
               )}

@@ -56,9 +56,9 @@ const TEMPLATE_DISPLAY_INFO: Record<string, { icon: typeof BookOpen; iconColor: 
   'part-time-template': { icon: Menu, iconColor: 'text-amber-600', href: '/settings/contract-templates/contractor' },
   'contractor-template': { icon: Menu, iconColor: 'text-amber-600', href: '/settings/contract-templates/contractor' },
   'intern-template': { icon: Square, iconColor: 'text-purple-500', href: '/settings/contract-templates/internship' },
-  'confirmation-template': { icon: CheckCircle2, iconColor: 'text-green-500', href: '/settings/contract-templates/confirmation' },
+  'confirmation-template': { icon: CheckCircle2, iconColor: 'text-success', href: '/settings/contract-templates/confirmation' },
   'termination-template': { icon: Minus, iconColor: 'text-red-500', href: '/settings/contract-templates/termination' },
-  'nda-template': { icon: Share2, iconColor: 'text-green-600', href: '/settings/contract-templates/nda' },
+  'nda-template': { icon: Share2, iconColor: 'text-success', href: '/settings/contract-templates/nda' },
 }
 
 const EMPLOYMENT_TYPE_LABELS: Record<string, string> = {

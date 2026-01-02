@@ -118,6 +118,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Interview settings is now the single entry point for interview types, rubrics, scoring, and question bank in Settings
 - Jobs list public toggle now sits beside the priority badge and uses a smaller control
 - Job list stage stats now link into filtered job candidates views
+- Candidates list adds LinkedIn profile links and a column selector for extra fields
+- Job candidates table now mirrors the candidates list column selector and action menu alignment
+- Candidates list stage cards and LinkedIn links now align with updated spacing and branding
+- Candidates row menu now includes Archive and Reject actions
+- Interviews menu labels Fireflies recordings as View Fireflies
 - **Recruiting Assessments Page Improvements**
   - Enhanced UI and layout for assessments management
 - **Interviews Page Enhancements**

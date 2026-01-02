@@ -64,7 +64,7 @@ function getStageBadgeColor(stage: string) {
     PANEL: 'bg-violet-100 text-violet-800',
     TRIAL: 'bg-amber-100 text-amber-800',
     CEO_CHAT: 'bg-orange-100 text-orange-800',
-    OFFER: 'bg-green-100 text-green-800',
+    OFFER: 'bg-success/10 text-success-foreground',
     HIRED: 'bg-emerald-100 text-emerald-800',
     REJECTED: 'bg-red-100 text-red-800',
     WITHDRAWN: 'bg-muted text-foreground',
@@ -346,8 +346,8 @@ export default function RecruiterPortalPage() {
             {submitSuccess ? (
               <Card className="max-w-2xl mx-auto text-center">
                 <CardContent className="pt-10 pb-10">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-                    <CheckCircle className="h-8 w-8 text-green-600" />
+                  <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <CheckCircle className="h-8 w-8 text-success" />
                   </div>
                   <h2 className="text-2xl font-bold mb-2">Candidate Submitted!</h2>
                   <p className="text-foreground/80">

@@ -85,7 +85,7 @@ export default function ProfilePage() {
         </CardHeader>
         <CardContent>
           {successMessage ? (
-            <div className="mb-4 p-3 bg-green-50 border border-green-200 text-green-800 rounded-lg text-sm">
+            <div className="mb-4 p-3 bg-success/10 border border-success/20 text-success-foreground rounded-lg text-sm">
               {successMessage}
             </div>
           ) : null}

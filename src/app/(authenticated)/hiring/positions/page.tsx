@@ -68,7 +68,7 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 const STATUS_BADGES: Record<string, string> = {
-  ACTIVE: 'bg-green-100 text-green-700',
+  ACTIVE: 'bg-success/10 text-success',
   DRAFT: 'bg-yellow-100 text-yellow-700',
   PAUSED: 'bg-orange-100 text-orange-700',
   HIRED: 'bg-blue-100 text-blue-700',
@@ -231,7 +231,7 @@ export default function PositionsPage() {
                     )}
                     <div className="flex items-center gap-2">
                       {job.isPublic ? (
-                        <Globe className="h-3.5 w-3.5 text-green-600" />
+                        <Globe className="h-3.5 w-3.5 text-success" />
                       ) : (
                         <Lock className="h-3.5 w-3.5 text-muted-foreground" />
                       )}

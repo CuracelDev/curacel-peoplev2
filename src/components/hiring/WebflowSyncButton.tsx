@@ -73,7 +73,7 @@ export function WebflowSyncButton({ jobId, isPublic = false, isActive = false }:
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Badge className="gap-1 bg-green-100 text-green-800 hover:bg-green-100">
+                <Badge className="gap-1 bg-success/10 text-success-foreground hover:bg-success/10">
                   <CheckCircle2 className="h-3 w-3" />
                   Synced
                 </Badge>

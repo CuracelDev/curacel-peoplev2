@@ -63,8 +63,8 @@ const categoryConfig: Record<string, {
     name: 'Behavioral',
     description: '"Tell me about a time..."',
     icon: Clock,
-    color: 'bg-green-50 text-green-600',
-    badgeColor: 'bg-green-100 text-green-700',
+    color: 'bg-success/10 text-success',
+    badgeColor: 'bg-success/10 text-success',
   },
   motivational: {
     name: 'Motivational',

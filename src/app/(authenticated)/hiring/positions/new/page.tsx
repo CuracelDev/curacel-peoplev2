@@ -35,7 +35,7 @@ import { trpc } from '@/lib/trpc-client'
 
 const flowAppearance = {
   standard: { icon: User, color: 'bg-indigo-50 text-indigo-600' },
-  engineering: { icon: Code, color: 'bg-green-50 text-green-600' },
+  engineering: { icon: Code, color: 'bg-success/10 text-success' },
   sales: { icon: TrendingUp, color: 'bg-amber-50 text-amber-600' },
   executive: { icon: Star, color: 'bg-pink-50 text-pink-600' },
 }
@@ -344,7 +344,7 @@ export default function CreateJobPage() {
           'mb-4 rounded-lg border px-4 py-3 text-sm',
           saveState.type === 'error'
             ? 'border-red-200 bg-red-50 text-red-700'
-            : 'border-green-200 bg-green-50 text-green-700'
+            : 'border-success/20 bg-success/10 text-success'
         )}>
           {saveState.message}
         </div>
@@ -1085,7 +1085,7 @@ export default function CreateJobPage() {
               )}
               {formData.autoArchiveLocation && (
                 <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-                  <Check className="h-3.5 w-3.5 text-green-600" />
+                  <Check className="h-3.5 w-3.5 text-success" />
                   <span>Auto-archive non-matching locations</span>
                 </div>
               )}

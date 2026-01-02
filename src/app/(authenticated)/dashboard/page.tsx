@@ -92,7 +92,7 @@ export default function DashboardPage() {
 
   const deltaClass = (value: number | null | undefined) => {
     if (value == null || value === 0) return 'text-muted-foreground'
-    return value > 0 ? 'text-green-600' : 'text-red-500'
+    return value > 0 ? 'text-success' : 'text-red-500'
   }
 
   const deltaIconClass = (value: number | null | undefined) => {
@@ -108,7 +108,7 @@ export default function DashboardPage() {
   const scoreDeltaLabel =
     scoreDelta == null ? 'No score trend yet' : `${scoreDelta > 0 ? '+' : ''}${scoreDelta} from last week`
   const scoreDeltaClass =
-    scoreDelta == null ? 'text-muted-foreground' : scoreDelta >= 0 ? 'text-green-600' : 'text-red-500'
+    scoreDelta == null ? 'text-muted-foreground' : scoreDelta >= 0 ? 'text-success' : 'text-red-500'
   const scoreDeltaIconClass = scoreDelta != null && scoreDelta < 0 ? 'rotate-180' : ''
 
   const activityItems = (recentActivity ?? []).slice(0, 4).map((activity) => {
@@ -123,7 +123,7 @@ export default function DashboardPage() {
         return { icon: UserPlus, className: 'bg-blue-100 text-blue-600' }
       }
       if (actionValue.includes('INTERVIEW')) {
-        return { icon: CheckCircle, className: 'bg-green-100 text-green-600' }
+        return { icon: CheckCircle, className: 'bg-success/10 text-success' }
       }
       if (actionValue.includes('OFFER') || actionValue.includes('CONTRACT')) {
         return { icon: FileSignature, className: 'bg-indigo-100 text-indigo-600' }
@@ -155,7 +155,7 @@ export default function DashboardPage() {
     const stageClassMap: Record<string, string> = {
       HR_SCREEN: 'bg-muted text-foreground',
       TECHNICAL: 'bg-purple-100 text-purple-700',
-      TEAM_CHAT: 'bg-green-100 text-green-700',
+      TEAM_CHAT: 'bg-success/10 text-success',
       ADVISOR_CHAT: 'bg-indigo-100 text-indigo-700',
       PANEL: 'bg-orange-100 text-orange-700',
       TRIAL: 'bg-blue-100 text-blue-700',
@@ -408,7 +408,7 @@ export default function DashboardPage() {
                       <span className="text-sm text-muted-foreground w-4">{index + 1}</span>
                       <Avatar className="h-9 w-9">
                         <AvatarFallback className={`text-xs font-medium ${
-                          index === 0 ? 'bg-green-100 text-green-700' :
+                          index === 0 ? 'bg-success/10 text-success' :
                           index === 1 ? 'bg-orange-100 text-orange-700' :
                           index === 2 ? 'bg-purple-100 text-purple-700' :
                           'bg-blue-100 text-blue-700'
@@ -423,7 +423,7 @@ export default function DashboardPage() {
                         </p>
                       </div>
                       <span className={`text-sm font-semibold ${
-                        (candidate.score ?? 0) >= 85 ? 'text-green-600' :
+                        (candidate.score ?? 0) >= 85 ? 'text-success' :
                         (candidate.score ?? 0) >= 75 ? 'text-orange-500' :
                         'text-foreground/80'
                       }`}>
@@ -471,8 +471,8 @@ export default function DashboardPage() {
 
               <Link href="/hiring/questions">
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-border hover:bg-muted transition-colors cursor-pointer">
-                  <div className="p-2 rounded-lg bg-green-100">
-                    <MessageSquare className="h-5 w-5 text-green-600" />
+                  <div className="p-2 rounded-lg bg-success/10">
+                    <MessageSquare className="h-5 w-5 text-success" />
                   </div>
                   <div>
                     <p className="text-sm font-medium text-foreground">Generate Questions</p>
@@ -643,7 +643,7 @@ export default function DashboardPage() {
                 <div className="flex-1">
                   <div className="h-2 bg-muted rounded-full overflow-hidden">
                     <div
-                      className="h-full bg-green-500 rounded-full"
+                      className="h-full bg-success rounded-full"
                       style={{ width: `${contracts.signed ? (contracts.signed / 10) * 100 : 0}%` }}
                     />
                   </div>

@@ -87,7 +87,7 @@ export default function IntegrationsPage() {
       return { icon: XCircle, text: 'Not connected', color: 'text-muted-foreground', bg: 'bg-muted' }
     }
     if (isVerified) {
-      return { icon: CheckCircle2, text: 'Connected', color: 'text-green-600', bg: 'bg-green-50' }
+      return { icon: CheckCircle2, text: 'Connected', color: 'text-success', bg: 'bg-success/10' }
     }
     if (isFailed) {
       return { icon: XCircle, text: 'Disconnected', color: 'text-red-500', bg: 'bg-red-50' }

@@ -109,8 +109,8 @@ export default function AuntyPelzInterviewsPage() {
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                <TrendingUp className="h-4 w-4 text-green-600" />
+              <div className="h-8 w-8 rounded-full bg-success/10 flex items-center justify-center">
+                <TrendingUp className="h-4 w-4 text-success" />
               </div>
               <div>
                 <Label>On Stage Completion</Label>

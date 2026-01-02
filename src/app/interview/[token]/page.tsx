@@ -45,11 +45,11 @@ import { toast } from 'sonner'
 
 // Rating descriptions
 const ratingDescriptions = [
-  { value: 1, label: 'Poor', description: 'Does not meet requirements', color: 'bg-red-500' },
+  { value: 1, label: 'Poor', description: 'Does not meet requirements', color: 'bg-destructive' },
   { value: 2, label: 'Below Average', description: 'Partially meets requirements', color: 'bg-orange-500' },
   { value: 3, label: 'Satisfactory', description: 'Meets requirements', color: 'bg-yellow-500' },
-  { value: 4, label: 'Good', description: 'Exceeds some requirements', color: 'bg-green-400' },
-  { value: 5, label: 'Excellent', description: 'Exceeds requirements', color: 'bg-green-600' },
+  { value: 4, label: 'Good', description: 'Exceeds some requirements', color: 'bg-success' },
+  { value: 5, label: 'Excellent', description: 'Exceeds requirements', color: 'bg-success' },
 ]
 
 type CustomQuestion = {
@@ -243,13 +243,13 @@ export default function PublicInterviewPage() {
       <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-10 pb-10">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-6">
               {error.message.includes('expired') ? (
-                <Clock className="h-8 w-8 text-red-600" />
+                <Clock className="h-8 w-8 text-destructive" />
               ) : error.message.includes('revoked') ? (
-                <Lock className="h-8 w-8 text-red-600" />
+                <Lock className="h-8 w-8 text-destructive" />
               ) : (
-                <AlertTriangle className="h-8 w-8 text-red-600" />
+                <AlertTriangle className="h-8 w-8 text-destructive" />
               )}
             </div>
             <h1 className="text-2xl font-bold mb-2">Unable to Access Interview</h1>
@@ -269,8 +269,8 @@ export default function PublicInterviewPage() {
       <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-10 pb-10">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="h-8 w-8 text-success" />
             </div>
             <h1 className="text-2xl font-bold mb-2">Evaluation Already Submitted</h1>
             <p className="text-foreground/80 mb-6">
@@ -292,8 +292,8 @@ export default function PublicInterviewPage() {
       <div className="min-h-screen bg-muted/50 flex items-center justify-center p-4">
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-10 pb-10">
-            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <CheckCircle className="h-8 w-8 text-green-600" />
+            <div className="w-16 h-16 bg-success/10 rounded-full flex items-center justify-center mx-auto mb-6">
+              <CheckCircle className="h-8 w-8 text-success" />
             </div>
             <h1 className="text-2xl font-bold mb-2">Evaluation Submitted!</h1>
             <p className="text-foreground/80 mb-6">
@@ -451,7 +451,7 @@ export default function PublicInterviewPage() {
                           <span className="font-medium text-sm">{evaluation.evaluatorName}</span>
                           <Badge
                             className={cn(
-                              (evaluation.score || 0) >= 4 ? 'bg-green-500' : 'bg-amber-500'
+                              (evaluation.score || 0) >= 4 ? 'bg-success' : 'bg-warning'
                             )}
                           >
                             {evaluation.score}/5
@@ -502,7 +502,7 @@ export default function PublicInterviewPage() {
                 {rubricCriteria.map((criteria, qIdx) => (
                   <Card
                     key={criteria.id}
-                    className={cn(scores[criteria.id] && 'border-green-200 bg-green-50/30')}
+                    className={cn(scores[criteria.id] && 'border-success/20 bg-success/10/30')}
                   >
                     <CardHeader
                       className="cursor-pointer"
@@ -518,7 +518,7 @@ export default function PublicInterviewPage() {
                             className={cn(
                               'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold',
                               scores[criteria.id]
-                                ? 'bg-green-500 text-white'
+                                ? 'bg-success text-white'
                                 : 'bg-muted text-foreground/80'
                             )}
                           >
@@ -544,8 +544,8 @@ export default function PublicInterviewPage() {
                                 scores[criteria.id] >= 4
                                   ? 'bg-green-500'
                                   : scores[criteria.id] >= 3
-                                  ? 'bg-amber-500'
-                                  : 'bg-red-500'
+                                  ? 'bg-warning'
+                                  : 'bg-destructive'
                               )}
                             >
                               Score: {scores[criteria.id]}/5
@@ -659,7 +659,7 @@ export default function PublicInterviewPage() {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         onClick={() => handleRemoveCustomQuestion(cq.id)}
                       >
                         <Trash2 className="h-4 w-4" />
@@ -768,13 +768,13 @@ export default function PublicInterviewPage() {
                       className={cn(
                         'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all',
                         recommendation === 'STRONG_HIRE'
-                          ? 'border-green-500 bg-green-50'
+                          ? 'border-success bg-success/10'
                           : 'border-border hover:border-border'
                       )}
                     >
                       <RadioGroupItem value="STRONG_HIRE" id="strong-hire" />
                       <div className="flex items-center gap-2">
-                        <ThumbsUp className="h-5 w-5 text-green-600" />
+                        <ThumbsUp className="h-5 w-5 text-success" />
                         <span className="font-medium">Strong Hire</span>
                       </div>
                     </Label>
@@ -783,13 +783,13 @@ export default function PublicInterviewPage() {
                       className={cn(
                         'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all',
                         recommendation === 'HIRE'
-                          ? 'border-green-400 bg-green-50'
+                          ? 'border-green-400 bg-success/10'
                           : 'border-border hover:border-border'
                       )}
                     >
                       <RadioGroupItem value="HIRE" id="hire" />
                       <div className="flex items-center gap-2">
-                        <ThumbsUp className="h-5 w-5 text-green-500" />
+                        <ThumbsUp className="h-5 w-5 text-success" />
                         <span className="font-medium">Hire</span>
                       </div>
                     </Label>
@@ -798,13 +798,13 @@ export default function PublicInterviewPage() {
                       className={cn(
                         'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all',
                         recommendation === 'MAYBE'
-                          ? 'border-amber-500 bg-amber-50'
+                          ? 'border-warning bg-warning/10'
                           : 'border-border hover:border-border'
                       )}
                     >
                       <RadioGroupItem value="MAYBE" id="maybe" />
                       <div className="flex items-center gap-2">
-                        <AlertCircle className="h-5 w-5 text-amber-500" />
+                        <AlertCircle className="h-5 w-5 text-warning" />
                         <span className="font-medium">Maybe / Need More Info</span>
                       </div>
                     </Label>
@@ -813,13 +813,13 @@ export default function PublicInterviewPage() {
                       className={cn(
                         'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all',
                         recommendation === 'NO_HIRE'
-                          ? 'border-red-400 bg-red-50'
+                          ? 'border-destructive/30 bg-destructive/10'
                           : 'border-border hover:border-border'
                       )}
                     >
                       <RadioGroupItem value="NO_HIRE" id="no-hire" />
                       <div className="flex items-center gap-2">
-                        <ThumbsDown className="h-5 w-5 text-red-500" />
+                        <ThumbsDown className="h-5 w-5 text-destructive" />
                         <span className="font-medium">No Hire</span>
                       </div>
                     </Label>
@@ -828,13 +828,13 @@ export default function PublicInterviewPage() {
                       className={cn(
                         'flex items-center gap-3 p-4 rounded-lg border-2 cursor-pointer transition-all sm:col-span-2',
                         recommendation === 'STRONG_NO_HIRE'
-                          ? 'border-red-500 bg-red-50'
+                          ? 'border-destructive bg-destructive/10'
                           : 'border-border hover:border-border'
                       )}
                     >
                       <RadioGroupItem value="STRONG_NO_HIRE" id="strong-no-hire" />
                       <div className="flex items-center gap-2">
-                        <ThumbsDown className="h-5 w-5 text-red-600" />
+                        <ThumbsDown className="h-5 w-5 text-destructive" />
                         <span className="font-medium">Strong No Hire</span>
                       </div>
                     </Label>
@@ -922,7 +922,7 @@ export default function PublicInterviewPage() {
                       <Badge
                         variant="outline"
                         className={cn(
-                          member.status === 'SUBMITTED' && 'text-green-600 border-green-300',
+                          member.status === 'SUBMITTED' && 'text-success border-success/30',
                           member.status === 'IN_PROGRESS' && 'text-blue-600 border-blue-300',
                           member.status === 'PENDING' && 'text-muted-foreground'
                         )}
@@ -966,13 +966,13 @@ export default function PublicInterviewPage() {
                       <div className="flex items-center gap-2 text-sm">
                         {Object.keys(scores).length === rubricCriteria.length ? (
                           <>
-                            <CheckCircle className="h-4 w-4 text-green-500" />
-                            <span className="text-green-600">All criteria scored</span>
+                            <CheckCircle className="h-4 w-4 text-success" />
+                            <span className="text-success">All criteria scored</span>
                           </>
                         ) : (
                           <>
-                            <AlertCircle className="h-4 w-4 text-amber-500" />
-                            <span className="text-amber-600">
+                            <AlertCircle className="h-4 w-4 text-warning" />
+                            <span className="text-warning">
                               {rubricCriteria.length - Object.keys(scores).length} remaining
                             </span>
                           </>
@@ -983,26 +983,26 @@ export default function PublicInterviewPage() {
                   <div className="flex items-center gap-2 text-sm mt-2">
                     {overallRating ? (
                       <>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-green-600">Overall rating provided</span>
+                        <CheckCircle className="h-4 w-4 text-success" />
+                        <span className="text-success">Overall rating provided</span>
                       </>
                     ) : (
                       <>
-                        <AlertCircle className="h-4 w-4 text-amber-500" />
-                        <span className="text-amber-600">Overall rating required</span>
+                        <AlertCircle className="h-4 w-4 text-warning" />
+                        <span className="text-warning">Overall rating required</span>
                       </>
                     )}
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     {recommendation ? (
                       <>
-                        <CheckCircle className="h-4 w-4 text-green-500" />
-                        <span className="text-green-600">Recommendation selected</span>
+                        <CheckCircle className="h-4 w-4 text-success" />
+                        <span className="text-success">Recommendation selected</span>
                       </>
                     ) : (
                       <>
-                        <AlertCircle className="h-4 w-4 text-amber-500" />
-                        <span className="text-amber-600">Recommendation required</span>
+                        <AlertCircle className="h-4 w-4 text-warning" />
+                        <span className="text-warning">Recommendation required</span>
                       </>
                     )}
                   </div>

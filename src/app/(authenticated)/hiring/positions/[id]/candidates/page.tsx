@@ -13,11 +13,21 @@ import {
   Loader2,
   AlertTriangle,
   RefreshCw,
+  MoreVertical,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Select,
   SelectContent,
@@ -27,6 +37,61 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
+
+type ColumnKey = 'location' | 'source' | 'salary' | 'mbti'
+
+const COLUMN_STORAGE_KEY = 'hiring.jobCandidates.visibleColumns'
+
+const sourceLabels: Record<string, string> = {
+  INBOUND: 'Inbound',
+  OUTBOUND: 'Outbound',
+  RECRUITER: 'Recruiter',
+  EXCELLER: 'Exceller',
+}
+
+const inboundLabels: Record<string, string> = {
+  YC: 'YC',
+  PEOPLEOS: 'PeopleOS',
+  COMPANY_SITE: 'Company Site',
+  OTHER: 'Other',
+}
+
+const outboundLabels: Record<string, string> = {
+  LINKEDIN: 'LinkedIn',
+  JOB_BOARDS: 'Job Boards',
+  GITHUB: 'GitHub',
+  TWITTER: 'Twitter',
+  OTHER: 'Other',
+}
+
+const formatSource = (candidate: { source?: string | null; inboundChannel?: string | null; outboundChannel?: string | null }) => {
+  if (!candidate.source) return '—'
+  const base = sourceLabels[candidate.source] || candidate.source
+  if (candidate.source === 'INBOUND' && candidate.inboundChannel) {
+    return `${base} • ${inboundLabels[candidate.inboundChannel] || candidate.inboundChannel}`
+  }
+  if (candidate.source === 'OUTBOUND' && candidate.outboundChannel) {
+    return `${base} • ${outboundLabels[candidate.outboundChannel] || candidate.outboundChannel}`
+  }
+  return base
+}
+
+const formatSalary = (candidate: { salaryExpMin?: number | null; salaryExpMax?: number | null; salaryExpCurrency?: string | null }) => {
+  const min = candidate.salaryExpMin ?? null
+  const max = candidate.salaryExpMax ?? null
+  if (!min && !max) return '—'
+  const currency = candidate.salaryExpCurrency || 'USD'
+  const formatValue = (value: number) => {
+    try {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(value)
+    } catch (error) {
+      return `${currency} ${value}`
+    }
+  }
+  if (min && max) return `${formatValue(min)}–${formatValue(max)}`
+  if (min) return `From ${formatValue(min)}`
+  return `Up to ${formatValue(max as number)}`
+}
 
 // Avatar color palette
 const avatarColors = [
@@ -76,9 +141,9 @@ function getRelativeTime(date: Date | string) {
 }
 
 function getScoreClass(score: number) {
-  if (score >= 80) return 'bg-green-50 text-green-600'
-  if (score >= 60) return 'bg-amber-50 text-amber-600'
-  return 'bg-red-50 text-red-600'
+  if (score >= 80) return 'bg-success/10 text-success'
+  if (score >= 60) return 'bg-warning/10 text-warning'
+  return 'bg-destructive/10 text-destructive'
 }
 
 function getStageBadge(stage: string) {
@@ -90,7 +155,7 @@ function getStageBadge(stage: string) {
     case 'TECHNICAL':
       return <Badge className="bg-amber-100 text-amber-600 hover:bg-amber-100">Technical</Badge>
     case 'PANEL':
-      return <Badge className="bg-green-100 text-green-600 hover:bg-green-100">Panel Interview</Badge>
+      return <Badge className="bg-success/10 text-success hover:bg-success/10">Panel Interview</Badge>
     case 'OFFER':
       return <Badge className="bg-pink-100 text-pink-600 hover:bg-pink-100">Offer</Badge>
     case 'HIRED':
@@ -105,7 +170,7 @@ function getStageBadge(stage: string) {
 }
 
 const STATUS_BADGES: Record<string, string> = {
-  ACTIVE: 'bg-green-100 text-green-700',
+  ACTIVE: 'bg-success/10 text-success',
   DRAFT: 'bg-yellow-100 text-yellow-700',
   CLOSED: 'bg-muted text-foreground',
 }
@@ -123,6 +188,11 @@ export default function CandidatesListPage() {
   const searchParams = useSearchParams()
   const { data: job, isLoading: jobLoading } = trpc.job.get.useQuery({ id: jobId })
   const { data: candidatesData, isLoading: candidatesLoading } = trpc.job.listCandidates.useQuery({ jobId })
+  const updateCandidateStage = trpc.job.updateCandidate.useMutation({
+    onSuccess: () => {
+      utils.job.listCandidates.invalidate({ jobId })
+    },
+  })
   const upgradeFlowMutation = trpc.hiringFlow.upgradeJobFlow.useMutation({
     onSuccess: () => {
       utils.job.get.invalidate({ id: jobId })
@@ -134,6 +204,12 @@ export default function CandidatesListPage() {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
+  const [visibleColumns, setVisibleColumns] = useState<Record<ColumnKey, boolean>>({
+    location: false,
+    source: false,
+    salary: false,
+    mbti: false,
+  })
 
   const isLoading = jobLoading || candidatesLoading
 
@@ -209,6 +285,13 @@ export default function CandidatesListPage() {
   const startIndex = (currentPage - 1) * pageSize
   const endIndex = Math.min(startIndex + pageSize, totalCandidates)
   const filteredCandidates = stageFilteredCandidates.slice(startIndex, endIndex)
+  const optionalColumns = useMemo(() => ([
+    { key: 'location', label: 'Country', render: (candidate: typeof filteredCandidates[number]) => candidate.location || '—' },
+    { key: 'source', label: 'Source', render: (candidate: typeof filteredCandidates[number]) => formatSource(candidate) },
+    { key: 'salary', label: 'Salary', render: (candidate: typeof filteredCandidates[number]) => formatSalary(candidate) },
+    { key: 'mbti', label: 'MBTI', render: (candidate: typeof filteredCandidates[number]) => candidate.mbtiType || '—' },
+  ]), [filteredCandidates])
+  const visibleOptionalColumns = optionalColumns.filter((column) => visibleColumns[column.key])
 
   // Reset to page 1 when stage or page size changes
   const handleStageChange = (stage: string) => {
@@ -240,6 +323,21 @@ export default function CandidatesListPage() {
     setPageSize(Number(size))
     setCurrentPage(1)
   }
+
+  useEffect(() => {
+    const stored = window.localStorage.getItem(COLUMN_STORAGE_KEY)
+    if (!stored) return
+    try {
+      const parsed = JSON.parse(stored) as Partial<Record<ColumnKey, boolean>>
+      setVisibleColumns((prev) => ({ ...prev, ...parsed }))
+    } catch (error) {
+      console.error('Failed to parse column preferences', error)
+    }
+  }, [])
+
+  useEffect(() => {
+    window.localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(visibleColumns))
+  }, [visibleColumns])
 
   const toggleCandidate = (id: string) => {
     setSelectedCandidates((prev) =>
@@ -343,14 +441,14 @@ export default function CandidatesListPage() {
 
       {/* Flow Outdated Banner */}
       {job.flowOutdated && job.hiringFlowSnapshot?.flow && (
-        <div className="mb-4 flex items-center justify-between gap-3 px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
+        <div className="mb-4 flex items-center justify-between gap-3 px-4 py-3 bg-warning/5 border border-warning/20 rounded-lg">
           <div className="flex items-center gap-3">
-            <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+            <AlertTriangle className="h-5 w-5 text-warning flex-shrink-0" />
             <div>
-              <p className="text-sm font-medium text-amber-800">
+              <p className="text-sm font-medium text-warning-foreground">
                 Hiring flow has been updated
               </p>
-              <p className="text-xs text-amber-700">
+              <p className="text-xs text-warning-foreground/80">
                 This job is using version {job.currentVersion} of the &quot;{job.hiringFlowSnapshot.flow.name}&quot; flow.
                 Version {job.latestVersion} is now available.
               </p>
@@ -359,7 +457,7 @@ export default function CandidatesListPage() {
           <Button
             size="sm"
             variant="outline"
-            className="border-amber-300 text-amber-700 hover:bg-amber-100"
+            className="border-warning/30 text-warning hover:bg-warning/10"
             onClick={() => upgradeFlowMutation.mutate({ jobId })}
             disabled={upgradeFlowMutation.isPending}
           >
@@ -379,7 +477,7 @@ export default function CandidatesListPage() {
           <span className="font-medium text-foreground">{job.hiringFlowSnapshot.flow.name}</span>
           {' '}flow • {hiringFlowStages.length} stages
           {!job.flowOutdated && (
-            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success/10 text-success-foreground">
               Up to date
             </span>
           )}
@@ -398,7 +496,7 @@ export default function CandidatesListPage() {
             onClick={() => handleStageChange(stage.id)}
           >
             <div className="text-xs text-muted-foreground mb-1 truncate">{stage.label}</div>
-            <div className="text-xl font-bold text-foreground">{stage.count}</div>
+            <div className="mt-2 text-xl font-bold text-foreground">{stage.count}</div>
           </Card>
         ))}
       </div>
@@ -455,11 +553,46 @@ export default function CandidatesListPage() {
                 <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Stage
                 </th>
+                {visibleOptionalColumns.map((column) => (
+                  <th
+                    key={column.key}
+                    className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
+                  >
+                    {column.label}
+                  </th>
+                ))}
                 <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                   Applied
                 </th>
                 <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Last Updated
+                  <div className="flex items-center justify-between gap-2">
+                    <span>Last Updated</span>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-6 w-6">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuLabel>Columns</DropdownMenuLabel>
+                        <DropdownMenuSeparator />
+                        {optionalColumns.map((column) => (
+                          <DropdownMenuCheckboxItem
+                            key={column.key}
+                            checked={visibleColumns[column.key]}
+                            onCheckedChange={(checked) => {
+                              setVisibleColumns((prev) => ({
+                                ...prev,
+                                [column.key]: Boolean(checked),
+                              }))
+                            }}
+                          >
+                            {column.label}
+                          </DropdownMenuCheckboxItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
                 </th>
               </tr>
             </thead>
@@ -487,21 +620,74 @@ export default function CandidatesListPage() {
                     {candidate.score ?? '-'}
                   </td>
                   <td className="py-4 px-4">
-                    <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-2">
-                      <Avatar className="h-7 w-7">
-                        <AvatarFallback className={cn(getAvatarColor(candidate.name), 'text-white text-[10px]')}>
-                          {getInitials(candidate.name)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span className="font-medium text-sm">{candidate.name}</span>
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-2">
+                        <Avatar className="h-7 w-7">
+                          <AvatarFallback className={cn(getAvatarColor(candidate.name), 'text-white text-[10px]')}>
+                            {getInitials(candidate.name)}
+                          </AvatarFallback>
+                        </Avatar>
+                      </Link>
+                      <div className="flex flex-col">
+                        <Link href={`/recruiting/candidates/${candidate.id}`} className="font-medium text-sm">
+                          {candidate.name}
+                        </Link>
+                        {candidate.linkedinUrl && (
+                          <a
+                            href={candidate.linkedinUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-1 inline-flex items-center gap-1 text-xs text-[#0A66C2] hover:text-[#004182]"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <span className="inline-flex h-3 w-3" aria-hidden="true">
+                              <svg viewBox="0 0 24 24" role="img" aria-label="" fill="currentColor">
+                                <path d="M4.98 3.5C4.98 4.88 3.88 6 2.49 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.49 1c1.39 0 2.49 1.12 2.49 2.5zM.5 24h3.99V7.98H.5V24zM8.98 7.98h3.83v2.16h.05c.53-1 1.83-2.16 3.77-2.16 4.03 0 4.77 2.65 4.77 6.1V24h-3.99v-8.62c0-2.06-.03-4.71-2.87-4.71-2.87 0-3.31 2.24-3.31 4.56V24H8.98V7.98z" />
+                              </svg>
+                            </span>
+                            LinkedIn
+                          </a>
+                        )}
+                      </div>
+                    </div>
                   </td>
                   <td className="py-4 px-4">{getStageBadge(candidate.stage)}</td>
+                  {visibleOptionalColumns.map((column) => (
+                    <td key={column.key} className="py-4 px-4 text-sm text-foreground/80">
+                      {column.render(candidate)}
+                    </td>
+                  ))}
                   <td className="py-4 px-4 text-sm text-foreground/80">
                     {formatDate(candidate.appliedAt)}
                   </td>
                   <td className="py-4 px-4 text-sm text-foreground/80">
-                    {getRelativeTime(candidate.updatedAt)}
+                    <div className="flex items-center justify-between gap-2">
+                      <span>{getRelativeTime(candidate.updatedAt)}</span>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => updateCandidateStage.mutate({ id: candidate.id, stage: 'ARCHIVED' })}
+                          >
+                            Archive
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => updateCandidateStage.mutate({ id: candidate.id, stage: 'REJECTED' })}
+                          >
+                            Reject
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -560,7 +746,7 @@ export default function CandidatesListPage() {
       {selectedCandidates.length > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-4">
           <span className="font-medium">{selectedCandidates.length} selected</span>
-          <Button size="sm" className="bg-green-500 hover:bg-green-600">
+          <Button size="sm" className="bg-success hover:bg-success">
             Advance to Next Stage
           </Button>
           <Button variant="outline" size="sm" className="text-muted-foreground/60 border-gray-600 hover:bg-gray-800">

@@ -26,7 +26,7 @@ import { AppIcon } from '@/components/ui/app-icon'
 function statusBadge(hasConnection: boolean, isEnabled: boolean) {
   if (!hasConnection) return <Badge variant="secondary">Not connected</Badge>
   if (!isEnabled) return <Badge variant="secondary">Disabled</Badge>
-  return <Badge className="bg-green-100 text-green-800">Enabled</Badge>
+  return <Badge className="bg-success/10 text-success-foreground">Enabled</Badge>
 }
 
 export default function ApplicationsSettingsPage() {
@@ -316,7 +316,7 @@ export default function ApplicationsSettingsPage() {
                           </div>
                         ) : isVerified ? (
                           <div className="hidden md:flex items-center gap-2 text-xs text-muted-foreground">
-                            <CheckCircle2 className="h-4 w-4 text-green-600" />
+                            <CheckCircle2 className="h-4 w-4 text-success" />
                             Connected
                           </div>
                         ) : isFailed ? (

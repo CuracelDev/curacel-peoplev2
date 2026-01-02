@@ -182,9 +182,9 @@ export default function OffboardingFlowSettingsPage() {
     ? Math.round((activeTemplates / templates.length) * 100)
     : 0
   const peopleOpsProgressClass =
-    peopleOpsProgress === 100 ? 'text-green-600' : peopleOpsProgress > 0 ? 'text-blue-600' : 'text-muted-foreground'
+    peopleOpsProgress === 100 ? 'text-success' : peopleOpsProgress > 0 ? 'text-blue-600' : 'text-muted-foreground'
   const employeeTasksProgressClass =
-    employeeTasksProgress === 100 ? 'text-green-600' : employeeTasksProgress > 0 ? 'text-blue-600' : 'text-muted-foreground'
+    employeeTasksProgress === 100 ? 'text-success' : employeeTasksProgress > 0 ? 'text-blue-600' : 'text-muted-foreground'
 
   const openNew = () => {
     setEditingId(null)

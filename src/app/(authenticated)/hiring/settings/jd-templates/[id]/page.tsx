@@ -107,7 +107,7 @@ const DEPARTMENTS = [
   { value: 'Engineering', icon: Code, color: 'text-blue-500 bg-blue-50' },
   { value: 'Design', icon: Palette, color: 'text-purple-500 bg-purple-50' },
   { value: 'Marketing', icon: Megaphone, color: 'text-pink-500 bg-pink-50' },
-  { value: 'Sales', icon: TrendingUp, color: 'text-green-500 bg-green-50' },
+  { value: 'Sales', icon: TrendingUp, color: 'text-success bg-success/10' },
   { value: 'Operations', icon: Settings, color: 'text-amber-500 bg-amber-50' },
   { value: 'People', icon: Users, color: 'text-indigo-500 bg-indigo-50' },
   { value: 'Finance', icon: Briefcase, color: 'text-emerald-500 bg-emerald-50' },

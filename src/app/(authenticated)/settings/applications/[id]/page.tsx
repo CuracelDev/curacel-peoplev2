@@ -438,7 +438,7 @@ export default function ApplicationSettingsDetailPage() {
       {saveStatus ? (
         <Card>
           <CardContent className="p-4">
-            <p className={`text-sm ${saveStatus.kind === 'success' ? 'text-green-700' : 'text-red-700'}`}>
+            <p className={`text-sm ${saveStatus.kind === 'success' ? 'text-success' : 'text-red-700'}`}>
               {saveStatus.message}
             </p>
           </CardContent>
@@ -469,7 +469,7 @@ export default function ApplicationSettingsDetailPage() {
         <Card>
           <CardContent className="p-4">
             {testConnection.data.success ? (
-              <p className="text-sm text-green-700">Connection OK.</p>
+              <p className="text-sm text-success">Connection OK.</p>
             ) : (
               <p className="text-sm text-red-700">Connection failed: {testConnection.data.error || 'Unknown error'}</p>
             )}
@@ -488,7 +488,7 @@ export default function ApplicationSettingsDetailPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               {connectionLabel.tone === 'success' ? (
-                <Badge className="bg-green-100 text-green-800">{connectionLabel.text}</Badge>
+                <Badge className="bg-success/10 text-success-foreground">{connectionLabel.text}</Badge>
               ) : connectionLabel.tone === 'error' ? (
                 <Badge className="bg-red-100 text-red-800">{connectionLabel.text}</Badge>
               ) : (

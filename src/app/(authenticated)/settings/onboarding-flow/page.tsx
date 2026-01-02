@@ -376,7 +376,7 @@ export default function OnboardingFlowSettingsPage() {
               ) : (
                 <ChevronRight className="h-5 w-5 text-muted-foreground" />
               )}
-              <FileSpreadsheet className="h-5 w-5 text-green-600" />
+              <FileSpreadsheet className="h-5 w-5 text-success" />
               <CardTitle>Employee Tasks</CardTitle>
               <Badge variant="secondary">{employeeTasks.length} tasks</Badge>
             </div>
@@ -409,7 +409,7 @@ export default function OnboardingFlowSettingsPage() {
                   {updateSettings.isPending ? (
                     <RefreshCw className="h-4 w-4 animate-spin" />
                   ) : sheetIdSaved ? (
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <CheckCircle2 className="h-4 w-4 text-success" />
                   ) : (
                     'Save'
                   )}
@@ -422,8 +422,8 @@ export default function OnboardingFlowSettingsPage() {
 
             {settingsQuery.data?.sheetId && (
               <div className="flex items-center gap-2 text-sm">
-                <CheckCircle2 className="h-4 w-4 text-green-600" />
-                <span className="text-green-600">Sheet configured</span>
+                <CheckCircle2 className="h-4 w-4 text-success" />
+                <span className="text-success">Sheet configured</span>
                 <a
                   href={`https://docs.google.com/spreadsheets/d/${settingsQuery.data.sheetId}`}
                   target="_blank"

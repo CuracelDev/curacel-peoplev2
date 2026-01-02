@@ -676,6 +676,30 @@ const docSections: DocSection[] = [
     ],
   },
   {
+    id: 'candidates-list',
+    title: 'Candidates list columns',
+    description: 'Customize which fields appear in the candidates table.',
+    blocks: [
+      {
+        title: 'Show LinkedIn profiles',
+        items: [
+          'LinkedIn icons appear below candidate names when a profile link exists.',
+          'Click the icon to open the candidate’s LinkedIn profile in a new tab.',
+        ],
+      },
+      {
+        title: 'Choose additional columns',
+        ordered: true,
+        items: [
+          'Go to Recruiting > Candidates.',
+          'You can also use this on a specific job’s Candidates view.',
+          'Select the three-dot menu beside Last Updated.',
+          'Toggle fields like Country, Source, Salary, or MBTI to show them.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'recruiting-jobs',
     title: 'Recruiting jobs',
     description: 'Create and manage job roles for the recruiting pipeline.',

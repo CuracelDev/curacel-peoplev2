@@ -94,19 +94,19 @@ export default function AcceptInvitePage() {
         </CardHeader>
         <CardContent className="space-y-4">
           {token ? null : (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm">
               Missing invite token.
             </div>
           )}
 
           {inviteQuery.error ? (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm">
               {inviteQuery.error.message}
             </div>
           ) : null}
 
           {errorMessage ? (
-            <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-lg text-sm">
+            <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive rounded-lg text-sm">
               {errorMessage}
             </div>
           ) : null}
@@ -126,7 +126,7 @@ export default function AcceptInvitePage() {
               <Label htmlFor="name">Full name</Label>
               <Input id="name" {...register('name', { required: 'Name is required' })} />
               {errors.name ? (
-                <p className="text-sm text-red-600">{errors.name.message}</p>
+                <p className="text-sm text-destructive">{errors.name.message}</p>
               ) : null}
             </div>
 
@@ -142,7 +142,7 @@ export default function AcceptInvitePage() {
                 })}
               />
               {errors.password ? (
-                <p className="text-sm text-red-600">{errors.password.message}</p>
+                <p className="text-sm text-destructive">{errors.password.message}</p>
               ) : null}
             </div>
 
@@ -155,7 +155,7 @@ export default function AcceptInvitePage() {
                 {...register('confirmPassword', { required: 'Please confirm your password' })}
               />
               {errors.confirmPassword ? (
-                <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
+                <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
               ) : null}
             </div>
 

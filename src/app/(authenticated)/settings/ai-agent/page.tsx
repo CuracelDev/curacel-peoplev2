@@ -211,14 +211,14 @@ export default function AIAgentSettingsPage() {
       )}
 
       {testConnection.data && (
-        <Card className={testConnection.data.success ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}>
+        <Card className={testConnection.data.success ? 'border-success/20 bg-success/10' : 'border-red-200 bg-red-50'}>
           <CardContent className="flex items-center gap-3 py-4">
             {testConnection.data.success ? (
-              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              <CheckCircle2 className="h-5 w-5 text-success" />
             ) : (
               <XCircle className="h-5 w-5 text-red-600" />
             )}
-            <span className={testConnection.data.success ? 'text-green-800' : 'text-red-800'}>
+            <span className={testConnection.data.success ? 'text-success-foreground' : 'text-red-800'}>
               {testConnection.data.message}
             </span>
           </CardContent>
@@ -326,7 +326,7 @@ export default function AIAgentSettingsPage() {
               </Button>
             </div>
             {settings?.hasOpenaiKey && (
-              <p className="text-xs text-green-600">API key is configured</p>
+              <p className="text-xs text-success">API key is configured</p>
             )}
           </div>
 
@@ -396,7 +396,7 @@ export default function AIAgentSettingsPage() {
               </Button>
             </div>
             {settings?.hasAnthropicKey && (
-              <p className="text-xs text-green-600">API key is configured</p>
+              <p className="text-xs text-success">API key is configured</p>
             )}
           </div>
 
@@ -468,7 +468,7 @@ export default function AIAgentSettingsPage() {
               </Button>
             </div>
             {settings?.hasGeminiKey && (
-              <p className="text-xs text-green-600">API key is configured</p>
+              <p className="text-xs text-success">API key is configured</p>
             )}
           </div>
 
@@ -516,31 +516,31 @@ export default function AIAgentSettingsPage() {
         <CardContent>
           <ul className="space-y-2 text-sm text-foreground/80">
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               Search and find contracts by candidate name or status
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               Create new contract drafts with all required fields
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               Send contracts for signature (with confirmation)
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               Look up employee information and details
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               Start onboarding workflows (with confirmation)
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               Check onboarding status and progress
             </li>
             <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-success" />
               Get hiring analytics by year
             </li>
           </ul>

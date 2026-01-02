@@ -70,7 +70,7 @@ const DEPARTMENTS = [
   { value: 'Engineering', icon: Code, color: 'text-blue-500 bg-blue-50' },
   { value: 'Design', icon: Palette, color: 'text-purple-500 bg-purple-50' },
   { value: 'Marketing', icon: Megaphone, color: 'text-pink-500 bg-pink-50' },
-  { value: 'Sales', icon: TrendingUp, color: 'text-green-500 bg-green-50' },
+  { value: 'Sales', icon: TrendingUp, color: 'text-success bg-success/10' },
   { value: 'Operations', icon: Settings, color: 'text-amber-500 bg-amber-50' },
   { value: 'People', icon: Users, color: 'text-indigo-500 bg-indigo-50' },
   { value: 'Finance', icon: Briefcase, color: 'text-emerald-500 bg-emerald-50' },
@@ -449,7 +449,7 @@ export default function NewJDPage() {
 
               {/* Upload status */}
               {uploadStatus === 'success' && (
-                <div className="flex items-center gap-2 p-4 bg-green-50 text-green-700 rounded-lg">
+                <div className="flex items-center gap-2 p-4 bg-success/10 text-success rounded-lg">
                   <CheckCircle className="h-5 w-5" />
                   <span className="font-medium">Successfully uploaded {uploadedFiles.length} JD(s)!</span>
                 </div>
@@ -526,7 +526,7 @@ export default function NewJDPage() {
 
               {/* Import status */}
               {importStatus === 'success' && (
-                <div className="flex items-center gap-2 p-4 bg-green-50 text-green-700 rounded-lg">
+                <div className="flex items-center gap-2 p-4 bg-success/10 text-success rounded-lg">
                   <CheckCircle className="h-5 w-5" />
                   <span className="font-medium">Successfully imported! Switching to edit view...</span>
                 </div>

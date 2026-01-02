@@ -44,22 +44,22 @@ export function DropoffTable({ data, title = 'Stage Dropoff Analysis', highlight
                 data.map((item) => {
                   const isBiggest = highlightBiggest && item.stage === biggestLoss.stage && item.lossCount > 0
                   return (
-                    <tr key={item.stage} className={isBiggest ? 'bg-red-50' : 'hover:bg-muted/50'}>
+                    <tr key={item.stage} className={isBiggest ? 'bg-destructive/10' : 'hover:bg-muted/50'}>
                       <td className="py-3">
                         <div className="flex items-center gap-2">
-                          {isBiggest && <AlertTriangle className="h-4 w-4 text-red-500" />}
-                          <span className={`text-sm font-medium ${isBiggest ? 'text-red-700' : 'text-foreground'}`}>
+                          {isBiggest && <AlertTriangle className="h-4 w-4 text-destructive" />}
+                          <span className={`text-sm font-medium ${isBiggest ? 'text-destructive' : 'text-foreground'}`}>
                             {item.stage}
                           </span>
                         </div>
                       </td>
                       <td className="py-3 text-right">
-                        <span className={`text-sm font-semibold ${isBiggest ? 'text-red-600' : ''}`}>
+                        <span className={`text-sm font-semibold ${isBiggest ? 'text-destructive' : ''}`}>
                           {item.lossCount.toLocaleString()}
                         </span>
                       </td>
                       <td className="py-3 text-right">
-                        <span className={`text-sm ${item.lossPct > 40 ? 'text-red-500 font-semibold' : item.lossPct > 20 ? 'text-orange-500' : 'text-foreground/80'}`}>
+                        <span className={`text-sm ${item.lossPct > 40 ? 'text-destructive font-semibold' : item.lossPct > 20 ? 'text-orange-500' : 'text-foreground/80'}`}>
                           {item.lossPct.toFixed(1)}%
                         </span>
                       </td>
@@ -71,8 +71,8 @@ export function DropoffTable({ data, title = 'Stage Dropoff Analysis', highlight
           </table>
         </div>
         {highlightBiggest && biggestLoss && biggestLoss.lossCount > 0 && (
-          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-            <p className="text-sm text-amber-800">
+          <div className="mt-4 p-3 bg-warning/10 border border-warning/20 rounded-lg">
+            <p className="text-sm text-warning-foreground">
               <strong>Biggest loss:</strong> {biggestLoss.stage} ({biggestLoss.lossPct.toFixed(1)}% - {biggestLoss.lossCount} candidates)
             </p>
           </div>

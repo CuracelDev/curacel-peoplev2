@@ -272,7 +272,7 @@ export default function NewRubricPage() {
                 { score: 2, label: 'Below Average', description: 'Limited evidence', color: 'text-orange-600' },
                 { score: 3, label: 'Average', description: 'Meets expectations', color: 'text-amber-600' },
                 { score: 4, label: 'Above Average', description: 'Exceeds expectations', color: 'text-emerald-600' },
-                { score: 5, label: 'Excellent', description: 'Strong evidence', color: 'text-green-600' },
+                { score: 5, label: 'Excellent', description: 'Strong evidence', color: 'text-success' },
               ].map((item) => (
                 <div key={item.score} className="text-center p-3 bg-muted/50 rounded-lg">
                   <div className={cn('text-2xl font-bold mb-1', item.color)}>{item.score}</div>

@@ -46,7 +46,7 @@ const typeConfig: Record<string, { label: string; color: string; icon: React.Com
   COMPETENCY_TEST: { label: 'Competency Test', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300', icon: ClipboardCheck },
   CODING_TEST: { label: 'Coding Test', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', icon: Code },
   PERSONALITY_TEST: { label: 'Personality Test', color: 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300', icon: Brain },
-  WORK_TRIAL: { label: 'Work Trial', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300', icon: Briefcase },
+  WORK_TRIAL: { label: 'Work Trial', color: 'bg-success/10 text-success-foreground dark:bg-success/30 dark:text-success', icon: Briefcase },
   CUSTOM: { label: 'Custom', color: 'bg-muted text-foreground', icon: FileText },
 }
 
@@ -54,7 +54,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   NOT_STARTED: { label: 'Not Started', color: 'bg-muted text-foreground/80' },
   INVITED: { label: 'Invited', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
   IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' },
-  COMPLETED: { label: 'Completed', color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300' },
+  COMPLETED: { label: 'Completed', color: 'bg-success/10 text-success-foreground dark:bg-success/30 dark:text-success' },
   EXPIRED: { label: 'Expired', color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300' },
   CANCELLED: { label: 'Cancelled', color: 'bg-muted text-muted-foreground' },
 }
@@ -148,7 +148,7 @@ export default function AssessmentDetailPage() {
 
   const getScoreColor = (score: number | null) => {
     if (score === null) return 'text-muted-foreground'
-    if (score >= 80) return 'text-green-600 dark:text-green-400'
+    if (score >= 80) return 'text-success dark:text-success'
     if (score >= 60) return 'text-amber-600 dark:text-amber-400'
     return 'text-red-600 dark:text-red-400'
   }
@@ -244,11 +244,11 @@ export default function AssessmentDetailPage() {
                 </div>
               )}
               {assessment.completedAt && (
-                <div className="flex items-center gap-3 p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <div className="flex items-center gap-3 p-3 bg-success/10 dark:bg-green-900/20 rounded-lg">
+                  <CheckCircle className="h-4 w-4 text-success dark:text-success" />
                   <div className="flex-1">
-                    <div className="text-sm text-green-700 dark:text-green-300">Completed</div>
-                    <div className="font-medium text-green-800 dark:text-green-200">
+                    <div className="text-sm text-success dark:text-success">Completed</div>
+                    <div className="font-medium text-success-foreground dark:text-green-200">
                       {format(new Date(assessment.completedAt), "MMM d, yyyy 'at' h:mm a")}
                     </div>
                   </div>
@@ -367,7 +367,7 @@ export default function AssessmentDetailPage() {
                       <Button
                         type="button"
                         variant={recommendation === 'HIRE' ? 'default' : 'outline'}
-                        className={cn('flex-1', recommendation === 'HIRE' && 'bg-green-600 hover:bg-green-700')}
+                        className={cn('flex-1', recommendation === 'HIRE' && 'bg-success hover:bg-success')}
                         onClick={() => setRecommendation('HIRE')}
                       >
                         <ThumbsUp className="h-4 w-4 mr-2" />
@@ -504,7 +504,7 @@ export default function AssessmentDetailPage() {
                             type="button"
                             size="sm"
                             variant={recommendation === 'HIRE' ? 'default' : 'outline'}
-                            className={cn(recommendation === 'HIRE' && 'bg-green-600')}
+                            className={cn(recommendation === 'HIRE' && 'bg-success')}
                             onClick={() => setRecommendation('HIRE')}
                           >
                             Hire
@@ -617,7 +617,7 @@ export default function AssessmentDetailPage() {
                   <Badge
                     className={cn(
                       'text-lg px-4 py-2',
-                      assessment.recommendation === 'HIRE' && 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+                      assessment.recommendation === 'HIRE' && 'bg-success/10 text-success-foreground dark:bg-success/30 dark:text-success',
                       assessment.recommendation === 'HOLD' && 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
                       assessment.recommendation === 'NO_HIRE' && 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300'
                     )}

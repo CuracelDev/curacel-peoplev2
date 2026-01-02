@@ -56,7 +56,7 @@ function EmployeeTaskItem({
 
   const statusColor = taskStatus
     ? taskStatus === 'completed'
-      ? 'bg-green-100 text-green-800'
+      ? 'bg-success/10 text-success-foreground'
       : taskStatus === 'in_progress'
         ? 'bg-blue-100 text-blue-800'
         : 'bg-muted text-foreground/80'
@@ -441,7 +441,7 @@ export default function OnboardingDetailPage() {
           </p>
         </div>
         <Badge className={
-          workflow.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
+          workflow.status === 'COMPLETED' ? 'bg-success/10 text-success-foreground' :
           workflow.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
           workflow.status === 'FAILED' ? 'bg-red-100 text-red-800' :
           'bg-muted text-foreground'
@@ -503,7 +503,7 @@ export default function OnboardingDetailPage() {
                 className={cn(
                   'font-medium',
                   peopleOpsProgress === 100
-                    ? 'text-green-600'
+                    ? 'text-success'
                     : peopleOpsProgress > 0
                       ? 'text-blue-600'
                       : 'text-muted-foreground'
@@ -533,7 +533,7 @@ export default function OnboardingDetailPage() {
                     key={task.id}
                     className={cn(
                       'px-2 py-2',
-                      task.status === 'SUCCESS' && 'bg-green-50',
+                      task.status === 'SUCCESS' && 'bg-success/10',
                       task.status === 'FAILED' && 'bg-red-50',
                       task.status === 'IN_PROGRESS' && 'bg-blue-50'
                     )}
@@ -544,7 +544,7 @@ export default function OnboardingDetailPage() {
                         <div className="min-w-0">
                           <span className="text-sm font-medium text-foreground truncate block">{task.name}</span>
                           {task.status === 'SUCCESS' && provisionedAccount && (
-                            <span className="text-xs text-green-600 truncate block">
+                            <span className="text-xs text-success truncate block">
                               {provisionedAccount.externalEmail || provisionedAccount.externalUsername}
                             </span>
                           )}
@@ -576,7 +576,7 @@ export default function OnboardingDetailPage() {
                         <Badge variant="outline" className="text-xs">
                           {task.type}
                         </Badge>
-                        {task.status === 'SUCCESS' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                        {task.status === 'SUCCESS' && <CheckCircle2 className="h-4 w-4 text-success" />}
                         {task.status === 'FAILED' && <XCircle className="h-4 w-4 text-red-500" />}
                         {task.status === 'IN_PROGRESS' && <RefreshCw className="h-4 w-4 text-blue-500 animate-spin" />}
                         {task.status === 'SKIPPED' && <SkipForward className="h-4 w-4 text-muted-foreground" />}
@@ -694,7 +694,7 @@ export default function OnboardingDetailPage() {
                 className={cn(
                   'font-medium',
                   employeeTasksProgress === 100
-                    ? 'text-green-600'
+                    ? 'text-success'
                     : employeeTasksProgress > 0
                       ? 'text-blue-600'
                       : 'text-muted-foreground'

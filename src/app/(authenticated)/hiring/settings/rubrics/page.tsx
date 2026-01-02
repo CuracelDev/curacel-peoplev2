@@ -20,7 +20,7 @@ const stageConfig: Record<string, { label: string; color: string }> = {
   HR_SCREEN: { label: 'HR Screen', color: 'bg-blue-100 text-blue-800' },
   TECHNICAL: { label: 'Technical', color: 'bg-purple-100 text-purple-800' },
   PANEL: { label: 'Panel', color: 'bg-amber-100 text-amber-800' },
-  CASE_STUDY: { label: 'Case Study', color: 'bg-green-100 text-green-800' },
+  CASE_STUDY: { label: 'Case Study', color: 'bg-success/10 text-success-foreground' },
   CULTURE_FIT: { label: 'Culture Fit', color: 'bg-pink-100 text-pink-800' },
   FINAL: { label: 'Final', color: 'bg-indigo-100 text-indigo-800' },
   OTHER: { label: 'Other', color: 'bg-gray-100 text-gray-800' },
@@ -225,8 +225,8 @@ export default function RubricsPage() {
                                 <div key={score} className="text-center p-2 bg-card rounded-lg border border-border">
                                   <div className={cn(
                                     'text-lg font-bold mb-1',
-                                    parseInt(score) >= 4 ? 'text-green-600' :
-                                    parseInt(score) >= 3 ? 'text-amber-600' : 'text-red-600'
+                                    parseInt(score) >= 4 ? 'text-success' :
+                                    parseInt(score) >= 3 ? 'text-warning' : 'text-red-600'
                                   )}>
                                     {score}
                                   </div>

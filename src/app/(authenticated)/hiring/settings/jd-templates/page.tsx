@@ -164,7 +164,7 @@ const DEPARTMENTS = [
   { value: 'Engineering', icon: Code, color: 'text-blue-500 bg-blue-50' },
   { value: 'Design', icon: Palette, color: 'text-purple-500 bg-purple-50' },
   { value: 'Marketing', icon: Megaphone, color: 'text-pink-500 bg-pink-50' },
-  { value: 'Sales', icon: TrendingUp, color: 'text-green-500 bg-green-50' },
+  { value: 'Sales', icon: TrendingUp, color: 'text-success bg-success/10' },
   { value: 'Operations', icon: Settings, color: 'text-amber-500 bg-amber-50' },
   { value: 'People', icon: Users, color: 'text-indigo-500 bg-indigo-50' },
   { value: 'Finance', icon: Briefcase, color: 'text-emerald-500 bg-emerald-50' },
@@ -377,7 +377,7 @@ export default function JDsPage() {
                       </TableCell>
                       <TableCell>
                         {jd.isActive ? (
-                          <Badge className="bg-green-100 text-green-700 hover:bg-green-100">
+                          <Badge className="bg-success/10 text-success hover:bg-success/10">
                             <Eye className="h-3 w-3 mr-1" />
                             Published
                           </Badge>

@@ -101,7 +101,7 @@ export function RoleBreakdownTable({ data, title = 'Weekly by Role' }: RoleBreak
                       <span className="text-sm">{role.stages.offer}</span>
                     </td>
                     <td className="py-3 text-center">
-                      <span className="text-sm font-semibold text-green-600">{role.stages.hired}</span>
+                      <span className="text-sm font-semibold text-success">{role.stages.hired}</span>
                     </td>
                     <td className="py-3">
                       <div className="flex items-center gap-2">

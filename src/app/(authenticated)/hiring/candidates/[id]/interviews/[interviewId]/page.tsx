@@ -75,8 +75,8 @@ function RatingScale({
     { value: 1, label: 'Poor', color: 'bg-red-500' },
     { value: 2, label: 'Below Avg', color: 'bg-orange-500' },
     { value: 3, label: 'Meets', color: 'bg-yellow-500' },
-    { value: 4, label: 'Good', color: 'bg-green-400' },
-    { value: 5, label: 'Excellent', color: 'bg-green-600' },
+    { value: 4, label: 'Good', color: 'bg-success' },
+    { value: 5, label: 'Excellent', color: 'bg-success' },
   ]
 
   return (
@@ -136,7 +136,7 @@ function StatusBadge({ status }: { status: string }) {
   const statusConfig: Record<string, { label: string; className: string }> = {
     SCHEDULED: { label: 'Scheduled', className: 'bg-blue-100 text-blue-700' },
     IN_PROGRESS: { label: 'In Progress', className: 'bg-amber-100 text-amber-700' },
-    COMPLETED: { label: 'Completed', className: 'bg-green-100 text-green-700' },
+    COMPLETED: { label: 'Completed', className: 'bg-success/10 text-success' },
     CANCELLED: { label: 'Cancelled', className: 'bg-gray-100 text-gray-700' },
     NO_SHOW: { label: 'No Show', className: 'bg-red-100 text-red-700' },
   }
@@ -396,8 +396,8 @@ export default function InterviewDetailPage() {
 
           <div className="flex items-center gap-2 sm:gap-3">
             {overallScore !== null && (
-              <div className="text-center px-3 sm:px-4 py-2 bg-green-50 rounded-lg border border-green-200">
-                <div className="text-xl sm:text-2xl font-bold text-green-600">{overallScore}</div>
+              <div className="text-center px-3 sm:px-4 py-2 bg-success/10 rounded-lg border border-success/20">
+                <div className="text-xl sm:text-2xl font-bold text-success">{overallScore}</div>
                 <div className="text-[10px] sm:text-xs text-muted-foreground">Score</div>
               </div>
             )}
@@ -480,7 +480,7 @@ export default function InterviewDetailPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleCopyLink}
-                className={cn('flex-shrink-0', copiedLink && 'bg-green-50 border-green-300 text-green-600')}
+                className={cn('flex-shrink-0', copiedLink && 'bg-success/10 border-success/30 text-success')}
               >
                 {copiedLink ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
               </Button>
@@ -759,7 +759,7 @@ export default function InterviewDetailPage() {
                             <div className="font-semibold flex items-center gap-2">
                               {interviewer.name}
                               {evaluation ? (
-                                <Badge variant="outline" className="text-green-600 border-green-300">
+                                <Badge variant="outline" className="text-success border-success/30">
                                   <Check className="h-3 w-3 mr-1" />
                                   Submitted
                                 </Badge>

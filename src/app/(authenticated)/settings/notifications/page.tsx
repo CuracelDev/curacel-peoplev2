@@ -294,7 +294,7 @@ export default function NotificationSettingsPage() {
       <div className="flex justify-end">
         <div className="flex items-center gap-3">
           {saveStatus && (
-            <span className={saveStatus.kind === 'success' ? 'text-sm text-green-600' : 'text-sm text-red-600'}>
+            <span className={saveStatus.kind === 'success' ? 'text-sm text-success' : 'text-sm text-red-600'}>
               {saveStatus.message}
             </span>
           )}
@@ -351,7 +351,7 @@ export default function NotificationSettingsPage() {
       <div className="flex justify-end">
         <div className="flex items-center gap-3">
           {saveStatus && (
-            <span className={saveStatus.kind === 'success' ? 'text-sm text-green-600' : 'text-sm text-red-600'}>
+            <span className={saveStatus.kind === 'success' ? 'text-sm text-success' : 'text-sm text-red-600'}>
               {saveStatus.message}
             </span>
           )}

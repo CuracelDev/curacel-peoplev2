@@ -114,13 +114,13 @@ export function DepartmentFunnelTable({ data, year, title }: DepartmentFunnelTab
                       <ArrowRight className="h-3 w-3 text-muted-foreground/60 mx-auto" />
                     </td>
                     <td className="py-3 text-center">
-                      <span className="text-sm font-semibold text-green-600">{row.funnel.hired}</span>
+                      <span className="text-sm font-semibold text-success">{row.funnel.hired}</span>
                     </td>
                     <td className="py-3 text-right">
                       <span className={`text-sm font-medium ${
-                        row.conversionRate >= 10 ? 'text-green-600' :
+                        row.conversionRate >= 10 ? 'text-success' :
                         row.conversionRate >= 5 ? 'text-yellow-600' :
-                        'text-red-500'
+                        'text-destructive'
                       }`}>
                         {row.conversionRate.toFixed(1)}%
                       </span>

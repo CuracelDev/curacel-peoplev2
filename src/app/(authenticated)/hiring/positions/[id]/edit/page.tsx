@@ -35,7 +35,7 @@ import { trpc } from '@/lib/trpc-client'
 
 const flowAppearance = {
   standard: { icon: User, color: 'bg-indigo-50 text-indigo-600' },
-  engineering: { icon: Code, color: 'bg-green-50 text-green-600' },
+  engineering: { icon: Code, color: 'bg-success/10 text-success' },
   sales: { icon: TrendingUp, color: 'bg-amber-50 text-amber-600' },
   executive: { icon: Star, color: 'bg-pink-50 text-pink-600' },
 }
@@ -315,7 +315,7 @@ export default function EditJobPage() {
           'mb-4 rounded-lg border px-4 py-3 text-sm',
           saveState.type === 'error'
             ? 'border-red-200 bg-red-50 text-red-700'
-            : 'border-green-200 bg-green-50 text-green-700'
+            : 'border-success/20 bg-success/10 text-success'
         )}>
           {saveState.message}
         </div>
@@ -655,7 +655,7 @@ export default function EditJobPage() {
               <div>
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Status</div>
                 <Badge className={cn(
-                  formData.status === 'ACTIVE' ? 'bg-green-100 text-green-700' :
+                  formData.status === 'ACTIVE' ? 'bg-success/10 text-success' :
                   formData.status === 'PAUSED' ? 'bg-orange-100 text-orange-700' :
                   formData.status === 'HIRED' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
                 )}>{formData.status}</Badge>

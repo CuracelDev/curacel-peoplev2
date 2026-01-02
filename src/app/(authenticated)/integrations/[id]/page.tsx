@@ -415,7 +415,7 @@ export default function IntegrationDetailPage() {
                   </>
                 ) : connectionState === 'connected' ? (
                   <>
-                    <CheckCircle2 className="h-5 w-5 text-green-500" />
+                    <CheckCircle2 className="h-5 w-5 text-success" />
                     <span className="text-sm">Connected</span>
                   </>
                 ) : connectionState === 'disconnected' ? (

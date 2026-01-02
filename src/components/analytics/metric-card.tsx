@@ -55,7 +55,7 @@ export function MetricCard({
 
   const getChangeColor = () => {
     if (change === undefined || change === 0) return 'text-muted-foreground'
-    return change > 0 ? 'text-green-600' : 'text-red-500'
+    return change > 0 ? 'text-success' : 'text-destructive'
   }
 
   const ChangeIcon = getChangeIcon()

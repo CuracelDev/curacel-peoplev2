@@ -51,7 +51,7 @@ const typeConfig: Record<AssessmentType, { label: string; icon: React.ComponentT
   COMPETENCY_TEST: { label: 'Competency Test', icon: Target, color: 'bg-purple-100 text-purple-800' },
   CODING_TEST: { label: 'Coding Test', icon: Code, color: 'bg-blue-100 text-blue-800' },
   PERSONALITY_TEST: { label: 'Personality Test', icon: Brain, color: 'bg-pink-100 text-pink-800' },
-  WORK_TRIAL: { label: 'Work Trial', icon: Briefcase, color: 'bg-green-100 text-green-800' },
+  WORK_TRIAL: { label: 'Work Trial', icon: Briefcase, color: 'bg-success/10 text-success-foreground' },
   CUSTOM: { label: 'Custom', icon: FileText, color: 'bg-gray-100 text-gray-800' },
 }
 
@@ -196,7 +196,7 @@ export default function AssessmentSettingsPage() {
                         {template.passingScore ? `${template.passingScore}%` : '-'}
                       </TableCell>
                       <TableCell>
-                        <Badge className={template.isActive ? 'bg-green-100 text-green-800' : 'bg-muted text-foreground/80'}>
+                        <Badge className={template.isActive ? 'bg-success/10 text-success-foreground' : 'bg-muted text-foreground/80'}>
                           {template.isActive ? 'Active' : 'Inactive'}
                         </Badge>
                       </TableCell>

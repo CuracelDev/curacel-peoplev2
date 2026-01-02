@@ -597,8 +597,8 @@ export default function CandidateProfilePage() {
 
               {/* Score - visible on mobile next to avatar */}
               {typeof displayScore === 'number' && (
-                <div className="text-center p-3 bg-green-50 rounded-xl border border-green-200 sm:hidden">
-                  <div className="text-3xl font-bold text-green-600">{displayScore}</div>
+                <div className="text-center p-3 bg-success/10 rounded-xl border border-success/20 sm:hidden">
+                  <div className="text-3xl font-bold text-success">{displayScore}</div>
                   <div className="text-xs text-muted-foreground">Overall Score</div>
                 </div>
               )}
@@ -636,7 +636,7 @@ export default function CandidateProfilePage() {
                   <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 text-xs">{candidate.position}</Badge>
                 )}
                 {candidate.stage && (
-                  <Badge className="bg-green-100 text-green-700 hover:bg-green-100 text-xs">{candidate.stage}</Badge>
+                  <Badge className="bg-success/10 text-success hover:bg-success/10 text-xs">{candidate.stage}</Badge>
                 )}
                 {candidate.mbtiType && (
                   <Badge variant="secondary" className="text-xs">{candidate.mbtiType}</Badge>
@@ -646,10 +646,10 @@ export default function CandidateProfilePage() {
 
             {/* Score - hidden on mobile, shown on desktop */}
             {typeof displayScore === 'number' && (
-              <div className="hidden sm:block text-center p-4 bg-green-50 rounded-xl border border-green-200 flex-shrink-0">
-                <div className="text-4xl font-bold text-green-600">{displayScore}</div>
+              <div className="hidden sm:block text-center p-4 bg-success/10 rounded-xl border border-success/20 flex-shrink-0">
+                <div className="text-4xl font-bold text-success">{displayScore}</div>
                 <div className="text-xs text-muted-foreground">Overall Score</div>
-                <div className="text-[10px] text-green-700 mt-1">Weighted from profile inputs</div>
+                <div className="text-[10px] text-success-foreground mt-1">Weighted from profile inputs</div>
               </div>
             )}
 
@@ -715,11 +715,11 @@ export default function CandidateProfilePage() {
                       <p className="text-sm text-foreground/80 mb-4">{latestAnalysis.summary}</p>
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                         <div>
-                          <div className="font-semibold text-green-600 mb-3">Strengths</div>
+                          <div className="font-semibold text-success mb-3">Strengths</div>
                           {analysisStrengths.length > 0 ? (
                             analysisStrengths.map((strength, i) => (
                               <div key={i} className="flex items-start gap-2 py-2">
-                                <Check className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5" />
+                                <Check className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
                                 <span className="text-sm">{strength}</span>
                               </div>
                             ))
@@ -793,7 +793,7 @@ export default function CandidateProfilePage() {
                           <div className="text-[10px] sm:text-[11px] uppercase tracking-wide text-muted-foreground">{value.name}</div>
                           <div className={cn(
                             'text-xs sm:text-sm font-semibold mt-2',
-                            value.rating === 'Strong' ? 'text-green-600' : value.rating === 'Moderate' ? 'text-amber-600' : 'text-red-600'
+                            value.rating === 'Strong' ? 'text-success' : value.rating === 'Moderate' ? 'text-amber-600' : 'text-red-600'
                           )}>
                             {value.rating}
                           </div>
@@ -816,8 +816,8 @@ export default function CandidateProfilePage() {
                 </CardHeader>
                 <CardContent>
                   {candidate.recommendation || candidate.recommendationSummary ? (
-                    <div className="p-5 bg-green-50 border border-green-200 rounded-xl text-center">
-                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-full font-semibold text-sm mb-3">
+                    <div className="p-5 bg-success/10 border border-success/20 rounded-xl text-center">
+                      <div className="inline-flex items-center gap-2 px-4 py-2 bg-success text-white rounded-full font-semibold text-sm mb-3">
                         <Check className="h-4 w-4" />
                         {candidate.recommendation?.replace(/_/g, ' ') || 'Recommendation'}
                       </div>
@@ -857,7 +857,7 @@ export default function CandidateProfilePage() {
                           )}
                           <div className={cn(
                             'w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 z-10',
-                            stage.status === 'completed' && 'bg-green-500 text-white',
+                            stage.status === 'completed' && 'bg-success text-white',
                             stage.status === 'current' && 'bg-indigo-600 text-white shadow-[0_0_0_4px_rgba(99,102,241,0.2)]',
                             stage.status === 'upcoming' && 'bg-muted text-muted-foreground'
                           )}>
@@ -869,7 +869,7 @@ export default function CandidateProfilePage() {
                               {typeof stage.score === 'number' && (
                                 <span className={cn(
                                   'px-2 py-0.5 rounded text-xs font-semibold',
-                                  stage.score >= 80 ? 'bg-green-100 text-green-600' : 'bg-amber-100 text-amber-600'
+                                  stage.score >= 80 ? 'bg-success/10 text-success' : 'bg-amber-100 text-amber-600'
                                 )}>
                                   {stage.score}
                                 </span>
@@ -1011,7 +1011,7 @@ export default function CandidateProfilePage() {
                             <div key={item.label} className="text-center p-3 bg-muted/50 rounded-lg">
                               <div className={cn(
                                 'text-2xl font-bold',
-                                item.score >= 80 ? 'text-green-600' : item.score >= 65 ? 'text-amber-600' : 'text-red-600'
+                                item.score >= 80 ? 'text-success' : item.score >= 65 ? 'text-amber-600' : 'text-red-600'
                               )}>
                                 {item.score}
                               </div>
@@ -1106,7 +1106,7 @@ export default function CandidateProfilePage() {
                           <h4 className="font-semibold">{edu.degree} {edu.field}</h4>
                           <div className="text-sm text-muted-foreground">{edu.institution}</div>
                           {edu.honors && (
-                            <Badge variant="outline" className="mt-1 text-xs text-green-600 border-green-300">
+                            <Badge variant="outline" className="mt-1 text-xs text-success border-success/30">
                               {edu.honors}
                             </Badge>
                           )}
@@ -1274,7 +1274,7 @@ export default function CandidateProfilePage() {
                           <span className="text-sm text-muted-foreground">Overall Score:</span>
                           <Badge className={cn(
                             'text-lg px-3 py-1',
-                            evaluation.overallScore >= 85 ? 'bg-green-500' :
+                            evaluation.overallScore >= 85 ? 'bg-success' :
                             evaluation.overallScore >= 70 ? 'bg-amber-500' : 'bg-red-500'
                           )}>
                             {evaluation.overallScore}
@@ -1325,9 +1325,9 @@ export default function CandidateProfilePage() {
                             {evaluator.recommendation && (
                               <Badge className={cn(
                                 evaluator.recommendation === 'STRONG_HIRE' || evaluator.recommendation === 'STRONG_ADVANCE'
-                                  ? 'bg-green-600'
+                                  ? 'bg-success'
                                   : evaluator.recommendation === 'HIRE' || evaluator.recommendation === 'ADVANCE'
-                                  ? 'bg-green-500'
+                                  ? 'bg-success'
                                   : evaluator.recommendation === 'HOLD'
                                   ? 'bg-amber-500'
                                   : 'bg-red-500'
@@ -1352,7 +1352,7 @@ export default function CandidateProfilePage() {
                                         'w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full',
                                         dot <= criterion.score
                                           ? criterion.score >= 4
-                                            ? 'bg-green-500'
+                                            ? 'bg-success'
                                             : criterion.score >= 3
                                             ? 'bg-amber-500'
                                             : 'bg-red-500'
@@ -1527,7 +1527,7 @@ export default function CandidateProfilePage() {
                           <span>{comp.label}</span>
                           <span className={cn(
                             'font-semibold',
-                            value >= 80 ? 'text-green-600' : value >= 65 ? 'text-amber-600' : 'text-red-600'
+                            value >= 80 ? 'text-success' : value >= 65 ? 'text-amber-600' : 'text-red-600'
                           )}>
                             {value}%
                           </span>
@@ -1592,12 +1592,12 @@ export default function CandidateProfilePage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <h4 className="text-sm font-medium text-green-600 mb-2">Strengths</h4>
+                  <h4 className="text-sm font-medium text-success mb-2">Strengths</h4>
                   <ul className="space-y-2">
                     {candidate.teamFitStrengths.length > 0 ? (
                       candidate.teamFitStrengths.map((item, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-foreground/80">
-                          <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                          <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                           {item}
                         </li>
                       ))
@@ -1650,7 +1650,7 @@ export default function CandidateProfilePage() {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-6">
             <div className="space-y-6">
               {/* AuntyPelz Recommendation */}
-              <Card className="border-2 border-green-300 bg-green-50">
+              <Card className="border-2 border-success/30 bg-success/10">
                 <CardHeader>
                   <CardTitle className="text-base flex items-center gap-2">
                     <Sparkles className="h-4 w-4" />
@@ -1661,7 +1661,7 @@ export default function CandidateProfilePage() {
                   {candidate.recommendation || candidate.recommendationSummary ? (
                     <>
                       <div className="flex items-center gap-4 mb-4">
-                        <Badge className="text-lg px-4 py-2 bg-green-500">
+                        <Badge className="text-lg px-4 py-2 bg-success">
                           <ThumbsUp className="h-5 w-5 mr-2" />
                           {(candidate.recommendation || 'PENDING').replace(/_/g, ' ')}
                         </Badge>
@@ -1688,14 +1688,14 @@ export default function CandidateProfilePage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base text-green-600">Key Strengths</CardTitle>
+                    <CardTitle className="text-base text-success">Key Strengths</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <ul className="space-y-2">
                       {candidate.recommendationStrengths.length > 0 ? (
                         candidate.recommendationStrengths.map((item, i) => (
                           <li key={i} className="flex items-start gap-2 text-sm">
-                            <CheckCircle className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                            <CheckCircle className="h-4 w-4 text-success mt-0.5 flex-shrink-0" />
                             {item}
                           </li>
                         ))
@@ -1743,7 +1743,7 @@ export default function CandidateProfilePage() {
                       variant={selectedDecision === 'HIRE' ? 'default' : 'outline'}
                       className={cn(
                         'flex-1',
-                        selectedDecision === 'HIRE' && 'bg-green-500 hover:bg-green-600'
+                        selectedDecision === 'HIRE' && 'bg-success hover:bg-success'
                       )}
                       onClick={() => setSelectedDecision('HIRE')}
                     >
@@ -1801,7 +1801,7 @@ export default function CandidateProfilePage() {
                   {typeof candidate.score === 'number' && (
                     <div className="flex justify-between py-2 border-b">
                       <span className="text-sm text-muted-foreground">Application Score</span>
-                      <span className="font-semibold text-green-600">{candidate.score}</span>
+                      <span className="font-semibold text-success">{candidate.score}</span>
                     </div>
                   )}
                   {typeof candidate.pressValuesAvg === 'number' && (

@@ -23,8 +23,8 @@ export function FunnelChart({ title, stages, showPercentages = true }: FunnelCha
     'bg-cyan-400',
     'bg-teal-400',
     'bg-emerald-400',
-    'bg-green-400',
-    'bg-green-500',
+    'bg-success',
+    'bg-success',
   ]
 
   return (

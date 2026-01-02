@@ -196,7 +196,7 @@ Areas to probe in next stage:
                 <div key={i} className="mb-4">
                   <div className={cn(
                     'font-semibold text-sm mb-1',
-                    entry.role === 'Candidate' ? 'text-green-600' : 'text-indigo-600'
+                    entry.role === 'Candidate' ? 'text-success' : 'text-indigo-600'
                   )}>
                     {entry.speaker} ({entry.role})
                   </div>
@@ -231,7 +231,7 @@ Areas to probe in next stage:
                           'w-8 h-8 rounded border-2 flex items-center justify-center text-sm font-medium transition-all',
                           rubricScores[item.name] === score
                             ? score >= 4
-                              ? 'bg-green-500 border-green-500 text-white'
+                              ? 'bg-success border-success text-white'
                               : score === 3
                               ? 'bg-amber-500 border-amber-500 text-white'
                               : 'bg-red-500 border-red-500 text-white'
@@ -269,11 +269,11 @@ Areas to probe in next stage:
         {/* Right Column */}
         <div className="space-y-5">
           {/* Score Summary */}
-          <div className="flex items-center gap-4 p-4 bg-green-50 border border-green-200 rounded-xl">
-            <div className="text-4xl font-bold text-green-600">{stageInfo.score}</div>
+          <div className="flex items-center gap-4 p-4 bg-success/10 border border-success/20 rounded-xl">
+            <div className="text-4xl font-bold text-success">{stageInfo.score}</div>
             <div>
               <div className="font-semibold">Stage Score</div>
-              <div className="text-sm text-green-600">{stageInfo.scoreChange}</div>
+              <div className="text-sm text-success">{stageInfo.scoreChange}</div>
             </div>
           </div>
 
@@ -289,7 +289,7 @@ Areas to probe in next stage:
                 James demonstrated exceptional technical depth in discussing distributed systems architecture. His experience leading the payment reconciliation redesign at Paystack directly translates to our infrastructure needs.
               </p>
 
-              <h4 className="font-semibold mb-2 text-green-600">Strengths Observed</h4>
+              <h4 className="font-semibold mb-2 text-success">Strengths Observed</h4>
               <ul className="text-sm text-foreground/80 mb-4 list-disc pl-4 space-y-1">
                 <li>Deep expertise in event-driven architecture and Kafka</li>
                 <li>Strong decision-making framework for technology choices</li>
@@ -340,8 +340,8 @@ Areas to probe in next stage:
                   className={cn(
                     'flex-1 p-3 rounded-lg border-2 text-center font-medium transition-all',
                     recommendation === 'advance'
-                      ? 'bg-green-500 text-white border-green-500'
-                      : 'bg-green-50 text-green-600 border-green-200 hover:bg-green-100'
+                      ? 'bg-success text-white border-success'
+                      : 'bg-success/10 text-success border-success/20 hover:bg-success/10'
                   )}
                 >
                   <Check className="h-4 w-4 mx-auto mb-1" />
