@@ -180,10 +180,16 @@ export default function ApplicationsSettingsPage() {
       />
 
       <Tabs defaultValue="active" className="space-y-4">
-        <TabsList className="w-full">
-          <TabsTrigger value="active" className="flex-1">Active</TabsTrigger>
-          <TabsTrigger value="disabled" className="flex-1">Disabled</TabsTrigger>
-          <TabsTrigger value="archived" className="flex-1">Archived</TabsTrigger>
+        <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
+          <TabsTrigger value="active" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            Active
+          </TabsTrigger>
+          <TabsTrigger value="disabled" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            Disabled
+          </TabsTrigger>
+          <TabsTrigger value="archived" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            Archived
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="active" className="space-y-4">

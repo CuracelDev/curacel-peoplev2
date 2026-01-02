@@ -362,7 +362,7 @@ export default function CandidatesPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5">
       <PageActions>
         <div className="flex flex-wrap items-center gap-3">
           <Select value={teamFilter} onValueChange={setTeamFilter}>

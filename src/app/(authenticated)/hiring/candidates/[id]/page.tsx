@@ -637,7 +637,7 @@ export default function CandidateProfilePage() {
   }
 
   return (
-    <div className="p-3 sm:p-6">
+    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5">
       {/* Profile Header */}
       <Card className="mb-6">
         <CardContent className="p-4 sm:p-6">
@@ -659,7 +659,23 @@ export default function CandidateProfilePage() {
             </div>
 
             <div className="flex-1 min-w-0">
-              <h1 className="text-xl sm:text-2xl font-semibold mb-1">{candidate.name}</h1>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-xl sm:text-2xl font-semibold">{candidate.name}</h1>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={handleExportProfile}
+                  disabled={exporting}
+                  title="Export Profile as PDF"
+                >
+                  {exporting ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Download className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
               <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3">
                 {candidate.email && (
                   <span className="flex items-center gap-1.5">
@@ -714,23 +730,32 @@ export default function CandidateProfilePage() {
                   <span className="hidden sm:inline">View Stages</span>
                 </Button>
               </Link>
-              <Link href="/hiring/questions" className="flex-1 sm:flex-none">
-                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
-                  <HelpCircle className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Generate Questions</span>
-                </Button>
-              </Link>
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-xs sm:text-sm"
-                onClick={handleExportProfile}
-                disabled={exporting}
-              >
-                <Download className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Export Profile</span>
-              </Button>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Email Communication Section */}
+      <Card className="mb-6">
+        <CardContent className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                <Mail className="h-6 w-6 text-indigo-600" />
+              </div>
+              <div>
+                <h3 className="font-semibold">Email Communication</h3>
+                <p className="text-sm text-muted-foreground">
+                  View and manage emails with {candidate.name}
+                </p>
+              </div>
+            </div>
+            <Link href={`/hiring/candidates/${candidateId}/emails`}>
+              <Button variant="outline">
+                View Emails
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>
@@ -738,15 +763,28 @@ export default function CandidateProfilePage() {
       {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
         <div className="overflow-x-auto">
-          <TabsList className="flex w-full">
-            <TabsTrigger value="overview" className="flex-1 justify-center text-xs sm:text-sm">Overview</TabsTrigger>
-            <TabsTrigger value="application" className="flex-1 justify-center text-xs sm:text-sm">Application</TabsTrigger>
-            <TabsTrigger value="stages" className="flex-1 justify-center text-xs sm:text-sm">Interviews</TabsTrigger>
-            <TabsTrigger value="assessments" className="flex-1 justify-center text-xs sm:text-sm">Assessments</TabsTrigger>
-            <TabsTrigger value="values" className="flex-1 justify-center text-xs sm:text-sm">Curacel Fit</TabsTrigger>
-            <TabsTrigger value="email" className="flex-1 justify-center text-xs sm:text-sm">Email</TabsTrigger>
-            <TabsTrigger value="auntypelz" className="flex-1 justify-center text-xs sm:text-sm">AuntyPelz</TabsTrigger>
-            <TabsTrigger value="decision" className="flex-1 justify-center text-xs sm:text-sm">Decision</TabsTrigger>
+          <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
+            <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Overview
+            </TabsTrigger>
+            <TabsTrigger value="application" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Application
+            </TabsTrigger>
+            <TabsTrigger value="stages" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Interviews
+            </TabsTrigger>
+            <TabsTrigger value="assessments" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Assessments
+            </TabsTrigger>
+            <TabsTrigger value="values" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Values & Fit
+            </TabsTrigger>
+            <TabsTrigger value="auntypelz" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              AuntyPelz
+            </TabsTrigger>
+            <TabsTrigger value="decision" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Decision
+            </TabsTrigger>
           </TabsList>
         </div>
 
@@ -1691,17 +1729,6 @@ export default function CandidateProfilePage() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
-
-        {/* Email Tab */}
-        <TabsContent value="email" className="mt-6">
-          <EmailTab
-            candidateId={candidate.id}
-            candidateName={candidate.name}
-            candidateEmail={candidate.email}
-            jobId={candidate.job?.id}
-            jobTitle={candidate.job?.title}
-          />
         </TabsContent>
 
         {/* AuntyPelz Analysis Tab */}

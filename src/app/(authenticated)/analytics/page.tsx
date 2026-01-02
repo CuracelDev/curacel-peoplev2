@@ -85,12 +85,22 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="monthly">Monthly</TabsTrigger>
-          <TabsTrigger value="funnel">Funnel</TabsTrigger>
-          <TabsTrigger value="velocity">Velocity</TabsTrigger>
-          <TabsTrigger value="sources">By Source</TabsTrigger>
+        <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
+          <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="monthly" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            Monthly
+          </TabsTrigger>
+          <TabsTrigger value="funnel" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            Funnel
+          </TabsTrigger>
+          <TabsTrigger value="velocity" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            Velocity
+          </TabsTrigger>
+          <TabsTrigger value="sources" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            By Source
+          </TabsTrigger>
         </TabsList>
 
         {/* Overview Tab */}

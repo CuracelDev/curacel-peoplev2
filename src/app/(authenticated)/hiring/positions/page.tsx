@@ -139,7 +139,7 @@ export default function PositionsPage() {
   }
 
   return (
-    <div className="p-3 sm:p-6">
+    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5">
       <PageActions>
         <Link href="/hiring/positions/new">
           <Button>
