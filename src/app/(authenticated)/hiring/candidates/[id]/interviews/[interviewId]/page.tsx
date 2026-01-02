@@ -35,6 +35,9 @@ import {
   RefreshCw,
   ChevronLeft,
   ChevronRight,
+  Upload,
+  Search,
+  CheckCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -590,153 +593,145 @@ export default function InterviewDetailPage() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* Interview Details */}
-            <Card className="lg:col-span-2">
-              <CardHeader>
-                <CardTitle className="text-base">Interview Details</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-sm text-muted-foreground">Type</div>
-                    <div className="font-medium">
-                      {interview.stageDisplayName || interview.stageName || interview.stage}
+          <div className="grid grid-cols-[1fr_380px] gap-6">
+            {/* Left Column */}
+            <div className="space-y-5">
+              {/* Transcript */}
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between py-4 px-5">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    Interview Transcript
+                  </CardTitle>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      <Upload className="h-4 w-4 mr-2" />
+                      Upload
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Search className="h-4 w-4 mr-2" />
+                      Fireflies Search
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent className="px-5 pb-5 max-h-96 overflow-y-auto">
+                  {interview.firefliesTranscript ? (
+                    <div className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">
+                      {interview.firefliesTranscript}
                     </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">Status</div>
-                    <StatusBadge status={interview.status} />
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">Date & Time</div>
-                    <div className="font-medium">
-                      {format(scheduledDate, 'PPP')} at {format(scheduledDate, 'p')}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="text-sm text-muted-foreground">Duration</div>
-                    <div className="font-medium">{interview.duration} minutes</div>
-                  </div>
-                  {interview.meetingLink && (
-                    <div className="col-span-2">
-                      <div className="text-sm text-muted-foreground">Meeting Link</div>
-                      <a
-                        href={interview.meetingLink}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="font-medium text-blue-600 hover:underline flex items-center gap-1"
-                      >
-                        {interview.meetingLink.substring(0, 50)}...
-                        <ExternalLink className="h-3 w-3" />
-                      </a>
+                  ) : (
+                    <div className="text-center py-10 text-muted-foreground">
+                      <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No transcript available yet</p>
+                      <p className="text-xs mt-1">Upload a transcript or use Fireflies to auto-capture</p>
                     </div>
                   )}
-                  {interview.feedback && (
-                    <div className="col-span-2">
-                      <div className="text-sm text-muted-foreground">Notes</div>
-                      <div className="font-medium">{interview.feedback}</div>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
 
-            {/* Evaluations Summary */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="text-base">Evaluations</CardTitle>
-              </CardHeader>
-              <CardContent>
-                {interview.evaluations && interview.evaluations.length > 0 ? (
-                  <div className="space-y-4">
-                    {interview.evaluations.map((evaluation) => (
-                      <div
-                        key={evaluation.id}
-                        className="flex items-center justify-between py-3 border-b last:border-0"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Avatar className="h-8 w-8">
-                            <AvatarFallback
+              {/* Rubric Scoring */}
+              <Card>
+                <CardHeader className="py-4 px-5">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Interview Rubric
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="px-5 pb-5 space-y-4">
+                  {interview.evaluations && interview.evaluations.length > 0 && interview.evaluations[0].criteriaScores?.length > 0 ? (
+                    interview.evaluations[0].criteriaScores.map((criteriaScore) => (
+                      <div key={criteriaScore.id}>
+                        <div className="flex justify-between items-center mb-2">
+                          <span className="font-medium text-sm">{criteriaScore.criteria.name}</span>
+                          <span className="font-semibold text-sm">{criteriaScore.score}/5</span>
+                        </div>
+                        <div className="flex gap-2">
+                          {[1, 2, 3, 4, 5].map((score) => (
+                            <button
+                              key={score}
+                              disabled
                               className={cn(
-                                getAvatarColor(evaluation.evaluatorName || 'Evaluator'),
-                                'text-white text-xs'
+                                'w-8 h-8 rounded border-2 flex items-center justify-center text-sm font-medium transition-all',
+                                criteriaScore.score === score
+                                  ? score >= 4
+                                    ? 'bg-success border-success text-white'
+                                    : score === 3
+                                    ? 'bg-amber-500 border-amber-500 text-white'
+                                    : 'bg-red-500 border-red-500 text-white'
+                                  : 'border-border'
                               )}
                             >
-                              {getInitials(evaluation.evaluatorName || 'E')}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="text-sm font-medium">
-                              {evaluation.evaluatorName || 'Evaluator'}
-                            </div>
-                            <div className="text-xs text-muted-foreground">
-                              {evaluation.overallScore ? `Score: ${evaluation.overallScore}/5` : 'Pending'}
-                            </div>
-                          </div>
+                              {score}
+                            </button>
+                          ))}
                         </div>
-                        {evaluation.recommendation && (
-                          <Badge
-                            className={cn(
-                              evaluation.recommendation === 'STRONG_HIRE' && 'bg-green-600',
-                              evaluation.recommendation === 'HIRE' && 'bg-green-500',
-                              evaluation.recommendation === 'MAYBE' && 'bg-amber-500',
-                              evaluation.recommendation === 'NO_HIRE' && 'bg-red-500',
-                              evaluation.recommendation === 'STRONG_NO_HIRE' && 'bg-red-600'
-                            )}
-                          >
-                            {evaluation.recommendation.replace('_', ' ')}
-                          </Badge>
-                        )}
                       </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-6 text-muted-foreground">
-                    <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">No evaluations submitted yet</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    ))
+                  ) : (
+                    <div className="text-center py-6 text-muted-foreground">
+                      <CheckCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <p className="text-sm">No rubric scores available yet</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
 
-            {/* Candidate Info */}
-            <Card className="lg:col-span-3">
-              <CardHeader>
-                <CardTitle className="text-base">Candidate</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-4">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback
-                      className={cn(getAvatarColor(interview.candidate.name), 'text-white')}
-                    >
-                      {getInitials(interview.candidate.name)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="font-semibold">{interview.candidate.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      {interview.candidate.email}
-                    </div>
+            {/* Right Column */}
+            <div className="space-y-5">
+              {/* Score Summary */}
+              <div className="flex items-center gap-4 p-4 bg-success/10 border border-success/20 rounded-xl">
+                <div className="text-4xl font-bold text-success">{averageScore || 'N/A'}</div>
+                <div>
+                  <div className="font-semibold">Stage Score</div>
+                  <div className="text-sm text-success">
+                    {interview.stageDisplayName || interview.stageName || interview.stage}
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm font-medium">
-                      {interview.candidate.job?.title || 'Position'}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                      {interview.candidate.job?.department || 'Department'}
-                    </div>
-                  </div>
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href={`/recruiting/candidates/${interview.candidate.id}`}>
-                      <User className="h-4 w-4 mr-2" />
-                      View Profile
-                    </Link>
-                  </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+
+              {/* AuntyPelz Analysis */}
+              <Card className="bg-gradient-to-br from-indigo-50/50 to-purple-50/50 border-indigo-200">
+                <CardContent className="p-5">
+                  <Badge className="bg-indigo-600 mb-3">
+                    <Star className="h-3 w-3 mr-1" />
+                    AuntyPelz Analysis
+                  </Badge>
+                  <h4 className="font-semibold mb-3">Key Insights</h4>
+                  {interview.firefliesSummary ? (
+                    <p className="text-sm text-foreground/80 mb-4">
+                      {interview.firefliesSummary}
+                    </p>
+                  ) : (
+                    <p className="text-sm text-foreground/80 mb-4">
+                      AI analysis will appear here once the interview transcript is available.
+                    </p>
+                  )}
+
+                  {interview.firefliesHighlights && interview.firefliesHighlights.length > 0 && (
+                    <>
+                      <h4 className="font-semibold mb-2 text-success">Strengths Observed</h4>
+                      <ul className="text-sm text-foreground/80 mb-4 list-disc pl-4 space-y-1">
+                        {interview.firefliesHighlights.slice(0, 3).map((highlight, i) => (
+                          <li key={i}>{highlight}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+
+                  {interview.firefliesActionItems && interview.firefliesActionItems.length > 0 && (
+                    <>
+                      <h4 className="font-semibold mb-2 text-amber-600">Areas to Note</h4>
+                      <ul className="text-sm text-foreground/80 list-disc pl-4 space-y-1">
+                        {interview.firefliesActionItems.slice(0, 2).map((item, i) => (
+                          <li key={i}>{item}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
           </div>
         </TabsContent>
 
