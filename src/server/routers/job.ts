@@ -460,6 +460,19 @@ export const jobRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
+      // Fetch job with hiring flow snapshot
+      const job = await ctx.prisma.job.findUnique({
+        where: { id: input.jobId },
+        select: {
+          id: true,
+          hiringFlowSnapshot: {
+            select: {
+              stages: true,
+            },
+          },
+        },
+      })
+
       const where: { jobId: string; stage?: JobCandidateStageType } = { jobId: input.jobId }
       if (input.stage) {
         where.stage = input.stage
@@ -476,6 +489,23 @@ export const jobRouter = router({
         where: { jobId: input.jobId },
         _count: true,
       })
+
+      // Standard stage display names mapping (fallback if no hiring flow)
+      const stageDisplayNames: Record<string, string> = {
+        APPLIED: 'Applied',
+        HR_SCREEN: 'People Chat',
+        TECHNICAL: 'Coding Test',
+        TEAM_CHAT: 'Team Chat',
+        ADVISOR_CHAT: 'Advisor Chat',
+        PANEL: 'Panel',
+        TRIAL: 'Trial',
+        CEO_CHAT: 'CEO Chat',
+        OFFER: 'Offer',
+        HIRED: 'Hired',
+        REJECTED: 'Rejected',
+        WITHDRAWN: 'Withdrawn',
+        ARCHIVED: 'Archived',
+      }
 
       const counts = {
         all: candidates.length,
@@ -516,7 +546,22 @@ export const jobRouter = router({
 
       counts.all = stageCounts.reduce((sum, s) => sum + s._count, 0)
 
-      return { candidates, counts }
+      // Build stage info with counts and display names
+      const stageInfo = stageCounts.map((s) => ({
+        stage: s.stage,
+        displayName: stageDisplayNames[s.stage] || s.stage,
+        count: s._count,
+      }))
+
+      // Get hiring flow stages if available
+      const hiringFlowStages = job?.hiringFlowSnapshot?.stages as string[] | null
+
+      return {
+        candidates,
+        counts,
+        stageInfo,
+        hiringFlowStages,
+      }
     }),
 
   // Add a candidate to a job

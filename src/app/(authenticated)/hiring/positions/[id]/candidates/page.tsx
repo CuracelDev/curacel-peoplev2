@@ -129,35 +129,32 @@ export default function CandidatesListPage() {
     rejected: 0,
   }
 
-  // Get stages from hiring flow snapshot or use defaults
-  const hiringFlowStages = useMemo(() => {
-    if (job?.hiringFlowSnapshot?.stages) {
-      return job.hiringFlowSnapshot.stages as string[]
-    }
-    // Fallback to default stages if no hiring flow is assigned
-    return ['Apply', 'People Chat', 'Assessment', 'Team Chat', 'Trial', 'CEO Chat', 'Offer']
-  }, [job?.hiringFlowSnapshot?.stages])
+  // Use actual stages from backend with real counts
+  const stages = useMemo(() => {
+    const stageInfo = candidatesData?.stageInfo || []
 
-  const stages = useMemo(() => ([
-    { id: 'all', label: 'Applicants', count: counts.all },
-    { id: 'applied', label: 'In Review', count: counts.applied },
-    {
-      id: 'interviewing',
-      label: 'Interviewing',
-      count: counts.hrScreen + counts.technical + counts.panel,
-    },
-    { id: 'offer', label: 'Offer Stage', count: counts.offer },
-  ]), [counts])
+    // Always include "All" stage
+    const allStages = [
+      { id: 'all', label: 'All Candidates', count: counts.all }
+    ]
+
+    // Add actual stages with candidates
+    stageInfo.forEach((s) => {
+      allStages.push({
+        id: s.stage,
+        label: s.displayName,
+        count: s.count,
+      })
+    })
+
+    return allStages
+  }, [candidatesData?.stageInfo, counts.all])
 
   // Filter candidates by stage
   const stageFilteredCandidates = useMemo(() => {
     let filtered = allCandidates.filter((c) => {
       if (selectedStage === 'all') return true
-      if (selectedStage === 'applied') return c.stage === 'APPLIED'
-      if (selectedStage === 'interviewing') {
-        return ['HR_SCREEN', 'TECHNICAL', 'PANEL'].includes(c.stage)
-      }
-      if (selectedStage === 'offer') return c.stage === 'OFFER'
+      // Match by actual database stage
       return c.stage === selectedStage
     })
 
@@ -252,7 +249,7 @@ export default function CandidatesListPage() {
 
   if (!job) {
     return (
-      <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5 text-center">
+      <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4 text-center">
         <h2 className="text-xl font-semibold text-foreground">Job not found</h2>
         <p className="text-muted-foreground mt-2">The job you&apos;re looking for doesn&apos;t exist.</p>
         <Link href="/hiring/positions">
@@ -263,7 +260,7 @@ export default function CandidatesListPage() {
   }
 
   return (
-    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-1.5 sm:px-2 md:px-2.5">
+    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       {/* Job Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
