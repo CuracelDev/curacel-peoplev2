@@ -1473,7 +1473,7 @@ Respond ONLY with a valid JSON array, no additional text.`
         const response = await openai.chat.completions.create({
           model: aiModel || 'gpt-4-turbo-preview',
           messages: [{ role: 'user', content: prompt }],
-          max_tokens: 4000,
+          max_completion_tokens: 4000,
         })
         responseText = response.choices[0]?.message?.content || ''
       } else if (aiSettings?.provider === 'GEMINI') {

@@ -206,6 +206,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Assessment submit API now casts responses through unknown for JSON typing
 - Assessment grading now passes response payloads to the grading helper
 - Assessment grading now forwards submitted responses to the background task
+- Assessment grading now stores graded response arrays directly
+- Assessment grading now casts graded responses for JSON storage
+- Assessment analysis now casts AI analysis payloads for JSON storage
 - Assessment selection tiles now keep readable text in dark mode
 - External recruiter creation uses a dialog instead of unsupported prompt calls
 - Employees auto-activate when start date has passed after offer sign-off

@@ -118,7 +118,7 @@ async function gradeAndAnalyzeInBackground(assessmentId: string, responses: Resp
       where: { id: assessmentId },
       data: {
         overallScore,
-        scores: gradingResult,
+        scores: gradingResult as unknown as Prisma.InputJsonValue,
       },
     })
 
@@ -129,14 +129,14 @@ async function gradeAndAnalyzeInBackground(assessmentId: string, responses: Resp
     await prisma.candidateAssessment.update({
       where: { id: assessmentId },
       data: {
-        aiAnalysis: analysis as unknown as Record<string, unknown>,
+        aiAnalysis: analysis as unknown as Prisma.InputJsonValue,
         aiRecommendation: analysis.recommendation,
         aiConfidence: analysis.confidence,
-        summary: analysis.summary,
+        summary: analysis.reasoning,
         strengths: analysis.strengths,
         risks: analysis.concerns,
         recommendation: analysis.recommendation,
-        questionsForCandidate: analysis.interviewQuestions,
+        questionsForCandidate: analysis.questionsForInterview,
       },
     })
 
