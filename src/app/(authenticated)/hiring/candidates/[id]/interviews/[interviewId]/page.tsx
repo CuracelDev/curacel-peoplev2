@@ -33,6 +33,8 @@ import {
   AlertCircle,
   CalendarX,
   RefreshCw,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -405,52 +407,96 @@ export default function InterviewDetailPage() {
   const isUpcoming = scheduledDate > new Date() && interview.status === 'SCHEDULED'
   const isPast = scheduledDate < new Date()
 
+  // Get interviewer names with their statuses from tokens
+  const interviewersWithStatus = useMemo(() => {
+    const tokensMap = new Map(
+      interviewerTokens.map((t: { interviewerEmail: string; evaluationStatus: string }) => [
+        t.interviewerEmail,
+        t.evaluationStatus,
+      ])
+    )
+    return interviewers.map((interviewer) => ({
+      ...interviewer,
+      status: tokensMap.get(interviewer.email) || 'PENDING',
+    }))
+  }, [interviewers, interviewerTokens])
+
+  const interviewerNames = interviewersWithStatus
+    .map((i) => {
+      const statusLabel =
+        i.status === 'SUBMITTED'
+          ? 'Completed'
+          : i.status === 'IN_PROGRESS'
+          ? 'In Progress'
+          : 'Pending'
+      return `${i.name} (${statusLabel})`
+    })
+    .join(', ')
+
   return (
     <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       {/* Header */}
       <div className="mb-6">
-        <Link
-          href="/hiring/interviews"
-          className="inline-flex items-center text-sm text-muted-foreground hover:text-foreground mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-1" />
-          Back to Interviews
-        </Link>
-
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div className="flex items-start gap-3 sm:gap-4">
-            <Avatar className="h-12 w-12 sm:h-14 sm:w-14 flex-shrink-0">
-              <AvatarFallback
-                className={cn(getAvatarColor(interview.candidate.name), 'text-white text-base sm:text-lg font-semibold')}
-              >
-                {getInitials(interview.candidate.name)}
-              </AvatarFallback>
-            </Avatar>
-            <div className="min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl font-bold flex flex-wrap items-center gap-2 sm:gap-3">
-                {interview.stageDisplayName || interview.stageName || interview.stage}
-                <StatusBadge status={interview.status} />
-              </h1>
-              <div className="text-sm text-muted-foreground mt-1 truncate">
-                {interview.candidate.name} &bull; {interview.candidate.job?.title || 'Position'}
-              </div>
-              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mt-2">
-                <span className="flex items-center gap-1">
-                  <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  {format(scheduledDate, 'EEE, MMM d, yyyy')}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Clock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                  {format(scheduledDate, 'h:mm a')} • {interview.duration}min
-                </span>
-                {isUpcoming && (
-                  <Badge variant="outline" className="text-blue-600 border-blue-300">
-                    {formatDistanceToNow(scheduledDate, { addSuffix: true })}
-                  </Badge>
-                )}
-              </div>
-            </div>
+        {/* Title and Stage Badge */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-3">
+            <h1 className="text-2xl font-semibold">
+              {interview.stageDisplayName || interview.stageName || interview.stage}
+            </h1>
+            <Badge className="bg-indigo-600 text-white hover:bg-indigo-700 px-3 py-1">
+              <span className="flex items-center gap-1.5">
+                <span className="text-xs">●</span>
+                Stage {interview.stageNumber || 5} of {interview.totalStages || 6}
+              </span>
+            </Badge>
           </div>
+
+          {/* Navigation */}
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" disabled className="text-muted-foreground">
+              <ChevronLeft className="h-4 w-4 mr-1" />
+              Previous
+            </Button>
+            <span className="text-sm text-muted-foreground">/</span>
+            <Button variant="ghost" size="sm" disabled className="text-muted-foreground">
+              Next Stage
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Candidate Link */}
+        <div className="mb-2">
+          <span className="text-sm text-muted-foreground">Candidate: </span>
+          <Link
+            href={`/hiring/candidates/${candidateId}`}
+            className="text-sm text-indigo-600 hover:text-indigo-700 hover:underline font-medium"
+          >
+            {interview.candidate.name}
+          </Link>
+        </div>
+
+        {/* Interview Details */}
+        <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <Calendar className="h-4 w-4" />
+            {format(scheduledDate, 'MMMM d, yyyy \'at\' h:mm a')}
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Clock className="h-4 w-4" />
+            {interview.duration} minutes
+          </span>
+          <span className="flex items-center gap-1.5">
+            <Users className="h-4 w-4" />
+            Interviewers: {interviewerNames || 'None assigned'}
+          </span>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div className="flex items-start gap-3 sm:gap-4 flex-1" />
 
           <div className="flex items-center gap-2 sm:gap-3">
             {overallScore !== null && (

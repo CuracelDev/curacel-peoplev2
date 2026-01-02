@@ -109,13 +109,6 @@ export default function PositionsPage() {
   const [department, setDepartment] = useState('all')
   const scoreDisplay = recruitingSettings?.jobScoreDisplay ?? 'average'
 
-  // Toggle job public status
-  const toggleJobPublicMutation = trpc.hiringSettings.toggleJobPublic.useMutation({
-    onSuccess: () => {
-      refetch()
-    },
-  })
-
   const filteredJobs = (jobs || []).filter((job) => {
     if (filter !== 'all' && job.status !== filter) return false
     if (department !== 'all' && job.department !== department) return false
