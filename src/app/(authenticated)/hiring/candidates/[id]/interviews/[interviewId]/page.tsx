@@ -435,7 +435,7 @@ export default function InterviewDetailPage() {
           {/* Title and Stage Badge */}
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2.5">
-              <h1 className="text-xl font-semibold">
+              <h1 className="text-2xl font-semibold">
                 {interview.stageDisplayName || interview.stageName || interview.stage}
               </h1>
               <Badge className="bg-indigo-600 text-white hover:bg-indigo-700 px-2.5 py-0.5">
