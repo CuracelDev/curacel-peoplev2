@@ -641,9 +641,9 @@ export const jobRouter = router({
   getPublicJob: publicProcedure
     .input(z.object({ id: z.string(), preview: z.boolean().optional() }))
     .query(async ({ ctx, input }) => {
-      // In preview mode, skip the isPublic check (for admin testing)
+      // In preview mode, skip the isPublic and status checks (for admin testing)
       const whereClause = input.preview
-        ? { id: input.id, status: 'ACTIVE' }
+        ? { id: input.id }
         : { id: input.id, isPublic: true, status: 'ACTIVE' }
 
       const job = await ctx.prisma.job.findFirst({
