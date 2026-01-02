@@ -6,7 +6,7 @@ import { sendOnboardingEmail } from '@/lib/email'
 import { provisionEmployeeInApp, provisionEmployeeInAppById } from '@/lib/integrations'
 import { hasMatchingProvisioningRule } from '@/lib/integrations/provisioning-rules'
 import { getOrganization } from '@/lib/organization'
-import { getGoogleSheetsService, type OnboardingRosterRow, type TaskCatalogRow, type TaskProgressRow } from '@/lib/google-sheets'
+import { getGoogleSheetsService, extractSpreadsheetId, type OnboardingRosterRow, type TaskCatalogRow, type TaskProgressRow } from '@/lib/google-sheets'
 import { ONBOARDING_TASKS, TASK_SECTIONS, type OnboardingTask } from '@/lib/onboarding-tasks'
 
 const DEFAULT_ONBOARDING_TASKS = [
@@ -1253,9 +1253,13 @@ export const onboardingRouter = router({
       lastSynced?: string
     }> => {
       try {
-        // Get sheet ID from settings
+        // Get sheet ID from settings and clean it
         const settings = await ctx.prisma.onboardingSettings.findFirst()
-        const sheetId = settings?.sheetId
+        const rawSheetId = settings?.sheetId
+        const sheetId = rawSheetId ? extractSpreadsheetId(rawSheetId) : null
+
+        console.log('[getTaskCatalog] Raw sheet ID:', rawSheetId)
+        console.log('[getTaskCatalog] Cleaned sheet ID:', sheetId)
 
         if (sheetId) {
           const sheetsService = getGoogleSheetsService({ spreadsheetId: sheetId })
@@ -1328,7 +1332,11 @@ export const onboardingRouter = router({
     }> => {
       try {
         const settings = await ctx.prisma.onboardingSettings.findFirst()
-        const sheetId = settings?.sheetId
+        const rawSheetId = settings?.sheetId
+        const sheetId = rawSheetId ? extractSpreadsheetId(rawSheetId) : null
+
+        console.log('[syncTaskCatalog] Raw sheet ID:', rawSheetId)
+        console.log('[syncTaskCatalog] Cleaned sheet ID:', sheetId)
 
         if (!sheetId) {
           return {
