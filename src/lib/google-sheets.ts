@@ -153,7 +153,7 @@ export class GoogleSheetsService {
       }
 
       return {
-        id: row[0] || `task_${Math.random().toString(36).substr(2, 9)}`,
+        id: row[0] || `task_${Math.random().toString(36).slice(2, 11)}`,
         section,
         title: row[2] || '',
         url: row[3] || undefined,
@@ -232,10 +232,43 @@ export class GoogleSheetsService {
 // Singleton instance for server-side usage
 let sheetsService: GoogleSheetsService | null = null
 
+/**
+ * Extract the spreadsheet ID from a Google Sheets URL or ID string
+ * Handles various formats:
+ * - Full URL: https://docs.google.com/spreadsheets/d/1O2HGf186pg.../edit#gid=0
+ * - Partial URL: 1O2HGf186pg.../edit?gid=0#gid=0
+ * - Just ID: 1O2HGf186pg...
+ */
+export function extractSpreadsheetId(input: string): string {
+  if (!input) return input
+
+  // If it looks like a full URL, extract the ID
+  const urlMatch = input.match(/\/d\/([a-zA-Z0-9_-]+)/)
+  if (urlMatch) {
+    return urlMatch[1]
+  }
+
+  // If it contains /edit or other URL parts, take only the first segment
+  const slashIndex = input.indexOf('/')
+  if (slashIndex > 0) {
+    return input.substring(0, slashIndex)
+  }
+
+  // If it contains query params or hash, strip them
+  const cleanId = input.split(/[?#]/)[0]
+
+  return cleanId.trim()
+}
+
 export function getGoogleSheetsService(config?: Partial<SheetConfig>): GoogleSheetsService {
   // If custom config is provided, create a new instance (don't use singleton)
   if (config?.spreadsheetId) {
-    return new GoogleSheetsService(config)
+    // Clean the spreadsheet ID in case user pasted a URL
+    const cleanedConfig = {
+      ...config,
+      spreadsheetId: extractSpreadsheetId(config.spreadsheetId),
+    }
+    return new GoogleSheetsService(cleanedConfig)
   }
   // Use singleton for default config
   if (!sheetsService) {
