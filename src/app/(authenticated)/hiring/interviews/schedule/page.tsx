@@ -400,15 +400,6 @@ export default function ScheduleInterviewPage() {
 
   return (
     <div className="px-3 py-4 max-w-5xl mx-auto">
-      {/* Back Button */}
-      <div className="mb-4">
-        <Link href="/hiring/interviews">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-      </div>
-
       {/* Step 1: Interview Details */}
       {currentStep === 1 && (
         <Card>
