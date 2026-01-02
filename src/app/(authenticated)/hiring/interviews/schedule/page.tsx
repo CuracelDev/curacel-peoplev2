@@ -956,7 +956,7 @@ export default function ScheduleInterviewPage() {
           {/* Left Panel: Question Sources (Bank or AI) */}
           <div>
             <Card className="sticky top-4 h-[580px] flex flex-col">
-              <CardHeader className="pb-2 px-4 pt-4">
+              <CardHeader className="pb-2 px-3 pt-3">
                 <CardTitle className="text-base flex items-center gap-2">
                   <BookOpen className="h-4 w-4" />
                   Question Sources
@@ -969,7 +969,7 @@ export default function ScheduleInterviewPage() {
               </CardHeader>
               <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
                 <Tabs defaultValue="bank" className="flex-1 flex flex-col">
-                  <TabsList className="mx-4 mb-3 grid grid-cols-2">
+                  <TabsList className="mx-3 mb-2 grid grid-cols-2">
                     <TabsTrigger value="bank">
                       <BookOpen className="h-4 w-4 mr-2" />
                       Question Bank
@@ -981,12 +981,12 @@ export default function ScheduleInterviewPage() {
                   </TabsList>
 
                   {/* Question Bank Tab */}
-                  <TabsContent value="bank" className="px-4 pb-4 mt-0 flex-1 flex flex-col overflow-hidden">
+                  <TabsContent value="bank" className="px-3 pb-3 !mt-0 h-full flex flex-col overflow-hidden">
                     <Input
                       placeholder="Search questions..."
                       value={questionSearch}
                       onChange={(e) => setQuestionSearch(e.target.value)}
-                      className="w-full mb-3"
+                      className="w-full mb-2"
                     />
                     {questionsLoading ? (
                       <div className="flex items-center justify-center flex-1">
@@ -1055,7 +1055,7 @@ export default function ScheduleInterviewPage() {
                   </TabsContent>
 
                   {/* AI Generator Tab */}
-                  <TabsContent value="ai" className="px-4 pb-4 mt-0 flex-1 overflow-auto">
+                  <TabsContent value="ai" className="px-3 pb-3 !mt-0 h-full overflow-auto">
                     {selectedCandidateId ? (
                       <AIQuestionGenerator
                         candidateId={selectedCandidateId}
@@ -1090,7 +1090,7 @@ export default function ScheduleInterviewPage() {
           {/* Right Panel: Selected Questions */}
           <div>
             <Card className="h-[580px] flex flex-col">
-              <CardHeader className="pb-2 px-4 pt-4">
+              <CardHeader className="pb-2 px-3 pt-3">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-base flex items-center gap-2">
@@ -1114,7 +1114,7 @@ export default function ScheduleInterviewPage() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent className="px-4 pb-4 flex-1 flex flex-col overflow-hidden">
+              <CardContent className="px-3 pb-3 flex-1 flex flex-col overflow-hidden">
                 {selectedQuestions.length === 0 ? (
                   <div className="flex flex-col items-center justify-center flex-1 border border-dashed rounded-lg">
                     <MessageSquare className="h-10 w-10 text-muted-foreground mb-3" />
