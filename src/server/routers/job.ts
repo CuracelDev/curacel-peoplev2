@@ -25,6 +25,23 @@ const JobCandidateStageEnum = z.enum([
   'WITHDRAWN',
   'ARCHIVED',
 ])
+type JobCandidateStageType = z.infer<typeof JobCandidateStageEnum>
+
+const allCandidatesFiltersSchema = z.object({
+  stage: JobCandidateStageEnum.optional(),
+  source: CandidateSourceEnum.optional(),
+  search: z.string().optional(),
+  jobId: z.string().optional(),
+  department: z.string().optional(),
+  appliedFrom: z.date().optional(),
+  appliedTo: z.date().optional(),
+  includeArchived: z.boolean().optional(),
+  sortBy: z.enum(['score', 'appliedAt', 'name', 'updatedAt']).default('appliedAt'),
+  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  limit: z.number().min(1).max(100).default(20),
+  offset: z.number().min(0).default(0),
+}).optional()
+type AllCandidatesFilters = z.infer<typeof allCandidatesFiltersSchema>
 
 export const jobRouter = router({
   // List all jobs with optional filters
@@ -411,7 +428,7 @@ export const jobRouter = router({
       })
     )
     .query(async ({ ctx, input }) => {
-      const where: { jobId: string; stage?: string } = { jobId: input.jobId }
+      const where: { jobId: string; stage?: JobCandidateStageType } = { jobId: input.jobId }
       if (input.stage) {
         where.stage = input.stage
       }
@@ -712,7 +729,7 @@ export const jobRouter = router({
     .input(z.object({ id: z.string(), preview: z.boolean().optional() }))
     .query(async ({ ctx, input }) => {
       // In preview mode, skip the isPublic and status checks (for admin testing)
-      const whereClause = input.preview
+      const whereClause: { id: string; isPublic?: boolean; status?: JobStatusType } = input.preview
         ? { id: input.id }
         : { id: input.id, isPublic: true, status: 'ACTIVE' }
 
@@ -745,24 +762,15 @@ export const jobRouter = router({
 
   // Get all candidates across all jobs with filtering
   getAllCandidates: protectedProcedure
-    .input(
-      z.object({
-        stage: JobCandidateStageEnum.optional(),
-        source: CandidateSourceEnum.optional(),
-        search: z.string().optional(),
-        jobId: z.string().optional(),
-        department: z.string().optional(),
-        appliedFrom: z.date().optional(),
-        appliedTo: z.date().optional(),
-        includeArchived: z.boolean().optional(),
-        sortBy: z.enum(['score', 'appliedAt', 'name', 'updatedAt']).default('appliedAt'),
-        sortOrder: z.enum(['asc', 'desc']).default('desc'),
-        limit: z.number().min(1).max(100).default(20),
-        offset: z.number().min(0).default(0),
-      }).optional()
-    )
+    .input(allCandidatesFiltersSchema)
     .query(async ({ ctx, input }) => {
-      const filters = input || {}
+      const filters = {
+        sortBy: 'appliedAt',
+        sortOrder: 'desc',
+        limit: 20,
+        offset: 0,
+        ...(input ?? {}),
+      } as NonNullable<AllCandidatesFilters>
 
       // Build where clause
       const baseWhere: Record<string, unknown> = {}
@@ -1246,9 +1254,8 @@ export const jobRouter = router({
           orderBy: { updatedAt: 'desc' },
         })
 
-        if (settings?.apiKey) {
+        if (settings?.isEnabled) {
           const { decrypt } = await import('@/lib/encryption')
-          const apiKey = decrypt(settings.apiKey)
 
           // Build prompt for AI field matching
           const prompt = `You are an expert at data field mapping. Given the following CSV headers and sample data, match each header to the most appropriate candidate field.
@@ -1280,12 +1287,13 @@ Example response:
 
 IMPORTANT: Return ONLY valid JSON, no additional text.`
 
-          if (settings.provider === 'OPENAI') {
+          if (settings.provider === 'OPENAI' && settings.openaiKeyEncrypted) {
+            const apiKey = decrypt(settings.openaiKeyEncrypted)
             const { default: OpenAI } = await import('openai')
             const client = new OpenAI({ apiKey })
 
             const response = await client.chat.completions.create({
-              model: settings.model || 'gpt-4o-mini',
+              model: settings.openaiModel || 'gpt-4o-mini',
               messages: [{ role: 'user', content: prompt }],
               response_format: { type: 'json_object' },
             })
@@ -1306,12 +1314,13 @@ IMPORTANT: Return ONLY valid JSON, no additional text.`
                 }
               }
             }
-          } else if (settings.provider === 'ANTHROPIC') {
+          } else if (settings.provider === 'ANTHROPIC' && settings.anthropicKeyEncrypted) {
+            const apiKey = decrypt(settings.anthropicKeyEncrypted)
             const { default: Anthropic } = await import('@anthropic-ai/sdk')
             const client = new Anthropic({ apiKey })
 
             const response = await client.messages.create({
-              model: settings.model || 'claude-3-haiku-20240307',
+              model: settings.anthropicModel || 'claude-3-haiku-20240307',
               max_tokens: 1024,
               messages: [{ role: 'user', content: prompt }],
             })
@@ -1338,6 +1347,8 @@ IMPORTANT: Return ONLY valid JSON, no additional text.`
                 }
               }
             }
+          } else {
+            needsManualMapping = true
           }
         } else {
           // No AI configured, require manual mapping
@@ -1512,7 +1523,7 @@ IMPORTANT: Return ONLY valid JSON, no additional text.`
             resumeUrl: c.resumeUrl,
             source,
             stage: 'APPLIED',
-            addedById: ctx.session.user.id,
+            addedById: ctx.session?.user?.id ?? null,
           })),
           skipDuplicates: true,
         })

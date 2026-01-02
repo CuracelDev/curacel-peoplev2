@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { router, protectedProcedure, adminProcedure } from '@/lib/trpc'
+import type { Prisma } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
 
 // Question categories for validation
@@ -39,7 +40,7 @@ export const questionRouter = router({
         offset,
       } = input
 
-      const where: Parameters<typeof prisma.interviewQuestion.findMany>[0]['where'] = {}
+      const where: Prisma.InterviewQuestionWhereInput = {}
 
       if (category) {
         where.category = category
@@ -155,6 +156,12 @@ export const questionRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { prisma, session } = ctx
+      if (!session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'You must be signed in to create questions.',
+        })
+      }
 
       // Get employee ID from user
       const user = await prisma.user.findUnique({
@@ -286,7 +293,7 @@ export const questionRouter = router({
       }
 
       // Build query for relevant questions
-      const where: Parameters<typeof prisma.interviewQuestion.findMany>[0]['where'] = {
+      const where: Prisma.InterviewQuestionWhereInput = {
         isActive: true,
       }
 
@@ -523,6 +530,12 @@ export const questionRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { prisma, session } = ctx
+      if (!session?.user?.id) {
+        throw new TRPCError({
+          code: 'UNAUTHORIZED',
+          message: 'You must be signed in to track question usage.',
+        })
+      }
 
       // Get current user's employee info
       const user = await prisma.user.findUnique({
@@ -1097,21 +1110,39 @@ Respond ONLY with a valid JSON array, no additional text.`
           }
 
           case 'OPENAI': {
+            console.log('Initializing OpenAI client...')
             const { default: OpenAI } = await import('openai')
             const client = new OpenAI({ apiKey })
 
+            const model = aiModel || 'gpt-4o'
+            console.log('Calling OpenAI API with model:', model)
+
+            // o1/o3 models don't support system messages or temperature
+            const isReasoningModel = model.startsWith('o1') || model.startsWith('o3')
+
+            const systemMessage = `You are an expert interviewer. Always respond with a valid JSON array of question objects. Never wrap the array in another object. Return exactly the number of questions requested.`
+
+            const messages = isReasoningModel
+              ? [{ role: 'user' as const, content: `${systemMessage}\n\n${prompt}` }]
+              : [
+                  { role: 'system' as const, content: systemMessage },
+                  { role: 'user' as const, content: prompt }
+                ]
+
             const response = await client.chat.completions.create({
-              model: aiModel || 'gpt-4o',
-              messages: [{ role: 'user', content: prompt }],
-              response_format: { type: 'json_object' },
+              model,
+              messages,
+              ...(!isReasoningModel ? { temperature: 0.7 } : {}),
             })
 
             const content = response.choices[0]?.message?.content
+            console.log('OpenAI response received, length:', content?.length)
             if (!content) {
               throw new Error('No response from OpenAI')
             }
 
             generatedQuestions = parseAIResponse(content) as typeof generatedQuestions
+            console.log('Parsed', generatedQuestions.length, 'questions from OpenAI')
             break
           }
 

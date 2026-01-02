@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { router, hrAdminProcedure } from '@/lib/trpc'
+import { Prisma } from '@prisma/client'
 import { TRPCError } from '@trpc/server'
 import { createAuditLog } from '@/lib/audit'
 import { deprovisionEmployeeInApp, deprovisionEmployeeInAppById, deprovisionEmployeeFromAllApps } from '@/lib/integrations'
@@ -586,7 +587,9 @@ export const offboardingRouter = router({
           notes: input.notes,
           googleDeleteAccount: Boolean(input.googleDeleteAccount),
           googleTransferToEmail: input.googleTransferToEmail?.trim() || null,
-          googleTransferApps: input.googleTransferApps?.length ? input.googleTransferApps : null,
+          googleTransferApps: input.googleTransferApps?.length
+            ? (input.googleTransferApps as Prisma.InputJsonValue)
+            : Prisma.JsonNull,
           googleAliasToEmail: input.googleAliasToEmail?.trim() || null,
           initiatedBy: (ctx.user as { id: string }).id,
           tasks: {
