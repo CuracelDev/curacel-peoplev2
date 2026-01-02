@@ -129,14 +129,8 @@ const settingsSections = [
         href: '/hiring/settings/assessments',
       },
       {
-        title: 'Email Templates',
-        description: 'Create candidate email templates.',
-        icon: FileEdit,
-        href: '/settings/email-templates',
-      },
-      {
         title: 'Auto Send Settings',
-        description: 'Configure automatic stage emails.',
+        description: 'Configure automatic stage emails and templates.',
         icon: Zap,
         href: '/settings/email-settings',
       },
