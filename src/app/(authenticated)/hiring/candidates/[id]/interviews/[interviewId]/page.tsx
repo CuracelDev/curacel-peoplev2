@@ -39,6 +39,8 @@ import {
   Search,
   CheckCircle,
   HelpCircle,
+  X,
+  Pause,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
@@ -782,6 +784,66 @@ export default function InterviewDetailPage() {
                 </CardContent>
               </Card>
 
+              {/* Interviewer Recommendations */}
+              {interview.evaluations && interview.evaluations.length > 0 && (
+                <Card>
+                  <CardHeader className="py-4 px-5">
+                    <CardTitle className="text-base">Interviewer Recommendations</CardTitle>
+                  </CardHeader>
+                  <CardContent className="px-5 pb-5 space-y-4">
+                    {interview.evaluations.map((evaluation) => (
+                      <div key={evaluation.id} className="space-y-3">
+                        <div className="font-medium text-sm">{evaluation.evaluatorName}</div>
+                        <div className="flex gap-2">
+                          <button
+                            disabled
+                            className={cn(
+                              'flex-1 p-3 rounded-lg border-2 text-center font-medium transition-all',
+                              evaluation.recommendation === 'STRONG_HIRE' || evaluation.recommendation === 'HIRE'
+                                ? 'bg-success text-white border-success'
+                                : 'bg-success/10 text-success border-success/20'
+                            )}
+                          >
+                            <Check className="h-4 w-4 mx-auto mb-1" />
+                            <span className="text-xs">Advance</span>
+                          </button>
+                          <button
+                            disabled
+                            className={cn(
+                              'flex-1 p-3 rounded-lg border-2 text-center font-medium transition-all',
+                              evaluation.recommendation === 'MAYBE'
+                                ? 'bg-amber-500 text-white border-amber-500'
+                                : 'bg-amber-50 text-amber-600 border-amber-200'
+                            )}
+                          >
+                            <Pause className="h-4 w-4 mx-auto mb-1" />
+                            <span className="text-xs">Hold</span>
+                          </button>
+                          <button
+                            disabled
+                            className={cn(
+                              'flex-1 p-3 rounded-lg border-2 text-center font-medium transition-all',
+                              evaluation.recommendation === 'NO_HIRE' || evaluation.recommendation === 'STRONG_NO_HIRE'
+                                ? 'bg-red-500 text-white border-red-500'
+                                : 'bg-red-50 text-red-600 border-red-200'
+                            )}
+                          >
+                            <X className="h-4 w-4 mx-auto mb-1" />
+                            <span className="text-xs">Reject</span>
+                          </button>
+                        </div>
+                        {evaluation.overallNotes && (
+                          <div className="bg-muted/50 rounded-lg p-3">
+                            <div className="text-xs font-medium text-muted-foreground mb-1">Recommendation notes</div>
+                            <div className="text-sm text-foreground">{evaluation.overallNotes}</div>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Suggested Follow-up Questions */}
               <Card>
                 <CardHeader className="py-4 px-5">
@@ -789,10 +851,13 @@ export default function InterviewDetailPage() {
                     <HelpCircle className="h-4 w-4" />
                     Suggested Follow-up Questions
                   </CardTitle>
+                  <CardDescription className="text-xs mt-1">
+                    AI-powered suggestions based on application review and previous interviews
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="px-5 pb-5 space-y-2">
-                  {interview.firefliesActionItems && interview.firefliesActionItems.length > 0 ? (
-                    interview.firefliesActionItems.slice(0, 3).map((question, i) => (
+                  {interview.candidate?.suggestedQuestions && interview.candidate.suggestedQuestions.length > 0 ? (
+                    interview.candidate.suggestedQuestions.slice(0, 3).map((question, i) => (
                       <div key={i} className="flex gap-3 p-3 bg-muted/50 rounded-lg">
                         <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
                           {i + 1}
@@ -828,6 +893,10 @@ export default function InterviewDetailPage() {
                       </div>
                     </>
                   )}
+                  <div className="flex items-center gap-2 mt-3 p-2 bg-indigo-50/50 rounded border border-indigo-200/50">
+                    <Star className="h-3 w-3 text-indigo-600" />
+                    <span className="text-xs text-indigo-700">Powered by AuntyPelz AI</span>
+                  </div>
                   <Link href="/hiring/questions" className="block text-center text-indigo-600 text-sm mt-3 hover:underline">
                     Generate more questions →
                   </Link>
