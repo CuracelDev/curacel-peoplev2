@@ -261,6 +261,7 @@ export class GoogleSheetsService {
 
   /**
    * Check if a specific sheet/tab exists in the spreadsheet
+   * Uses case-insensitive matching and trims whitespace
    */
   async sheetExists(sheetName: string): Promise<boolean> {
     try {
@@ -270,10 +271,33 @@ export class GoogleSheetsService {
         fields: 'sheets.properties.title',
       })
 
-      const sheetNames = response.data.sheets?.map(s => s.properties?.title) || []
-      return sheetNames.includes(sheetName)
-    } catch {
+      const sheetNames = response.data.sheets?.map(s => s.properties?.title?.trim().toLowerCase()) || []
+      const searchName = sheetName.trim().toLowerCase()
+
+      console.log('[sheetExists] Looking for:', searchName, 'Found sheets:', sheetNames)
+
+      return sheetNames.includes(searchName)
+    } catch (error) {
+      console.error('[sheetExists] Error checking sheet:', error)
       return false
+    }
+  }
+
+  /**
+   * Get list of all sheet/tab names in the spreadsheet
+   */
+  async getSheetNames(): Promise<string[]> {
+    try {
+      const sheets = await this.getSheetsClient()
+      const response = await sheets.spreadsheets.get({
+        spreadsheetId: this.config.spreadsheetId,
+        fields: 'sheets.properties.title',
+      })
+
+      return response.data.sheets?.map(s => s.properties?.title || '').filter(Boolean) || []
+    } catch (error) {
+      console.error('[getSheetNames] Error:', error)
+      return []
     }
   }
 }
