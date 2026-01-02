@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -40,7 +39,6 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  ArrowLeft,
   Plus,
   MoreHorizontal,
   Pencil,
@@ -211,17 +209,11 @@ export default function CompetenciesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/settings/job-settings">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
-        </Link>
-        <SettingsPageHeader
-          title="Role Competencies"
-          description="Define competencies that can be selected when creating job positions"
-        />
-      </div>
+      <SettingsPageHeader
+        title="Role Competencies"
+        description="Define competencies that can be selected when creating job positions"
+        backHref="/settings/job-settings"
+      />
 
       {/* Actions */}
       <div className="flex items-center gap-4">
