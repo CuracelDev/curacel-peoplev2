@@ -582,11 +582,7 @@ export default function InterviewDetailPage() {
               Overview
             </TabsTrigger>
             <TabsTrigger value="questions" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
-              Questions
-            </TabsTrigger>
-            <TabsTrigger value="interviewers" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
-              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4 sm:mr-1" />
-              <span className="hidden sm:inline">Interviewers</span> ({interviewers.length})
+              Details
             </TabsTrigger>
           </TabsList>
         </div>
@@ -925,11 +921,9 @@ export default function InterviewDetailPage() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
 
-        {/* Interviewers Tab */}
-        <TabsContent value="interviewers" className="mt-6">
-          <div className="flex justify-between items-center mb-4">
+          {/* Interviewers Section */}
+          <div className="flex justify-between items-center mb-4 mt-6">
             <h3 className="font-semibold">
               {interviewers.length} Interviewer{interviewers.length !== 1 ? 's' : ''}
             </h3>
