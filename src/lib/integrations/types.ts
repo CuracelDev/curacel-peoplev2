@@ -43,6 +43,7 @@ export interface GoogleWorkspaceConfig {
   domain: string
   adminEmail: string
   serviceAccountKey: string
+  calendarOrganizerEmail?: string // Optional: separate email for calendar invites (e.g., peopleops@curacel.ai)
 }
 
 export interface SlackConfig {

@@ -118,6 +118,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Updated AI copy to use BlueAI across the app UI and documentation
 - Candidate profile now renders DB-only data with hiring flow-aligned stage progress and weighted overall scoring
 - Hiring settings no longer use tabbed navigation; sections are accessed from dedicated settings pages
+
+### Fixed
+- Improved dark mode legibility for the interview scheduling calendar access warning text.
 - Interview settings is now the single entry point for interview types, rubrics, scoring, and question bank in Settings
 - Jobs list public toggle now sits beside the priority badge and uses a smaller control
 - Job list stage stats now link into filtered job candidates views

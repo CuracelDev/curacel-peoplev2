@@ -19,6 +19,7 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
   private dataTransfer: admin_datatransfer_v1.Admin | null = null
   private calendar: calendar_v3.Calendar | null = null
   private auth: InstanceType<typeof google.auth.JWT> | null = null
+  private calendarAuth: InstanceType<typeof google.auth.JWT> | null = null
 
   constructor(config: GoogleWorkspaceConfig) {
     this.config = config
@@ -57,8 +58,28 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
 
   private async getCalendarClient(): Promise<calendar_v3.Calendar> {
     if (this.calendar) return this.calendar
-    await this.getAdminClient() // Ensure auth is set up
-    this.calendar = google.calendar({ version: 'v3', auth: this.auth! })
+
+    // Use separate calendar organizer email if configured, otherwise fall back to admin email
+    const calendarEmail = this.config.calendarOrganizerEmail || this.config.adminEmail
+
+    if (this.config.calendarOrganizerEmail && !this.calendarAuth) {
+      // Create separate auth for calendar operations
+      const serviceAccount = JSON.parse(this.config.serviceAccountKey)
+      this.calendarAuth = new google.auth.JWT({
+        email: serviceAccount.client_email,
+        key: serviceAccount.private_key,
+        scopes: [
+          'https://www.googleapis.com/auth/calendar',
+          'https://www.googleapis.com/auth/calendar.events',
+        ],
+        subject: calendarEmail, // Impersonate calendar organizer (e.g., peopleops@curacel.ai)
+      })
+      this.calendar = google.calendar({ version: 'v3', auth: this.calendarAuth })
+    } else {
+      await this.getAdminClient() // Ensure admin auth is set up
+      this.calendar = google.calendar({ version: 'v3', auth: this.auth! })
+    }
+
     return this.calendar
   }
 
@@ -716,6 +737,7 @@ export function createGoogleWorkspaceConnector(): GoogleWorkspaceConnector | nul
   const domain = process.env.GOOGLE_WORKSPACE_DOMAIN
   const adminEmail = process.env.GOOGLE_WORKSPACE_ADMIN_EMAIL
   const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
+  const calendarOrganizerEmail = process.env.GOOGLE_CALENDAR_ORGANIZER_EMAIL
 
   if (!domain || !adminEmail || !serviceAccountKey) {
     console.warn('Google Workspace integration not configured via environment variables')
@@ -726,6 +748,7 @@ export function createGoogleWorkspaceConnector(): GoogleWorkspaceConnector | nul
     domain,
     adminEmail,
     serviceAccountKey,
+    calendarOrganizerEmail, // Optional: separate email for calendar invites (e.g., peopleops@curacel.ai)
   })
 }
 
@@ -777,13 +800,14 @@ export async function getGoogleWorkspaceConnector(): Promise<GoogleWorkspaceConn
     const domain = typeof config.domain === 'string' ? config.domain : ''
     const adminEmail = typeof config.adminEmail === 'string' ? config.adminEmail : ''
     const serviceAccountKey = typeof config.serviceAccountKey === 'string' ? config.serviceAccountKey : ''
+    const calendarOrganizerEmail = typeof config.calendarOrganizerEmail === 'string' ? config.calendarOrganizerEmail : undefined
 
     if (!domain || !adminEmail || !serviceAccountKey) {
       console.warn('Google Workspace connection is missing required configuration')
       return null
     }
 
-    return new GoogleWorkspaceConnector({ domain, adminEmail, serviceAccountKey })
+    return new GoogleWorkspaceConnector({ domain, adminEmail, serviceAccountKey, calendarOrganizerEmail })
   } catch (error) {
     console.error('Error getting Google Workspace connector from database:', error)
     return null
