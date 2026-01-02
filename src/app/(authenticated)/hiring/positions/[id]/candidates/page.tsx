@@ -6,28 +6,17 @@ import { useParams, useSearchParams } from 'next/navigation'
 import {
   Download,
   Plus,
-  MoreHorizontal,
   ChevronLeft,
   ChevronRight,
   Pencil,
   Loader2,
   AlertTriangle,
   RefreshCw,
-  MoreVertical,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuLabel,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
+import { CandidatesTable } from '@/components/hiring/candidates-table'
 import {
   Select,
   SelectContent,
@@ -37,92 +26,6 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
-
-type ColumnKey = 'location' | 'source' | 'salary' | 'mbti'
-
-const COLUMN_STORAGE_KEY = 'hiring.jobCandidates.visibleColumns'
-
-const sourceLabels: Record<string, string> = {
-  INBOUND: 'Inbound',
-  OUTBOUND: 'Outbound',
-  RECRUITER: 'Recruiter',
-  EXCELLER: 'Exceller',
-}
-
-const inboundLabels: Record<string, string> = {
-  YC: 'YC',
-  PEOPLEOS: 'PeopleOS',
-  COMPANY_SITE: 'Company Site',
-  OTHER: 'Other',
-}
-
-const outboundLabels: Record<string, string> = {
-  LINKEDIN: 'LinkedIn',
-  JOB_BOARDS: 'Job Boards',
-  GITHUB: 'GitHub',
-  TWITTER: 'Twitter',
-  OTHER: 'Other',
-}
-
-const formatSource = (candidate: { source?: string | null; inboundChannel?: string | null; outboundChannel?: string | null }) => {
-  if (!candidate.source) return '—'
-  const base = sourceLabels[candidate.source] || candidate.source
-  if (candidate.source === 'INBOUND' && candidate.inboundChannel) {
-    return `${base} • ${inboundLabels[candidate.inboundChannel] || candidate.inboundChannel}`
-  }
-  if (candidate.source === 'OUTBOUND' && candidate.outboundChannel) {
-    return `${base} • ${outboundLabels[candidate.outboundChannel] || candidate.outboundChannel}`
-  }
-  return base
-}
-
-const formatSalary = (candidate: { salaryExpMin?: number | null; salaryExpMax?: number | null; salaryExpCurrency?: string | null }) => {
-  const min = candidate.salaryExpMin ?? null
-  const max = candidate.salaryExpMax ?? null
-  if (!min && !max) return '—'
-  const currency = candidate.salaryExpCurrency || 'USD'
-  const formatValue = (value: number) => {
-    try {
-      return new Intl.NumberFormat('en-US', { style: 'currency', currency, maximumFractionDigits: 0 }).format(value)
-    } catch (error) {
-      return `${currency} ${value}`
-    }
-  }
-  if (min && max) return `${formatValue(min)}–${formatValue(max)}`
-  if (min) return `From ${formatValue(min)}`
-  return `Up to ${formatValue(max as number)}`
-}
-
-// Avatar color palette
-const avatarColors = [
-  'bg-green-500',
-  'bg-sky-500',
-  'bg-indigo-500',
-  'bg-pink-500',
-  'bg-amber-500',
-  'bg-purple-500',
-  'bg-teal-500',
-  'bg-red-500',
-  'bg-blue-500',
-  'bg-orange-500',
-]
-
-function getInitials(name: string) {
-  return name
-    .split(' ')
-    .map((n) => n[0])
-    .join('')
-    .toUpperCase()
-    .slice(0, 2)
-}
-
-function getAvatarColor(name: string) {
-  let hash = 0
-  for (let i = 0; i < name.length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash)
-  }
-  return avatarColors[Math.abs(hash) % avatarColors.length]
-}
 
 function getRelativeTime(date: Date | string) {
   const now = new Date()
@@ -204,12 +107,6 @@ export default function CandidatesListPage() {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
-  const [visibleColumns, setVisibleColumns] = useState<Record<ColumnKey, boolean>>({
-    location: false,
-    source: false,
-    salary: false,
-    mbti: false,
-  })
 
   const isLoading = jobLoading || candidatesLoading
 
@@ -285,13 +182,6 @@ export default function CandidatesListPage() {
   const startIndex = (currentPage - 1) * pageSize
   const endIndex = Math.min(startIndex + pageSize, totalCandidates)
   const filteredCandidates = stageFilteredCandidates.slice(startIndex, endIndex)
-  const optionalColumns = useMemo(() => ([
-    { key: 'location', label: 'Country', render: (candidate: typeof filteredCandidates[number]) => candidate.location || '—' },
-    { key: 'source', label: 'Source', render: (candidate: typeof filteredCandidates[number]) => formatSource(candidate) },
-    { key: 'salary', label: 'Salary', render: (candidate: typeof filteredCandidates[number]) => formatSalary(candidate) },
-    { key: 'mbti', label: 'MBTI', render: (candidate: typeof filteredCandidates[number]) => candidate.mbtiType || '—' },
-  ]), [filteredCandidates])
-  const visibleOptionalColumns = optionalColumns.filter((column) => visibleColumns[column.key])
 
   // Reset to page 1 when stage or page size changes
   const handleStageChange = (stage: string) => {
@@ -322,35 +212,6 @@ export default function CandidatesListPage() {
   const handlePageSizeChange = (size: string) => {
     setPageSize(Number(size))
     setCurrentPage(1)
-  }
-
-  useEffect(() => {
-    const stored = window.localStorage.getItem(COLUMN_STORAGE_KEY)
-    if (!stored) return
-    try {
-      const parsed = JSON.parse(stored) as Partial<Record<ColumnKey, boolean>>
-      setVisibleColumns((prev) => ({ ...prev, ...parsed }))
-    } catch (error) {
-      console.error('Failed to parse column preferences', error)
-    }
-  }, [])
-
-  useEffect(() => {
-    window.localStorage.setItem(COLUMN_STORAGE_KEY, JSON.stringify(visibleColumns))
-  }, [visibleColumns])
-
-  const toggleCandidate = (id: string) => {
-    setSelectedCandidates((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-    )
-  }
-
-  const toggleAll = () => {
-    if (selectedCandidates.length === filteredCandidates.length) {
-      setSelectedCandidates([])
-    } else {
-      setSelectedCandidates(filteredCandidates.map((c) => c.id))
-    }
   }
 
   const formatDate = (date: Date | string | null) => {
@@ -530,238 +391,68 @@ export default function CandidatesListPage() {
         </Button>
       </div>
 
-      {/* Candidates Table */}
-      <Card>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-border bg-muted/50">
-                <th className="py-3 px-4 text-center w-10">
-                  <input
-                    type="checkbox"
-                    checked={selectedCandidates.length === filteredCandidates.length && filteredCandidates.length > 0}
-                    onChange={toggleAll}
-                    className="rounded border-border"
-                  />
-                </th>
-                <th className="py-3 px-4 text-center text-xs font-medium text-muted-foreground uppercase tracking-wider w-16">
-                  Score
-                </th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Candidate
-                </th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Stage
-                </th>
-                {visibleOptionalColumns.map((column) => (
-                  <th
-                    key={column.key}
-                    className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider"
-                  >
-                    {column.label}
-                  </th>
-                ))}
-                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  Applied
-                </th>
-                <th className="py-3 px-4 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                  <div className="flex items-center justify-between gap-2">
-                    <span>Last Updated</span>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-6 w-6">
-                          <MoreVertical className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>Columns</DropdownMenuLabel>
-                        <DropdownMenuSeparator />
-                        {optionalColumns.map((column) => (
-                          <DropdownMenuCheckboxItem
-                            key={column.key}
-                            checked={visibleColumns[column.key]}
-                            onCheckedChange={(checked) => {
-                              setVisibleColumns((prev) => ({
-                                ...prev,
-                                [column.key]: Boolean(checked),
-                              }))
-                            }}
-                          >
-                            {column.label}
-                          </DropdownMenuCheckboxItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredCandidates.map((candidate) => (
-                <tr
-                  key={candidate.id}
-                  className={cn(
-                    'border-b border-border hover:bg-muted cursor-pointer',
-                    selectedCandidates.includes(candidate.id) && 'bg-indigo-50/50'
-                  )}
-                >
-                  <td className="py-4 px-4 text-center">
-                    <input
-                      type="checkbox"
-                      checked={selectedCandidates.includes(candidate.id)}
-                      onChange={(e) => {
-                        e.stopPropagation()
-                        toggleCandidate(candidate.id)
-                      }}
-                      className="rounded border-border"
-                    />
-                  </td>
-                  <td className={cn('py-4 px-4 text-center font-bold text-base', getScoreClass(candidate.score || 0))}>
-                    {candidate.score ?? '-'}
-                  </td>
-                  <td className="py-4 px-4">
-                    <div className="flex items-center gap-2">
-                      <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-2">
-                        <Avatar className="h-7 w-7">
-                          <AvatarFallback className={cn(getAvatarColor(candidate.name), 'text-white text-[10px]')}>
-                            {getInitials(candidate.name)}
-                          </AvatarFallback>
-                        </Avatar>
-                      </Link>
-                      <div className="flex flex-col">
-                        <Link href={`/recruiting/candidates/${candidate.id}`} className="font-medium text-sm">
-                          {candidate.name}
-                        </Link>
-                        {candidate.linkedinUrl && (
-                          <a
-                            href={candidate.linkedinUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="mt-1 inline-flex items-center gap-1 text-xs text-[#0A66C2] hover:text-[#004182]"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <span className="inline-flex h-3 w-3" aria-hidden="true">
-                              <svg viewBox="0 0 24 24" role="img" aria-label="" fill="currentColor">
-                                <path d="M4.98 3.5C4.98 4.88 3.88 6 2.49 6 1.12 6 0 4.88 0 3.5 0 2.12 1.12 1 2.49 1c1.39 0 2.49 1.12 2.49 2.5zM.5 24h3.99V7.98H.5V24zM8.98 7.98h3.83v2.16h.05c.53-1 1.83-2.16 3.77-2.16 4.03 0 4.77 2.65 4.77 6.1V24h-3.99v-8.62c0-2.06-.03-4.71-2.87-4.71-2.87 0-3.31 2.24-3.31 4.56V24H8.98V7.98z" />
-                              </svg>
-                            </span>
-                            LinkedIn
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-4 px-4">{getStageBadge(candidate.stage)}</td>
-                  {visibleOptionalColumns.map((column) => (
-                    <td key={column.key} className="py-4 px-4 text-sm text-foreground/80">
-                      {column.render(candidate)}
-                    </td>
-                  ))}
-                  <td className="py-4 px-4 text-sm text-foreground/80">
-                    {formatDate(candidate.appliedAt)}
-                  </td>
-                  <td className="py-4 px-4 text-sm text-foreground/80">
-                    <div className="flex items-center justify-between gap-2">
-                      <span>{getRelativeTime(candidate.updatedAt)}</span>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-8 w-8 p-0"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreHorizontal className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={() => updateCandidateStage.mutate({ id: candidate.id, stage: 'ARCHIVED' })}
-                          >
-                            Archive
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={() => updateCandidateStage.mutate({ id: candidate.id, stage: 'REJECTED' })}
-                          >
-                            Reject
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="p-4 border-t border-border flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="text-sm text-muted-foreground">
-              Showing {totalCandidates === 0 ? 0 : startIndex + 1}-{endIndex} of {totalCandidates} candidates
+      <CandidatesTable
+        candidates={filteredCandidates}
+        total={totalCandidates}
+        selectedCandidates={selectedCandidates}
+        onSelectedCandidatesChange={setSelectedCandidates}
+        storageKey="hiring.jobCandidates.visibleColumns"
+        candidateHref={(candidate) => `/recruiting/candidates/${candidate.id}`}
+        scoreClassName={(score) => getScoreClass(score || 0)}
+        renderStage={(candidate) => getStageBadge(candidate.stage || '')}
+        formatApplied={(candidate) => formatDate(candidate.appliedAt)}
+        formatUpdated={(candidate) => getRelativeTime(candidate.updatedAt)}
+        onArchiveCandidate={(id) => updateCandidateStage.mutate({ id, stage: 'ARCHIVED' })}
+        onRejectCandidate={(id) => updateCandidateStage.mutate({ id, stage: 'REJECTED' })}
+        onBulkArchive={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'ARCHIVED' })}
+        onBulkReject={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'REJECTED' })}
+        footer={(
+          <div className="p-4 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-muted-foreground">
+                Showing {totalCandidates === 0 ? 0 : startIndex + 1}-{endIndex} of {totalCandidates} candidates
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Show</span>
+                <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
+                  <SelectTrigger className="w-[80px] h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                  </SelectContent>
+                </Select>
+                <span className="text-sm text-muted-foreground">per page</span>
+              </div>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Show</span>
-              <Select value={String(pageSize)} onValueChange={handlePageSizeChange}>
-                <SelectTrigger className="w-[80px] h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="25">25</SelectItem>
-                  <SelectItem value="50">50</SelectItem>
-                  <SelectItem value="100">100</SelectItem>
-                </SelectContent>
-              </Select>
-              <span className="text-sm text-muted-foreground">per page</span>
+              <span className="text-sm text-muted-foreground">
+                Page {currentPage} of {totalPages || 1}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage <= 1}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
+                <ChevronLeft className="h-4 w-4 mr-1" />
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages}
+                onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              >
+                Next
+                <ChevronRight className="h-4 w-4 ml-1" />
+              </Button>
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              Page {currentPage} of {totalPages || 1}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={currentPage <= 1}
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            >
-              <ChevronLeft className="h-4 w-4 mr-1" />
-              Previous
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={currentPage >= totalPages}
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-            >
-              Next
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
-          </div>
-        </div>
-      </Card>
-
-      {/* Bulk Actions Bar */}
-      {selectedCandidates.length > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white px-4 py-3 rounded-xl shadow-lg flex items-center gap-4">
-          <span className="font-medium">{selectedCandidates.length} selected</span>
-          <Button size="sm" className="bg-success hover:bg-success">
-            Advance to Next Stage
-          </Button>
-          <Button variant="outline" size="sm" className="text-muted-foreground/60 border-gray-600 hover:bg-gray-800">
-            Reject
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-muted-foreground hover:text-white"
-            onClick={() => setSelectedCandidates([])}
-          >
-            Clear
-          </Button>
-        </div>
-      )}
+        )}
+      />
     </div>
   )
 }
