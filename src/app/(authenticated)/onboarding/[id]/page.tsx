@@ -154,6 +154,7 @@ export default function OnboardingDetailPage() {
   const [employeeTasksExpanded, setEmployeeTasksExpanded] = useState(true)
 
   const { data: workflow, isLoading, refetch } = trpc.onboarding.getById.useQuery(workflowId)
+  type WorkflowTask = NonNullable<typeof workflow>['tasks'][number]
   const { data: apps } = trpc.integration.listApps.useQuery()
   const taskCatalogQuery = trpc.onboarding.getTaskCatalog.useQuery()
   const bitbucketApp = apps?.find((app) => app.type === 'BITBUCKET')
@@ -189,7 +190,7 @@ export default function OnboardingDetailPage() {
   })
 
   // Check if the selected task is a device-related task (must be before early returns)
-  const selectedTask = workflow?.tasks.find((t: { id: string }) => t.id === selectedTaskId)
+  const selectedTask = workflow?.tasks.find((t: WorkflowTask) => t.id === selectedTaskId)
   const isDeviceTask = useMemo(() => {
     if (!selectedTask) return false
     const name = (selectedTask as { name: string }).name.toLowerCase()
@@ -216,7 +217,7 @@ export default function OnboardingDetailPage() {
   }
 
   const completedPeopleOpsTasks = workflow.tasks.filter(
-    (t) => t.status === 'SUCCESS' || t.status === 'SKIPPED'
+    (t: WorkflowTask) => t.status === 'SUCCESS' || t.status === 'SKIPPED'
   ).length
   const peopleOpsProgress = workflow.tasks.length > 0
     ? Math.round((completedPeopleOpsTasks / workflow.tasks.length) * 100)
@@ -241,7 +242,7 @@ export default function OnboardingDetailPage() {
     ? Math.round(progressParts.reduce((sum, value) => sum + value, 0) / progressParts.length)
     : 0
 
-  const getTaskIcon = (task: typeof workflow.tasks[0]) => {
+  const getTaskIcon = (task: WorkflowTask) => {
     if (task.automationType?.includes('google')) {
       return <Cloud className="h-5 w-5 text-blue-500" />
     }
@@ -257,7 +258,7 @@ export default function OnboardingDetailPage() {
     return map
   })()
 
-  const getSettingsAppLink = (task: typeof workflow.tasks[0]) => {
+  const getSettingsAppLink = (task: WorkflowTask) => {
     const cfg = (task.automationConfig as any) ?? {}
     const appId: string | undefined = cfg.appId
     if (typeof appId === 'string' && appId) return `/settings/applications/${appId}`
@@ -281,12 +282,12 @@ export default function OnboardingDetailPage() {
     return null
   }
 
-  const isMissingConnection = (task: typeof workflow.tasks[0]) => {
+  const isMissingConnection = (task: WorkflowTask) => {
     const msg = (task.statusMessage || '').toLowerCase()
     return msg.includes('no active connection') || msg.includes('not connected') || msg.includes('application not connected')
   }
 
-  const isBitbucketTask = (task: typeof workflow.tasks[0]) => {
+  const isBitbucketTask = (task: WorkflowTask) => {
     const cfg = (task.automationConfig as any) ?? {}
     if (task.automationType?.includes('bitbucket')) return true
     if (cfg.appType === 'BITBUCKET') return true
@@ -518,7 +519,7 @@ export default function OnboardingDetailPage() {
         {peopleOpsTasksExpanded && (
           <CardContent className="pt-0">
             <div className="border rounded-lg divide-y">
-              {workflow.tasks.map((task) => {
+              {workflow.tasks.map((task: WorkflowTask) => {
                 const taskAppType = task.automationType?.includes('google')
                   ? 'GOOGLE_WORKSPACE'
                   : task.automationType?.includes('slack')
