@@ -76,7 +76,7 @@ interface SelectedQuestion {
 
 const categoryConfig: Record<string, { name: string; color: string }> = {
   situational: { name: 'Situational', color: 'bg-indigo-100 text-indigo-700' },
-  behavioral: { name: 'Behavioral', color: 'bg-green-100 text-green-700' },
+  behavioral: { name: 'Behavioral', color: 'bg-success/10 text-success' },
   motivational: { name: 'Motivational', color: 'bg-amber-100 text-amber-700' },
   technical: { name: 'Technical', color: 'bg-pink-100 text-pink-700' },
   culture: { name: 'Culture', color: 'bg-cyan-100 text-cyan-700' },
@@ -765,8 +765,8 @@ export default function ScheduleInterviewPage() {
                     )}
 
                     {selectedSlot && (
-                      <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <div className="flex items-center gap-2 text-green-800">
+                      <div className="mt-4 p-3 bg-success/10 border border-success/20 rounded-lg">
+                        <div className="flex items-center gap-2 text-success-foreground">
                           <Check className="h-4 w-4" />
                           <span className="font-medium">Selected: </span>
                           <span>{format(new Date(selectedSlot.start), 'EEEE, MMMM d \'at\' h:mm a')}</span>
@@ -891,9 +891,9 @@ export default function ScheduleInterviewPage() {
                 </div>
               </div>
             ) : (
-              <div className="flex items-center gap-2 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-sm">
-                <Video className="h-4 w-4 text-green-600 dark:text-green-400" />
-                <span className="text-green-700 dark:text-green-300">Google Meet link will be auto-generated</span>
+              <div className="flex items-center gap-2 p-3 bg-success/10 dark:bg-green-900/20 border border-success/20 dark:border-green-800 rounded-lg text-sm">
+                <Video className="h-4 w-4 text-success dark:text-green-400" />
+                <span className="text-success dark:text-green-300">Google Meet link will be auto-generated</span>
               </div>
             )}
 
@@ -952,46 +952,48 @@ export default function ScheduleInterviewPage() {
 
       {/* Step 2: Question Selection - Two Column Layout */}
       {currentStep === 2 && (
-        <div className="grid grid-cols-[400px_1fr] gap-6">
+        <div className="grid grid-cols-[420px_1fr] gap-4">
           {/* Left Panel: Question Sources (Bank or AI) */}
-          <div className="space-y-4">
-            <Card className="sticky top-4">
-              <CardHeader className="pb-3">
+          <div>
+            <Card className="sticky top-4 h-[580px] flex flex-col">
+              <CardHeader className="pb-2 px-4 pt-4">
                 <CardTitle className="text-base flex items-center gap-2">
                   <BookOpen className="h-4 w-4" />
                   Question Sources
                 </CardTitle>
-                <CardDescription className="text-xs">
-                  {selectedType && `Showing: ${selectedType.questionCategories?.map(c => categoryConfig[c]?.name || c).join(', ')}`}
-                </CardDescription>
+                {selectedType && (
+                  <CardDescription className="text-xs">
+                    {selectedType.questionCategories?.map(c => categoryConfig[c]?.name || c).join(', ')}
+                  </CardDescription>
+                )}
               </CardHeader>
-              <CardContent className="p-0">
-                <Tabs defaultValue="bank" className="w-full">
-                  <TabsList className="w-full grid grid-cols-2 rounded-none border-b">
-                    <TabsTrigger value="bank" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
+              <CardContent className="p-0 flex-1 flex flex-col overflow-hidden">
+                <Tabs defaultValue="bank" className="flex-1 flex flex-col">
+                  <TabsList className="mx-4 mb-3 grid grid-cols-2">
+                    <TabsTrigger value="bank">
                       <BookOpen className="h-4 w-4 mr-2" />
                       Question Bank
                     </TabsTrigger>
-                    <TabsTrigger value="ai" className="rounded-none data-[state=active]:border-b-2 data-[state=active]:border-primary">
+                    <TabsTrigger value="ai">
                       <Sparkles className="h-4 w-4 mr-2" />
                       AuntyPelz AI
                     </TabsTrigger>
                   </TabsList>
 
                   {/* Question Bank Tab */}
-                  <TabsContent value="bank" className="p-4 mt-0 space-y-4">
+                  <TabsContent value="bank" className="px-4 pb-4 mt-0 flex-1 flex flex-col overflow-hidden">
                     <Input
                       placeholder="Search questions..."
                       value={questionSearch}
                       onChange={(e) => setQuestionSearch(e.target.value)}
-                      className="w-full"
+                      className="w-full mb-3"
                     />
                     {questionsLoading ? (
-                      <div className="flex items-center justify-center py-8">
+                      <div className="flex items-center justify-center flex-1">
                         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
                       </div>
                     ) : filteredQuestions.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <div className="flex flex-col items-center justify-center flex-1 text-center">
                         <BookOpen className="h-8 w-8 text-muted-foreground mb-2" />
                         <p className="text-sm text-muted-foreground">No questions found</p>
                         <p className="text-xs text-muted-foreground mt-1">
@@ -1001,8 +1003,8 @@ export default function ScheduleInterviewPage() {
                         </p>
                       </div>
                     ) : (
-                      <ScrollArea className="h-[400px]">
-                        <div className="space-y-2 pr-3">
+                      <ScrollArea className="flex-1">
+                        <div className="space-y-2 pr-2">
                           {filteredQuestions.map((question) => {
                             const isSelected = selectedQuestions.some(q => q.id === question.id)
                             return (
@@ -1053,7 +1055,7 @@ export default function ScheduleInterviewPage() {
                   </TabsContent>
 
                   {/* AI Generator Tab */}
-                  <TabsContent value="ai" className="p-4 mt-0">
+                  <TabsContent value="ai" className="px-4 pb-4 mt-0 flex-1 overflow-auto">
                     {selectedCandidateId ? (
                       <AIQuestionGenerator
                         candidateId={selectedCandidateId}
@@ -1074,7 +1076,7 @@ export default function ScheduleInterviewPage() {
                         compact
                       />
                     ) : (
-                      <div className="flex flex-col items-center justify-center py-8 text-center">
+                      <div className="flex flex-col items-center justify-center h-full text-center">
                         <Sparkles className="h-8 w-8 text-muted-foreground mb-2" />
                         <p className="text-sm text-muted-foreground">Select a candidate first</p>
                       </div>
@@ -1086,9 +1088,9 @@ export default function ScheduleInterviewPage() {
           </div>
 
           {/* Right Panel: Selected Questions */}
-          <div className="space-y-4">
-            <Card>
-              <CardHeader className="pb-3">
+          <div>
+            <Card className="h-[580px] flex flex-col">
+              <CardHeader className="pb-2 px-4 pt-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <CardTitle className="text-base flex items-center gap-2">
@@ -1097,14 +1099,14 @@ export default function ScheduleInterviewPage() {
                       <Badge variant="secondary" className="ml-1">{selectedQuestions.length}</Badge>
                     </CardTitle>
                     <CardDescription className="text-xs">
-                      Questions that will be used in this interview
+                      Questions for this interview
                     </CardDescription>
                   </div>
                   {selectedQuestions.length > 0 && (
                     <Button
                       variant="ghost"
                       size="sm"
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive h-7 px-2"
                       onClick={() => setSelectedQuestions([])}
                     >
                       Clear All
@@ -1112,18 +1114,18 @@ export default function ScheduleInterviewPage() {
                   )}
                 </div>
               </CardHeader>
-              <CardContent>
+              <CardContent className="px-4 pb-4 flex-1 flex flex-col overflow-hidden">
                 {selectedQuestions.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center py-12 border border-dashed rounded-lg">
+                  <div className="flex flex-col items-center justify-center flex-1 border border-dashed rounded-lg">
                     <MessageSquare className="h-10 w-10 text-muted-foreground mb-3" />
                     <p className="text-sm text-muted-foreground font-medium">No questions selected</p>
                     <p className="text-xs text-muted-foreground mt-1 max-w-[200px] text-center">
-                      Add questions from the Question Bank or generate with AuntyPelz AI
+                      Add from Question Bank or generate with AuntyPelz AI
                     </p>
                   </div>
                 ) : (
-                  <ScrollArea className="h-[350px]">
-                    <div className="space-y-2 pr-3">
+                  <ScrollArea className="flex-1 mb-3">
+                    <div className="space-y-2 pr-2">
                       {selectedQuestions.map((q, index) => (
                         <div
                           key={index}
@@ -1171,11 +1173,11 @@ export default function ScheduleInterviewPage() {
                 )}
 
                 {/* Add Custom Question */}
-                <div className="mt-4 pt-4 border-t space-y-3">
+                <div className="pt-3 border-t space-y-2 mt-auto">
                   <Label className="text-sm font-medium">Add Custom Question</Label>
                   <div className="flex gap-2">
                     <Select value={customQuestionCategory} onValueChange={setCustomQuestionCategory}>
-                      <SelectTrigger className="w-32">
+                      <SelectTrigger className="w-28 h-8">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -1188,14 +1190,14 @@ export default function ScheduleInterviewPage() {
                       placeholder="Type your custom question..."
                       value={customQuestionText}
                       onChange={(e) => setCustomQuestionText(e.target.value)}
-                      className="flex-1"
+                      className="flex-1 h-8"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter' && customQuestionText.trim()) {
                           addCustomQuestion()
                         }
                       }}
                     />
-                    <Button onClick={addCustomQuestion} disabled={!customQuestionText.trim()} size="sm">
+                    <Button onClick={addCustomQuestion} disabled={!customQuestionText.trim()} size="sm" className="h-8">
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
@@ -1206,7 +1208,7 @@ export default function ScheduleInterviewPage() {
                       onCheckedChange={(v) => setSaveCustomToBank(v as boolean)}
                     />
                     <Label htmlFor="save-to-bank" className="text-xs text-muted-foreground">
-                      Save to question bank for future use
+                      Save to question bank
                     </Label>
                   </div>
                 </div>
