@@ -47,11 +47,8 @@ export async function parseStandard4LevelSheet(
   }
 
   const { headerRow, startIndex } = headerResult
-  const formatType = detectSheetFormat(headerRow)
-
-  if (formatType !== 'STANDARD_4_LEVEL') {
-    throw new Error(`Expected STANDARD_4_LEVEL format, got ${formatType}`)
-  }
+  // We're already in the standard-4-level parser, so format is known
+  const formatType = 'STANDARD_4_LEVEL'
 
   const levelNames = extractLevelNames(headerRow, formatType)
   const { min, max } = getLevelBounds(formatType)

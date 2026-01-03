@@ -57,18 +57,36 @@ export async function parseAIBehavioralSheet(
     throw new Error('Sheet is empty')
   }
 
-  // Find the header row
-  const headerResult = findHeaderRow(rows)
+  // Find the header row, or construct it if not found (some sheets don't return headers via public API)
+  let headerResult = findHeaderRow(rows)
+  let startIndex = 0
+
   if (!headerResult) {
-    throw new Error('Could not find header row in sheet')
+    console.log('[ai-behavioral] Header row not found, constructing expected headers')
+    // Construct expected headers for AI Behavioral format
+    // Format: Competency | (empty) | 0. Unacceptable | (empty) | 1. Basic | (empty) | 2. Intermediate | etc.
+    const constructedHeader: SheetRow = {
+      0: 'Competency',
+      1: '',
+      2: '0. Unacceptable',
+      3: '',
+      4: '1. Basic',
+      5: '',
+      6: '2. Intermediate',
+      7: '',
+      8: '3. Proficient',
+      9: '',
+      10: '4. Advanced',
+    }
+    headerResult = { headerRow: constructedHeader, startIndex: 0 }
+    startIndex = 0 // Data starts at row 0 since there's no actual header row
+  } else {
+    startIndex = headerResult.startIndex
   }
 
-  const { headerRow, startIndex } = headerResult
-  const formatType = detectSheetFormat(headerRow)
-
-  if (formatType !== 'AI_BEHAVIORAL') {
-    throw new Error(`Expected AI_BEHAVIORAL format, got ${formatType}`)
-  }
+  const { headerRow } = headerResult
+  // We're already in the AI behavioral parser, so format is known
+  const formatType = 'AI_BEHAVIORAL'
 
   const levelNames = extractLevelNames(headerRow, formatType)
   const { min, max } = getLevelBounds(formatType)
