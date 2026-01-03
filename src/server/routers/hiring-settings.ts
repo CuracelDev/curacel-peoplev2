@@ -68,6 +68,8 @@ export const hiringSettingsRouter = router({
         decisionSupportEnabled: z.boolean().optional(),
         personalityProfilesEnabled: z.boolean().optional(),
         teamProfilesEnabled: z.boolean().optional(),
+        autoArchiveUnqualified: z.boolean().optional(),
+        autoArchiveLocationMismatch: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

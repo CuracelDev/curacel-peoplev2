@@ -2007,6 +2007,10 @@ model HiringSettings {
   personalityProfilesEnabled Boolean @default(true)
   teamProfilesEnabled Boolean @default(true)
 
+  // AuntyPelz automated actions
+  autoArchiveUnqualified Boolean @default(false) // Auto-archive applicants that don't meet requirements
+  autoArchiveLocationMismatch Boolean @default(false) // Auto-archive applicants that don't meet location requirements
+
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }
