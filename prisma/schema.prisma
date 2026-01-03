@@ -163,6 +163,10 @@ model Employee {
   candidateId     String?         @unique
   candidate       JobCandidate?   @relation("EmployeeCandidate", fields: [candidateId], references: [id], onDelete: SetNull)
 
+  // Company stage flow (employee lifecycle tracking)
+  companyStageFlowSnapshotId String?
+  companyStageFlowSnapshot   CompanyStageFlowSnapshot? @relation("EmployeeStageFlow", fields: [companyStageFlowSnapshotId], references: [id])
+
   // Job details
   jobTitle        String?
   department      String?
@@ -262,6 +266,7 @@ model Employee {
   @@index([department])
   @@index([managerId])
   @@index([candidateId])
+  @@index([companyStageFlowSnapshotId])
 }
 
 // Track employee role changes, promotions, and progression
@@ -1146,6 +1151,46 @@ model HiringFlowSnapshot {
 
   // Jobs using this snapshot
   jobs        Job[]
+
+  @@unique([flowId, version])
+  @@index([flowId])
+}
+
+// ============================================
+// COMPANY STAGE PROCESS (Employee Lifecycle)
+// ============================================
+
+// Master company stage flow definition (editable in settings)
+model CompanyStageFlow {
+  id          String   @id @default(uuid())
+  name        String   @unique  // "Standard", "Executive", "Contractor"
+  description String?
+  stages      Json     // Array of stage names: ["Applied", "Interviewed", "Offered", "Onboarding", "Active", "Promoted", "Transferred", "Performance Review", "Exit Process", "Alumni"]
+  isDefault   Boolean  @default(false)
+  isActive    Boolean  @default(true)
+
+  // Track all snapshots of this flow
+  snapshots   CompanyStageFlowSnapshot[]
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([isDefault])
+}
+
+// Immutable snapshot of a company stage flow at a point in time
+model CompanyStageFlowSnapshot {
+  id          String           @id @default(uuid())
+  flowId      String
+  flow        CompanyStageFlow @relation(fields: [flowId], references: [id], onDelete: Cascade)
+
+  version     Int              // Auto-incrementing per flow
+  stages      Json             // Frozen copy of stages at snapshot time
+  snapshotAt  DateTime         @default(now())
+
+  // Employees using this snapshot
+  employees   Employee[]       @relation("EmployeeStageFlow")
 
   @@unique([flowId, version])
   @@index([flowId])

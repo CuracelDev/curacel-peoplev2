@@ -246,20 +246,6 @@ export default function JobDetailsPage() {
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <Users className="h-4 w-4 text-gray-400 mt-0.5" />
-                      <div className="flex-1">
-                        <dt className="text-xs text-gray-500">Positions to Fill</dt>
-                        <dd className="text-sm text-gray-900 mt-0.5">{job.hiresCount} {job.hiresCount === 1 ? 'position' : 'positions'}</dd>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
-                      <div className="flex-1">
-                        <dt className="text-xs text-gray-500">Location(s)</dt>
-                        <dd className="text-sm text-gray-900 mt-0.5">{formatLocations()}</dd>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
                       <Calendar className="h-4 w-4 text-gray-400 mt-0.5" />
                       <div className="flex-1">
                         <dt className="text-xs text-gray-500">Posted Date</dt>
@@ -275,11 +261,25 @@ export default function JobDetailsPage() {
                         </div>
                       </div>
                     )}
+                    <div className="flex items-start gap-3">
+                      <Users className="h-4 w-4 text-gray-400 mt-0.5" />
+                      <div className="flex-1">
+                        <dt className="text-xs text-gray-500">Positions to Fill</dt>
+                        <dd className="text-sm text-gray-900 mt-0.5">{job.hiresCount} {job.hiresCount === 1 ? 'position' : 'positions'}</dd>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <MapPin className="h-4 w-4 text-gray-400 mt-0.5" />
+                      <div className="flex-1">
+                        <dt className="text-xs text-gray-500">Location(s)</dt>
+                        <dd className="text-sm text-gray-900 mt-0.5">{formatLocations()}</dd>
+                      </div>
+                    </div>
                   </dl>
                 </div>
 
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">Compensation</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Compensation & Ownership</h3>
                   <dl className="space-y-3">
                     <div className="flex items-start gap-3">
                       <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
@@ -297,21 +297,17 @@ export default function JobDetailsPage() {
                         </div>
                       </div>
                     )}
-                  </dl>
-
-                  {job.hiringManager && (
-                    <>
-                      <h3 className="text-sm font-medium text-gray-700 mb-3 mt-6">Hiring Manager</h3>
+                    {job.hiringManager && (
                       <div className="flex items-start gap-3">
                         <Users className="h-4 w-4 text-gray-400 mt-0.5" />
                         <div className="flex-1">
-                          <dt className="text-xs text-gray-500">Contact</dt>
+                          <dt className="text-xs text-gray-500">Hiring Manager</dt>
                           <dd className="text-sm text-gray-900 mt-0.5">{job.hiringManager.fullName}</dd>
                           <dd className="text-xs text-gray-500 mt-0.5">{job.hiringManager.workEmail}</dd>
                         </div>
                       </div>
-                    </>
-                  )}
+                    )}
+                  </dl>
                 </div>
               </div>
             </div>
