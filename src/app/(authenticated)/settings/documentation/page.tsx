@@ -570,6 +570,15 @@ const docSections: DocSection[] = [
         ],
       },
       {
+        title: 'Generate with AuntyPelz',
+        ordered: true,
+        items: [
+          'Enter a form name (and optional description) to guide the generator.',
+          'Select Generate with AuntyPelz to create a starter set of questions.',
+          'Review the generated questions and edit as needed before saving.',
+        ],
+      },
+      {
         title: 'Link to jobs',
         items: [
           'When creating or editing a job, select an interest form to attach.',

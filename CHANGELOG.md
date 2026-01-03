@@ -35,6 +35,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - **Recruiting Settings Enhancements**
   - Expanded recruiting settings page with comprehensive configuration options
   - Recruiter router for managing public-facing recruitment features
+- **Interest Form Generation**
+  - Generate interest form questions with AuntyPelz from the Interest Forms editor
 - **Candidate Scoring Settings**
   - Configure weighted inputs for overall candidate scores in Recruiting Settings
   - Missing profile data is excluded from the weighted calculation

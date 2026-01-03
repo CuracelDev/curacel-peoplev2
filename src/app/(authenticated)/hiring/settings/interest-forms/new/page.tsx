@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Plus, GripVertical, X, FileQuestion } from 'lucide-react'
+import { ArrowLeft, Plus, GripVertical, X, FileQuestion, Sparkles, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -60,6 +60,27 @@ export default function NewInterestFormPage() {
     },
   })
 
+  const generateFormMutation = trpc.interestForm.generateWithAuntyPelz.useMutation({
+    onSuccess: (data) => {
+      if (!formName.trim()) setFormName(data.name || '')
+      if (!formDescription.trim() && data.description) setFormDescription(data.description)
+      setFormQuestions(
+        (data.questions || []).map((q) => ({
+          label: q.label,
+          type: q.type,
+          placeholder: q.placeholder,
+          helpText: q.helpText,
+          isRequired: q.isRequired,
+          options: q.options,
+        }))
+      )
+      toast.success('Interest form generated. Review and edit as needed.')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to generate interest form')
+    },
+  })
+
   const addQuestion = () => {
     setFormQuestions([
       ...formQuestions,
@@ -97,6 +118,26 @@ export default function NewInterestFormPage() {
     })
   }
 
+  const handleGenerate = () => {
+    if (!formName.trim()) {
+      toast.error('Add a form name to guide AuntyPelz')
+      return
+    }
+
+    const hasExistingContent = formQuestions.length > 0 || formDescription.trim()
+    if (hasExistingContent) {
+      const shouldReplace = confirm(
+        'Generate will replace your current questions. Continue?'
+      )
+      if (!shouldReplace) return
+    }
+
+    generateFormMutation.mutate({
+      name: formName.trim(),
+      description: formDescription.trim() || undefined,
+    })
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -110,6 +151,23 @@ export default function NewInterestFormPage() {
           <h1 className="text-2xl font-semibold">Create Interest Form</h1>
           <p className="text-muted-foreground">Build a custom application form for candidates</p>
         </div>
+        <Button
+          variant="outline"
+          onClick={handleGenerate}
+          disabled={generateFormMutation.isPending}
+        >
+          {generateFormMutation.isPending ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Generating with AuntyPelz...
+            </>
+          ) : (
+            <>
+              <Sparkles className="h-4 w-4 mr-2" />
+              Generate with AuntyPelz
+            </>
+          )}
+        </Button>
         <Button variant="outline" asChild>
           <Link href="/hiring/settings/interest-forms">Cancel</Link>
         </Button>
