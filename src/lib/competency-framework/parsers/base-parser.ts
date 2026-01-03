@@ -22,11 +22,24 @@ export async function fetchSheetData(
 
   // Try to use Google Sheets public API first (for public sheets)
   try {
-    // Determine the range to fetch
-    const range = tabName ? `${tabName}!A:Z` : 'A:Z'
-    const encodedRange = encodeURIComponent(range)
+    // Extract gid from URL if present (more reliable than tab name for public API)
+    const gidMatch = sheetUrl.match(/[?&#]gid=(\d+)/)
+    const gid = gidMatch ? gidMatch[1] : undefined
 
-    const publicApiUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodedRange}`
+    let publicApiUrl: string
+
+    if (gid) {
+      // Use gid parameter for more reliable tab selection
+      publicApiUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&gid=${gid}`
+      console.log(`[fetchSheetData] Using gid ${gid} from URL`)
+    } else if (tabName) {
+      // Use tab name if no gid in URL
+      publicApiUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodeURIComponent(tabName)}`
+      console.log(`[fetchSheetData] Using tab name: ${tabName}`)
+    } else {
+      // Default to first sheet
+      publicApiUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json`
+    }
 
     console.log(`[fetchSheetData] Trying public API: ${publicApiUrl}`)
 
@@ -102,19 +115,21 @@ export function detectSheetFormat(headers: SheetRow): SheetFormatType {
 
   console.log('[detectSheetFormat] Headers:', allHeadersText.substring(0, 200))
 
-  // AI Behavioral format: has "Competency" and "Unacceptable" OR numbered levels like "0. unacceptable"
-  const hasCompetency = allHeadersText.includes('competency')
+  // AI Behavioral format: has "Competency" (solo or with tools) and numbered levels like "0.", "1.", "2."
+  // OR has "unacceptable" keyword
+  const hasCompetencyKeyword = allHeadersText.match(/\b(competency|competenc)\b/)
   const hasUnacceptable = allHeadersText.includes('unacceptable')
-  const hasNumberedLevels = allHeadersText.match(/\d+\.\s*(basic|intermediate|proficient|advanced)/i)
+  const hasNumberedLevels = allHeadersText.match(/\b[0-4]\.\s*(unacceptable|basic|intermediate|proficient|advanced)/i)
 
-  if (hasCompetency && (hasUnacceptable || hasNumberedLevels)) {
+  // AI format is identified by numbered levels (0., 1., 2., etc.) or presence of "unacceptable"
+  if (hasNumberedLevels || (hasCompetencyKeyword && hasUnacceptable)) {
     console.log('[detectSheetFormat] Detected AI_BEHAVIORAL')
     return 'AI_BEHAVIORAL'
   }
 
-  // Values format: has "Values" AND "Value Definition" AND "Competency" columns
-  const hasValues = allHeadersText.includes('value')
-  const hasValueDef = allHeadersText.includes('value definition')
+  // Values format: has "Values" AND ("Value Definition" OR "Definitions") AND "Competency" columns
+  const hasValues = allHeadersText.match(/\bvalue(s)?\b/)
+  const hasValueDef = allHeadersText.includes('value definition') || allHeadersText.includes('definitions')
   const hasCompetencyCol = allHeadersText.includes('competenc')
 
   if (hasValues && hasValueDef && hasCompetencyCol) {
@@ -122,11 +137,11 @@ export function detectSheetFormat(headers: SheetRow): SheetFormatType {
     return 'EXTENDED_5_LEVEL'
   }
 
-  // Standard or Extended competency matrix: has "Function" OR "Function Objective" AND "Core Competencies"
+  // Standard or Extended competency matrix: has ("Function" OR "Function Objective") AND ("Core Competencies" OR "Core Competenc")
   const hasFunction = allHeadersText.includes('function')
   const hasCoreComp = allHeadersText.includes('core competenc')
 
-  if (hasFunction && hasCoreComp) {
+  if ((hasFunction || hasCoreComp) && !hasValues) {
     // Check for "Expert" column to detect 5-level variant
     const hasExpert = allHeadersText.includes('expert')
 
