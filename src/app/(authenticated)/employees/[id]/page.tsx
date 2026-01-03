@@ -398,17 +398,7 @@ export default function EmployeeDetailPage() {
               </div>
 
               {/* Contact Info - matches original sidebar */}
-              <div className="space-y-3 mt-6 pt-6 border-t">
-                <div>
-                  <p className="text-sm text-muted-foreground">Email</p>
-                  <p className="text-sm font-medium">{employee.personalEmail}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Phone number</p>
-                  <p className="text-sm font-medium">
-                    {employee.phone || 'phone number not specified'}
-                  </p>
-                </div>
+              <div className="mt-6 pt-6 border-t">
                 <div>
                   <p className="text-sm text-muted-foreground">Joined</p>
                   <p className="text-sm font-medium">
