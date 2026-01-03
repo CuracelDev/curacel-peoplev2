@@ -175,6 +175,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Balanced job overview details across both columns for better symmetry.
 - Job overview details now align in a horizontal grid with compensation beneath.
 - Job details header now stacks deadline under posted date for cleaner alignment.
+- Job details header now shows location under the title with a location icon, and moves team + dates to the right.
+- Job details header now places team under the title and aligns location/dates side by side without a right column.
+- Swapped team and location positions in the job details header.
+- Moved the job details back button above the header card.
 - Job detail stage cards now hide stages with zero candidates.
 - Updated employee detail outline buttons to match rounded pill styling.
 - Job list stage stats now link into filtered job candidates views

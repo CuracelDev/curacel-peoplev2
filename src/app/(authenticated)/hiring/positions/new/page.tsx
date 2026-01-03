@@ -32,6 +32,8 @@ import {
 } from '@/components/ui/select'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
+import { ScorecardSelector } from '@/components/hiring/scorecard-selector'
+import { CompetencyFrameworkSelector } from '@/components/hiring/competency-framework-selector'
 
 const flowAppearance = {
   standard: { icon: User, color: 'bg-indigo-50 text-indigo-600' },
@@ -68,6 +70,7 @@ export default function CreateJobPage() {
   const { data: interestForms } = trpc.interestForm.listForSelect.useQuery()
   const { data: competencies } = trpc.competency.listForSelect.useQuery()
   const { data: employees } = trpc.employee.getAllActive.useQuery()
+  const { data: allScorecards } = trpc.scorecard.listForSelection.useQuery()
   const createJob = trpc.job.create.useMutation()
 
   const [formData, setFormData] = useState({
@@ -105,6 +108,22 @@ export default function CreateJobPage() {
   } | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [saveTarget, setSaveTarget] = useState<'draft' | 'active' | null>(null)
+
+  // Scorecard state
+  const [scorecardData, setScorecardData] = useState<{
+    type: 'none' | 'existing' | 'new'
+    existingScorecardId?: string
+    scorecardData?: { mission: string; outcomes: Array<{ name: string; description: string; successCriteria: string[] }> }
+  }>({ type: 'none' })
+
+  // Competency Requirements state (NEW v2)
+  const [competencyRequirements, setCompetencyRequirements] = useState<Array<{
+    subCompetencyId: string
+    requiredLevel: number
+    requiredLevelName: string
+    priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
+    isRequired: boolean
+  }>>([])
 
   // Use tRPC for hiring flows instead of localStorage
   const { data: hiringFlows, isLoading: flowsLoading } = trpc.hiringFlow.list.useQuery()
@@ -273,6 +292,25 @@ export default function CreateJobPage() {
     }
 
     try {
+      // Handle scorecard data
+      let scorecardDataToSend = undefined
+      if (scorecardData.type === 'new' && scorecardData.scorecardData) {
+        scorecardDataToSend = scorecardData.scorecardData
+      } else if (scorecardData.type === 'existing' && scorecardData.existingScorecardId) {
+        // Fetch existing scorecard and copy its data
+        const existingScorecard = allScorecards?.find(s => s.id === scorecardData.existingScorecardId)
+        if (existingScorecard) {
+          scorecardDataToSend = {
+            mission: existingScorecard.mission,
+            outcomes: existingScorecard.outcomes as Array<{
+              name: string
+              description: string
+              successCriteria: string[]
+            }>
+          }
+        }
+      }
+
       const job = await createJob.mutateAsync({
         title: formData.title.trim(),
         department: formData.department || undefined,
@@ -295,6 +333,8 @@ export default function CreateJobPage() {
         autoArchiveLocation: formData.autoArchiveLocation,
         followerIds: followers,
         competencyIds: selectedCompetencies,
+        scorecardData: scorecardDataToSend,
+        competencyRequirements: competencyRequirements,
       })
 
       setSaveState({
@@ -627,6 +667,24 @@ export default function CreateJobPage() {
             </div>
           </div>
 
+          {/* Scorecard (NEW Section 2.5) */}
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
+              <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
+                2.5
+              </div>
+              <h2 className="font-semibold">Scorecard</h2>
+            </div>
+            <div className="p-5">
+              <ScorecardSelector
+                jobDescriptionId={formData.jdId || null}
+                value={scorecardData}
+                onChange={setScorecardData}
+                disabled={!formData.jdId}
+              />
+            </div>
+          </div>
+
           {/* Salary and Equity Ranges */}
           <div className="bg-card border border-border rounded-xl">
             <div className="p-5 border-b border-border flex items-center gap-3">
@@ -792,90 +850,20 @@ export default function CreateJobPage() {
             </div>
           </div>
 
-          {/* Competencies */}
+          {/* Competency Requirements */}
           <div className="bg-card border border-border rounded-xl">
             <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                 5
               </div>
-              <h2 className="font-semibold">Role Competencies</h2>
+              <h2 className="font-semibold">Competency Requirements</h2>
             </div>
             <div className="p-5">
-              {/* Selected competencies */}
-              {selectedCompetencies.length > 0 && (
-                <div className="mb-4">
-                  <Label className="mb-2 block">Selected ({selectedCompetencies.length})</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedCompetencies.map((id) => {
-                      const comp = (competencies || []).find(c => c.id === id)
-                      if (!comp) return null
-                      return (
-                        <Badge
-                          key={id}
-                          className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 cursor-pointer gap-1"
-                          onClick={() => removeCompetency(id)}
-                        >
-                          {comp.name}
-                          <X className="h-3 w-3" />
-                        </Badge>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-
-              {/* Search */}
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search competencies..."
-                  value={competencySearch}
-                  onChange={(e) => setCompetencySearch(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-
-              {/* Competencies grid */}
-              <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
-                {filteredCompetencies.map((comp) => (
-                  <button
-                    key={comp.id}
-                    type="button"
-                    onClick={() => toggleCompetency(comp.id)}
-                    className={cn(
-                      'flex items-center gap-2 p-3 border rounded-lg transition-all text-left',
-                      selectedCompetencies.includes(comp.id)
-                        ? 'border-indigo-500 bg-indigo-50/50'
-                        : 'border-border hover:border-border'
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        'w-[18px] h-[18px] rounded flex items-center justify-center flex-shrink-0',
-                        selectedCompetencies.includes(comp.id)
-                          ? 'bg-indigo-600 text-white'
-                          : 'border-2 border-border'
-                      )}
-                    >
-                      {selectedCompetencies.includes(comp.id) && (
-                        <Check className="h-3 w-3" />
-                      )}
-                    </div>
-                    <div>
-                      <span className="text-sm font-medium">{comp.name}</span>
-                      <span className="text-xs text-muted-foreground ml-2">{comp.category}</span>
-                    </div>
-                  </button>
-                ))}
-              </div>
-
-              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-4">
-                <Info className="h-3.5 w-3.5" />
-                Manage competencies in{' '}
-                <Link href="/hiring/settings/competencies" className="text-indigo-600 hover:underline">
-                  Job Settings &rarr; Role Competencies
-                </Link>
-              </p>
+              <CompetencyFrameworkSelector
+                department={formData.department}
+                value={competencyRequirements}
+                onChange={setCompetencyRequirements}
+              />
             </div>
           </div>
 
@@ -1077,6 +1065,26 @@ export default function CreateJobPage() {
                   <div className="font-medium">{selectedJD.name}</div>
                 </div>
               )}
+              {scorecardData.type !== 'none' && (
+                <div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Scorecard</div>
+                  <div className="font-medium text-sm">
+                    {scorecardData.type === 'existing' ? (
+                      <>
+                        {allScorecards?.find(s => s.id === scorecardData.existingScorecardId)?.job.title || 'Existing scorecard'}
+                        <Badge variant="secondary" className="ml-2 text-xs">From existing</Badge>
+                      </>
+                    ) : (
+                      <>
+                        Custom scorecard
+                        <Badge variant="secondary" className="ml-2 text-xs">
+                          {scorecardData.scorecardData?.outcomes.length || 0} outcomes
+                        </Badge>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
               <div>
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Interview Flow</div>
                 <div className="font-medium">{selectedFlowData?.name}</div>
@@ -1093,15 +1101,22 @@ export default function CreateJobPage() {
                   ))}
                 </div>
               </div>
-              {selectedCompetencyNames.length > 0 && (
+              {competencyRequirements.length > 0 && (
                 <div>
-                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Key Competencies</div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
+                    Competency Requirements ({competencyRequirements.length})
+                  </div>
                   <div className="flex flex-wrap gap-2 mt-2">
-                    {selectedCompetencyNames.map((name) => (
-                      <Badge key={name} className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">
-                        {name}
+                    {competencyRequirements.slice(0, 5).map((req) => (
+                      <Badge key={req.subCompetencyId} className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 text-xs">
+                        {req.requiredLevelName}
                       </Badge>
                     ))}
+                    {competencyRequirements.length > 5 && (
+                      <Badge variant="secondary" className="text-xs">
+                        +{competencyRequirements.length - 5} more
+                      </Badge>
+                    )}
                   </div>
                 </div>
               )}
