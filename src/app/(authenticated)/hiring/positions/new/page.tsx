@@ -126,8 +126,18 @@ export default function CreateJobPage() {
   }>>([])
 
   // Use tRPC for hiring flows instead of localStorage
-  const { data: hiringFlows, isLoading: flowsLoading } = trpc.hiringFlow.list.useQuery()
+  const { data: hiringFlows, isLoading: flowsLoading, refetch: refetchFlows } = trpc.hiringFlow.list.useQuery()
   const flows = hiringFlows ?? []
+
+  // Refetch hiring flows when window regains focus
+  useEffect(() => {
+    const handleFocus = () => {
+      refetchFlows()
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [refetchFlows])
 
   useEffect(() => {
     if (!flows.length) return

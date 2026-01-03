@@ -433,6 +433,11 @@ export default function ApiDocsPage() {
                   <code>/api/v1/interest-forms</code>
                   <span className="text-muted-foreground">— create form</span>
                 </div>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-amber-600">POST</Badge>
+                  <code>/api/trpc/interestForm.generateWithAuntyPelz</code>
+                  <span className="text-muted-foreground">— generate interest form questions</span>
+                </div>
               </div>
 
               <div className="space-y-2">
