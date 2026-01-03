@@ -244,6 +244,9 @@ model Employee {
   addedCandidates JobCandidate[]  @relation("CandidatesAddedBy")
   interviewQuestions InterviewQuestion[]
 
+  // V2 competency framework
+  competencyAssessments EmployeeCompetencyScore[]
+
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
@@ -1166,6 +1169,7 @@ model RubricCriteria {
   @@index([rubricId, sortOrder])
 }
 
+// Legacy simple competency model (to be deprecated)
 model Competency {
   id          String   @id @default(uuid())
   name        String   // e.g., "Technical Excellence"
@@ -1181,6 +1185,241 @@ model Competency {
   @@unique([name, category])
   @@index([category])
   @@index([isActive])
+}
+
+// ============================================
+// COMPETENCY FRAMEWORK V2 (Google Sheets-based)
+// ============================================
+
+// Competency framework sources - each department or framework type
+model CompetencyFrameworkSource {
+  id                String   @id @default(uuid())
+  type              String   // "DEPARTMENT", "AI", "VALUES"
+  name              String   // "Engineering", "Sales", "AI Framework", "Company Values"
+  department        String?  // For DEPARTMENT type only (e.g., "Engineering")
+
+  // Google Sheets integration
+  sheetUrl          String   // Full Google Sheets URL
+  sheetId           String   // Extracted sheet ID from URL
+  gidOrTabName      String?  // Specific tab/gid if multi-tab sheet
+
+  // Detected format configuration
+  formatType        String   // "STANDARD_4_LEVEL", "EXTENDED_5_LEVEL", "AI_BEHAVIORAL"
+  levelNames        Json     // ["Basic", "Intermediate", "Proficient", "Advanced"] or with "Expert"
+  minLevel          Int      @default(1)  // 0 for AI (Unacceptable), 1 for others
+  maxLevel          Int      // 4 or 5 depending on framework
+
+  // Sync metadata
+  lastSyncedAt      DateTime?
+  lastSyncStatus    String?  // "SUCCESS", "FAILED", "PENDING"
+  lastSyncError     String?  @db.Text
+  cacheValidUntil   DateTime? // Cache expiry (30 days from last sync)
+  syncedByUserId    String?
+
+  // Structure metadata (stored from sheet for parser)
+  columnMapping     Json?    // Map column letters to data types
+
+  isActive          Boolean  @default(true)
+
+  // Relations
+  coreCompetencies  CoreCompetency[]
+  syncLogs          CompetencySyncLog[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([type, department])
+  @@index([type])
+  @@index([lastSyncedAt])
+  @@index([cacheValidUntil])
+}
+
+// Core competencies - high-level competency areas
+model CoreCompetency {
+  id                String   @id @default(uuid())
+  sourceId          String
+  source            CompetencyFrameworkSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  name              String   // e.g., "Employee Experience", "AI Tool Proficiency", "Passionate Work"
+  description       String?  @db.Text
+  functionArea      String?  // e.g., "People Operations" (from Function column)
+  category          String?  // Grouping category
+
+  sortOrder         Int      @default(0)
+
+  // Relations
+  subCompetencies   SubCompetency[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([sourceId, sortOrder])
+}
+
+// Sub-competencies - specific skills with level descriptions
+model SubCompetency {
+  id                String   @id @default(uuid())
+  coreCompetencyId  String
+  coreCompetency    CoreCompetency @relation(fields: [coreCompetencyId], references: [id], onDelete: Cascade)
+
+  name              String   // e.g., "Employee engagement approaches", "Frontend Development"
+  description       String?  @db.Text
+
+  // Level descriptions from Google Sheets (flexible for 4 or 5 levels)
+  // Stored as: { "1": "Basic description...", "2": "Intermediate...", etc. }
+  levelDescriptions Json     @db.Json
+
+  // For AI competencies with behavioral indicators (checkbox-based)
+  hasBehavioralIndicators Boolean @default(false)
+  behavioralIndicators    Json?   @db.Json // { "1": ["indicator1", "indicator2"], "2": [...], ... }
+
+  sortOrder         Int      @default(0)
+  isActive          Boolean  @default(true)
+
+  // Relations
+  candidateScores   CandidateCompetencyScore[]
+  employeeScores    EmployeeCompetencyScore[]
+  jobRequirements   JobCompetencyRequirement[]
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([coreCompetencyId, sortOrder])
+  @@index([isActive])
+}
+
+// Job competency requirements - what's needed for a role
+model JobCompetencyRequirement {
+  id                String   @id @default(uuid())
+  jobId             String
+  job               Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  subCompetencyId   String
+  subCompetency     SubCompetency @relation(fields: [subCompetencyId], references: [id], onDelete: Cascade)
+
+  // Required level for this role (raw score from framework: 1-4 or 1-5)
+  requiredLevel     Int      // 1-5 depending on framework
+  requiredLevelName String   // "Basic", "Intermediate", "Proficient", "Advanced", "Expert"
+
+  // Which interview stage should validate this?
+  validationStage   String?  // "HR_SCREEN", "TECHNICAL", "PANEL", etc.
+  priority          String   @default("MEDIUM") // "CRITICAL", "HIGH", "MEDIUM", "LOW"
+
+  // Is this a must-have or nice-to-have?
+  isRequired        Boolean  @default(true)
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([jobId, subCompetencyId])
+  @@index([jobId])
+  @@index([subCompetencyId])
+  @@index([validationStage])
+}
+
+// Candidate competency scores - evaluation during interviews
+model CandidateCompetencyScore {
+  id                String   @id @default(uuid())
+  candidateId       String
+  candidate         JobCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  subCompetencyId   String
+  subCompetency     SubCompetency @relation(fields: [subCompetencyId], references: [id], onDelete: Cascade)
+
+  // Score (raw from framework: 1-4 or 1-5 or 0-4 for AI)
+  rawScore          Int      // Actual level from sheet (0-5 depending on framework)
+  scoreLevelName    String   // "Basic", "Intermediate", "Proficient", "Advanced", "Expert", "Unacceptable"
+
+  // Normalized score for cross-framework comparison (0-100)
+  normalizedScore   Float    // Percentage for comparing across different level scales
+
+  // Evidence and notes
+  evidence          String?  @db.Text
+  evaluatorNotes    String?  @db.Text
+
+  // For behavioral indicator tracking (AI framework)
+  checkedIndicators Json?    @db.Json // Array of indicator IDs that were checked
+
+  // Context - which interview stage was this evaluated at?
+  evaluatedAtStage  String?  // "HR_SCREEN", "TECHNICAL", "PANEL", etc.
+  interviewId       String?  // Link to specific interview if applicable
+
+  // Who evaluated
+  evaluatorId       String?
+  evaluatorName     String?
+  evaluatorEmail    String?
+
+  // Confidence level
+  confidence        String   @default("MEDIUM") // "LOW", "MEDIUM", "HIGH"
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([candidateId, subCompetencyId, evaluatedAtStage])
+  @@index([candidateId])
+  @@index([subCompetencyId])
+  @@index([evaluatedAtStage])
+}
+
+// Employee competency assessments - performance reviews
+model EmployeeCompetencyScore {
+  id                String   @id @default(uuid())
+  employeeId        String
+  employee          Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  subCompetencyId   String
+  subCompetency     SubCompetency @relation(fields: [subCompetencyId], references: [id], onDelete: Cascade)
+
+  // Current level (raw score)
+  currentLevel      Int      // 1-5 depending on framework
+  currentLevelName  String   // "Basic", "Intermediate", "Proficient", "Advanced", "Expert"
+  normalizedScore   Float    // 0-100 for comparison
+
+  // Target level for development planning
+  targetLevel       Int?
+  targetLevelName   String?
+
+  // Progress tracking
+  lastAssessedAt    DateTime
+  nextAssessmentDue DateTime?
+
+  // Context - which review period
+  assessmentPeriod  String?  // "Q1 2025", "Annual Review 2024"
+  assessorId        String?  // Manager who assessed
+  assessorName      String?
+
+  // Development notes
+  strengths         String?  @db.Text
+  areasForGrowth    String?  @db.Text
+  developmentPlan   String?  @db.Text
+
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@unique([employeeId, subCompetencyId, assessmentPeriod])
+  @@index([employeeId])
+  @@index([subCompetencyId])
+  @@index([lastAssessedAt])
+}
+
+// Competency sync logs - track sync history
+model CompetencySyncLog {
+  id                String   @id @default(uuid())
+  sourceId          String
+  source            CompetencyFrameworkSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  status            String   // "SUCCESS", "FAILED", "PARTIAL"
+  recordsSynced     Int      @default(0)
+  recordsFailed     Int      @default(0)
+
+  errorMessage      String?  @db.Text
+  syncDetails       Json?    @db.Json // Detailed log of what was synced
+
+  triggeredBy       String?  // User ID who triggered sync
+  syncDuration      Int?     // Milliseconds
+
+  createdAt         DateTime @default(now())
+
+  @@index([sourceId, createdAt])
+  @@index([status])
+  @@index([createdAt])
 }
 
 // ============================================
@@ -1251,7 +1490,8 @@ model Job {
 
   // Relations
   followers           JobFollower[]
-  competencies        JobCompetency[]
+  competencies        JobCompetency[] // Legacy
+  competencyRequirements JobCompetencyRequirement[] // V2 competency framework
   candidates          JobCandidate[]
   interviewStages     InterviewStageTemplate[] @relation("JobInterviewStages")
   recruiterAccess     RecruiterJob[]
@@ -1346,8 +1586,8 @@ model JobCandidate {
   pressValuesScores Json?       // { passionate: 88, relentless: 85, empowered: 82, senseOfUrgency: 76, seeingPossibilities: 80 }
   pressValuesAvg    Int?        // Average of PRESS scores
 
-  // Competency scores from assessments
-  competencyScores  Json?       // { systemDesign: 90, technicalLeadership: 85, problemSolving: 88, communication: 82, domainKnowledge: 65 }
+  // Legacy competency scores from assessments (V1 - deprecated)
+  legacyCompetencyScores  Json?  @map("competencyScores")  // { systemDesign: 90, technicalLeadership: 85, problemSolving: 88, communication: 82, domainKnowledge: 65 }
 
   // Personality/Team fit analysis
   personalityProfile Json?      // { openness: 85, conscientiousness: 90, extraversion: 45, agreeableness: 70, neuroticism: 25 }
@@ -1413,6 +1653,9 @@ model JobCandidate {
 
   // Assessment tracking
   assessments CandidateAssessment[]
+
+  // Competency scores (V2 framework)
+  competencyScores CandidateCompetencyScore[]
 
   // Email threads with candidate
   emailThreads CandidateEmailThread[]

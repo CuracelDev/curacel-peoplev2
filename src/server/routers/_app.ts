@@ -19,6 +19,7 @@ import { teamRouter } from './team'
 import { jobDescriptionRouter } from './job-description'
 import { hiringRubricRouter } from './hiring-rubric'
 import { competencyRouter } from './competency'
+import { competencyFrameworkRouter } from './competency-framework'
 import { jobRouter } from './job'
 import { interestFormRouter } from './interest-form'
 import { interviewStageRouter } from './interview-stage'
@@ -59,6 +60,7 @@ export const appRouter = router({
   jobDescription: jobDescriptionRouter,
   hiringRubric: hiringRubricRouter,
   competency: competencyRouter,
+  competencyFramework: competencyFrameworkRouter,
   job: jobRouter,
   interestForm: interestFormRouter,
   interviewStage: interviewStageRouter,
