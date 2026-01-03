@@ -20,11 +20,11 @@ export default function JobDetailsPage() {
   const { data: job, isLoading } = trpc.job.getDetails.useQuery({ id: jobId })
 
   const [openSections, setOpenSections] = useState({
-    overview: true,
+    overview: false,
     description: false,
     scorecard: false,
     competencies: false,
-    pipeline: true,
+    pipeline: false,
   })
 
   const toggleSection = (section: keyof typeof openSections) => {
