@@ -40,6 +40,7 @@ import { webflowRouter } from './webflow'
 import { advisorRouter } from './advisor'
 import { emailSettingsRouter } from './email-settings'
 import { scorecardRouter } from './scorecard'
+import { aiCustomToolsRouter } from './ai-custom-tools'
 
 export const appRouter = router({
   employee: employeeRouter,
@@ -83,6 +84,7 @@ export const appRouter = router({
   advisor: advisorRouter,
   emailSettings: emailSettingsRouter,
   scorecard: scorecardRouter,
+  aiCustomTools: aiCustomToolsRouter,
 })
 
 export type AppRouter = typeof appRouter

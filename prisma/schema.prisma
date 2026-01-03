@@ -1066,6 +1066,37 @@ model AIChatMessage {
   @@index([chatId, createdAt])
 }
 
+// Custom AI Tools - Dynamic function calling
+model AICustomTool {
+  id              String   @id @default(uuid())
+  name            String   @unique // Function name (e.g., "archive_candidate")
+  displayName     String   // Human-readable name
+  description     String   @db.Text
+  category        String   // e.g., "hiring", "contracts", "employees"
+
+  // OpenAI function calling schema
+  parameters      Json     // JSON schema for function parameters
+
+  // Execution configuration
+  executionType   String   // "trpc_mutation", "trpc_query", "webhook", "custom_code"
+  executionConfig Json     // Configuration for execution (e.g., tRPC path, webhook URL)
+
+  // Permissions and safety
+  requiresConfirmation Boolean @default(false)
+  allowedRoles    Json?    // Array of roles that can use this tool
+
+  // Status
+  isActive        Boolean  @default(true)
+  isBuiltIn       Boolean  @default(false) // True for system tools, false for custom
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  createdBy       String?
+
+  @@index([category, isActive])
+  @@index([isActive, isBuiltIn])
+}
+
 // V3: Approval workflow for bulk/destructive actions
 enum ApprovalStatus {
   PENDING
