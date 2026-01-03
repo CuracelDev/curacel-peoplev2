@@ -95,33 +95,41 @@ async function seedCompetencyFrameworks() {
     const sheetId = extractSpreadsheetId(source.sheetUrl)
 
     try {
-      const result = await prisma.competencyFrameworkSource.upsert({
+      // Find existing source with proper NULL handling
+      const existing = await prisma.competencyFrameworkSource.findFirst({
         where: {
-          type_department: {
-            type: source.type,
-            department: source.department || '',
-          },
-        },
-        create: {
           type: source.type,
-          name: source.name,
-          department: source.department,
-          sheetUrl: source.sheetUrl,
-          sheetId,
-          gidOrTabName: source.tabName,
-          formatType: source.type === 'AI' ? 'AI_BEHAVIORAL' : source.type === 'VALUES' ? 'EXTENDED_5_LEVEL' : source.department === 'HealthOps' ? 'EXTENDED_5_LEVEL' : 'STANDARD_4_LEVEL',
-          levelNames: [],
-          minLevel: source.type === 'AI' ? 0 : 1,
-          maxLevel: source.type === 'VALUES' || source.department === 'HealthOps' ? 5 : source.type === 'AI' ? 4 : 4,
-        },
-        update: {
-          name: source.name,
-          sheetUrl: source.sheetUrl,
-          sheetId,
-          gidOrTabName: source.tabName,
-          isActive: true,
+          department: source.department || null,
         },
       })
+
+      const data = {
+        type: source.type,
+        name: source.name,
+        department: source.department || null,
+        sheetUrl: source.sheetUrl,
+        sheetId,
+        gidOrTabName: source.tabName,
+        formatType: source.type === 'AI' ? 'AI_BEHAVIORAL' : source.type === 'VALUES' ? 'EXTENDED_5_LEVEL' : source.department === 'HealthOps' ? 'EXTENDED_5_LEVEL' : 'STANDARD_4_LEVEL',
+        levelNames: [],
+        minLevel: source.type === 'AI' ? 0 : 1,
+        maxLevel: source.type === 'VALUES' || source.department === 'HealthOps' ? 5 : source.type === 'AI' ? 4 : 4,
+        isActive: true,
+      }
+
+      let result
+      if (existing) {
+        // Update existing
+        result = await prisma.competencyFrameworkSource.update({
+          where: { id: existing.id },
+          data,
+        })
+      } else {
+        // Create new
+        result = await prisma.competencyFrameworkSource.create({
+          data,
+        })
+      }
 
       console.log(`✅ ${result.type === 'DEPARTMENT' ? `${result.department} (${result.type})` : result.type}: ${result.name}`)
     } catch (error: any) {
