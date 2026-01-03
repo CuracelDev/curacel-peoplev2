@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 import { Switch } from '@/components/ui/switch'
 import {
@@ -53,6 +54,7 @@ import {
   EyeOff,
   GitBranch,
   AlertTriangle,
+  Sparkles,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
@@ -115,6 +117,57 @@ export default function NewJDPage() {
   const [importUrl, setImportUrl] = useState('')
   const [importStatus, setImportStatus] = useState<'idle' | 'importing' | 'success' | 'error'>('idle')
   const [importError, setImportError] = useState('')
+
+  // AI Generation state
+  const [aiGenerateData, setAiGenerateData] = useState({
+    jobTitle: '',
+    department: '',
+    additionalContext: '',
+  })
+  const [generateStatus, setGenerateStatus] = useState<'idle' | 'generating' | 'success' | 'error'>('idle')
+  const [generateError, setGenerateError] = useState('')
+
+  // AI Generation mutation
+  const generateMutation = trpc.jobDescription.generateFromAI.useMutation({
+    onSuccess: (data) => {
+      setFormData({
+        name: data.name,
+        department: data.department,
+        content: data.content,
+      })
+      setGenerateStatus('success')
+
+      setTimeout(() => {
+        setActiveTab('manual')
+        setGenerateStatus('idle')
+      }, 1500)
+    },
+    onError: (error) => {
+      setGenerateError(error.message)
+      setGenerateStatus('error')
+    },
+  })
+
+  // Import URL mutation
+  const importUrlMutation = trpc.jobDescription.importFromUrl.useMutation({
+    onSuccess: (data) => {
+      setFormData({
+        name: data.name,
+        department: data.department || formData.department,
+        content: data.content,
+      })
+      setImportStatus('success')
+
+      setTimeout(() => {
+        setActiveTab('manual')
+        setImportStatus('idle')
+      }, 1000)
+    },
+    onError: (error) => {
+      setImportError(error.message)
+      setImportStatus('error')
+    },
+  })
 
   // Load data if creating from existing JD
   useEffect(() => {
@@ -208,7 +261,7 @@ export default function NewJDPage() {
     }, 1500)
   }
 
-  const handleImportFromUrl = async () => {
+  const handleImportFromUrl = () => {
     if (!importUrl.trim()) return
 
     try {
@@ -221,45 +274,20 @@ export default function NewJDPage() {
     setImportStatus('importing')
     setImportError('')
 
-    // Simulate import
-    await new Promise(resolve => setTimeout(resolve, 1500))
+    importUrlMutation.mutate({ url: importUrl })
+  }
 
-    // Mock parsed data
-    const mockParsedData = {
-      name: 'Senior Executive Operations (AI-Pilled)',
-      department: 'Operations',
-      description: 'We are looking for a Senior Executive Operations professional to partner directly with the CEO. This role is for someone who is deeply curious about AI and wants to help build the future of insurance infrastructure in Africa.',
-      flowType: 'EXECUTIVE',
-      requirements: `- 5+ years of experience in operations, strategy, or chief of staff roles
-- Strong analytical and problem-solving skills
-- Experience working directly with C-level executives
-- Familiarity with AI tools and willingness to leverage them daily
-- Excellent written and verbal communication
-- Based in Lagos or willing to relocate`,
-      responsibilities: `- Partner with the CEO on strategic initiatives and day-to-day operations
-- Manage cross-functional projects and ensure timely execution
-- Prepare board materials, investor updates, and strategic documents
-- Identify operational inefficiencies and implement improvements
-- Build and maintain relationships with key stakeholders
-- Use AI tools to enhance productivity and decision-making`,
-    }
+  const handleGenerateWithAI = () => {
+    if (!aiGenerateData.jobTitle.trim() || !aiGenerateData.department) return
 
-    const content = `${mockParsedData.description}\n\n<h2>Key Responsibilities</h2>\n${mockParsedData.responsibilities}\n\n<h2>Requirements</h2>\n${mockParsedData.requirements}`
+    setGenerateStatus('generating')
+    setGenerateError('')
 
-    setFormData({
-      ...formData,
-      name: mockParsedData.name,
-      department: mockParsedData.department,
-      content: content,
+    generateMutation.mutate({
+      jobTitle: aiGenerateData.jobTitle,
+      department: aiGenerateData.department,
+      additionalContext: aiGenerateData.additionalContext || undefined,
     })
-
-    setImportStatus('success')
-
-    // Switch to manual tab to review
-    setTimeout(() => {
-      setActiveTab('manual')
-      setImportStatus('idle')
-    }, 1000)
   }
 
   return (
@@ -295,7 +323,7 @@ export default function NewJDPage() {
 
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0 max-w-md">
+        <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0 max-w-2xl">
           <TabsTrigger value="manual" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
             <Pencil className="h-4 w-4" />
             Manual
@@ -307,6 +335,10 @@ export default function NewJDPage() {
           <TabsTrigger value="import" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
             <Globe className="h-4 w-4" />
             Import URL
+          </TabsTrigger>
+          <TabsTrigger value="generate" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            <Sparkles className="h-4 w-4" />
+            AuntyPelz Generate
           </TabsTrigger>
         </TabsList>
 
@@ -505,32 +537,33 @@ export default function NewJDPage() {
                       setImportUrl(e.target.value)
                       setImportError('')
                     }}
-                    placeholder="https://www.ycombinator.com/companies/..."
+                    placeholder="https://jobs.lever.co/company/job-id"
                     className="pl-10"
                   />
                 </div>
-              </div>
-
-              {/* Supported sources */}
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <p className="text-sm font-medium text-foreground mb-3">Supported sources:</p>
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="outline">YC Work at a Startup</Badge>
-                  <Badge variant="outline">LinkedIn Jobs</Badge>
-                  <Badge variant="outline">Greenhouse</Badge>
-                  <Badge variant="outline">Lever</Badge>
-                  <Badge variant="outline">Workable</Badge>
-                  <Badge variant="outline">Any public URL</Badge>
-                </div>
+                <p className="text-sm text-muted-foreground">
+                  Supported sources: LinkedIn Jobs, Greenhouse, Lever, Workable, Y Combinator, and most public job boards
+                </p>
               </div>
 
               {/* Import status */}
+              {importStatus === 'importing' && (
+                <div className="flex items-center justify-center gap-3 p-8 bg-muted/50 rounded-lg">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <div>
+                    <p className="font-medium">Importing job description...</p>
+                    <p className="text-sm text-muted-foreground">Parsing content from URL</p>
+                  </div>
+                </div>
+              )}
+
               {importStatus === 'success' && (
                 <div className="flex items-center gap-2 p-4 bg-success/10 text-success rounded-lg">
                   <CheckCircle className="h-5 w-5" />
-                  <span className="font-medium">Successfully imported! Switching to edit view...</span>
+                  <span className="font-medium">JD imported! Review in the Manual tab.</span>
                 </div>
               )}
+
               {importError && (
                 <div className="flex items-center gap-2 p-4 bg-destructive/10 text-destructive rounded-lg">
                   <AlertCircle className="h-5 w-5" />
@@ -556,6 +589,130 @@ export default function NewJDPage() {
                     <>
                       <Globe className="h-4 w-4 mr-2" />
                       Import JD
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* AuntyPelz AI Generation Tab */}
+        <TabsContent value="generate" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-primary" />
+                Generate with AuntyPelz AI
+              </CardTitle>
+              <CardDescription>
+                Let AuntyPelz create a comprehensive job description for you. Just provide the basics!
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Input Form */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="aiJobTitle">Job Title *</Label>
+                  <Input
+                    id="aiJobTitle"
+                    value={aiGenerateData.jobTitle}
+                    onChange={(e) => setAiGenerateData({ ...aiGenerateData, jobTitle: e.target.value })}
+                    placeholder="e.g., Senior Product Manager"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="aiDepartment">Department *</Label>
+                  <Select
+                    value={aiGenerateData.department}
+                    onValueChange={(value) => setAiGenerateData({ ...aiGenerateData, department: value })}
+                    disabled={teamsLoading}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder={teamsLoading ? "Loading..." : "Select department"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teams?.map((team) => (
+                        <SelectItem key={team.id} value={team.name}>
+                          {team.displayName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Optional Context */}
+              <div className="space-y-2">
+                <Label htmlFor="additionalContext">Additional Context (Optional)</Label>
+                <Textarea
+                  id="additionalContext"
+                  value={aiGenerateData.additionalContext}
+                  onChange={(e) => setAiGenerateData({ ...aiGenerateData, additionalContext: e.target.value })}
+                  placeholder="E.g., 'Looking for someone with blockchain experience' or 'Remote-first role'"
+                  rows={3}
+                />
+              </div>
+
+              {/* AI Info Banner */}
+              <div className="flex items-start gap-3 p-4 bg-blue-50 rounded-lg">
+                <Sparkles className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium text-blue-900">
+                    AuntyPelz will generate:
+                  </p>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Compelling overview and role summary</li>
+                    <li>• Comprehensive responsibilities list</li>
+                    <li>• Required and preferred qualifications</li>
+                    <li>• Benefits and company culture section</li>
+                  </ul>
+                </div>
+              </div>
+
+              {/* Status Messages */}
+              {generateStatus === 'generating' && (
+                <div className="flex items-center justify-center gap-3 p-8 bg-muted/50 rounded-lg">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <div>
+                    <p className="font-medium">AuntyPelz is writing your JD...</p>
+                    <p className="text-sm text-muted-foreground">This may take 10-20 seconds</p>
+                  </div>
+                </div>
+              )}
+
+              {generateStatus === 'success' && (
+                <div className="flex items-center gap-2 p-4 bg-success/10 text-success rounded-lg">
+                  <CheckCircle className="h-5 w-5" />
+                  <span className="font-medium">JD generated! Review and edit in the Manual tab.</span>
+                </div>
+              )}
+
+              {generateError && (
+                <div className="flex items-center gap-2 p-4 bg-destructive/10 text-destructive rounded-lg">
+                  <AlertCircle className="h-5 w-5" />
+                  <span className="font-medium">{generateError}</span>
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="flex items-center justify-end gap-4 pt-4 border-t">
+                <Button variant="outline" asChild>
+                  <Link href="/hiring/settings/jd-templates">Cancel</Link>
+                </Button>
+                <Button
+                  onClick={handleGenerateWithAI}
+                  disabled={!aiGenerateData.jobTitle.trim() || !aiGenerateData.department || generateStatus === 'generating'}
+                >
+                  {generateStatus === 'generating' ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-2" />
+                      Generate JD
                     </>
                   )}
                 </Button>
