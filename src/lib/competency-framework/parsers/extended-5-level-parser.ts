@@ -184,24 +184,60 @@ export async function parseExtended5LevelSheet(
       currentCoreComp.subCompetencies.push(subComp)
     } else {
       // Standard competency format with 5 levels (HealthOps)
-      const functionCol = findColumnIndex(headerRow, 'function')
-      const objCol = findColumnIndex(headerRow, 'objective')
-      const coreCompCol = findColumnIndex(headerRow, 'core competenc')
-      const subCompCol = findColumnIndex(headerRow, 'sub competenc')
+      // HealthOps uses "Role" and "Competencies" instead of "Function" and "Core Competencies"
+      let functionCol = findColumnIndex(headerRow, 'function')
+      if (functionCol < 0) {
+        functionCol = findColumnIndex(headerRow, 'role')
+      }
 
-      // Function column
+      const objCol = findColumnIndex(headerRow, 'objective')
+
+      let coreCompCol = findColumnIndex(headerRow, 'core competenc')
+      if (coreCompCol < 0) {
+        // Try just "competenc" but make sure it's not "sub competenc"
+        const entries = Object.entries(headerRow)
+        for (const [index, value] of entries) {
+          const lowerValue = value?.toLowerCase() || ''
+          if (lowerValue.includes('competenc') && !lowerValue.includes('sub')) {
+            coreCompCol = parseInt(index)
+            break
+          }
+        }
+      }
+
+      let subCompCol = findColumnIndex(headerRow, 'sub competenc')
+
+      // HealthOps doesn't have a "sub competenc" column, just "competencies"
+      // In this case, we'll treat "competencies" as the sub-competency column
+      // and create a core competency for each role
+      const hasSubCompCol = subCompCol >= 0
+
+      // Function/Role column
       if (functionCol >= 0) {
         const functionValue = cleanCellValue(row[functionCol])
         if (functionValue) {
           currentFunction = functionValue
+
+          // If no sub-competency column, create a core competency for each role
+          if (!hasSubCompCol) {
+            if (currentCoreComp && currentCoreComp.subCompetencies.length > 0) {
+              coreCompetencies.push(currentCoreComp)
+            }
+
+            currentCoreComp = {
+              name: functionValue, // Use role as core competency name
+              description: undefined,
+              subCompetencies: [],
+            }
+          }
         }
       }
 
       // Function Objective
       const functionObjective = objCol >= 0 ? cleanCellValue(row[objCol]) : ''
 
-      // Core Competency
-      if (coreCompCol >= 0) {
+      // Core Competency (only if we have a sub-competency column)
+      if (hasSubCompCol && coreCompCol >= 0) {
         const coreCompName = cleanCellValue(row[coreCompCol])
         if (coreCompName) {
           if (currentCoreComp && currentCoreComp.subCompetencies.length > 0) {
@@ -218,7 +254,14 @@ export async function parseExtended5LevelSheet(
       }
 
       // Sub-competency
-      const subCompName = subCompCol >= 0 ? cleanCellValue(row[subCompCol]) : ''
+      let subCompName = ''
+      if (hasSubCompCol) {
+        subCompName = subCompCol >= 0 ? cleanCellValue(row[subCompCol]) : ''
+      } else {
+        // Use "competencies" column as sub-competency
+        subCompName = coreCompCol >= 0 ? cleanCellValue(row[coreCompCol]) : ''
+      }
+
       if (!subCompName || !currentCoreComp) {
         continue
       }

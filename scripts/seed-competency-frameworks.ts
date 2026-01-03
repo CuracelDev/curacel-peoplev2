@@ -14,8 +14,8 @@ const FRAMEWORK_SOURCES = [
     type: 'DEPARTMENT' as const,
     name: 'People Operations',
     department: 'People Ops',
-    sheetUrl: 'https://docs.google.com/spreadsheets/d/1FAI9E5dMS_7cNJ93a5zmyziK6L50ywzNzcY_gZ97r7s/edit?gid=818245557#gid=818245557',
-    tabName: undefined,
+    sheetUrl: 'https://docs.google.com/spreadsheets/d/1FAI9E5dMS_7cNJ93a5zmyziK6L50ywzNzcY_gZ97r7s/edit?gid=0#gid=0',
+    tabName: 'Departmental Competency Framework',
   },
   {
     type: 'DEPARTMENT' as const,
@@ -28,8 +28,8 @@ const FRAMEWORK_SOURCES = [
     type: 'DEPARTMENT' as const,
     name: 'Finance',
     department: 'Finance',
-    sheetUrl: 'https://docs.google.com/spreadsheets/d/1J-y9IQhL2vnDOApAOspqqYehS3exd0pzLlc5DPjw4iE/edit',
-    tabName: undefined,
+    sheetUrl: 'https://docs.google.com/spreadsheets/d/1J-y9IQhL2vnDOApAOspqqYehS3exd0pzLlc5DPjw4iE/edit?gid=0#gid=0',
+    tabName: 'Departmental Competency Framework',
   },
   {
     type: 'DEPARTMENT' as const,
@@ -65,8 +65,8 @@ const FRAMEWORK_SOURCES = [
     type: 'DEPARTMENT' as const,
     name: 'HealthOps',
     department: 'HealthOps',
-    sheetUrl: 'https://docs.google.com/spreadsheets/d/19_77KwliVcoWIaoggpCn-Ddw--EfXRSNNBwsVi4fXII/edit',
-    tabName: undefined,
+    sheetUrl: 'https://docs.google.com/spreadsheets/d/19_77KwliVcoWIaoggpCn-Ddw--EfXRSNNBwsVi4fXII/edit?gid=6907621#gid=6907621',
+    tabName: 'Competency Framework V2',
   },
 
   // AI Competencies (Behavioral Indicators)
