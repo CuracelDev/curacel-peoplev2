@@ -137,9 +137,11 @@ export function detectSheetFormat(headers: SheetRow): SheetFormatType {
     return 'EXTENDED_5_LEVEL'
   }
 
-  // Standard or Extended competency matrix: has ("Function" OR "Function Objective") AND ("Core Competencies" OR "Core Competenc")
-  const hasFunction = allHeadersText.includes('function')
-  const hasCoreComp = allHeadersText.includes('core competenc')
+  // Standard or Extended competency matrix:
+  // Has ("Function" OR "Function Objective" OR "Role") AND ("Core Competencies" OR "Competencies")
+  const hasFunction = allHeadersText.includes('function') || allHeadersText.includes('role')
+  const hasCoreComp = allHeadersText.includes('core competenc') ||
+                      (allHeadersText.includes('competenc') && !allHeadersText.includes('value definition'))
 
   if ((hasFunction || hasCoreComp) && !hasValues) {
     // Check for "Expert" column to detect 5-level variant
@@ -214,25 +216,60 @@ export function isEmptyRow(row: SheetRow): boolean {
  */
 export function isHeaderRow(row: SheetRow): boolean {
   const values = Object.values(row).map(v => v?.toLowerCase() || '')
+
+  // Headers are typically short labels, not long descriptions
+  // If any cell is very long (>150 chars), it's likely data, not headers
+  const hasLongContent = values.some(v => v && v.length > 150)
+  if (hasLongContent) {
+    return false
+  }
+
   const allText = values.join(' ')
 
-  // Count how many header keywords are present (must have at least 2 to avoid false positives)
-  let keywordCount = 0
+  // Very specific header patterns that are unlikely to appear in data rows
+  // These are exact matches for common header combinations
+  const specificHeaderPatterns = [
+    // Standard format headers
+    /\bfunction\s*(objective)?\b.*\bcore\s*competenc/i,
+    /\bcore\s*competenc.*\bsub\s*competenc/i,
+    // Values format headers
+    /\bvalue(s)?\b.*\bvalue\s*definition/i,
+    /\bcompetenc.*\bdefinition/i,
+    // AI format - numbered levels
+    /\b0\.\s*unacceptable/i,
+    /\b1\.\s*basic/i,
+  ]
 
-  if (allText.includes('function')) keywordCount++
-  if (allText.includes('competenc')) keywordCount++ // Matches both competency and competencies
-  if (allText.match(/\bvalue(s)?\b/)) keywordCount++ // Word boundary to avoid matching "valuable"
-  if (allText.includes('objective')) keywordCount++
-  if (allText.includes('definition')) keywordCount++
+  if (specificHeaderPatterns.some(pattern => pattern.test(allText))) {
+    return true
+  }
 
-  // Level keywords (Basic, Intermediate, etc.) are strong indicators
+  // Level keywords as standalone short cells (not embedded in long text)
   const levelKeywords = ['basic', 'intermediate', 'proficient', 'advanced', 'expert', 'unacceptable']
-  const hasLevelKeyword = levelKeywords.some(kw => allText.includes(kw))
+  const hasMultipleLevelKeywords = values.filter(v => {
+    // Must be a short cell (< 50 chars) that exactly matches or starts with a level keyword
+    if (!v || v.length > 50) return false
+    return levelKeywords.some(kw => v === kw || v.startsWith(kw))
+  }).length >= 2
 
-  // Header row should have either:
-  // 1. Multiple structural keywords (function, competency, etc.), OR
-  // 2. Level keywords (which are unique to headers)
-  return keywordCount >= 2 || hasLevelKeyword
+  if (hasMultipleLevelKeywords) {
+    return true
+  }
+
+  // Count structural header keywords (must be in short cells)
+  let keywordCount = 0
+  values.forEach(v => {
+    if (!v || v.length > 50) return // Skip long cells
+    if (v.includes('function')) keywordCount++
+    if (v.match(/\bcompetenc/)) keywordCount++
+    if (v.match(/\bvalue(s)?\b/)) keywordCount++
+    if (v.includes('objective')) keywordCount++
+    if (v.includes('definition')) keywordCount++
+    if (v.match(/\bsub\b/)) keywordCount++
+  })
+
+  // Need at least 2 structural keywords in short cells to be a header
+  return keywordCount >= 2
 }
 
 /**
