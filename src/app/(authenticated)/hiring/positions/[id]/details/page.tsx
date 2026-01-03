@@ -2,15 +2,17 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
-import { ArrowLeft, Briefcase, Calendar, DollarSign, MapPin, Users, Target, Award, Network } from 'lucide-react'
+import { ArrowLeft, Briefcase, Calendar, DollarSign, MapPin, Users, Target, Award, Network, ChevronDown } from 'lucide-react'
 import { format } from 'date-fns'
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { useState } from 'react'
-import { ChevronDown, ChevronRight } from 'lucide-react'
 
 export default function JobDetailsPage() {
   const params = useParams()
@@ -126,33 +128,59 @@ export default function JobDetailsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={() => router.back()}
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back
-          </button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{job.title}</h1>
-            <p className="text-sm text-gray-600 mt-1">
-              {job.department || 'No Department'} · {formatLocations()}
-            </p>
+      <Card>
+        <CardContent className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
+            <div className="flex items-start gap-4">
+              <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl bg-indigo-600/10 text-indigo-600 flex items-center justify-center flex-shrink-0">
+                <Briefcase className="h-8 w-8" />
+              </div>
+            </div>
+
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-3 mb-1">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => router.back()}
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                </Button>
+                <h1 className="text-xl sm:text-2xl font-semibold text-foreground">{job.title}</h1>
+              </div>
+              <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3">
+                <span className="flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
+                  {job.department || 'No Department'} · {formatLocations()}
+                </span>
+                {job.createdAt && (
+                  <span className="flex items-center gap-1.5 text-muted-foreground/80">
+                    <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
+                    Posted {format(new Date(job.createdAt), 'MMM d, yyyy')}
+                  </span>
+                )}
+                {job.deadline && (
+                  <span className="flex items-center gap-1.5 text-muted-foreground/80">
+                    <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
+                    Deadline {format(new Date(job.deadline), 'MMM d, yyyy')}
+                  </span>
+                )}
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <Badge className={`${statusColors[job.status as keyof typeof statusColors]} text-xs`}>
+                  {job.status}
+                </Badge>
+                <Badge className={`${priorityColors[job.priority as keyof typeof priorityColors]} text-xs`}>
+                  {priorityLabels[job.priority as keyof typeof priorityLabels]} Priority
+                </Badge>
+              </div>
+            </div>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${statusColors[job.status as keyof typeof statusColors]}`}>
-            {job.status}
-          </span>
-          <span className={`px-3 py-1 rounded-full text-xs font-medium ${priorityColors[job.priority as keyof typeof priorityColors]}`}>
-            {priorityLabels[job.priority as keyof typeof priorityLabels]} Priority
-          </span>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -202,11 +230,7 @@ export default function JobDetailsPage() {
               <Briefcase className="h-5 w-5 text-gray-600" />
               <h2 className="text-lg font-semibold text-gray-900">Job Overview</h2>
             </div>
-            {openSections.overview ? (
-              <ChevronDown className="h-5 w-5 text-gray-600" />
-            ) : (
-              <ChevronRight className="h-5 w-5 text-gray-600" />
-            )}
+            <ChevronDown className="h-5 w-5 text-gray-600" />
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="px-6 pb-6 space-y-6">
@@ -309,11 +333,7 @@ export default function JobDetailsPage() {
                   <p className="text-xs text-gray-500 mt-0.5">{job.jobDescription.name}</p>
                 </div>
               </div>
-              {openSections.description ? (
-                <ChevronDown className="h-5 w-5 text-gray-600" />
-              ) : (
-                <ChevronRight className="h-5 w-5 text-gray-600" />
-              )}
+              <ChevronDown className="h-5 w-5 text-gray-600" />
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="px-6 pb-6">
@@ -336,11 +356,7 @@ export default function JobDetailsPage() {
                 <Target className="h-5 w-5 text-gray-600" />
                 <h2 className="text-lg font-semibold text-gray-900">Scorecard & Evaluation Criteria</h2>
               </div>
-              {openSections.scorecard ? (
-                <ChevronDown className="h-5 w-5 text-gray-600" />
-              ) : (
-                <ChevronRight className="h-5 w-5 text-gray-600" />
-              )}
+              <ChevronDown className="h-5 w-5 text-gray-600" />
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="px-6 pb-6 space-y-6">
@@ -398,11 +414,7 @@ export default function JobDetailsPage() {
                   </p>
                 </div>
               </div>
-              {openSections.competencies ? (
-                <ChevronDown className="h-5 w-5 text-gray-600" />
-              ) : (
-                <ChevronRight className="h-5 w-5 text-gray-600" />
-              )}
+              <ChevronDown className="h-5 w-5 text-gray-600" />
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="px-6 pb-6 space-y-6">
@@ -485,11 +497,7 @@ export default function JobDetailsPage() {
                   </p>
                 </div>
               </div>
-              {openSections.pipeline ? (
-                <ChevronDown className="h-5 w-5 text-gray-600" />
-              ) : (
-                <ChevronRight className="h-5 w-5 text-gray-600" />
-              )}
+              <ChevronDown className="h-5 w-5 text-gray-600" />
             </CollapsibleTrigger>
             <CollapsibleContent>
               <div className="px-6 pb-6">

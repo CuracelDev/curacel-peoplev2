@@ -168,6 +168,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Job list stage stats now use actual candidate stage breakdowns instead of placeholder labels.
 - Restored job status badge hover text color to avoid dark-on-dark states.
 - Job list stage stats now use custom hiring flow stage names when available.
+- Job details header now uses the same card-style layout as employee and candidate headers.
+- Job details section chevrons now always point downward.
+- Reduced left padding on job details to match other hiring views.
+- Softened job details date styling to match the rest of the metadata row.
 - Job detail stage cards now hide stages with zero candidates.
 - Updated employee detail outline buttons to match rounded pill styling.
 - Job list stage stats now link into filtered job candidates views
