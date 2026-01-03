@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, adminProcedure, protectedProcedure, publicProcedure } from '@/lib/trpc'
 import { generateCandidateAnalysis } from '@/lib/ai/hiring/analysis'
+import { decrypt } from '@/lib/encryption'
 
 const questionTypeEnum = z.enum([
   'TEXT',
@@ -268,6 +269,170 @@ export const interestFormRouter = router({
           },
         },
       })
+    }),
+
+  // Generate interest form questions with AuntyPelz
+  generateWithAuntyPelz: adminProcedure
+    .input(
+      z.object({
+        name: z.string().min(2).max(200),
+        description: z.string().max(1000).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const aiSettings = await ctx.prisma.aISettings.findFirst()
+
+      if (!aiSettings || !aiSettings.isEnabled) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'AI is not enabled',
+        })
+      }
+
+      const prompt = `You are AuntyPelz, Curacel's recruiting assistant. Create a concise interest form for this role.
+
+Form name: ${input.name}
+Description: ${input.description || 'None'}
+
+Generate 6-12 questions that capture candidate fit and logistics. Include basic contact info and at least one role-specific question.
+
+Return valid JSON with this structure:
+{
+  "name": "string",
+  "description": "string",
+  "questions": [
+    {
+      "label": "string",
+      "type": "TEXT|TEXTAREA|EMAIL|PHONE|URL|SELECT|MULTISELECT|RADIO|CHECKBOX|DATE|SCALE|FILE",
+      "placeholder": "string (optional)",
+      "helpText": "string (optional)",
+      "isRequired": true,
+      "options": "comma-separated options for SELECT/MULTISELECT/RADIO/CHECKBOX"
+    }
+  ]
+}`
+
+      let response: any
+
+      if (aiSettings.provider === 'ANTHROPIC') {
+        const Anthropic = (await import('@anthropic-ai/sdk')).default
+
+        if (!aiSettings.anthropicKeyEncrypted) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'Anthropic API key not configured',
+          })
+        }
+
+        const apiKey = decrypt(aiSettings.anthropicKeyEncrypted)
+        const anthropic = new Anthropic({ apiKey })
+
+        const message = await anthropic.messages.create({
+          model: aiSettings.anthropicModel,
+          max_tokens: 1800,
+          messages: [{ role: 'user', content: prompt }],
+        })
+
+        const content = message.content[0]
+        if (content.type === 'text') {
+          response = JSON.parse(content.text)
+        }
+      } else if (aiSettings.provider === 'OPENAI') {
+        const OpenAI = (await import('openai')).default
+
+        if (!aiSettings.openaiKeyEncrypted) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'OpenAI API key not configured',
+          })
+        }
+
+        const apiKey = decrypt(aiSettings.openaiKeyEncrypted)
+        const openai = new OpenAI({ apiKey })
+
+        const completion = await openai.chat.completions.create({
+          model: aiSettings.openaiModel,
+          messages: [{ role: 'user', content: prompt }],
+          response_format: { type: 'json_object' },
+        })
+
+        response = JSON.parse(completion.choices[0].message.content || '{}')
+      } else if (aiSettings.provider === 'GEMINI') {
+        const { GoogleGenerativeAI } = await import('@google/generative-ai')
+
+        if (!aiSettings.geminiKeyEncrypted) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'Gemini API key not configured',
+          })
+        }
+
+        const apiKey = decrypt(aiSettings.geminiKeyEncrypted)
+        const genAI = new GoogleGenerativeAI(apiKey)
+        const model = genAI.getGenerativeModel({ model: aiSettings.geminiModel })
+
+        const result = await model.generateContent(prompt)
+        const text = result.response.text()
+
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        response = jsonMatch ? JSON.parse(jsonMatch[0]) : JSON.parse(text)
+      }
+
+      if (!response || !Array.isArray(response.questions)) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Failed to generate interest form questions',
+        })
+      }
+
+      const allowedTypes = new Set(questionTypeEnum.options)
+      const normalizeOptions = (value: unknown) => {
+        if (!value) return undefined
+        if (typeof value === 'string') return value
+        if (Array.isArray(value)) {
+          return value
+            .map((option) => (typeof option === 'string' ? option : ''))
+            .filter(Boolean)
+            .join(', ')
+        }
+        return undefined
+      }
+
+      const questions = response.questions
+        .map((question: any) => {
+          const label = typeof question.label === 'string' ? question.label.trim() : ''
+          if (!label) return null
+
+          const rawType = typeof question.type === 'string' ? question.type.toUpperCase() : 'TEXT'
+          const type = allowedTypes.has(rawType)
+            ? (rawType as z.infer<typeof questionTypeEnum>)
+            : 'TEXT'
+
+          return {
+            label,
+            type,
+            placeholder:
+              typeof question.placeholder === 'string' && question.placeholder.trim()
+                ? question.placeholder.trim()
+                : undefined,
+            helpText:
+              typeof question.helpText === 'string' && question.helpText.trim()
+                ? question.helpText.trim()
+                : undefined,
+            isRequired: question.isRequired !== false,
+            options: normalizeOptions(question.options),
+          }
+        })
+        .filter(Boolean)
+
+      return {
+        name: typeof response.name === 'string' && response.name.trim() ? response.name.trim() : input.name,
+        description:
+          typeof response.description === 'string' && response.description.trim()
+            ? response.description.trim()
+            : input.description,
+        questions,
+      }
     }),
 
   // Submit a form response (public)

@@ -155,11 +155,10 @@ export function JDSelector({
           {!isCollapsed && (
             <div className="p-4 border-t bg-white max-h-96 overflow-y-auto">
               {fullJD ? (
-                <div className="prose prose-sm max-w-none">
-                  <div className="text-sm text-foreground whitespace-pre-wrap">
-                    {fullJD.content}
-                  </div>
-                </div>
+                <div
+                  className="prose prose-sm max-w-none text-sm"
+                  dangerouslySetInnerHTML={{ __html: fullJD.content }}
+                />
               ) : (
                 <p className="text-sm text-muted-foreground">Loading content...</p>
               )}
