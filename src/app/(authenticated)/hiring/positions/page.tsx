@@ -12,6 +12,7 @@ import {
   Palette,
   TrendingUp,
   Loader2,
+  Users,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -230,18 +231,20 @@ export default function PositionsPage() {
                     )}
                   </div>
 
-                  {/* Job Meta */}
+                  {/* Location under title */}
+                  <div className="flex items-center gap-2 text-[13px] text-muted-foreground mt-2">
+                    <MapPin className="h-3.5 w-3.5" />
+                    {getLocationSummary(job.locations)}
+                  </div>
+
+                  {/* Job Meta - Team and Dates */}
                   <div className="flex gap-4 mt-3 flex-wrap">
                     {job.department && (
                       <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                        <Briefcase className="h-3.5 w-3.5" />
+                        <Users className="h-3.5 w-3.5" />
                         {job.department}
                       </div>
                     )}
-                    <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
-                      <MapPin className="h-3.5 w-3.5" />
-                      {getLocationSummary(job.locations)}
-                    </div>
                     <div className="flex items-center gap-2 text-[13px] text-muted-foreground">
                       <Calendar className="h-3.5 w-3.5" />
                       Posted {formatDate(job.createdAt)}
