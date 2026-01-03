@@ -10,7 +10,7 @@ import type {
 } from './types'
 
 /**
- * Fetch raw data from a Google Sheet tab
+ * Fetch raw data from a Google Sheet tab using public API (no auth required for public sheets)
  */
 export async function fetchSheetData(
   sheetUrl: string,
@@ -20,33 +20,74 @@ export async function fetchSheetData(
 
   console.log(`[fetchSheetData] Fetching sheet: ${sheetId}, tab: ${tabName || 'default'}`)
 
-  const service = getGoogleSheetsService({ spreadsheetId: sheetId })
+  // Try to use Google Sheets public API first (for public sheets)
+  try {
+    // Determine the range to fetch
+    const range = tabName ? `${tabName}!A:Z` : 'A:Z'
+    const encodedRange = encodeURIComponent(range)
 
-  // Access the private method using type assertion
-  const getSheetsClient = (service as any).getSheetsClient.bind(service)
-  const sheets = await getSheetsClient()
+    const publicApiUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:json&sheet=${encodedRange}`
 
-  // Determine the range to fetch
-  const range = tabName ? `${tabName}!A:Z` : 'A:Z'
+    console.log(`[fetchSheetData] Trying public API: ${publicApiUrl}`)
 
-  console.log(`[fetchSheetData] Fetching range: ${range}`)
+    const response = await fetch(publicApiUrl)
+    const text = await response.text()
 
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId: sheetId,
-    range,
-  })
+    // Google returns JSONP, need to extract JSON
+    const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s)
+    if (!jsonMatch) {
+      throw new Error('Failed to parse Google Sheets response')
+    }
 
-  const rows = response.data.values || []
-  console.log(`[fetchSheetData] Fetched ${rows.length} rows`)
+    const data = JSON.parse(jsonMatch[1])
 
-  // Convert to SheetRow format (array of column values)
-  return rows.map((row: any[]) => {
-    const sheetRow: SheetRow = {}
-    row.forEach((value, index) => {
-      sheetRow[index] = value?.toString().trim() || ''
+    if (data.status === 'error') {
+      throw new Error(`Google Sheets API error: ${data.errors[0]?.detailed_message || 'Unknown error'}`)
+    }
+
+    const rows: SheetRow[] = []
+
+    if (data.table && data.table.rows) {
+      for (const row of data.table.rows) {
+        const sheetRow: SheetRow = {}
+        if (row.c) {
+          row.c.forEach((cell: any, index: number) => {
+            sheetRow[index] = cell?.v?.toString().trim() || cell?.f?.toString().trim() || ''
+          })
+        }
+        rows.push(sheetRow)
+      }
+    }
+
+    console.log(`[fetchSheetData] Fetched ${rows.length} rows via public API`)
+    return rows
+  } catch (publicApiError) {
+    console.warn(`[fetchSheetData] Public API failed:`, publicApiError)
+
+    // Fallback to authenticated Google Sheets API
+    console.log(`[fetchSheetData] Falling back to authenticated API`)
+
+    const service = getGoogleSheetsService({ spreadsheetId: sheetId })
+    const getSheetsClient = (service as any).getSheetsClient.bind(service)
+    const sheets = await getSheetsClient()
+
+    const range = tabName ? `${tabName}!A:Z` : 'A:Z'
+    const response = await sheets.spreadsheets.values.get({
+      spreadsheetId: sheetId,
+      range,
     })
-    return sheetRow
-  })
+
+    const rows = response.data.values || []
+    console.log(`[fetchSheetData] Fetched ${rows.length} rows via authenticated API`)
+
+    return rows.map((row: any[]) => {
+      const sheetRow: SheetRow = {}
+      row.forEach((value, index) => {
+        sheetRow[index] = value?.toString().trim() || ''
+      })
+      return sheetRow
+    })
+  }
 }
 
 /**
