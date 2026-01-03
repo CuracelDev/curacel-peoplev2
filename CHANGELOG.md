@@ -173,6 +173,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Reduced left padding on job details to match other hiring views.
 - Softened job details date styling to match the rest of the metadata row.
 - Balanced job overview details across both columns for better symmetry.
+- Job overview details now align in a horizontal grid with compensation beneath.
+- Job details header now stacks deadline under posted date for cleaner alignment.
 - Job detail stage cards now hide stages with zero candidates.
 - Updated employee detail outline buttons to match rounded pill styling.
 - Job list stage stats now link into filtered job candidates views

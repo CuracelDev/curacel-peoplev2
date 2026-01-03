@@ -151,23 +151,25 @@ export default function JobDetailsPage() {
                 </Button>
                 <h1 className="text-xl sm:text-2xl font-semibold text-foreground">{job.title}</h1>
               </div>
-              <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3">
+                <div className="flex flex-col gap-2">
+                  {job.createdAt && (
+                    <span className="flex items-center gap-1.5 text-muted-foreground/80">
+                      <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
+                      Posted {format(new Date(job.createdAt), 'MMM d, yyyy')}
+                    </span>
+                  )}
+                  {job.deadline && (
+                    <span className="flex items-center gap-1.5 text-muted-foreground/80">
+                      <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
+                      Deadline {format(new Date(job.deadline), 'MMM d, yyyy')}
+                    </span>
+                  )}
+                </div>
                 <span className="flex items-center gap-1.5">
                   <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
                   {job.department || 'No Department'} · {formatLocations()}
                 </span>
-                {job.createdAt && (
-                  <span className="flex items-center gap-1.5 text-muted-foreground/80">
-                    <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
-                    Posted {format(new Date(job.createdAt), 'MMM d, yyyy')}
-                  </span>
-                )}
-                {job.deadline && (
-                  <span className="flex items-center gap-1.5 text-muted-foreground/80">
-                    <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
-                    Deadline {format(new Date(job.deadline), 'MMM d, yyyy')}
-                  </span>
-                )}
               </div>
               <div className="flex flex-wrap gap-2">
                 <Badge className={`${statusColors[job.status as keyof typeof statusColors]} text-xs`}>
@@ -234,10 +236,10 @@ export default function JobDetailsPage() {
           </CollapsibleTrigger>
           <CollapsibleContent>
             <div className="px-6 pb-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-3">Employment Details</h3>
-                  <dl className="space-y-3">
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                     <div className="flex items-start gap-3">
                       <Briefcase className="h-4 w-4 text-gray-400 mt-0.5" />
                       <div className="flex-1">
@@ -280,7 +282,7 @@ export default function JobDetailsPage() {
 
                 <div>
                   <h3 className="text-sm font-medium text-gray-700 mb-3">Compensation & Ownership</h3>
-                  <dl className="space-y-3">
+                  <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="flex items-start gap-3">
                       <DollarSign className="h-4 w-4 text-gray-400 mt-0.5" />
                       <div className="flex-1">

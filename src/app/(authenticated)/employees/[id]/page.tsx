@@ -381,33 +381,30 @@ export default function EmployeeDetailPage() {
             </div>
 
             {/* Action Buttons */}
-            <div className="flex sm:flex-col gap-2">
+            <div className="flex sm:flex-col gap-3">
               <Button
                 variant="outline"
-                size="sm"
                 onClick={() => setEditDialogOpen(true)}
-                className="flex-1 sm:flex-none w-full text-xs sm:text-sm rounded-full border-border/60 px-4 py-2 hover:bg-muted/40"
+                className="flex-1 sm:flex-none w-full sm:w-auto bg-white border-border rounded-2xl px-6 py-3 text-sm font-normal hover:bg-gray-50"
               >
-                <Edit className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Update Profile</span>
+                <Edit className="h-4 w-4 mr-2" />
+                Update Profile
               </Button>
               {activeOffboarding ? (
                 <Button
                   asChild
-                  size="sm"
                   variant="outline"
-                  className="border-destructive/50 text-destructive hover:bg-destructive/10 flex-1 sm:flex-none w-full text-xs sm:text-sm rounded-full px-4 py-2"
+                  className="flex-1 sm:flex-none w-full sm:w-auto bg-white border-destructive text-destructive rounded-2xl px-6 py-3 text-sm font-normal hover:bg-destructive/5"
                 >
                   <Link href={`/offboarding/${existingOffboarding.id}`}>
-                    <UserMinus className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">View Offboarding</span>
+                    <UserMinus className="h-4 w-4 mr-2" />
+                    View Offboarding
                   </Link>
                 </Button>
               ) : (
                 <Button
-                  size="sm"
                   variant="outline"
-                  className="border-destructive text-destructive hover:bg-destructive/10 flex-1 sm:flex-none w-full text-xs sm:text-sm rounded-full px-4 py-2"
+                  className="flex-1 sm:flex-none w-full sm:w-auto bg-white border-destructive text-destructive rounded-2xl px-6 py-3 text-sm font-normal hover:bg-destructive/5"
                   onClick={() => {
                     setIsImmediate(false)
                     setEndDate(employee.endDate ? new Date(employee.endDate).toISOString().slice(0, 10) : '')
@@ -423,8 +420,8 @@ export default function EmployeeDetailPage() {
                   }}
                   disabled={employee.status === 'EXITED'}
                 >
-                  <UserMinus className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">Start Offboarding</span>
+                  <UserMinus className="h-4 w-4 mr-2" />
+                  Start Offboarding
                 </Button>
               )}
             </div>
