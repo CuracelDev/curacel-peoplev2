@@ -436,10 +436,6 @@ export default function EmployeeDetailPage() {
         {/* Personal Tab */}
         <TabsContent value="personal" className="mt-6">
           <div className="space-y-4">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">Personal Information</h2>
-            </div>
-
               {/* Personal Details */}
               <Card>
                 <CardHeader>
@@ -781,10 +777,6 @@ export default function EmployeeDetailPage() {
         {/* Personality Tab */}
         <TabsContent value="personality" className="mt-6">
           <div className="space-y-4">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">Personality & Values</h2>
-            </div>
-
               {/* MBTI */}
               <Card>
                 <CardHeader>
@@ -964,10 +956,6 @@ export default function EmployeeDetailPage() {
         {/* Applications Tab */}
         <TabsContent value="applications" className="mt-6">
           <div className="space-y-4">
-            <div>
-              <h2 className="text-2xl font-bold text-foreground mb-4">Applications</h2>
-            </div>
-
               <Card>
                 <CardHeader>
                   <CardTitle>Provisioned applications</CardTitle>
