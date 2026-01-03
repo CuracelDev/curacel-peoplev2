@@ -260,7 +260,7 @@ export const jobDescriptionRouter = router({
     }),
 
   // Generate JD from AI based on job title and department
-  generateFromAI: adminProcedure
+  generateFromAI: protectedProcedure
     .input(
       z.object({
         jobTitle: z.string().min(2).max(200),
@@ -487,7 +487,7 @@ Make it compelling, specific, and aligned with modern tech hiring practices.`
     }),
 
   // Import JD from URL
-  importFromUrl: adminProcedure
+  importFromUrl: protectedProcedure
     .input(z.object({ url: z.string().url() }))
     .mutation(async ({ ctx, input }) => {
       // 1. Fetch and scrape URL
