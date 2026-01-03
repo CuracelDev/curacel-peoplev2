@@ -7,7 +7,7 @@ import type {
   SheetMetadata,
   SheetFormatType,
 } from './types'
-import { fetchSheetData, detectSheetFormat } from './base-parser'
+import { fetchSheetData, detectSheetFormat, findHeaderRow } from './base-parser'
 import { parseStandard4LevelSheet } from './standard-4-level-parser'
 import { parseExtended5LevelSheet } from './extended-5-level-parser'
 import { parseAIBehavioralSheet } from './ai-behavioral-parser'
@@ -31,14 +31,20 @@ export async function parseCompetencyFrameworkSheet(
 ): Promise<ParsedCompetencyFramework> {
   const { sheetUrl, tabName } = metadata
 
-  // Fetch first row to detect format
+  // Fetch all rows to detect format
   const rows = await fetchSheetData(sheetUrl, tabName)
 
   if (rows.length === 0) {
     throw new Error('Sheet is empty')
   }
 
-  const formatType = detectSheetFormat(rows[0])
+  // Find the actual header row (some sheets have empty rows or titles before headers)
+  const headerResult = findHeaderRow(rows)
+  if (!headerResult) {
+    throw new Error('Could not find header row in sheet')
+  }
+
+  const formatType = detectSheetFormat(headerResult.headerRow)
 
   console.log(`[parseCompetencyFrameworkSheet] Detected format: ${formatType} for ${metadata.name}`)
 
