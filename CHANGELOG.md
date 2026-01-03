@@ -165,6 +165,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Removed the Decision Support notice that pointed to Settings > Teams.
 - Wrapped and reduced font size for competency framework action buttons to avoid overflow.
 - Made competency framework action buttons symmetrical using a fixed grid layout.
+- Job list stage stats now use actual candidate stage breakdowns instead of placeholder labels.
 - Job list stage stats now link into filtered job candidates views
 - Candidates list adds LinkedIn profile links and a column selector for extra fields
 - Job candidates table now mirrors the candidates list column selector and action menu alignment

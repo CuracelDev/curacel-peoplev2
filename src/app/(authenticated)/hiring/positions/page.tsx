@@ -191,6 +191,15 @@ export default function PositionsPage() {
               avgScore: 0,
               maxScore: 0,
             }
+            const stageBreakdown = (job as { stageBreakdown?: Array<{ label: string; count: number }> }).stageBreakdown || []
+            const summaryStages = stageBreakdown.length > 0
+              ? stageBreakdown.slice(0, 4)
+              : [
+                  { label: 'Applicants', count: stats.applicants },
+                  { label: 'In Review', count: stats.inReview },
+                  { label: 'Interviewing', count: stats.interviewing },
+                  { label: 'Offer Stage', count: stats.offerStage },
+                ]
             const scoreValue = scoreDisplay === 'max' ? stats.maxScore : stats.avgScore
             const scoreLabel = scoreDisplay === 'max' ? 'max score' : 'avg score'
 
@@ -247,34 +256,16 @@ export default function PositionsPage() {
 
                   {/* Job Stats */}
                   <div className="grid grid-cols-2 gap-4 sm:flex sm:flex-wrap sm:gap-6 mt-4 pt-4 border-t border-border">
-                    <Link
-                      href={`/hiring/positions/${job.id}/candidates?stage=all`}
-                      className="text-center transition-colors hover:text-indigo-600"
-                    >
-                      <div className="text-[20px] font-semibold leading-none">{stats.applicants}</div>
-                      <div className="mt-0.5 text-[12px] text-muted-foreground">Applicants</div>
-                    </Link>
-                    <Link
-                      href={`/hiring/positions/${job.id}/candidates?stage=applied`}
-                      className="text-center transition-colors hover:text-indigo-600"
-                    >
-                      <div className="text-[20px] font-semibold leading-none">{stats.inReview}</div>
-                      <div className="mt-0.5 text-[12px] text-muted-foreground">In Review</div>
-                    </Link>
-                    <Link
-                      href={`/hiring/positions/${job.id}/candidates?stage=interviewing`}
-                      className="text-center transition-colors hover:text-indigo-600"
-                    >
-                      <div className="text-[20px] font-semibold leading-none">{stats.interviewing}</div>
-                      <div className="mt-0.5 text-[12px] text-muted-foreground">Interviewing</div>
-                    </Link>
-                    <Link
-                      href={`/hiring/positions/${job.id}/candidates?stage=offer`}
-                      className="text-center transition-colors hover:text-indigo-600"
-                    >
-                      <div className="text-[20px] font-semibold leading-none">{stats.offerStage}</div>
-                      <div className="mt-0.5 text-[12px] text-muted-foreground">Offer Stage</div>
-                    </Link>
+                    {summaryStages.map((stage) => (
+                      <Link
+                        key={stage.label}
+                        href={`/hiring/positions/${job.id}/candidates?stage=all`}
+                        className="text-center transition-colors hover:text-indigo-600"
+                      >
+                        <div className="text-[20px] font-semibold leading-none">{stage.count}</div>
+                        <div className="mt-0.5 text-[12px] text-muted-foreground">{stage.label}</div>
+                      </Link>
+                    ))}
                   </div>
                 </div>
 
