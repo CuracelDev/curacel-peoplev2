@@ -800,15 +800,6 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardContent className="p-0">
-                <div className="divide-y divide-border">
-                  <div className="p-6 text-sm text-muted-foreground">
-                    Personality Templates and Team Profiles are managed in Settings &gt; Teams.
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
             </>
           )}
 
