@@ -24,6 +24,7 @@ import {
   Briefcase,
   Zap,
   Sparkles,
+  Target,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -124,6 +125,17 @@ const settingsSections = [
         description: 'Configure personality templates and team profile guidance.',
         icon: Sparkles,
         href: '/hiring/settings/all?section=decision-support',
+      },
+    ],
+  },
+  {
+    title: 'Performance',
+    items: [
+      {
+        title: 'Competency Framework',
+        description: 'Manage competency frameworks synced from Google Sheets.',
+        icon: Target,
+        href: '/hiring/settings/competency-framework',
       },
     ],
   },
