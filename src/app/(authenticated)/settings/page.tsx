@@ -79,6 +79,12 @@ const settingsSections = [
         icon: ListChecks,
         href: '/settings/on-offboarding',
       },
+      {
+        title: 'Company Stage Process',
+        description: 'Define employee lifecycle stages and progression tracking.',
+        icon: GitBranch,
+        href: '/settings/company-stage-flow',
+      },
     ],
   },
   {

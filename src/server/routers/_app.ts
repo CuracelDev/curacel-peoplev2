@@ -31,6 +31,7 @@ import { analyticsRouter } from './analytics'
 import { recruiterRouter } from './recruiter'
 import { hiringSettingsRouter } from './hiring-settings'
 import { hiringFlowRouter } from './hiringFlow'
+import { companyStageFlowRouter } from './companyStageFlow'
 import { questionRouter } from './question'
 import { candidateEmailRouter } from './candidate-email'
 import { auntyPelzAnalysisRouter } from './auntypelz-analysis'
@@ -73,6 +74,7 @@ export const appRouter = router({
   recruiter: recruiterRouter,
   hiringSettings: hiringSettingsRouter,
   hiringFlow: hiringFlowRouter,
+  companyStageFlow: companyStageFlowRouter,
   question: questionRouter,
   candidateEmail: candidateEmailRouter,
   auntyPelzAnalysis: auntyPelzAnalysisRouter,

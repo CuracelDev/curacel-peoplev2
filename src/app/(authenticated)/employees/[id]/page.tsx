@@ -469,14 +469,95 @@ export default function EmployeeDetailPage() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
-                    <Sparkles className="h-4 w-4 text-indigo-600" />
-                    AuntyPelz Summary
+                    <Star className="h-4 w-4 text-indigo-600" />
+                    AuntyPelz's Summary
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    AI-powered employee summary coming soon.
+                  {/* Summary */}
+                  <p className="text-sm text-foreground/80 mb-4">
+                    {employee.fullName} is a {employee.employmentType?.toLowerCase().replace('_', ' ') || 'full-time'} {employee.jobTitle?.toLowerCase() || 'team member'} in {employee.department || 'the organization'}.
+                    {employee.startDate && ` With ${Math.floor((new Date().getTime() - new Date(employee.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30))} months tenure, they have `}
+                    {employee._count?.directReports ? `established themselves as a leader managing ${employee._count.directReports} ${employee._count.directReports === 1 ? 'direct report' : 'direct reports'}` : 'been a consistent contributor to the team'}.
                   </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    {/* Strengths */}
+                    <div>
+                      <div className="font-semibold text-success mb-3">Key Strengths</div>
+                      {employee.mbtiType && (
+                        <div className="flex items-start gap-2 py-2">
+                          <Check className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
+                          <span className="text-sm">{employee.mbtiType} personality - brings structured thinking</span>
+                        </div>
+                      )}
+                      {employee.department && (
+                        <div className="flex items-start gap-2 py-2">
+                          <Check className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
+                          <span className="text-sm">Deep expertise in {employee.department}</span>
+                        </div>
+                      )}
+                      {employee.employmentType === 'FULL_TIME' && (
+                        <div className="flex items-start gap-2 py-2">
+                          <Check className="h-4 w-4 text-success flex-shrink-0 mt-0.5" />
+                          <span className="text-sm">Strong organizational commitment</span>
+                        </div>
+                      )}
+                      {(!employee.mbtiType && !employee.department && employee.employmentType !== 'FULL_TIME') && (
+                        <div className="text-sm text-muted-foreground">AI will identify key strengths from performance data</div>
+                      )}
+                    </div>
+
+                    {/* Development Areas */}
+                    <div>
+                      <div className="font-semibold text-amber-600 mb-3">Growth Opportunities</div>
+                      <div className="flex items-start gap-2 py-2">
+                        <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">Leadership development opportunities</span>
+                      </div>
+                      <div className="flex items-start gap-2 py-2">
+                        <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">Cross-functional collaboration expansion</span>
+                      </div>
+                      <div className="flex items-start gap-2 py-2">
+                        <AlertCircle className="h-4 w-4 text-amber-500 flex-shrink-0 mt-0.5" />
+                        <span className="text-sm">Technical skill advancement</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Performance Indicators */}
+                  <div className="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <div className="text-xs text-muted-foreground">Tenure</div>
+                      <div className="text-lg font-bold text-foreground">
+                        {employee.startDate ? Math.floor((new Date().getTime() - new Date(employee.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)) : 0}mo
+                      </div>
+                    </div>
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <div className="text-xs text-muted-foreground">Team Size</div>
+                      <div className="text-lg font-bold text-foreground">
+                        {employee._count?.directReports || 0}
+                      </div>
+                    </div>
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <div className="text-xs text-muted-foreground">Status</div>
+                      <div className="text-sm font-semibold text-success">
+                        {employeeStatusLabels[employee.status]}
+                      </div>
+                    </div>
+                    <div className="text-center p-3 bg-muted/50 rounded-lg">
+                      <div className="text-xs text-muted-foreground">Type</div>
+                      <div className="text-sm font-semibold text-foreground">
+                        {employee.employmentType?.replace('_', ' ') || 'N/A'}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* AI Analysis Placeholder */}
+                  <div className="mt-4 p-3 bg-indigo-50 border border-indigo-200 rounded-lg text-xs text-indigo-800">
+                    <strong>Full AI analysis coming soon:</strong> Performance trends, skill development, collaboration patterns, and personalized career recommendations
+                  </div>
                 </CardContent>
               </Card>
             </div>
