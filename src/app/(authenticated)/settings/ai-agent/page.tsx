@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { trpc } from '@/lib/trpc-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -76,11 +76,18 @@ export default function AIAgentSettingsPage() {
       setOpenaiKey('')
       setAnthropicKey('')
       setGeminiKey('')
-      setSystemPrompt('')
+      // Don't clear systemPrompt - keep it visible after saving
     },
   })
 
   const testConnection = trpc.assistant.testConnection.useMutation()
+
+  // Initialize systemPrompt from settings when data loads
+  useEffect(() => {
+    if (settings?.systemPrompt) {
+      setSystemPrompt(settings.systemPrompt)
+    }
+  }, [settings?.systemPrompt])
 
   const openaiModels = ensureCurrentModel(openaiModelsQuery.data?.models ?? [], settings?.openaiModel)
   const anthropicModels = ensureCurrentModel(anthropicModelsQuery.data?.models ?? [], settings?.anthropicModel)
