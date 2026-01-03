@@ -163,7 +163,7 @@ export const employeeRouter = router({
   getMyProfile: protectedProcedure
     .query(async ({ ctx }) => {
       const user = ctx.user as { employeeId?: string }
-      
+
       if (!user.employeeId) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'No employee profile linked to your account' })
       }
@@ -175,6 +175,160 @@ export const employeeRouter = router({
           appAccounts: { include: { app: true } },
         },
       })
+    }),
+
+  getEmployeeJourney: protectedProcedure
+    .input(z.string())
+    .query(async ({ ctx, input: employeeId }) => {
+      const employee = await ctx.prisma.employee.findUnique({
+        where: { id: employeeId },
+        include: {
+          candidate: {
+            include: {
+              job: {
+                select: {
+                  title: true,
+                  hiringFlowSnapshot: true,
+                },
+              },
+              interviews: {
+                orderBy: { completedAt: 'asc' },
+                select: {
+                  id: true,
+                  stage: true,
+                  stageName: true,
+                  stageDisplayName: true,
+                  scheduledAt: true,
+                  completedAt: true,
+                  status: true,
+                  score: true,
+                  overallScore: true,
+                },
+              },
+              assessments: {
+                orderBy: { completedAt: 'asc' },
+                select: {
+                  id: true,
+                  status: true,
+                  completedAt: true,
+                  overallScore: true,
+                },
+              },
+            },
+          },
+          roleHistory: {
+            orderBy: { effectiveDate: 'asc' },
+          },
+        },
+      })
+
+      if (!employee) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Employee not found' })
+      }
+
+      // Check access
+      const user = ctx.user as { role: string; employeeId?: string }
+      const canAccess =
+        user.role === 'SUPER_ADMIN' ||
+        user.role === 'HR_ADMIN' ||
+        user.role === 'IT_ADMIN' ||
+        (user.role === 'MANAGER' && employee.managerId === user.employeeId) ||
+        user.employeeId === employee.id
+
+      if (!canAccess) {
+        throw new TRPCError({ code: 'FORBIDDEN' })
+      }
+
+      // Build timeline events
+      const timeline: Array<{
+        id: string
+        type: 'application' | 'interview' | 'assessment' | 'offer' | 'hire' | 'promotion' | 'role_change'
+        title: string
+        date: Date
+        description?: string
+        status?: string
+        score?: number | null
+      }> = []
+
+      // Add application date if from candidate
+      if (employee.candidate) {
+        timeline.push({
+          id: `app-${employee.candidate.id}`,
+          type: 'application',
+          title: 'Applied',
+          date: employee.candidate.appliedAt,
+          description: `Applied for ${employee.candidate.job.title}`,
+        })
+
+        // Add interview stages
+        employee.candidate.interviews.forEach(interview => {
+          timeline.push({
+            id: interview.id,
+            type: 'interview',
+            title: interview.stageName || interview.stageDisplayName || interview.stage,
+            date: interview.completedAt || interview.scheduledAt || new Date(),
+            status: interview.status,
+            score: interview.overallScore || interview.score,
+          })
+        })
+
+        // Add assessments
+        employee.candidate.assessments.forEach((assessment, idx) => {
+          if (assessment.completedAt) {
+            timeline.push({
+              id: assessment.id,
+              type: 'assessment',
+              title: `Assessment ${idx + 1}`,
+              date: assessment.completedAt,
+              status: assessment.status,
+              score: assessment.overallScore,
+            })
+          }
+        })
+      }
+
+      // Add hire date
+      if (employee.startDate) {
+        timeline.push({
+          id: `hire-${employee.id}`,
+          type: 'hire',
+          title: 'Joined Company',
+          date: employee.startDate,
+          description: employee.jobTitle || undefined,
+        })
+      }
+
+      // Add role changes/promotions
+      employee.roleHistory.forEach(change => {
+        timeline.push({
+          id: change.id,
+          type: change.changeType === 'PROMOTION' ? 'promotion' : 'role_change',
+          title: change.changeType === 'PROMOTION' ? 'Promoted' : 'Role Change',
+          date: change.effectiveDate,
+          description: `From ${change.fromJobTitle || 'N/A'} to ${change.toJobTitle}`,
+        })
+      })
+
+      // Sort timeline by date
+      timeline.sort((a, b) => a.date.getTime() - b.date.getTime())
+
+      return {
+        employee: {
+          id: employee.id,
+          fullName: employee.fullName,
+          jobTitle: employee.jobTitle,
+          department: employee.department,
+          startDate: employee.startDate,
+          probationEndDate: employee.probationEndDate,
+        },
+        timeline,
+        candidateData: employee.candidate ? {
+          jobTitle: employee.candidate.job.title,
+          appliedAt: employee.candidate.appliedAt,
+          interviewCount: employee.candidate.interviews.length,
+          assessmentCount: employee.candidate.assessments.length,
+        } : null,
+      }
     }),
 
   getDirectReports: managerProcedure
