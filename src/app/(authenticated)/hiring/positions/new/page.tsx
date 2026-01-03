@@ -582,63 +582,48 @@ export default function CreateJobPage() {
             </div>
           </div>
 
-          {/* Job Description */}
+          {/* Job Description, Interest Form, Scorecard */}
           <div className="bg-card border border-border rounded-xl">
             <div className="p-5 border-b border-border flex items-center gap-3">
               <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
                 2
               </div>
-              <h2 className="font-semibold">Job Description</h2>
+              <h2 className="font-semibold">Job Setup</h2>
             </div>
-            <div className="p-5">
-              <JDSelector
-                value={formData.jdId}
-                onChange={(value) => setFormData({ ...formData, jdId: value })}
-                onTitleChange={(title) => {
-                  if (!formData.title) {
-                    setFormData(prev => ({ ...prev, title }))
-                  }
-                }}
-                onDepartmentChange={(department) => {
-                  if (!formData.department) {
-                    setFormData(prev => ({ ...prev, department }))
-                  }
-                }}
-              />
-            </div>
-          </div>
-
-          {/* Interest Form */}
-          <div className="bg-card border border-border rounded-xl">
-            <div className="p-5 border-b border-border flex items-center gap-3">
-              <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
-                2.25
+            <div className="p-5 space-y-4">
+              <div>
+                <h3 className="text-sm font-semibold mb-3">Job Description</h3>
+                <JDSelector
+                  value={formData.jdId}
+                  onChange={(value) => setFormData({ ...formData, jdId: value })}
+                  onTitleChange={(title) => {
+                    if (!formData.title) {
+                      setFormData(prev => ({ ...prev, title }))
+                    }
+                  }}
+                  onDepartmentChange={(department) => {
+                    if (!formData.department) {
+                      setFormData(prev => ({ ...prev, department }))
+                    }
+                  }}
+                />
               </div>
-              <h2 className="font-semibold">Interest Form</h2>
-            </div>
-            <div className="p-5">
-              <InterestFormSelector
-                value={formData.interestFormId}
-                onChange={(value) => setFormData({ ...formData, interestFormId: value })}
-              />
-            </div>
-          </div>
-
-          {/* Scorecard (NEW Section 2.5) */}
-          <div className="bg-card border border-border rounded-xl">
-            <div className="p-5 border-b border-border flex items-center gap-3">
-              <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
-                2.5
+              <div className="border-t border-border pt-5">
+                <h3 className="text-sm font-semibold mb-3">Interest Form</h3>
+                <InterestFormSelector
+                  value={formData.interestFormId}
+                  onChange={(value) => setFormData({ ...formData, interestFormId: value })}
+                />
               </div>
-              <h2 className="font-semibold">Scorecard</h2>
-            </div>
-            <div className="p-5">
-              <ScorecardSelector
-                jobDescriptionId={formData.jdId || null}
-                value={scorecardData}
-                onChange={setScorecardData}
-                disabled={!formData.jdId}
-              />
+              <div className="border-t border-border pt-5">
+                <h3 className="text-sm font-semibold mb-3">Scorecard</h3>
+                <ScorecardSelector
+                  jobDescriptionId={formData.jdId || null}
+                  value={scorecardData}
+                  onChange={setScorecardData}
+                  disabled={!formData.jdId}
+                />
+              </div>
             </div>
           </div>
 

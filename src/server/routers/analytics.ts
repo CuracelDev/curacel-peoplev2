@@ -1207,6 +1207,7 @@ export const analyticsRouter = router({
     // Format candidates by stage with display names
     const stageDisplayNames: Record<string, string> = {
       APPLIED: 'Applied',
+      SHORTLISTED: 'Short Listed',
       HR_SCREEN: 'People Chat',
       TEAM_CHAT: 'Team Chat',
       ADVISOR_CHAT: 'Advisor Chat',
@@ -1273,6 +1274,7 @@ export const analyticsRouter = router({
     // Define pipeline order
     const pipelineOrder: JobCandidateStage[] = [
       'APPLIED',
+      'SHORTLISTED',
       'HR_SCREEN',
       'TECHNICAL',
       'TEAM_CHAT',
@@ -1285,6 +1287,7 @@ export const analyticsRouter = router({
 
     const stageDisplayNames: Partial<Record<JobCandidateStage, string>> = {
       APPLIED: 'Applied',
+      SHORTLISTED: 'Short Listed',
       HR_SCREEN: 'People Chat',
       TECHNICAL: 'Coding Test',
       TEAM_CHAT: 'Team Chat',
@@ -1382,6 +1385,7 @@ export const analyticsRouter = router({
 
       const stageDisplayNames: Record<string, string> = {
         APPLIED: 'Applied',
+        SHORTLISTED: 'Short Listed',
         HR_SCREEN: 'People Chat',
         TECHNICAL: 'Coding Test',
         TEAM_CHAT: 'Team Chat',
