@@ -436,25 +436,25 @@ export default function EmployeeDetailPage() {
       <Tabs defaultValue="overview" className="mb-6">
         <div className="overflow-x-auto">
           <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
-            <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+            <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[state=active]:border-primary data-[state=active]:text-primary">
               Overview
             </TabsTrigger>
-            <TabsTrigger value="personal" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+            <TabsTrigger value="personal" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[state=active]:border-primary data-[state=active]:text-primary">
               Personal
             </TabsTrigger>
-            <TabsTrigger value="employment" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+            <TabsTrigger value="employment" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[state=active]:border-primary data-[state=active]:text-primary">
               Employment
             </TabsTrigger>
-            <TabsTrigger value="personality" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+            <TabsTrigger value="personality" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[state=active]:border-primary data-[state=active]:text-primary">
               Personality
             </TabsTrigger>
-            <TabsTrigger value="auntypelz" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+            <TabsTrigger value="auntypelz" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[state=active]:border-primary data-[state=active]:text-primary">
               AuntyPelz
             </TabsTrigger>
-            <TabsTrigger value="contract" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+            <TabsTrigger value="contract" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[state=active]:border-primary data-[state=active]:text-primary">
               Contract
             </TabsTrigger>
-            <TabsTrigger value="applications" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+            <TabsTrigger value="applications" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm outline-none focus:outline-none focus-visible:outline-none focus-visible:ring-0 data-[state=active]:border-primary data-[state=active]:text-primary">
               Applications
             </TabsTrigger>
           </TabsList>
