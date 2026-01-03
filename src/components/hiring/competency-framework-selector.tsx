@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { trpc } from '@/lib/trpc-client'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -46,6 +46,7 @@ export function CompetencyFrameworkSelector({
     'DEPARTMENT'
   )
   const [expandedCores, setExpandedCores] = useState<Set<string>>(new Set())
+  const [initialExpanded, setInitialExpanded] = useState(false)
 
   // Fetch frameworks
   const { data: departmentData } = trpc.competencyFramework.getByType.useQuery(
@@ -80,6 +81,20 @@ export function CompetencyFrameworkSelector({
       }))
       .filter((core) => core.subCompetencies.length > 0)
   }, [activeSource, search])
+
+  // Auto-expand all cores on initial load or framework change
+  useEffect(() => {
+    if (filteredCores.length > 0 && !initialExpanded) {
+      const allCoreIds = new Set(filteredCores.map((core: any) => core.id))
+      setExpandedCores(allCoreIds)
+      setInitialExpanded(true)
+    }
+  }, [filteredCores, initialExpanded])
+
+  // Reset expansion state when changing frameworks
+  useEffect(() => {
+    setInitialExpanded(false)
+  }, [activeFramework])
 
   const isSelected = (subCompetencyId: string) =>
     value.some((req) => req.subCompetencyId === subCompetencyId)
@@ -186,15 +201,31 @@ export function CompetencyFrameworkSelector({
         ))}
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Search competencies..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
+      {/* Search and expand controls */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder="Search competencies..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            if (expandedCores.size === filteredCores.length) {
+              setExpandedCores(new Set())
+            } else {
+              setExpandedCores(new Set(filteredCores.map((core: any) => core.id)))
+            }
+          }}
+        >
+          {expandedCores.size === filteredCores.length ? 'Collapse All' : 'Expand All'}
+        </Button>
       </div>
 
       {/* Competency tree */}
@@ -208,20 +239,31 @@ export function CompetencyFrameworkSelector({
             <CollapsibleTrigger asChild>
               <button
                 type="button"
-                className="w-full flex items-center justify-between p-3 bg-muted/50 rounded-lg hover:bg-muted transition-colors"
+                className="w-full flex items-start justify-between p-4 bg-muted/50 rounded-lg hover:bg-muted transition-colors text-left"
               >
-                <div className="flex items-center gap-2">
-                  {expandedCores.has(core.id) ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                  <span className="font-medium">{core.name}</span>
-                  <Badge variant="outline" className="text-xs">
-                    {core.subCompetencies.length}
-                  </Badge>
+                <div className="flex items-start gap-3 flex-1 min-w-0">
+                  <div className="mt-0.5">
+                    {expandedCores.has(core.id) ? (
+                      <ChevronDown className="h-5 w-5 text-indigo-600" />
+                    ) : (
+                      <ChevronRight className="h-5 w-5" />
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className="font-semibold text-base">{core.name}</span>
+                      <Badge variant="outline" className="text-xs">
+                        {core.subCompetencies.length} sub-competencies
+                      </Badge>
+                    </div>
+                    {core.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {core.description}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <Badge variant="secondary">
+                <Badge variant="secondary" className="ml-2 flex-shrink-0">
                   {value.filter((req) =>
                     core.subCompetencies.some((sub: any) => sub.id === req.subCompetencyId)
                   ).length}{' '}
