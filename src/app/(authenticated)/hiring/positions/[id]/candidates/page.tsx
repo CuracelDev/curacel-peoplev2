@@ -292,7 +292,12 @@ export default function CandidatesListPage() {
         <div>
           <div className="flex items-center gap-3 mb-2">
             <h1 className="text-2xl font-semibold text-foreground">
-              {job.title}
+              <Link
+                href={`/hiring/positions/${jobId}/details`}
+                className="hover:text-blue-600 transition-colors cursor-pointer"
+              >
+                {job.title}
+              </Link>
               {job.hiresCount > 1 ? ` (${job.hiresCount})` : ''}
             </h1>
             <Badge className={cn(STATUS_BADGES[job.status], 'hover:bg-opacity-100 hover:text-foreground')}>
