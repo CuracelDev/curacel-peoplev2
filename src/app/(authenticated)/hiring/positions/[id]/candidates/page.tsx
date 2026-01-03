@@ -300,7 +300,7 @@ export default function CandidatesListPage() {
               </Link>
               {job.hiresCount > 1 ? ` (${job.hiresCount})` : ''}
             </h1>
-            <Badge className={cn(STATUS_BADGES[job.status], 'hover:bg-opacity-100 hover:text-foreground')}>
+            <Badge className={cn(STATUS_BADGES[job.status], 'hover:bg-opacity-100')}>
               {STATUS_LABELS[job.status]}
             </Badge>
           </div>

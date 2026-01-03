@@ -220,7 +220,7 @@ export default function PositionsPage() {
                         {job.hiresCount > 1 ? ` (${job.hiresCount})` : ''}
                       </h3>
                     </Link>
-                    <Badge className={cn(STATUS_BADGES[job.status], 'hover:bg-opacity-100 hover:text-foreground')}>
+                    <Badge className={cn(STATUS_BADGES[job.status], 'hover:bg-opacity-100')}>
                       {STATUS_LABELS[job.status]}
                     </Badge>
                     {job.priority && job.priority !== 3 && (
