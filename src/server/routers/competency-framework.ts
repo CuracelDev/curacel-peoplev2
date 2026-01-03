@@ -141,6 +141,32 @@ export const competencyFrameworkRouter = router({
       })
     }),
 
+  // Debug: Preview sheet data
+  previewSheetData: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const source = await ctx.prisma.competencyFrameworkSource.findUnique({
+        where: { id: input.id },
+      })
+
+      if (!source) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Source not found',
+        })
+      }
+
+      const { fetchSheetData } = await import('@/lib/competency-framework/parsers')
+
+      const rows = await fetchSheetData(source.sheetUrl, source.gidOrTabName || undefined)
+
+      // Return first 10 rows for inspection
+      return {
+        totalRows: rows.length,
+        firstRows: rows.slice(0, 10),
+      }
+    }),
+
   // Create a new competency framework source
   createSource: adminProcedure
     .input(

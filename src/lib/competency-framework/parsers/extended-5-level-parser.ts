@@ -19,6 +19,7 @@ import {
   cleanCellValue,
   isEmptyRow,
   isHeaderRow,
+  findHeaderRow,
 } from './base-parser'
 
 /**
@@ -36,8 +37,13 @@ export async function parseExtended5LevelSheet(
     throw new Error('Sheet is empty')
   }
 
-  // First row should be headers
-  const headerRow = rows[0]
+  // Find the header row
+  const headerResult = findHeaderRow(rows)
+  if (!headerResult) {
+    throw new Error('Could not find header row in sheet')
+  }
+
+  const { headerRow, startIndex } = headerResult
   const formatType = detectSheetFormat(headerRow)
 
   if (formatType !== 'EXTENDED_5_LEVEL') {
@@ -48,15 +54,15 @@ export async function parseExtended5LevelSheet(
   const { min, max } = getLevelBounds(formatType)
 
   // Determine if this is Values format or standard competency format
-  const isValuesFormat = headerRow[0]?.toLowerCase().includes('value')
+  const isValuesFormat = Object.values(headerRow).some(v => v?.toLowerCase().includes('value'))
 
   // Parse core competencies
   const coreCompetencies: ParsedCoreCompetency[] = []
   let currentFunction = '' // Or "Value" for Values format
   let currentCoreComp: ParsedCoreCompetency | null = null
 
-  // Skip header row, start from row 1
-  for (let i = 1; i < rows.length; i++) {
+  // Skip header row, start from the row after the header
+  for (let i = startIndex + 1; i < rows.length; i++) {
     const row = rows[i]
 
     // Skip empty rows

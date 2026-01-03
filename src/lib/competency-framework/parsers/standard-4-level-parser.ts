@@ -20,6 +20,7 @@ import {
   isEmptyRow,
   isHeaderRow,
   parseSheetMetadata,
+  findHeaderRow,
 } from './base-parser'
 
 /**
@@ -37,8 +38,13 @@ export async function parseStandard4LevelSheet(
     throw new Error('Sheet is empty')
   }
 
-  // First row should be headers
-  const headerRow = rows[0]
+  // Find the header row
+  const headerResult = findHeaderRow(rows)
+  if (!headerResult) {
+    throw new Error('Could not find header row in sheet')
+  }
+
+  const { headerRow, startIndex } = headerResult
   const formatType = detectSheetFormat(headerRow)
 
   if (formatType !== 'STANDARD_4_LEVEL') {
@@ -53,8 +59,8 @@ export async function parseStandard4LevelSheet(
   let currentFunction = ''
   let currentCoreComp: ParsedCoreCompetency | null = null
 
-  // Skip header row, start from row 1
-  for (let i = 1; i < rows.length; i++) {
+  // Skip header row, start from the row after the header
+  for (let i = startIndex + 1; i < rows.length; i++) {
     const row = rows[i]
 
     // Skip empty rows
