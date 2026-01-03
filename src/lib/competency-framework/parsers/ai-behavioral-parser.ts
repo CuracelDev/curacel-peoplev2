@@ -21,6 +21,8 @@ import {
   isEmptyRow,
   isHeaderRow,
   findHeaderRow,
+  findColumnIndex,
+  findLevelColumns,
 } from './base-parser'
 
 /**
@@ -71,6 +73,12 @@ export async function parseAIBehavioralSheet(
   const levelNames = extractLevelNames(headerRow, formatType)
   const { min, max } = getLevelBounds(formatType)
 
+  // Find column indices dynamically
+  const compCol = findColumnIndex(headerRow, 'competency')
+  const levelCols = findLevelColumns(headerRow)
+
+  console.log(`[ai-behavioral] compCol=${compCol}, levelCols=${levelCols.join(',')}`)
+
   // Parse core competencies
   const coreCompetencies: ParsedCoreCompetency[] = []
 
@@ -84,90 +92,47 @@ export async function parseAIBehavioralSheet(
     // Skip any additional header rows
     if (isHeaderRow(row)) continue
 
-    // Column A: Competency name
-    const competencyName = cleanCellValue(row[0])
+    // Competency name column
+    const competencyName = compCol >= 0 ? cleanCellValue(row[compCol]) : cleanCellValue(row[0])
     if (!competencyName) continue
 
     // In AI format, each row is a separate core competency with embedded levels
-    // We'll create a single sub-competency for each core competency
+    // Level columns are in levelCols array (should be 5 columns: Unacceptable, Basic, Intermediate, Proficient, Advanced)
+    const levelDescriptions: string[] = []
+    const levelIndicators: string[][] = []
 
-    // Column B: Level 0 - Unacceptable
-    const unacceptableDesc = cleanCellValue(row[1])
-    const unacceptableIndicators = parseBehavioralIndicators(row[1] || '')
+    for (const colIdx of levelCols) {
+      const desc = cleanCellValue(row[colIdx])
+      const indicators = parseBehavioralIndicators(row[colIdx] || '')
+      levelDescriptions.push(desc)
+      levelIndicators.push(indicators)
+    }
 
-    // Column C: Level 1 - Basic
-    const basicDesc = cleanCellValue(row[2])
-    const basicIndicators = parseBehavioralIndicators(row[2] || '')
+    // Build level descriptions dynamically
+    const levelNamesArray = ['Unacceptable', 'Basic', 'Intermediate', 'Proficient', 'Advanced']
+    const levels: ParsedLevel[] = []
+    const behavioralIndicators: ParsedBehavioralIndicator[] = []
 
-    // Column D: Level 2 - Intermediate
-    const intermediateDesc = cleanCellValue(row[3])
-    const intermediateIndicators = parseBehavioralIndicators(row[3] || '')
+    for (let levelIdx = 0; levelIdx < levelDescriptions.length && levelIdx < 5; levelIdx++) {
+      const desc = levelDescriptions[levelIdx]
+      const indicators = levelIndicators[levelIdx]
 
-    // Column E: Level 3 - Proficient
-    const proficientDesc = cleanCellValue(row[4])
-    const proficientIndicators = parseBehavioralIndicators(row[4] || '')
+      if (desc) {
+        levels.push({
+          level: levelIdx, // AI format starts at 0
+          name: levelNamesArray[levelIdx] || `Level ${levelIdx}`,
+          description: desc,
+        })
+      }
 
-    // Column F: Level 4 - Advanced
-    const advancedDesc = cleanCellValue(row[5])
-    const advancedIndicators = parseBehavioralIndicators(row[5] || '')
-
-    // Build level descriptions
-    const levels: ParsedLevel[] = [
-      {
-        level: 0,
-        name: 'Unacceptable',
-        description: unacceptableDesc,
-      },
-      {
-        level: 1,
-        name: 'Basic',
-        description: basicDesc,
-      },
-      {
-        level: 2,
-        name: 'Intermediate',
-        description: intermediateDesc,
-      },
-      {
-        level: 3,
-        name: 'Proficient',
-        description: proficientDesc,
-      },
-      {
-        level: 4,
-        name: 'Advanced',
-        description: advancedDesc,
-      },
-    ].filter(level => level.description)
-
-    // Build behavioral indicators
-    const behavioralIndicators: ParsedBehavioralIndicator[] = [
-      {
-        level: 0,
-        levelName: 'Unacceptable',
-        indicators: unacceptableIndicators,
-      },
-      {
-        level: 1,
-        levelName: 'Basic',
-        indicators: basicIndicators,
-      },
-      {
-        level: 2,
-        levelName: 'Intermediate',
-        indicators: intermediateIndicators,
-      },
-      {
-        level: 3,
-        levelName: 'Proficient',
-        indicators: proficientIndicators,
-      },
-      {
-        level: 4,
-        levelName: 'Advanced',
-        indicators: advancedIndicators,
-      },
-    ].filter(bi => bi.indicators.length > 0)
+      if (indicators.length > 0) {
+        behavioralIndicators.push({
+          level: levelIdx,
+          levelName: levelNamesArray[levelIdx] || `Level ${levelIdx}`,
+          indicators,
+        })
+      }
+    }
 
     // Create sub-competency with behavioral indicators
     const subComp: ParsedSubCompetency = {

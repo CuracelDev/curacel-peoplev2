@@ -57,33 +57,37 @@ export function detectSheetFormat(headers: SheetRow): SheetFormatType {
 
   // Convert all headers to lowercase for comparison
   const headerValues = Object.values(h).map(v => v?.toLowerCase() || '')
-  const firstFewHeaders = headerValues.slice(0, 10).join('|')
+  const allHeadersText = headerValues.join('|')
 
-  console.log('[detectSheetFormat] Headers:', firstFewHeaders)
+  console.log('[detectSheetFormat] Headers:', allHeadersText.substring(0, 200))
 
-  // AI Behavioral format: has "Competency" in first column and "Unacceptable" in second
-  if (
-    headerValues[0]?.includes('competency') &&
-    headerValues[1]?.includes('unacceptable')
-  ) {
+  // AI Behavioral format: has "Competency" and "Unacceptable" OR numbered levels like "0. unacceptable"
+  const hasCompetency = allHeadersText.includes('competency')
+  const hasUnacceptable = allHeadersText.includes('unacceptable')
+  const hasNumberedLevels = allHeadersText.match(/\d+\.\s*(basic|intermediate|proficient|advanced)/i)
+
+  if (hasCompetency && (hasUnacceptable || hasNumberedLevels)) {
     console.log('[detectSheetFormat] Detected AI_BEHAVIORAL')
     return 'AI_BEHAVIORAL'
   }
 
-  // Values format: Column A has "Values", Column C has "Competency" (not Column B)
-  if (
-    headerValues[0]?.includes('value') &&
-    !headerValues[0]?.includes('values') && // Singular "value"
-    headerValues[2]?.includes('competenc')
-  ) {
+  // Values format: has "Values" AND "Value Definition" AND "Competency" columns
+  const hasValues = allHeadersText.includes('value')
+  const hasValueDef = allHeadersText.includes('value definition')
+  const hasCompetencyCol = allHeadersText.includes('competenc')
+
+  if (hasValues && hasValueDef && hasCompetencyCol) {
     console.log('[detectSheetFormat] Detected VALUES (EXTENDED_5_LEVEL)')
     return 'EXTENDED_5_LEVEL'
   }
 
-  // Standard or Extended competency matrix: has "Function" in first column
-  if (headerValues[0]?.includes('function')) {
+  // Standard or Extended competency matrix: has "Function" OR "Function Objective" AND "Core Competencies"
+  const hasFunction = allHeadersText.includes('function')
+  const hasCoreComp = allHeadersText.includes('core competenc')
+
+  if (hasFunction && hasCoreComp) {
     // Check for "Expert" column to detect 5-level variant
-    const hasExpert = headerValues.some(val => val?.includes('expert'))
+    const hasExpert = allHeadersText.includes('expert')
 
     console.log('[detectSheetFormat] Detected', hasExpert ? 'EXTENDED_5_LEVEL' : 'STANDARD_4_LEVEL')
     return hasExpert ? 'EXTENDED_5_LEVEL' : 'STANDARD_4_LEVEL'
@@ -211,4 +215,35 @@ export function calculateNormalizedScore(rawLevel: number, formatType: SheetForm
   const normalized = ((rawLevel - min) / range) * 100
 
   return Math.round(normalized)
+}
+
+/**
+ * Find column index by header keyword
+ */
+export function findColumnIndex(headers: SheetRow, keyword: string): number {
+  const entries = Object.entries(headers)
+  for (const [index, value] of entries) {
+    if (value?.toLowerCase().includes(keyword.toLowerCase())) {
+      return parseInt(index)
+    }
+  }
+  return -1
+}
+
+/**
+ * Find all columns matching a pattern (for level columns)
+ */
+export function findLevelColumns(headers: SheetRow): number[] {
+  const levelKeywords = ['basic', 'intermediate', 'proficient', 'advanced', 'expert', 'unacceptable']
+  const levelCols: number[] = []
+
+  Object.entries(headers).forEach(([index, value]) => {
+    const lowerValue = value?.toLowerCase() || ''
+    // Check if this looks like a level column (starts with number or contains level keyword)
+    if (levelKeywords.some(kw => lowerValue.includes(kw)) || lowerValue.match(/^\d+\.\s/)) {
+      levelCols.push(parseInt(index))
+    }
+  })
+
+  return levelCols.sort((a, b) => a - b)
 }

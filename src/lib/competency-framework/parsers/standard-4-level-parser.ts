@@ -21,6 +21,8 @@ import {
   isHeaderRow,
   parseSheetMetadata,
   findHeaderRow,
+  findColumnIndex,
+  findLevelColumns,
 } from './base-parser'
 
 /**
@@ -54,6 +56,15 @@ export async function parseStandard4LevelSheet(
   const levelNames = extractLevelNames(headerRow, formatType)
   const { min, max } = getLevelBounds(formatType)
 
+  // Find column indices dynamically
+  const functionCol = findColumnIndex(headerRow, 'function')
+  const objCol = findColumnIndex(headerRow, 'objective')
+  const coreCompCol = findColumnIndex(headerRow, 'core competenc')
+  const subCompCol = findColumnIndex(headerRow, 'sub competenc')
+  const levelCols = findLevelColumns(headerRow)
+
+  console.log(`[standard-4-level] Column mapping: function=${functionCol}, obj=${objCol}, core=${coreCompCol}, sub=${subCompCol}, levels=${levelCols.join(',')}`)
+
   // Parse core competencies
   const coreCompetencies: ParsedCoreCompetency[] = []
   let currentFunction = ''
@@ -69,62 +80,58 @@ export async function parseStandard4LevelSheet(
     // Skip any additional header rows
     if (isHeaderRow(row)) continue
 
-    // Column A: Function (only set on first row of each function group)
-    const functionValue = cleanCellValue(row[0])
-    if (functionValue) {
-      currentFunction = functionValue
-    }
-
-    // Column B: Function Objective (optional, we store in description)
-    const functionObjective = cleanCellValue(row[1])
-
-    // Column C: Core Competency (only set on first row of each core competency group)
-    const coreCompName = cleanCellValue(row[2])
-    if (coreCompName) {
-      // Save previous core competency if it exists
-      if (currentCoreComp && currentCoreComp.subCompetencies.length > 0) {
-        coreCompetencies.push(currentCoreComp)
-      }
-
-      // Start new core competency
-      currentCoreComp = {
-        name: coreCompName,
-        description: functionObjective || undefined,
-        functionArea: currentFunction || undefined,
-        subCompetencies: [],
+    // Function column (if found, only set on first row of each function group)
+    if (functionCol >= 0) {
+      const functionValue = cleanCellValue(row[functionCol])
+      if (functionValue) {
+        currentFunction = functionValue
       }
     }
 
-    // Column D: Sub-competency (required)
-    const subCompName = cleanCellValue(row[3])
+    // Function Objective column (optional, we store in description)
+    const functionObjective = objCol >= 0 ? cleanCellValue(row[objCol]) : ''
+
+    // Core Competency column (only set on first row of each core competency group)
+    if (coreCompCol >= 0) {
+      const coreCompName = cleanCellValue(row[coreCompCol])
+      if (coreCompName) {
+        // Save previous core competency if it exists
+        if (currentCoreComp && currentCoreComp.subCompetencies.length > 0) {
+          coreCompetencies.push(currentCoreComp)
+        }
+
+        // Start new core competency
+        currentCoreComp = {
+          name: coreCompName,
+          description: functionObjective || undefined,
+          functionArea: currentFunction || undefined,
+          subCompetencies: [],
+        }
+      }
+    }
+
+    // Sub-competency column (required)
+    const subCompName = subCompCol >= 0 ? cleanCellValue(row[subCompCol]) : ''
     if (!subCompName || !currentCoreComp) {
       // If we have no sub-competency name, skip this row
       continue
     }
 
-    // Columns E-H: Level descriptions
-    const levels: ParsedLevel[] = [
-      {
-        level: 1,
-        name: 'Basic',
-        description: cleanCellValue(row[4]) || '',
-      },
-      {
-        level: 2,
-        name: 'Intermediate',
-        description: cleanCellValue(row[5]) || '',
-      },
-      {
-        level: 3,
-        name: 'Proficient',
-        description: cleanCellValue(row[6]) || '',
-      },
-      {
-        level: 4,
-        name: 'Advanced',
-        description: cleanCellValue(row[7]) || '',
-      },
-    ].filter(level => level.description) // Only include levels with descriptions
+    // Level descriptions from dynamic columns
+    const levels: ParsedLevel[] = []
+    const levelNamesArray = ['Basic', 'Intermediate', 'Proficient', 'Advanced']
+
+    for (let levelIdx = 0; levelIdx < Math.min(levelCols.length, 4); levelIdx++) {
+      const colIdx = levelCols[levelIdx]
+      const description = cleanCellValue(row[colIdx]) || ''
+      if (description) {
+        levels.push({
+          level: levelIdx + 1,
+          name: levelNamesArray[levelIdx],
+          description,
+        })
+      }
+    }
 
     // Create sub-competency
     const subComp: ParsedSubCompetency = {
