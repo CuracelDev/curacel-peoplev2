@@ -346,17 +346,32 @@ Make it compelling, specific, and aligned with modern tech hiring practices.`
         if (!aiSettings.anthropicKeyEncrypted) {
           throw new TRPCError({
             code: 'PRECONDITION_FAILED',
-            message: 'Anthropic API key not configured',
+            message: 'Anthropic API key not configured. Please add your API key in Admin > AI Settings.',
           })
         }
 
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.anthropicKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        if (!process.env.ENCRYPTION_KEY) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Server encryption key not configured. Please contact your administrator.',
+          })
+        }
+
+        let apiKey: string
+        try {
+          const decipher = crypto.createDecipheriv(
+            'aes-256-cbc',
+            Buffer.from(process.env.ENCRYPTION_KEY, 'hex'),
+            Buffer.alloc(16, 0)
+          )
+          apiKey = decipher.update(aiSettings.anthropicKeyEncrypted, 'hex', 'utf8')
+          apiKey += decipher.final('utf8')
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to decrypt API key. Please re-configure your AI settings in Admin > AI Settings.',
+          })
+        }
 
         const anthropic = new Anthropic({ apiKey })
 
@@ -377,17 +392,32 @@ Make it compelling, specific, and aligned with modern tech hiring practices.`
         if (!aiSettings.openaiKeyEncrypted) {
           throw new TRPCError({
             code: 'PRECONDITION_FAILED',
-            message: 'OpenAI API key not configured',
+            message: 'OpenAI API key not configured. Please add your API key in Admin > AI Settings.',
           })
         }
 
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.openaiKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        if (!process.env.ENCRYPTION_KEY) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Server encryption key not configured. Please contact your administrator.',
+          })
+        }
+
+        let apiKey: string
+        try {
+          const decipher = crypto.createDecipheriv(
+            'aes-256-cbc',
+            Buffer.from(process.env.ENCRYPTION_KEY, 'hex'),
+            Buffer.alloc(16, 0)
+          )
+          apiKey = decipher.update(aiSettings.openaiKeyEncrypted, 'hex', 'utf8')
+          apiKey += decipher.final('utf8')
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to decrypt API key. Please re-configure your AI settings in Admin > AI Settings.',
+          })
+        }
 
         const openai = new OpenAI({ apiKey })
 
@@ -405,17 +435,32 @@ Make it compelling, specific, and aligned with modern tech hiring practices.`
         if (!aiSettings.geminiKeyEncrypted) {
           throw new TRPCError({
             code: 'PRECONDITION_FAILED',
-            message: 'Gemini API key not configured',
+            message: 'Gemini API key not configured. Please add your API key in Admin > AI Settings.',
           })
         }
 
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.geminiKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        if (!process.env.ENCRYPTION_KEY) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Server encryption key not configured. Please contact your administrator.',
+          })
+        }
+
+        let apiKey: string
+        try {
+          const decipher = crypto.createDecipheriv(
+            'aes-256-cbc',
+            Buffer.from(process.env.ENCRYPTION_KEY, 'hex'),
+            Buffer.alloc(16, 0)
+          )
+          apiKey = decipher.update(aiSettings.geminiKeyEncrypted, 'hex', 'utf8')
+          apiKey += decipher.final('utf8')
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to decrypt API key. Please re-configure your AI settings in Admin > AI Settings.',
+          })
+        }
 
         const genAI = new GoogleGenerativeAI(apiKey)
         const model = genAI.getGenerativeModel({ model: aiSettings.geminiModel })
@@ -499,17 +544,32 @@ Format as JSON:
         if (!aiSettings.anthropicKeyEncrypted) {
           throw new TRPCError({
             code: 'PRECONDITION_FAILED',
-            message: 'Anthropic API key not configured',
+            message: 'Anthropic API key not configured. Please add your API key in Admin > AI Settings.',
           })
         }
 
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.anthropicKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        if (!process.env.ENCRYPTION_KEY) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Server encryption key not configured. Please contact your administrator.',
+          })
+        }
+
+        let apiKey: string
+        try {
+          const decipher = crypto.createDecipheriv(
+            'aes-256-cbc',
+            Buffer.from(process.env.ENCRYPTION_KEY, 'hex'),
+            Buffer.alloc(16, 0)
+          )
+          apiKey = decipher.update(aiSettings.anthropicKeyEncrypted, 'hex', 'utf8')
+          apiKey += decipher.final('utf8')
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to decrypt API key. Please re-configure your AI settings in Admin > AI Settings.',
+          })
+        }
 
         const anthropic = new Anthropic({ apiKey })
 
@@ -530,17 +590,32 @@ Format as JSON:
         if (!aiSettings.openaiKeyEncrypted) {
           throw new TRPCError({
             code: 'PRECONDITION_FAILED',
-            message: 'OpenAI API key not configured',
+            message: 'OpenAI API key not configured. Please add your API key in Admin > AI Settings.',
           })
         }
 
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.openaiKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        if (!process.env.ENCRYPTION_KEY) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Server encryption key not configured. Please contact your administrator.',
+          })
+        }
+
+        let apiKey: string
+        try {
+          const decipher = crypto.createDecipheriv(
+            'aes-256-cbc',
+            Buffer.from(process.env.ENCRYPTION_KEY, 'hex'),
+            Buffer.alloc(16, 0)
+          )
+          apiKey = decipher.update(aiSettings.openaiKeyEncrypted, 'hex', 'utf8')
+          apiKey += decipher.final('utf8')
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to decrypt API key. Please re-configure your AI settings in Admin > AI Settings.',
+          })
+        }
 
         const openai = new OpenAI({ apiKey })
 
@@ -558,17 +633,32 @@ Format as JSON:
         if (!aiSettings.geminiKeyEncrypted) {
           throw new TRPCError({
             code: 'PRECONDITION_FAILED',
-            message: 'Gemini API key not configured',
+            message: 'Gemini API key not configured. Please add your API key in Admin > AI Settings.',
           })
         }
 
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.geminiKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        if (!process.env.ENCRYPTION_KEY) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Server encryption key not configured. Please contact your administrator.',
+          })
+        }
+
+        let apiKey: string
+        try {
+          const decipher = crypto.createDecipheriv(
+            'aes-256-cbc',
+            Buffer.from(process.env.ENCRYPTION_KEY, 'hex'),
+            Buffer.alloc(16, 0)
+          )
+          apiKey = decipher.update(aiSettings.geminiKeyEncrypted, 'hex', 'utf8')
+          apiKey += decipher.final('utf8')
+        } catch (error) {
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: 'Failed to decrypt API key. Please re-configure your AI settings in Admin > AI Settings.',
+          })
+        }
 
         const genAI = new GoogleGenerativeAI(apiKey)
         const model = genAI.getGenerativeModel({ model: aiSettings.geminiModel })
