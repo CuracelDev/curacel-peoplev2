@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
 import { Card, CardContent } from '@/components/ui/card'
@@ -60,6 +60,7 @@ import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import type { AssessmentType } from '@prisma/client'
 
 // Type display names and colors
 const typeConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {
@@ -100,6 +101,10 @@ export default function AssessmentsPage() {
 
   // Fetch counts
   const { data: counts } = trpc.assessment.getCounts.useQuery()
+
+  const { data: featuredTemplates } = trpc.assessment.listTemplates.useQuery({
+    isActive: true,
+  })
 
   // Fetch candidates for send dialog
   const { data: candidatesData } = trpc.job.getAllCandidates.useQuery(
@@ -179,14 +184,31 @@ export default function AssessmentsPage() {
   }
 
   // Filter types for display
-  const types = [
+  const types = useMemo(() => ([
     { key: 'all', label: 'All' },
     { key: 'COMPETENCY_TEST', label: 'Competency' },
     { key: 'CODING_TEST', label: 'Coding' },
     { key: 'PERSONALITY_TEST', label: 'Personality' },
     { key: 'WORK_TRIAL', label: 'Work Trial' },
     { key: 'CUSTOM', label: 'Custom' },
-  ]
+  ]), [])
+
+  const featuredTypeSet = useMemo(() => {
+    const featured = (featuredTemplates || [])
+      .filter((template) => template.isFeatured)
+      .map((template) => template.type)
+    return new Set(featured)
+  }, [featuredTemplates])
+
+  const visibleTypes = useMemo(() => {
+    return types.filter((type) => type.key === 'all' || featuredTypeSet.has(type.key as AssessmentType))
+  }, [featuredTypeSet, types])
+
+  useEffect(() => {
+    if (activeFilter !== 'all' && !featuredTypeSet.has(activeFilter as AssessmentType)) {
+      setActiveFilter('all')
+    }
+  }, [activeFilter, featuredTypeSet])
 
   return (
     <div className="space-y-6">
@@ -198,7 +220,7 @@ export default function AssessmentsPage() {
       {/* Header with Filter Cards */}
       <div className="flex items-center justify-between">
         <div className="flex gap-1.5 flex-nowrap">
-          {types.map((type) => (
+          {visibleTypes.map((type) => (
             <button
               key={type.key}
               className={cn(

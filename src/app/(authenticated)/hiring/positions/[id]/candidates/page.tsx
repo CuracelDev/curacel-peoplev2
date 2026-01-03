@@ -295,7 +295,7 @@ export default function CandidatesListPage() {
               {job.title}
               {job.hiresCount > 1 ? ` (${job.hiresCount})` : ''}
             </h1>
-            <Badge className={cn(STATUS_BADGES[job.status], 'hover:bg-opacity-100')}>
+            <Badge className={cn(STATUS_BADGES[job.status], 'hover:bg-opacity-100 hover:text-foreground')}>
               {STATUS_LABELS[job.status]}
             </Badge>
           </div>
@@ -367,7 +367,7 @@ export default function CandidatesListPage() {
           <span className="font-medium text-foreground">{job.hiringFlowSnapshot.flow.name}</span>
           {' '}flow • {hiringFlowStages.length} stages
           {!job.flowOutdated && (
-            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success/10 text-success-foreground">
+            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-success/10 text-success dark:text-success">
               Up to date
             </span>
           )}

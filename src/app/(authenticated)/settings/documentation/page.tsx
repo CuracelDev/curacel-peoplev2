@@ -512,6 +512,38 @@ const docSections: DocSection[] = [
     ],
   },
   {
+    id: 'featured-filters',
+    title: 'Featured hiring filters',
+    description: 'Control which interview and assessment types appear as quick filter cards.',
+    blocks: [
+      {
+        title: 'Interview types',
+        ordered: true,
+        items: [
+          'Go to Settings > Hiring > Interview Settings.',
+          'Open Interview Types and select a type.',
+          'Toggle “Feature in interview filters” to control whether it appears on the Interviews page.',
+        ],
+      },
+      {
+        title: 'Assessment templates',
+        ordered: true,
+        items: [
+          'Go to Settings > Hiring > Assessments.',
+          'Open an assessment template.',
+          'Toggle “Feature in assessment filters” to show or hide it on the Assessments page.',
+        ],
+      },
+      {
+        title: 'Notes',
+        items: [
+          'The All filter always shows every interview and assessment, featured or not.',
+          'Featured filters are ideal for the most common interview or assessment types.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'recruiting-interest-forms',
     title: 'Interest forms',
     description: 'Create application forms that candidates fill out when applying.',

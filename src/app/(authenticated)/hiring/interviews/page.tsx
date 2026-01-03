@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { trpc } from '@/lib/trpc-client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -97,6 +97,8 @@ export default function InterviewsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
 
+  const { data: interviewTypes } = trpc.interviewType.list.useQuery()
+
   // Dialog states
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
   const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(null)
@@ -107,7 +109,7 @@ export default function InterviewsPage() {
 
   // Fetch interviews
   const { data: dbInterviews, isLoading } = trpc.interview.list.useQuery({
-    stage: activeFilter !== 'all' ? activeFilter : undefined,
+    interviewTypeId: activeFilter !== 'all' ? activeFilter : undefined,
     status: statusFilter !== 'all' ? statusFilter as any : undefined,
     search: searchQuery || undefined,
   })
@@ -144,13 +146,17 @@ export default function InterviewsPage() {
   const counts = dbCounts ?? defaultCounts
 
   // Filter stages for display
-  const stages = [
-    { key: 'all', label: 'All' },
-    { key: 'HR_SCREEN', label: 'People Chat' },
-    { key: 'TEAM_CHAT', label: 'Team Chat' },
-    { key: 'ADVISOR_CHAT', label: 'Advisor Chat' },
-    { key: 'CEO_CHAT', label: 'CEO Chat' },
-  ]
+  const featuredTypes = useMemo(
+    () => (interviewTypes || []).filter((type) => type.isFeatured),
+    [interviewTypes]
+  )
+  const countsByType = (dbCounts as { byType?: Record<string, number> })?.byType || {}
+
+  useEffect(() => {
+    if (activeFilter !== 'all' && !featuredTypes.some((type) => type.id === activeFilter)) {
+      setActiveFilter('all')
+    }
+  }, [activeFilter, featuredTypes])
 
   // Format date display
   const formatInterviewDate = (date: Date | null) => {
@@ -167,27 +173,44 @@ export default function InterviewsPage() {
       {/* Header with Filter Cards */}
       <div className="flex items-center justify-between">
         <div className="flex gap-1.5 flex-nowrap">
-          {stages.map((stage) => (
+          <button
+            className={cn(
+              'px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap',
+              activeFilter === 'all'
+                ? 'bg-primary text-white'
+                : 'bg-muted text-foreground/80 hover:bg-muted'
+            )}
+            onClick={() => setActiveFilter('all')}
+          >
+            All
+            <span className={cn(
+              'ml-1.5 px-1 py-0.5 rounded text-[10px]',
+              activeFilter === 'all'
+                ? 'bg-card/20'
+                : 'bg-muted'
+            )}>
+              {counts?.all || 0}
+            </span>
+          </button>
+          {featuredTypes.map((type) => (
             <button
-              key={stage.key}
+              key={type.id}
               className={cn(
                 'px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap',
-                activeFilter === stage.key
+                activeFilter === type.id
                   ? 'bg-primary text-white'
                   : 'bg-muted text-foreground/80 hover:bg-muted'
               )}
-              onClick={() => setActiveFilter(stage.key)}
+              onClick={() => setActiveFilter(type.id)}
             >
-              {stage.label}
+              {type.name}
               <span className={cn(
                 'ml-1.5 px-1 py-0.5 rounded text-[10px]',
-                activeFilter === stage.key
+                activeFilter === type.id
                   ? 'bg-card/20'
                   : 'bg-muted'
               )}>
-                {stage.key === 'all'
-                  ? counts?.all || 0
-                  : (counts as Record<string, number>)?.[stage.key] || 0}
+                {countsByType[type.id] || 0}
               </span>
             </button>
           ))}

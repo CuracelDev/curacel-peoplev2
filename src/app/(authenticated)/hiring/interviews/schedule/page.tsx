@@ -102,6 +102,7 @@ export default function ScheduleInterviewPage() {
   const [notes, setNotes] = useState('')
   const [createGoogleMeet, setCreateGoogleMeet] = useState(true)
   const [syncToCalendar, setSyncToCalendar] = useState(true)
+  const [selectedRubricTemplateId, setSelectedRubricTemplateId] = useState('')
 
   // Availability state
   const [schedulingMode, setSchedulingMode] = useState<'manual' | 'suggested'>('suggested')
@@ -183,6 +184,30 @@ export default function ScheduleInterviewPage() {
   const selectedCandidate = useMemo(() => {
     return candidatesData?.candidates?.find(c => c.id === selectedCandidateId)
   }, [candidatesData?.candidates, selectedCandidateId])
+
+  const { data: rubricTemplates, isLoading: rubricTemplatesLoading } =
+    trpc.interviewStage.listTemplates.useQuery(
+      selectedCandidate?.job?.id ? { jobId: selectedCandidate.job.id } : undefined
+    )
+
+  useEffect(() => {
+    if (!selectedType) return
+    setSelectedRubricTemplateId(selectedType.rubricTemplateId || '')
+  }, [selectedType])
+
+  useEffect(() => {
+    if (!selectedRubricTemplateId || !rubricTemplates?.length) return
+    const stillValid = rubricTemplates.some((template) => template.id === selectedRubricTemplateId)
+    if (!stillValid) {
+      setSelectedRubricTemplateId('')
+    }
+  }, [rubricTemplates, selectedRubricTemplateId])
+
+  useEffect(() => {
+    if (!syncToCalendar || meetingLink) {
+      setCreateGoogleMeet(false)
+    }
+  }, [syncToCalendar, meetingLink])
 
   // Fetch questions filtered by interview type's categories
   const questionCategories = selectedType?.questionCategories || []
@@ -354,7 +379,7 @@ export default function ScheduleInterviewPage() {
   }
 
   // Check if Step 1 is valid
-  const isStep1Valid = selectedCandidateId && interviewTypeId && date && selectedInterviewers.length > 0
+  const isStep1Valid = selectedCandidateId && interviewTypeId && date && selectedInterviewers.length > 0 && selectedRubricTemplateId
 
   // Check if Step 3 should be shown (only if 2+ interviewers)
   const showStep3 = selectedInterviewers.length >= 2 && selectedQuestions.length > 0
@@ -387,7 +412,7 @@ export default function ScheduleInterviewPage() {
 
   // Handle submit
   const handleSubmit = async (skipQuestions = false) => {
-    if (!selectedCandidateId || !interviewTypeId || !date || selectedInterviewers.length === 0) {
+    if (!selectedCandidateId || !interviewTypeId || !date || selectedInterviewers.length === 0 || !selectedRubricTemplateId) {
       return
     }
 
@@ -446,6 +471,7 @@ export default function ScheduleInterviewPage() {
           email: i.email,
         })),
         meetingLink: meetingLink || undefined,
+        stageTemplateId: selectedRubricTemplateId || undefined,
         notes: notes || undefined,
         questionIds: questionIds.length > 0 ? questionIds : undefined,
         customQuestions: customQuestions.length > 0 ? customQuestions : undefined,
@@ -994,21 +1020,21 @@ export default function ScheduleInterviewPage() {
                   <CalendarCheckIcon className="h-4 w-4" />
                   Calendar Options
                 </h4>
-                <div className="flex items-center justify-between">
-                  <div className="space-y-0.5">
-                    <Label htmlFor="sync-calendar">Sync to Google Calendar</Label>
-                    <p className="text-xs text-muted-foreground">
-                      Create a calendar event and send invites
-                    </p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="space-y-0.5">
+                      <Label htmlFor="sync-calendar">Sync to Google Calendar</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Create a calendar event and send invites
+                      </p>
+                    </div>
+                    <Switch
+                      id="sync-calendar"
+                      checked={syncToCalendar}
+                      onCheckedChange={setSyncToCalendar}
+                    />
                   </div>
-                  <Switch
-                    id="sync-calendar"
-                    checked={syncToCalendar}
-                    onCheckedChange={setSyncToCalendar}
-                  />
-                </div>
-                {syncToCalendar && !meetingLink && (
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     <div className="space-y-0.5">
                       <Label htmlFor="create-meet">Auto-create Google Meet</Label>
                       <p className="text-xs text-muted-foreground">
@@ -1019,22 +1045,50 @@ export default function ScheduleInterviewPage() {
                       id="create-meet"
                       checked={createGoogleMeet}
                       onCheckedChange={setCreateGoogleMeet}
+                      disabled={!syncToCalendar || Boolean(meetingLink)}
                     />
                   </div>
-                )}
+                </div>
               </div>
             )}
 
-            {/* Row 6: Notes (Full Width) */}
-            <div className="md:col-span-2 grid gap-1">
-              <Label htmlFor="notes">Notes (optional)</Label>
-              <Textarea
-                id="notes"
-                placeholder="Any special instructions or topics to cover..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={2}
-              />
+            {/* Row 6: Rubric & Notes */}
+            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid gap-1">
+                <Label htmlFor="rubric">Interview Rubric *</Label>
+                <Select value={selectedRubricTemplateId} onValueChange={setSelectedRubricTemplateId}>
+                  <SelectTrigger id="rubric">
+                    <SelectValue
+                      placeholder={rubricTemplatesLoading ? 'Loading rubrics...' : 'Select rubric template...'}
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {rubricTemplates?.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name}
+                      </SelectItem>
+                    ))}
+                    {(!rubricTemplates || rubricTemplates.length === 0) && !rubricTemplatesLoading && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        No rubric templates available. Create one in Settings.
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Interviewers will score the candidate using this rubric.
+                </p>
+              </div>
+              <div className="grid gap-1">
+                <Label htmlFor="notes">Notes (optional)</Label>
+                <Textarea
+                  id="notes"
+                  placeholder="Any special instructions or topics to cover..."
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  rows={2}
+                />
+              </div>
             </div>
             </div>{/* End of grid container */}
           </CardContent>

@@ -4791,6 +4791,7 @@ export const assistantRouter = router({
       openaiModel: settings.openaiModel,
       anthropicModel: settings.anthropicModel,
       geminiModel: settings.geminiModel,
+      systemPrompt: settings.systemPrompt || null,
       isEnabled: settings.isEnabled,
       requireConfirmation: settings.requireConfirmation,
       hasOpenaiKey: !!settings.openaiKeyEncrypted,
@@ -4810,6 +4811,7 @@ export const assistantRouter = router({
         openaiModel: z.string().optional(),
         anthropicModel: z.string().optional(),
         geminiModel: z.string().optional(),
+        systemPrompt: z.string().optional(),
         isEnabled: z.boolean().optional(),
         requireConfirmation: z.boolean().optional(),
       })
@@ -4827,6 +4829,7 @@ export const assistantRouter = router({
       if (input.openaiModel) updateData.openaiModel = input.openaiModel
       if (input.anthropicModel) updateData.anthropicModel = input.anthropicModel
       if (input.geminiModel) updateData.geminiModel = input.geminiModel
+      if (input.systemPrompt !== undefined) updateData.systemPrompt = input.systemPrompt.trim() || null
       if (input.isEnabled !== undefined) updateData.isEnabled = input.isEnabled
       if (input.requireConfirmation !== undefined) updateData.requireConfirmation = input.requireConfirmation
 
