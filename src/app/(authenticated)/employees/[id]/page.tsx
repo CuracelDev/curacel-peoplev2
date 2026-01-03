@@ -95,6 +95,9 @@ export default function EmployeeDetailPage() {
 
   const { data: employee, isLoading, refetch } = trpc.employee.getById.useQuery(employeeId)
   const { data: existingOffboarding } = trpc.offboarding.getByEmployee.useQuery(employeeId)
+  const { data: journeyData } = trpc.employee.getEmployeeJourney.useQuery(employeeId, {
+    enabled: !!employeeId,
+  })
 
   const [offboardingOpen, setOffboardingOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
@@ -383,7 +386,7 @@ export default function EmployeeDetailPage() {
                 variant="outline"
                 size="sm"
                 onClick={() => setEditDialogOpen(true)}
-                className="flex-1 sm:flex-none w-full text-xs sm:text-sm"
+                className="flex-1 sm:flex-none w-full text-xs sm:text-sm rounded-full border-border/60 px-4 py-2 hover:bg-muted/40"
               >
                 <Edit className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Update Profile</span>
@@ -393,7 +396,7 @@ export default function EmployeeDetailPage() {
                   asChild
                   size="sm"
                   variant="outline"
-                  className="border-destructive/30 text-destructive hover:bg-destructive/10 flex-1 sm:flex-none w-full text-xs sm:text-sm"
+                  className="border-destructive/50 text-destructive hover:bg-destructive/10 flex-1 sm:flex-none w-full text-xs sm:text-sm rounded-full px-4 py-2"
                 >
                   <Link href={`/offboarding/${existingOffboarding.id}`}>
                     <UserMinus className="h-4 w-4 sm:mr-2" />
@@ -404,7 +407,7 @@ export default function EmployeeDetailPage() {
                 <Button
                   size="sm"
                   variant="outline"
-                  className="border-destructive text-destructive hover:bg-destructive/10 flex-1 sm:flex-none w-full text-xs sm:text-sm"
+                  className="border-destructive text-destructive hover:bg-destructive/10 flex-1 sm:flex-none w-full text-xs sm:text-sm rounded-full px-4 py-2"
                   onClick={() => {
                     setIsImmediate(false)
                     setEndDate(employee.endDate ? new Date(employee.endDate).toISOString().slice(0, 10) : '')
@@ -459,7 +462,9 @@ export default function EmployeeDetailPage() {
 
         {/* Overview Tab */}
         <TabsContent value="overview" className="mt-6">
-          <div className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+            {/* Main Column */}
+            <div className="space-y-4">
               {/* AuntyPelz Summary */}
               <Card>
                 <CardHeader className="pb-3">
@@ -474,21 +479,85 @@ export default function EmployeeDetailPage() {
                   </p>
                 </CardContent>
               </Card>
+            </div>
 
+            {/* Sidebar Column */}
+            <div className="space-y-4">
               {/* Employee Progression */}
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Activity className="h-4 w-4" />
-                    Employee Progression
+                    Stage Progress
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm text-muted-foreground">
-                    Track employee journey from application to current role.
-                  </p>
+                  {journeyData && journeyData.timeline.length > 0 ? (
+                    <div className="relative space-y-0">
+                      {journeyData.timeline.map((event, index) => {
+                        const isLast = index === journeyData.timeline.length - 1
+                        const isCompleted = event.status === 'COMPLETED' || event.type === 'application' || event.type === 'hire' || event.type === 'promotion'
+                        const isCurrent = index === journeyData.timeline.length - 1
+
+                        return (
+                          <div key={event.id} className="relative flex items-start gap-4 pb-8 last:pb-0">
+                            {/* Vertical line */}
+                            {!isLast && (
+                              <div className="absolute left-6 top-12 w-0.5 h-full -ml-px bg-border" />
+                            )}
+
+                            {/* Circle with checkmark */}
+                            <div
+                              className={`relative z-10 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${
+                                isCurrent
+                                  ? 'bg-indigo-600 shadow-lg shadow-indigo-200'
+                                  : isCompleted
+                                  ? 'bg-muted'
+                                  : 'bg-muted'
+                              }`}
+                            >
+                              <Check
+                                className={`h-5 w-5 ${
+                                  isCurrent ? 'text-white' : 'text-foreground'
+                                }`}
+                              />
+                            </div>
+
+                            {/* Content */}
+                            <div className="flex-1 pt-1.5">
+                              <p className="font-medium text-base text-foreground">
+                                {event.title}
+                              </p>
+                              {event.date && (
+                                <p className="text-sm text-muted-foreground mt-0.5">
+                                  {formatDate(event.date)}
+                                </p>
+                              )}
+                              {event.description && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  {event.description}
+                                </p>
+                              )}
+                              {event.score && (
+                                <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-1 bg-success/10 rounded text-xs font-medium text-success">
+                                  Score: {event.score}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      {journeyData?.candidateData
+                        ? 'Loading employee journey...'
+                        : 'Employee was not hired through the recruiting system. Progression tracking starts from hire date.'}
+                    </p>
+                  )}
                 </CardContent>
               </Card>
+            </div>
           </div>
         </TabsContent>
 
