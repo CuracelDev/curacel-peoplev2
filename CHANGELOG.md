@@ -146,6 +146,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Updated AI copy to use BlueAI across the app UI and documentation
 - Candidate profile now renders DB-only data with hiring flow-aligned stage progress and weighted overall scoring
 - Hiring settings no longer use tabbed navigation; sections are accessed from dedicated settings pages
+- Renamed scorecard generation CTA to "Generate with AuntyPelz".
 
 ### Fixed
 - Improved dark mode legibility for the interview scheduling calendar access warning text.
@@ -179,6 +180,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Job details header now places team under the title and aligns location/dates side by side without a right column.
 - Swapped team and location positions in the job details header.
 - Moved the job details back button above the header card.
+- JD template AI generation now uses the shared AuntyPelz settings decrypt helper to avoid bad decrypt errors.
+- Scorecard AI generation now uses the shared AuntyPelz settings decrypt helper to avoid bad decrypt errors.
 - Job detail stage cards now hide stages with zero candidates.
 - Updated employee detail outline buttons to match rounded pill styling.
 - Job list stage stats now link into filtered job candidates views

@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure } from '@/lib/trpc'
+import { decrypt } from '@/lib/encryption'
 
 const OutcomeSchema = z.object({
   name: z.string().min(1),
@@ -193,7 +194,6 @@ Format your response as valid JSON matching this structure:
 
       if (aiSettings.provider === 'ANTHROPIC') {
         const Anthropic = (await import('@anthropic-ai/sdk')).default
-        const crypto = await import('crypto')
 
         if (!aiSettings.anthropicKeyEncrypted) {
           throw new TRPCError({
@@ -202,14 +202,7 @@ Format your response as valid JSON matching this structure:
           })
         }
 
-        // Decrypt the API key
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.anthropicKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        const apiKey = decrypt(aiSettings.anthropicKeyEncrypted)
 
         const anthropic = new Anthropic({ apiKey })
 
@@ -230,7 +223,6 @@ Format your response as valid JSON matching this structure:
         }
       } else if (aiSettings.provider === 'OPENAI') {
         const OpenAI = (await import('openai')).default
-        const crypto = await import('crypto')
 
         if (!aiSettings.openaiKeyEncrypted) {
           throw new TRPCError({
@@ -239,14 +231,7 @@ Format your response as valid JSON matching this structure:
           })
         }
 
-        // Decrypt the API key
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.openaiKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        const apiKey = decrypt(aiSettings.openaiKeyEncrypted)
 
         const openai = new OpenAI({ apiKey })
 
@@ -264,7 +249,6 @@ Format your response as valid JSON matching this structure:
         response = JSON.parse(completion.choices[0].message.content || '{}')
       } else if (aiSettings.provider === 'GEMINI') {
         const { GoogleGenerativeAI } = await import('@google/generative-ai')
-        const crypto = await import('crypto')
 
         if (!aiSettings.geminiKeyEncrypted) {
           throw new TRPCError({
@@ -273,14 +257,7 @@ Format your response as valid JSON matching this structure:
           })
         }
 
-        // Decrypt the API key
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.geminiKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        const apiKey = decrypt(aiSettings.geminiKeyEncrypted)
 
         const genAI = new GoogleGenerativeAI(apiKey)
         const model = genAI.getGenerativeModel({ model: aiSettings.geminiModel })
@@ -439,7 +416,6 @@ Format your response as valid JSON matching this structure:
 
       if (aiSettings.provider === 'ANTHROPIC') {
         const Anthropic = (await import('@anthropic-ai/sdk')).default
-        const crypto = await import('crypto')
 
         if (!aiSettings.anthropicKeyEncrypted) {
           throw new TRPCError({
@@ -448,14 +424,7 @@ Format your response as valid JSON matching this structure:
           })
         }
 
-        // Decrypt the API key
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.anthropicKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        const apiKey = decrypt(aiSettings.anthropicKeyEncrypted)
 
         const anthropic = new Anthropic({ apiKey })
 
@@ -476,7 +445,6 @@ Format your response as valid JSON matching this structure:
         }
       } else if (aiSettings.provider === 'OPENAI') {
         const OpenAI = (await import('openai')).default
-        const crypto = await import('crypto')
 
         if (!aiSettings.openaiKeyEncrypted) {
           throw new TRPCError({
@@ -485,14 +453,7 @@ Format your response as valid JSON matching this structure:
           })
         }
 
-        // Decrypt the API key
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.openaiKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        const apiKey = decrypt(aiSettings.openaiKeyEncrypted)
 
         const openai = new OpenAI({ apiKey })
 
@@ -510,7 +471,6 @@ Format your response as valid JSON matching this structure:
         response = JSON.parse(completion.choices[0].message.content || '{}')
       } else if (aiSettings.provider === 'GEMINI') {
         const { GoogleGenerativeAI } = await import('@google/generative-ai')
-        const crypto = await import('crypto')
 
         if (!aiSettings.geminiKeyEncrypted) {
           throw new TRPCError({
@@ -519,14 +479,7 @@ Format your response as valid JSON matching this structure:
           })
         }
 
-        // Decrypt the API key
-        const decipher = crypto.createDecipheriv(
-          'aes-256-cbc',
-          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
-          Buffer.alloc(16, 0)
-        )
-        let apiKey = decipher.update(aiSettings.geminiKeyEncrypted, 'hex', 'utf8')
-        apiKey += decipher.final('utf8')
+        const apiKey = decrypt(aiSettings.geminiKeyEncrypted)
 
         const genAI = new GoogleGenerativeAI(apiKey)
         const model = genAI.getGenerativeModel({ model: aiSettings.geminiModel })

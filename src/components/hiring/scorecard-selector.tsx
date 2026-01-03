@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -37,15 +37,28 @@ export function ScorecardSelector({
   const [showCreateModal, setShowCreateModal] = useState(false)
   const [previewScorecard, setPreviewScorecard] = useState<any>(null)
 
-  const { data: recommendations } = trpc.scorecard.getRecommendations.useQuery(
+  const { data: recommendations, refetch: refetchRecommendations } = trpc.scorecard.getRecommendations.useQuery(
     { jobDescriptionId: jobDescriptionId! },
     { enabled: !!jobDescriptionId }
   )
 
-  const { data: allScorecards } = trpc.scorecard.listForSelection.useQuery(
+  const { data: allScorecards, refetch: refetchAllScorecards } = trpc.scorecard.listForSelection.useQuery(
     undefined,
     { enabled: !showRecommended }
   )
+
+  // Refetch when window regains focus (e.g., coming back from new tab)
+  useEffect(() => {
+    const handleFocus = () => {
+      if (jobDescriptionId) {
+        refetchRecommendations()
+      }
+      refetchAllScorecards()
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [jobDescriptionId, refetchRecommendations, refetchAllScorecards])
 
   if (disabled || !jobDescriptionId) {
     return (
