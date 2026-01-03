@@ -302,4 +302,250 @@ Format your response as valid JSON matching this structure:
         outcomes: response.outcomes,
       }
     }),
+
+  // List all scorecards for selection dropdown
+  listForSelection: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.scorecard.findMany({
+      include: {
+        job: {
+          select: {
+            id: true,
+            title: true,
+            department: true,
+            status: true,
+          },
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+    })
+  }),
+
+  // Get AI-recommended scorecards based on JD similarity
+  getRecommendations: protectedProcedure
+    .input(z.object({ jobDescriptionId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const jd = await ctx.prisma.jobDescription.findUnique({
+        where: { id: input.jobDescriptionId },
+      })
+
+      if (!jd) return []
+
+      const scorecards = await ctx.prisma.scorecard.findMany({
+        include: {
+          job: {
+            select: {
+              id: true,
+              title: true,
+              department: true,
+              jobDescription: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+        },
+      })
+
+      // AI similarity scoring:
+      // - Same department: +40 points
+      // - Similar title (word matching): +30 points
+      // - Return top 5 matches
+      const recommendations = scorecards
+        .map((scorecard) => {
+          let score = 0
+
+          // Department match
+          if (scorecard.job.department === jd.department) {
+            score += 40
+          }
+
+          // Title similarity (word matching)
+          if (scorecard.job.title && jd.name) {
+            const titleWords = jd.name.toLowerCase().split(' ')
+            const scorecardWords = scorecard.job.title.toLowerCase().split(' ')
+            const commonWords = titleWords.filter((w) => scorecardWords.includes(w))
+            score += Math.min(30, commonWords.length * 10)
+          }
+
+          return { scorecard, score }
+        })
+        .filter((r) => r.score > 20) // Only show relevant matches
+        .sort((a, b) => b.score - a.score)
+        .slice(0, 5) // Top 5 recommendations
+        .map((r) => r.scorecard)
+
+      return recommendations
+    }),
+
+  // Generate scorecard directly from JD (without needing a job)
+  generateFromJD: protectedProcedure
+    .input(z.object({ jobDescriptionId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const jd = await ctx.prisma.jobDescription.findUnique({
+        where: { id: input.jobDescriptionId },
+      })
+
+      if (!jd) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Job description not found',
+        })
+      }
+
+      // Get AI settings
+      const aiSettings = await ctx.prisma.aISettings.findFirst()
+
+      if (!aiSettings || !aiSettings.isEnabled) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'AI is not enabled',
+        })
+      }
+
+      // Prepare the prompt for AI
+      const prompt = `Based on the following job description, generate a scorecard with a mission statement and 3-5 key outcomes.
+
+Job Title: ${jd.name}
+Department: ${jd.department || 'Not specified'}
+
+Job Description:
+${jd.overview || ''}
+${jd.responsibilities || ''}
+${jd.requirements || ''}
+
+Please provide a JSON response with:
+1. mission: A clear, concise mission statement (1-2 sentences) describing what this role needs to accomplish
+2. outcomes: An array of 3-5 measurable outcomes, each with:
+   - name: A short name for the outcome (e.g., "Revenue Growth", "Team Development")
+   - description: A detailed description of the outcome
+   - successCriteria: An array of 2-4 specific, measurable success criteria
+
+Format your response as valid JSON matching this structure:
+{
+  "mission": "string",
+  "outcomes": [
+    {
+      "name": "string",
+      "description": "string",
+      "successCriteria": ["string", "string"]
+    }
+  ]
+}`
+
+      // Call AI based on provider
+      let response: any
+
+      if (aiSettings.provider === 'ANTHROPIC') {
+        const Anthropic = (await import('@anthropic-ai/sdk')).default
+        const crypto = await import('crypto')
+
+        if (!aiSettings.anthropicKeyEncrypted) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'Anthropic API key not configured',
+          })
+        }
+
+        // Decrypt the API key
+        const decipher = crypto.createDecipheriv(
+          'aes-256-cbc',
+          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
+          Buffer.alloc(16, 0)
+        )
+        let apiKey = decipher.update(aiSettings.anthropicKeyEncrypted, 'hex', 'utf8')
+        apiKey += decipher.final('utf8')
+
+        const anthropic = new Anthropic({ apiKey })
+
+        const message = await anthropic.messages.create({
+          model: aiSettings.anthropicModel,
+          max_tokens: 2000,
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+        })
+
+        const content = message.content[0]
+        if (content.type === 'text') {
+          response = JSON.parse(content.text)
+        }
+      } else if (aiSettings.provider === 'OPENAI') {
+        const OpenAI = (await import('openai')).default
+        const crypto = await import('crypto')
+
+        if (!aiSettings.openaiKeyEncrypted) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'OpenAI API key not configured',
+          })
+        }
+
+        // Decrypt the API key
+        const decipher = crypto.createDecipheriv(
+          'aes-256-cbc',
+          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
+          Buffer.alloc(16, 0)
+        )
+        let apiKey = decipher.update(aiSettings.openaiKeyEncrypted, 'hex', 'utf8')
+        apiKey += decipher.final('utf8')
+
+        const openai = new OpenAI({ apiKey })
+
+        const completion = await openai.chat.completions.create({
+          model: aiSettings.openaiModel,
+          messages: [
+            {
+              role: 'user',
+              content: prompt,
+            },
+          ],
+          response_format: { type: 'json_object' },
+        })
+
+        response = JSON.parse(completion.choices[0].message.content || '{}')
+      } else if (aiSettings.provider === 'GEMINI') {
+        const { GoogleGenerativeAI } = await import('@google/generative-ai')
+        const crypto = await import('crypto')
+
+        if (!aiSettings.geminiKeyEncrypted) {
+          throw new TRPCError({
+            code: 'PRECONDITION_FAILED',
+            message: 'Gemini API key not configured',
+          })
+        }
+
+        // Decrypt the API key
+        const decipher = crypto.createDecipheriv(
+          'aes-256-cbc',
+          Buffer.from(process.env.ENCRYPTION_KEY!, 'hex'),
+          Buffer.alloc(16, 0)
+        )
+        let apiKey = decipher.update(aiSettings.geminiKeyEncrypted, 'hex', 'utf8')
+        apiKey += decipher.final('utf8')
+
+        const genAI = new GoogleGenerativeAI(apiKey)
+        const model = genAI.getGenerativeModel({ model: aiSettings.geminiModel })
+
+        const result = await model.generateContent(prompt)
+        const text = result.response.text()
+
+        // Extract JSON from response (Gemini might wrap it in markdown)
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        if (jsonMatch) {
+          response = JSON.parse(jsonMatch[0])
+        } else {
+          response = JSON.parse(text)
+        }
+      }
+
+      return {
+        mission: response.mission,
+        outcomes: response.outcomes,
+      }
+    }),
 })

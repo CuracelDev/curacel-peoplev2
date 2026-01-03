@@ -448,10 +448,44 @@ export const jobRouter = router({
         // Relations
         followerIds: z.array(z.string()).default([]),
         competencyIds: z.array(z.string()).default([]),
+        // Scorecard
+        scorecardData: z
+          .object({
+            mission: z.string(),
+            outcomes: z.array(
+              z.object({
+                name: z.string(),
+                description: z.string(),
+                successCriteria: z.array(z.string()),
+              })
+            ),
+          })
+          .optional(),
+        // Competency Requirements (NEW v2 system)
+        competencyRequirements: z
+          .array(
+            z.object({
+              subCompetencyId: z.string(),
+              requiredLevel: z.number().min(1).max(5),
+              requiredLevelName: z.string(),
+              priority: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']).default('MEDIUM'),
+              isRequired: z.boolean().default(true),
+            })
+          )
+          .default([]),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { followerIds, competencyIds, deadline, hiringFlowId, interestFormId, ...data } = input
+      const {
+        followerIds,
+        competencyIds,
+        deadline,
+        hiringFlowId,
+        interestFormId,
+        scorecardData,
+        competencyRequirements,
+        ...data
+      } = input
 
       if (!interestFormId) {
         const activeForms = await ctx.prisma.interestFormTemplate.count({
@@ -491,6 +525,16 @@ export const jobRouter = router({
           competencies: {
             create: competencyIds.map((competencyId) => ({ competencyId })),
           },
+          // Create scorecard if provided
+          scorecard: scorecardData
+            ? {
+                create: scorecardData,
+              }
+            : undefined,
+          // Create competency requirements (NEW v2)
+          competencyRequirements: {
+            create: competencyRequirements,
+          },
         },
         include: {
           jobDescription: { select: { id: true, name: true } },
@@ -500,6 +544,18 @@ export const jobRouter = router({
           },
           competencies: {
             include: { competency: { select: { id: true, name: true, category: true } } },
+          },
+          scorecard: true,
+          competencyRequirements: {
+            include: {
+              subCompetency: {
+                include: {
+                  coreCompetency: {
+                    include: { source: true },
+                  },
+                },
+              },
+            },
           },
         },
       })

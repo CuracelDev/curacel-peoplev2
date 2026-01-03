@@ -129,6 +129,18 @@ export default function JobDetailsPage() {
 
   return (
     <div className="space-y-6 py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
+      <div className="flex items-center">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2"
+          onClick={() => router.back()}
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back
+        </Button>
+      </div>
+
       {/* Header */}
       <Card>
         <CardContent className="p-4 sm:p-6">
@@ -141,35 +153,29 @@ export default function JobDetailsPage() {
 
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3 mb-1">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => router.back()}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
                 <h1 className="text-xl sm:text-2xl font-semibold text-foreground">{job.title}</h1>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3">
-                <div className="flex flex-col gap-2">
-                  {job.createdAt && (
-                    <span className="flex items-center gap-1.5 text-muted-foreground/80">
-                      <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
-                      Posted {format(new Date(job.createdAt), 'MMM d, yyyy')}
-                    </span>
-                  )}
-                  {job.deadline && (
-                    <span className="flex items-center gap-1.5 text-muted-foreground/80">
-                      <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
-                      Deadline {format(new Date(job.deadline), 'MMM d, yyyy')}
-                    </span>
-                  )}
-                </div>
+              <div className="flex items-center gap-1.5 text-xs sm:text-sm text-muted-foreground mb-3">
+                <Users className="h-3.5 w-3.5 flex-shrink-0" />
+                {job.department || 'No Department'}
+              </div>
+              <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3">
                 <span className="flex items-center gap-1.5">
                   <MapPin className="h-3.5 w-3.5 flex-shrink-0" />
-                  {job.department || 'No Department'} · {formatLocations()}
+                  {formatLocations()}
                 </span>
+                {job.createdAt && (
+                  <span className="flex items-center gap-1.5 text-muted-foreground/80">
+                    <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
+                    Posted {format(new Date(job.createdAt), 'MMM d, yyyy')}
+                  </span>
+                )}
+                {job.deadline && (
+                  <span className="flex items-center gap-1.5 text-muted-foreground/80">
+                    <Calendar className="h-3.5 w-3.5 flex-shrink-0 text-muted-foreground/70" />
+                    Deadline {format(new Date(job.deadline), 'MMM d, yyyy')}
+                  </span>
+                )}
               </div>
               <div className="flex flex-wrap gap-2">
                 <Badge className={`${statusColors[job.status as keyof typeof statusColors]} text-xs`}>
