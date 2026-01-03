@@ -64,6 +64,12 @@ export default function CompetencyFrameworkDetailPage() {
     }
   }
 
+  const getDepartmentLabel = (department?: string | null) => {
+    if (!department) return ''
+    if (department === 'Sales') return 'Commercial'
+    return department
+  }
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -119,7 +125,7 @@ export default function CompetencyFrameworkDetailPage() {
               <div className="flex items-center gap-2">
                 <Badge variant="outline">{sourceData.type}</Badge>
                 {sourceData.department && (
-                  <Badge variant="secondary">{sourceData.department}</Badge>
+                  <Badge variant="secondary">{getDepartmentLabel(sourceData.department)}</Badge>
                 )}
                 {sourceData.formatType && (
                   <Badge variant="secondary">{getFormatTypeLabel(sourceData.formatType)}</Badge>
