@@ -319,10 +319,10 @@ export default function EmployeeDetailPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       {/* Header Card */}
-      <Card>
-        <CardContent className="pt-6">
+      <Card className="mb-6">
+        <CardContent className="p-4 sm:p-6">
           <div className="flex items-start gap-6">
             {/* Avatar */}
             <Avatar className="h-24 w-24 bg-success flex-shrink-0">
@@ -411,32 +411,34 @@ export default function EmployeeDetailPage() {
         </CardContent>
       </Card>
 
-      {/* Tabs Content */}
-      <div>
-          <Tabs defaultValue="personal" className="space-y-4">
-            <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
-              <TabsTrigger value="personal" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
-                Personal
-              </TabsTrigger>
-              <TabsTrigger value="employment" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
-                Employment
-              </TabsTrigger>
-              <TabsTrigger value="personality" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
-                Personality
-              </TabsTrigger>
-              <TabsTrigger value="contract" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
-                Contract
-              </TabsTrigger>
-              <TabsTrigger value="applications" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
-                Applications
-              </TabsTrigger>
-            </TabsList>
+      {/* Tabs */}
+      <Tabs defaultValue="personal" className="mb-6">
+        <div className="overflow-x-auto">
+          <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
+            <TabsTrigger value="personal" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Personal
+            </TabsTrigger>
+            <TabsTrigger value="employment" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Employment
+            </TabsTrigger>
+            <TabsTrigger value="personality" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Personality
+            </TabsTrigger>
+            <TabsTrigger value="contract" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Contract
+            </TabsTrigger>
+            <TabsTrigger value="applications" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Applications
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-            {/* Personal Tab */}
-            <TabsContent value="personal" className="space-y-4">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">Personal Information</h2>
-              </div>
+        {/* Personal Tab */}
+        <TabsContent value="personal" className="mt-6">
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-4">Personal Information</h2>
+            </div>
 
               {/* Personal Details */}
               <Card>
@@ -586,10 +588,12 @@ export default function EmployeeDetailPage() {
                   </div>
                 </CardContent>
               </Card>
-            </TabsContent>
+          </div>
+        </TabsContent>
 
-            {/* Employment Tab */}
-            <TabsContent value="employment" className="space-y-4">
+        {/* Employment Tab */}
+        <TabsContent value="employment" className="mt-6">
+          <div className="space-y-4">
               {/* Employment Details */}
               <Card>
                 <CardHeader>
@@ -771,13 +775,15 @@ export default function EmployeeDetailPage() {
                   </CardContent>
                 </Card>
               )}
-            </TabsContent>
+          </div>
+        </TabsContent>
 
-            {/* Personality Tab */}
-            <TabsContent value="personality" className="space-y-4">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">Personality & Values</h2>
-              </div>
+        {/* Personality Tab */}
+        <TabsContent value="personality" className="mt-6">
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-4">Personality & Values</h2>
+            </div>
 
               {/* MBTI */}
               <Card>
@@ -934,31 +940,33 @@ export default function EmployeeDetailPage() {
                 </CardContent>
               </Card>
 
-              {!employee.personalityCompleted && (
-                <div className="text-center text-sm text-muted-foreground py-4">
-                  This employee has not completed their personality profile during onboarding.
-                </div>
-              )}
-            </TabsContent>
-
-            {/* Contract Tab */}
-            <TabsContent value="contract" className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Contract Details</CardTitle>
-                  <CardDescription>Employment contract details and terms</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-center text-muted-foreground py-4">No contract offer found</p>
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Applications Tab */}
-            <TabsContent value="applications" className="space-y-4">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground mb-4">Applications</h2>
+            {!employee.personalityCompleted && (
+              <div className="text-center text-sm text-muted-foreground py-4">
+                This employee has not completed their personality profile during onboarding.
               </div>
+            )}
+          </div>
+        </TabsContent>
+
+        {/* Contract Tab */}
+        <TabsContent value="contract" className="mt-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Contract Details</CardTitle>
+              <CardDescription>Employment contract details and terms</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-center text-muted-foreground py-4">No contract offer found</p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Applications Tab */}
+        <TabsContent value="applications" className="mt-6">
+          <div className="space-y-4">
+            <div>
+              <h2 className="text-2xl font-bold text-foreground mb-4">Applications</h2>
+            </div>
 
               <Card>
                 <CardHeader>
@@ -1005,9 +1013,9 @@ export default function EmployeeDetailPage() {
                   )}
                 </CardContent>
               </Card>
-            </TabsContent>
-          </Tabs>
-      </div>
+          </div>
+        </TabsContent>
+      </Tabs>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-4xl">

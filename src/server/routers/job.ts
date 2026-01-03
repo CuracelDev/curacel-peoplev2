@@ -83,6 +83,35 @@ export const jobRouter = router({
         orderBy: { createdAt: 'desc' },
       })
 
+      const stageDisplayNames: Record<string, string> = {
+        APPLIED: 'Applied',
+        HR_SCREEN: 'HR Screen',
+        TECHNICAL: 'Technical',
+        PANEL: 'Panel',
+        CASE_STUDY: 'Case Study',
+        CULTURE_FIT: 'Culture Fit',
+        FINAL: 'Final',
+        TRIAL: 'Trial',
+        CEO_CHAT: 'CEO Chat',
+        OFFER: 'Offer',
+        HIRED: 'Hired',
+        REJECTED: 'Rejected',
+        WITHDRAWN: 'Withdrawn',
+        ARCHIVED: 'Archived',
+      }
+
+      const stageOrder = [
+        'APPLIED',
+        'HR_SCREEN',
+        'TECHNICAL',
+        'PANEL',
+        'OFFER',
+        'HIRED',
+        'REJECTED',
+        'WITHDRAWN',
+        'ARCHIVED',
+      ]
+
       // Calculate stats for each job
       return jobs.map((job) => {
         const activeCandidates = job.candidates.filter(
@@ -91,6 +120,15 @@ export const jobRouter = router({
         const scores = job.candidates.filter((c) => c.score != null).map((c) => c.score as number)
         const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0
         const maxScore = scores.length > 0 ? Math.max(...scores) : 0
+        const stageCounts = job.candidates.reduce<Record<string, number>>((acc, candidate) => {
+          acc[candidate.stage] = (acc[candidate.stage] || 0) + 1
+          return acc
+        }, {})
+        const stageBreakdown = stageOrder.map((stage) => ({
+          stage,
+          label: stageDisplayNames[stage] || stage,
+          count: stageCounts[stage] || 0,
+        }))
 
         const stats = {
           applicants: job._count.candidates,
@@ -105,7 +143,7 @@ export const jobRouter = router({
         }
 
         const { candidates, ...jobWithoutCandidates } = job
-        return { ...jobWithoutCandidates, stats }
+        return { ...jobWithoutCandidates, stats, stageBreakdown }
       })
     }),
 
