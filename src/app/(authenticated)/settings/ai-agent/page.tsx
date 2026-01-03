@@ -9,7 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Switch } from '@/components/ui/switch'
 import { Badge } from '@/components/ui/badge'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
-import { CheckCircle2, XCircle, Loader2, Eye, EyeOff } from 'lucide-react'
+import { CheckCircle2, XCircle, Loader2, Eye, EyeOff, ChevronDown, ChevronRight } from 'lucide-react'
+import { Textarea } from '@/components/ui/textarea'
 
 type ModelOption = { id: string; label: string }
 
@@ -32,10 +33,12 @@ export default function AIAgentSettingsPage() {
   const [showOpenAIKey, setShowOpenAIKey] = useState(false)
   const [showAnthropicKey, setShowAnthropicKey] = useState(false)
   const [showGeminiKey, setShowGeminiKey] = useState(false)
+  const [showCapabilities, setShowCapabilities] = useState(false)
 
   const [openaiKey, setOpenaiKey] = useState('')
   const [anthropicKey, setAnthropicKey] = useState('')
   const [geminiKey, setGeminiKey] = useState('')
+  const [systemPrompt, setSystemPrompt] = useState('')
 
   const { data: settings, refetch, isLoading, error: settingsError } =
     trpc.assistant.getSettings.useQuery()
@@ -73,6 +76,7 @@ export default function AIAgentSettingsPage() {
       setOpenaiKey('')
       setAnthropicKey('')
       setGeminiKey('')
+      setSystemPrompt('')
     },
   })
 
@@ -167,6 +171,10 @@ export default function AIAgentSettingsPage() {
     } else {
       updateSettings.mutate({ geminiModel: model })
     }
+  }
+
+  const handleSaveSystemPrompt = () => {
+    updateSettings.mutate({ systemPrompt: systemPrompt.trim() || undefined })
   }
 
   if (isLoading) {
@@ -508,43 +516,136 @@ export default function AIAgentSettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Capabilities</CardTitle>
+          <CardTitle>System Prompt Configuration</CardTitle>
           <CardDescription>
-            AuntyPelz can help with the following tasks:
+            Customize AuntyPelz's behavior by editing the system prompt. Leave empty to use the default prompt.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <ul className="space-y-2 text-sm text-foreground/80">
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-success" />
-              Search and find contracts by candidate name or status
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-success" />
-              Create new contract drafts with all required fields
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-success" />
-              Send contracts for signature (with confirmation)
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-success" />
-              Look up employee information and details
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-success" />
-              Start onboarding workflows (with confirmation)
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-success" />
-              Check onboarding status and progress
-            </li>
-            <li className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-success" />
-              Get hiring analytics by year
-            </li>
-          </ul>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="system-prompt">System Prompt</Label>
+            <Textarea
+              id="system-prompt"
+              rows={12}
+              placeholder={settings?.systemPrompt || 'Default system prompt will be used...'}
+              value={systemPrompt}
+              onChange={(e) => setSystemPrompt(e.target.value)}
+              className="font-mono text-xs"
+            />
+            {settings?.systemPrompt && (
+              <p className="text-xs text-muted-foreground">
+                Custom system prompt is currently active
+              </p>
+            )}
+          </div>
+          <Button
+            onClick={handleSaveSystemPrompt}
+            disabled={updateSettings.isPending}
+          >
+            {updateSettings.isPending ? 'Saving...' : 'Save System Prompt'}
+          </Button>
         </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="cursor-pointer" onClick={() => setShowCapabilities(!showCapabilities)}>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                Capabilities
+                {showCapabilities ? (
+                  <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                )}
+              </CardTitle>
+              <CardDescription>
+                AuntyPelz can help with the following tasks
+              </CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        {showCapabilities && (
+          <CardContent>
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-sm mb-2">Contract Management</h4>
+                <ul className="space-y-2 text-sm text-foreground/80">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    Search and find contracts by candidate name or status
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    Create, update, and manage contract drafts
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    Send, resend, and cancel contracts (with confirmation)
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-sm mb-2">Employee Lifecycle</h4>
+                <ul className="space-y-2 text-sm text-foreground/80">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    Manage onboarding and offboarding workflows
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    Control and track onboarding/offboarding tasks
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    Look up employee information and details
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-sm mb-2">Hiring & Recruitment</h4>
+                <ul className="space-y-2 text-sm text-foreground/80">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    Search and view candidates in hiring pipeline
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    List jobs and view their pipelines
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    AI-powered candidate analysis and recommendations
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    Get hiring analytics by year
+                  </li>
+                </ul>
+              </div>
+
+              <div>
+                <h4 className="font-medium text-sm mb-2">System & Administration</h4>
+                <ul className="space-y-2 text-sm text-foreground/80">
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    View integrations and test connections
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    Search audit logs
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                    View and manage notifications
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </CardContent>
+        )}
       </Card>
     </div>
   )

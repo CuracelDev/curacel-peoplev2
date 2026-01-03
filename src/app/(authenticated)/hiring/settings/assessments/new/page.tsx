@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import {
   Select,
   SelectContent,
@@ -82,6 +83,7 @@ export default function NewAssessmentPage() {
     emailBody: '',
     webhookUrl: '',
     teamId: '',
+    isFeatured: true,
   })
 
   const toggleSubmissionType = (type: SubmissionType) => {
@@ -131,6 +133,7 @@ export default function NewAssessmentPage() {
       emailBody: formData.emailBody || undefined,
       webhookUrl: formData.webhookUrl || undefined,
       teamId: formData.teamId || undefined,
+      isFeatured: formData.isFeatured,
     })
   }
 
@@ -305,6 +308,18 @@ export default function NewAssessmentPage() {
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+              <div>
+                <Label className="text-sm font-medium">Feature in assessment filters</Label>
+                <p className="text-xs text-muted-foreground">
+                  Featured types appear as quick filter cards on the assessments page.
+                </p>
+              </div>
+              <Switch
+                checked={formData.isFeatured}
+                onCheckedChange={(value) => setFormData({ ...formData, isFeatured: value })}
+              />
             </div>
           </CardContent>
         </Card>

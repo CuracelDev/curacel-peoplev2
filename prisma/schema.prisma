@@ -988,6 +988,9 @@ model AISettings {
   anthropicModel        String      @default("claude-sonnet-4-20250514")
   geminiModel           String      @default("gemini-2.0-flash")
 
+  // System prompt
+  systemPrompt          String?     @db.Text
+
   // Feature flags
   isEnabled             Boolean     @default(true)
   requireConfirmation   Boolean     @default(true)
@@ -1755,6 +1758,7 @@ model InterviewType {
   slug               String   @unique
   description        String?
   defaultDuration    Int      @default(60) // minutes
+  isFeatured         Boolean  @default(true)
 
   // Link to rubric template
   rubricTemplateId   String?
@@ -1989,6 +1993,7 @@ model AssessmentTemplate {
   scoringDimensions Json?          // { technical: 40, behavioral: 30, aptitude: 30 }
   benchmarkData     Json?          // Role-based benchmark scores
 
+  isFeatured      Boolean          @default(true)
   isActive        Boolean          @default(true)
   sortOrder       Int              @default(0)
 

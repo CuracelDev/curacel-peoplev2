@@ -144,6 +144,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Interview type deletion now surfaces errors and confirms success.
 - Interview settings is now the single entry point for interview types, rubrics, scoring, and question bank in Settings
 - Job public visibility toggle now lives on the job detail page
+- Interview scheduling now requires selecting a rubric template and aligns rubric/notes plus calendar options in two-column rows.
+- Improved visibility of the job flow "Up to date" status tag on job detail candidates.
+- Adjusted hover text color for job status badges so the label stays readable when the background changes.
+- Added featured toggles for interview types and assessment templates, and filters now show only featured items (All still shows everything).
 - Job list stage stats now link into filtered job candidates views
 - Candidates list adds LinkedIn profile links and a column selector for extra fields
 - Job candidates table now mirrors the candidates list column selector and action menu alignment

@@ -257,6 +257,7 @@ export const assessmentRouter = router({
         webhookSecret: z.string().optional(),
         scoringRubric: z.any().optional(),
         sortOrder: z.number().optional(),
+        isFeatured: z.boolean().optional(),
         // Work trial specific
         workTrial: z.object({
           tasks: z.array(z.object({
@@ -299,6 +300,7 @@ export const assessmentRouter = router({
           webhookSecret: templateData.webhookSecret,
           scoringRubric: templateData.scoringRubric,
           sortOrder: templateData.sortOrder || 0,
+          ...(templateData.isFeatured !== undefined && { isFeatured: templateData.isFeatured }),
           ...(workTrial && templateData.type === 'WORK_TRIAL'
             ? {
                 workTrialTemplate: {
@@ -348,6 +350,7 @@ export const assessmentRouter = router({
         scoringRubric: z.any().optional(),
         sortOrder: z.number().optional(),
         isActive: z.boolean().optional(),
+        isFeatured: z.boolean().optional(),
         // Work trial specific
         workTrial: z.object({
           tasks: z.array(z.object({
@@ -431,6 +434,7 @@ export const assessmentRouter = router({
           ...(data.scoringRubric !== undefined && { scoringRubric: data.scoringRubric }),
           ...(data.sortOrder !== undefined && { sortOrder: data.sortOrder }),
           ...(data.isActive !== undefined && { isActive: data.isActive }),
+          ...(data.isFeatured !== undefined && { isFeatured: data.isFeatured }),
         },
         include: {
           workTrialTemplate: true,

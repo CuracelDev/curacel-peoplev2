@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import { toast } from 'sonner'
 import { trpc } from '@/lib/trpc-client'
 import { cn } from '@/lib/utils'
@@ -40,6 +41,7 @@ export default function EditInterviewTypePage() {
   const [description, setDescription] = useState('')
   const [defaultDuration, setDefaultDuration] = useState(60)
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
+  const [isFeatured, setIsFeatured] = useState(true)
   const [isLoaded, setIsLoaded] = useState(false)
 
   const typeQuery = trpc.interviewType.get.useQuery({ id }, { enabled: !!id })
@@ -63,6 +65,7 @@ export default function EditInterviewTypePage() {
       setDescription(type.description || '')
       setDefaultDuration(type.defaultDuration)
       setSelectedCategories(type.questionCategories || [])
+      setIsFeatured(type.isFeatured ?? true)
       setIsLoaded(true)
     }
   }, [typeQuery.data, isLoaded])
@@ -88,6 +91,7 @@ export default function EditInterviewTypePage() {
       defaultDuration,
       questionCategories: selectedCategories,
       allowedRoles: [],
+      isFeatured,
     })
   }
 
@@ -171,6 +175,15 @@ export default function EditInterviewTypePage() {
               placeholder="Brief description of this interview type and what it evaluates"
               rows={3}
             />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+            <div>
+              <Label className="text-sm font-medium">Feature in interview filters</Label>
+              <p className="text-xs text-muted-foreground">
+                Featured types appear as quick filter cards on the interviews page.
+              </p>
+            </div>
+            <Switch checked={isFeatured} onCheckedChange={setIsFeatured} />
           </div>
         </CardContent>
       </Card>

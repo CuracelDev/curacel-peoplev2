@@ -39,6 +39,7 @@ export const interviewRouter = router({
     .input(
       z.object({
         stage: z.string().optional(),
+        interviewTypeId: z.string().optional(),
         status: interviewStatusEnum.optional(),
         search: z.string().optional(),
         jobId: z.string().optional(),
@@ -51,6 +52,10 @@ export const interviewRouter = router({
 
       if (input?.stage) {
         where.stage = input.stage
+      }
+
+      if (input?.interviewTypeId) {
+        where.interviewTypeId = input.interviewTypeId
       }
 
       if (input?.status) {
@@ -179,7 +184,23 @@ export const interviewRouter = router({
       },
     })
 
-    return counts
+    const typeCounts = await ctx.prisma.candidateInterview.groupBy({
+      by: ['interviewTypeId'],
+      _count: { _all: true },
+      where: { interviewTypeId: { not: null } },
+    })
+
+    const countsByType: Record<string, number> = {}
+    typeCounts.forEach((item) => {
+      if (item.interviewTypeId) {
+        countsByType[item.interviewTypeId] = item._count._all
+      }
+    })
+
+    return {
+      ...counts,
+      byType: countsByType,
+    }
   }),
 
   // Get a single interview

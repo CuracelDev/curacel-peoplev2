@@ -450,6 +450,32 @@ export default function ApiDocsPage() {
               </div>
 
               <div className="space-y-2">
+                <h4 className="font-semibold">Interview Types (tRPC)</h4>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-amber-600">POST</Badge>
+                  <code>/api/trpc/interviewType.update</code>
+                  <span className="text-muted-foreground">— update interview types</span>
+                </div>
+                <div className="rounded border border-border/60 bg-muted/40 p-3 text-xs text-foreground/80">
+                  <div className="font-semibold text-foreground">Feature flag</div>
+                  <div>Use `isFeatured: true|false` to control whether a type appears in interviews filters.</div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <h4 className="font-semibold">Assessment Templates (tRPC)</h4>
+                <div className="flex items-center gap-2">
+                  <Badge className="bg-amber-600">POST</Badge>
+                  <code>/api/trpc/assessment.updateTemplate</code>
+                  <span className="text-muted-foreground">— update assessment templates</span>
+                </div>
+                <div className="rounded border border-border/60 bg-muted/40 p-3 text-xs text-foreground/80">
+                  <div className="font-semibold text-foreground">Feature flag</div>
+                  <div>Use `isFeatured: true|false` to control whether a template shows in assessments filters.</div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
                 <h4 className="font-semibold">Hiring Settings (tRPC)</h4>
                 <div className="flex items-center gap-2">
                   <Badge className="bg-amber-600">POST</Badge>

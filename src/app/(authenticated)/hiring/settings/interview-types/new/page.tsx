@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { Switch } from '@/components/ui/switch'
 import {
   Select,
   SelectContent,
@@ -45,6 +46,7 @@ export default function NewInterviewTypePage() {
   const [description, setDescription] = useState('')
   const [defaultDuration, setDefaultDuration] = useState(60)
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['behavioral', 'situational'])
+  const [isFeatured, setIsFeatured] = useState(true)
 
   const createTypeMutation = trpc.interviewType.create.useMutation({
     onSuccess: () => {
@@ -81,6 +83,7 @@ export default function NewInterviewTypePage() {
       defaultDuration,
       questionCategories: selectedCategories,
       allowedRoles: [],
+      isFeatured,
     })
   }
 
@@ -145,6 +148,15 @@ export default function NewInterviewTypePage() {
               placeholder="Brief description of this interview type and what it evaluates"
               rows={3}
             />
+          </div>
+          <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+            <div>
+              <Label className="text-sm font-medium">Feature in interview filters</Label>
+              <p className="text-xs text-muted-foreground">
+                Featured types appear as quick filter cards on the interviews page.
+              </p>
+            </div>
+            <Switch checked={isFeatured} onCheckedChange={setIsFeatured} />
           </div>
         </CardContent>
       </Card>

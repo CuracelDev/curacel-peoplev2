@@ -139,6 +139,7 @@ export const interviewTypeRouter = router({
         allowedRoles: z.array(z.string()).optional().default(['ANY']),
         questionCategories: z.array(z.string()).optional().default([]),
         sortOrder: z.number().optional(),
+        isFeatured: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -173,6 +174,7 @@ export const interviewTypeRouter = router({
           allowedRoles: input.allowedRoles,
           questionCategories: input.questionCategories,
           sortOrder,
+          ...(input.isFeatured !== undefined && { isFeatured: input.isFeatured }),
         },
         include: {
           rubricTemplate: true,
@@ -195,6 +197,7 @@ export const interviewTypeRouter = router({
         questionCategories: z.array(z.string()).optional(),
         sortOrder: z.number().optional(),
         isActive: z.boolean().optional(),
+        isFeatured: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
