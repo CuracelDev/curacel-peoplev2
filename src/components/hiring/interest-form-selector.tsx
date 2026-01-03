@@ -22,6 +22,12 @@ export function InterestFormSelector({
 
   const { data: interestForms, refetch } = trpc.interestForm.listForSelect.useQuery()
 
+  // Fetch full form details when one is selected
+  const { data: fullForm } = trpc.interestForm.get.useQuery(
+    { id: value },
+    { enabled: !!value }
+  )
+
   // Refetch when window regains focus (e.g., coming back from new tab)
   useEffect(() => {
     const handleFocus = () => {
@@ -125,10 +131,36 @@ export function InterestFormSelector({
           </button>
 
           {!isCollapsed && (
-            <div className="p-4 border-t bg-white">
-              <p className="text-sm text-foreground/80">
-                Interest form preview will be shown here...
-              </p>
+            <div className="p-4 border-t bg-white max-h-96 overflow-y-auto">
+              {fullForm ? (
+                <div className="space-y-3">
+                  <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide mb-3">
+                    Form Questions ({fullForm.questions.length})
+                  </div>
+                  {fullForm.questions.map((question, index) => (
+                    <div key={question.id} className="pb-3 border-b last:border-0">
+                      <div className="flex items-start gap-2">
+                        <span className="text-xs font-medium text-muted-foreground mt-0.5">
+                          {index + 1}.
+                        </span>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-foreground">
+                            {question.questionText}
+                            {question.isRequired && (
+                              <span className="text-red-500 ml-1">*</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Type: {question.questionType}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Loading questions...</p>
+              )}
             </div>
           )}
         </div>

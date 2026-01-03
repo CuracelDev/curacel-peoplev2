@@ -27,6 +27,12 @@ export function JDSelector({
 
   const { data: jobDescriptions, refetch } = trpc.jobDescription.listForSelect.useQuery()
 
+  // Fetch full JD details when one is selected
+  const { data: fullJD } = trpc.jobDescription.get.useQuery(
+    { id: value },
+    { enabled: !!value }
+  )
+
   // Refetch when window regains focus (e.g., coming back from new tab)
   useEffect(() => {
     const handleFocus = () => {
@@ -147,10 +153,16 @@ export function JDSelector({
           </button>
 
           {!isCollapsed && (
-            <div className="p-4 border-t bg-white">
-              <p className="text-sm text-foreground/80">
-                Job description content will be loaded here...
-              </p>
+            <div className="p-4 border-t bg-white max-h-96 overflow-y-auto">
+              {fullJD ? (
+                <div className="prose prose-sm max-w-none">
+                  <div className="text-sm text-foreground whitespace-pre-wrap">
+                    {fullJD.content}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">Loading content...</p>
+              )}
             </div>
           )}
         </div>
