@@ -270,28 +270,36 @@ export const jobRouter = router({
         })
       }
 
-      // Calculate pipeline stats
+      // Extract hiring flow stages first
+      const stagesData = (job.hiringFlowSnapshot?.stages as unknown) || []
+      const stages = Array.isArray(stagesData) ? stagesData as string[] : []
+
+      // Calculate pipeline stats based on hiring flow stages
       const activeCandidates = job.candidates.filter(
         (c) => !['REJECTED', 'WITHDRAWN', 'ARCHIVED'].includes(c.stage)
       )
       const scores = job.candidates.filter((c) => c.score != null).map((c) => c.score as number)
       const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0
 
+      // Group candidates by stage for dynamic metrics
+      const candidatesByStage = job.candidates.reduce((acc, candidate) => {
+        acc[candidate.stage] = (acc[candidate.stage] || 0) + 1
+        return acc
+      }, {} as Record<string, number>)
+
       const stats = {
         totalCandidates: job.candidates.length,
         activeCandidates: activeCandidates.length,
         applied: job.candidates.filter((c) => c.stage === 'APPLIED').length,
+        // In Review: all stages between first stage and offer/hired (excluding applied, offer, hired, rejected, withdrawn, archived)
         inReview: job.candidates.filter((c) =>
-          ['HR_SCREEN', 'TECHNICAL', 'PANEL'].includes(c.stage)
+          !['APPLIED', 'OFFER', 'HIRED', 'REJECTED', 'WITHDRAWN', 'ARCHIVED'].includes(c.stage)
         ).length,
         offerStage: job.candidates.filter((c) => c.stage === 'OFFER').length,
         hired: job.candidates.filter((c) => c.stage === 'HIRED').length,
         avgScore,
+        byStage: candidatesByStage, // Add per-stage breakdown
       }
-
-      // Extract hiring flow stages
-      const stagesData = (job.hiringFlowSnapshot?.stages as unknown) || []
-      const stages = Array.isArray(stagesData) ? stagesData as string[] : []
 
       // Group competencies by core competency
       const competenciesByCore: Record<string, {
