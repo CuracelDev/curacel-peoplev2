@@ -78,8 +78,8 @@ export async function parseAIBehavioralSheet(
       9: '',
       10: '4. Advanced',
     }
-    headerResult = { headerRow: constructedHeader, startIndex: 0 }
-    startIndex = 0 // Data starts at row 0 since there's no actual header row
+    headerResult = { headerRow: constructedHeader, startIndex: -1 }
+    startIndex = -1 // Data starts at row 0, so set startIndex to -1 so loop starts at 0
   } else {
     startIndex = headerResult.startIndex
   }

@@ -66,8 +66,8 @@ export async function parseExtended5LevelSheet(
         10: '4. Advanced',
         11: '5. Expert',
       }
-      headerResult = { headerRow: constructedHeader, startIndex: 0 }
-      startIndex = 0 // Data starts at row 0
+      headerResult = { headerRow: constructedHeader, startIndex: -1 }
+      startIndex = -1 // Data starts at row 0, so set startIndex to -1 so loop starts at 0
     } else {
       // Try standard competency format headers
       console.log('[extended-5-level] Constructing expected headers for standard format')
@@ -82,8 +82,8 @@ export async function parseExtended5LevelSheet(
         7: 'Advanced',
         8: 'Expert',
       }
-      headerResult = { headerRow: constructedHeader, startIndex: 0 }
-      startIndex = 0
+      headerResult = { headerRow: constructedHeader, startIndex: -1 }
+      startIndex = -1 // Data starts at row 0, so set startIndex to -1 so loop starts at 0
     }
   } else {
     startIndex = headerResult.startIndex
