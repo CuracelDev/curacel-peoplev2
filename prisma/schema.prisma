@@ -158,7 +158,11 @@ model Employee {
   personalEmail   String          @unique
   workEmail       String?         @unique
   status          EmployeeStatus  @default(CANDIDATE)
-  
+
+  // Link to candidate record
+  candidateId     String?         @unique
+  candidate       JobCandidate?   @relation("EmployeeCandidate", fields: [candidateId], references: [id], onDelete: SetNull)
+
   // Job details
   jobTitle        String?
   department      String?
@@ -167,10 +171,11 @@ model Employee {
   directReports   Employee[]      @relation("ManagerReports")
   location        String?
   employmentType  EmploymentType  @default(FULL_TIME)
-  
+
   // Dates
   startDate       DateTime?
   endDate         DateTime?
+  probationEndDate DateTime?
   
   // HR/PII fields (encrypted at rest)
   salaryAmount    Decimal?        @db.Decimal(12, 2)
@@ -247,12 +252,42 @@ model Employee {
   // V2 competency framework
   competencyAssessments EmployeeCompetencyScore[]
 
+  // Role history tracking
+  roleHistory     EmployeeRoleHistory[]
+
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
 
   @@index([status])
   @@index([department])
   @@index([managerId])
+  @@index([candidateId])
+}
+
+// Track employee role changes, promotions, and progression
+model EmployeeRoleHistory {
+  id              String    @id @default(uuid())
+  employeeId      String
+  employee        Employee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  // Role change details
+  fromJobTitle    String?
+  toJobTitle      String
+  fromDepartment  String?
+  toDepartment    String?
+  fromSalary      Decimal?  @db.Decimal(12, 2)
+  toSalary        Decimal?  @db.Decimal(12, 2)
+  changeType      String    // "PROMOTION", "LATERAL_MOVE", "DEMOTION", "DEPARTMENT_CHANGE"
+  reason          String?   @db.Text
+
+  // When the change took effect
+  effectiveDate   DateTime
+  notes           String?   @db.Text
+
+  createdAt       DateTime  @default(now())
+  createdBy       String?   // User/Employee ID who made the change
+
+  @@index([employeeId, effectiveDate])
 }
 
 // ============================================
@@ -1684,6 +1719,9 @@ model JobCandidate {
 
   // Queued stage transition emails
   queuedEmails QueuedStageEmail[]
+
+  // Link to employee record if hired
+  employee     Employee?        @relation("EmployeeCandidate")
 
   @@unique([jobId, email])
   @@index([jobId, stage])

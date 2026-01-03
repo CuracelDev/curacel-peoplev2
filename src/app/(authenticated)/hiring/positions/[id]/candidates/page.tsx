@@ -162,11 +162,13 @@ export default function CandidatesListPage() {
 
     // Add actual stages with candidates
     stageInfo.forEach((s) => {
-      allStages.push({
-        id: s.stage,
-        label: s.displayName,
-        count: s.count,
-      })
+      if (s.count > 0) {
+        allStages.push({
+          id: s.stage,
+          label: s.displayName,
+          count: s.count,
+        })
+      }
     })
 
     return allStages
