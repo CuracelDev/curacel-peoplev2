@@ -688,68 +688,106 @@ export const jobRouter = router({
         orderBy: [{ score: 'desc' }, { appliedAt: 'desc' }],
       })
 
-      // Get hiring flow stages first
-      const hiringFlowStages = job?.hiringFlowSnapshot?.stages as string[] | null
+      // Get hiring flow stages
+      const hiringFlowStages = (job?.hiringFlowSnapshot?.stages as string[]) || []
 
-      // Build stage display names from hiring flow or use defaults
-      const stageDisplayNames: Record<string, string> = {}
-
-      if (hiringFlowStages && Array.isArray(hiringFlowStages)) {
-        // Map stage enums to hiring flow stage names based on typical order
-        const stageEnums = [
-          'APPLIED',
-          'HR_SCREEN',
-          'TEAM_CHAT',
-          'ADVISOR_CHAT',
-          'TECHNICAL',
-          'PANEL',
-          'TRIAL',
-          'CEO_CHAT',
-          'OFFER',
-          'HIRED',
-        ]
-
-        // First stage is always "Apply"
-        stageDisplayNames['APPLIED'] = hiringFlowStages[0] || 'Applied'
-
-        // Map remaining active stages from hiring flow (excluding first)
-        const flowStagesWithoutFirst = hiringFlowStages.slice(1)
-        flowStagesWithoutFirst.forEach((stageName, index) => {
-          // Map to the most likely stage enum based on position
-          const enumIndex = index + 1 // Skip APPLIED
-          if (enumIndex < stageEnums.length) {
-            stageDisplayNames[stageEnums[enumIndex]] = stageName
-          }
-        })
-
-        // Terminal stages always have fixed names
-        stageDisplayNames['HIRED'] = 'Hired'
-        stageDisplayNames['REJECTED'] = 'Rejected'
-        stageDisplayNames['WITHDRAWN'] = 'Withdrawn'
-        stageDisplayNames['ARCHIVED'] = 'Archived'
-      } else {
-        // Fallback to default names if no hiring flow
-        stageDisplayNames['APPLIED'] = 'Applied'
-        stageDisplayNames['HR_SCREEN'] = 'People Chat'
-        stageDisplayNames['TECHNICAL'] = 'Coding Test'
-        stageDisplayNames['TEAM_CHAT'] = 'Team Chat'
-        stageDisplayNames['ADVISOR_CHAT'] = 'Advisor Chat'
-        stageDisplayNames['PANEL'] = 'Panel'
-        stageDisplayNames['TRIAL'] = 'Trial'
-        stageDisplayNames['CEO_CHAT'] = 'CEO Chat'
-        stageDisplayNames['OFFER'] = 'Offer'
-        stageDisplayNames['HIRED'] = 'Hired'
-        stageDisplayNames['REJECTED'] = 'Rejected'
-        stageDisplayNames['WITHDRAWN'] = 'Withdrawn'
-        stageDisplayNames['ARCHIVED'] = 'Archived'
-      }
-
-      // Get stage counts
+      // Get stage counts from database
       const stageCounts = await ctx.prisma.jobCandidate.groupBy({
         by: ['stage'],
         where: { jobId: input.jobId },
         _count: true,
       })
+
+      // Create a map of stage enum to count
+      const stageCountMap: Record<string, number> = {}
+      stageCounts.forEach((s) => {
+        stageCountMap[s.stage] = s._count
+      })
+
+      // Build stage info using actual hiring flow stage names
+      const stageInfo: Array<{ stage: string; displayName: string; count: number }> = []
+
+      if (hiringFlowStages.length > 0) {
+        // Standard stage enum order that maps to hiring flow positions
+        const stageEnumOrder = [
+          'APPLIED',
+          'HR_SCREEN',
+          'TECHNICAL',
+          'TEAM_CHAT',
+          'ADVISOR_CHAT',
+          'PANEL',
+          'TRIAL',
+          'CEO_CHAT',
+          'OFFER',
+        ]
+
+        // Map hiring flow stages to stage counts
+        hiringFlowStages.forEach((stageName, index) => {
+          const stageEnum = stageEnumOrder[index]
+          if (stageEnum) {
+            stageInfo.push({
+              stage: stageEnum,
+              displayName: stageName, // Use actual hiring flow stage name
+              count: stageCountMap[stageEnum] || 0,
+            })
+          }
+        })
+
+        // Add terminal stages if they have candidates
+        if (stageCountMap['HIRED']) {
+          stageInfo.push({
+            stage: 'HIRED',
+            displayName: 'Hired',
+            count: stageCountMap['HIRED'],
+          })
+        }
+        if (stageCountMap['REJECTED']) {
+          stageInfo.push({
+            stage: 'REJECTED',
+            displayName: 'Rejected',
+            count: stageCountMap['REJECTED'],
+          })
+        }
+        if (stageCountMap['WITHDRAWN']) {
+          stageInfo.push({
+            stage: 'WITHDRAWN',
+            displayName: 'Withdrawn',
+            count: stageCountMap['WITHDRAWN'],
+          })
+        }
+        if (stageCountMap['ARCHIVED']) {
+          stageInfo.push({
+            stage: 'ARCHIVED',
+            displayName: 'Archived',
+            count: stageCountMap['ARCHIVED'],
+          })
+        }
+      } else {
+        // Fallback: use default names if no hiring flow
+        const defaultStageNames: Record<string, string> = {
+          APPLIED: 'Applied',
+          HR_SCREEN: 'People Chat',
+          TECHNICAL: 'Coding Test',
+          TEAM_CHAT: 'Team Chat',
+          ADVISOR_CHAT: 'Advisor Chat',
+          PANEL: 'Panel',
+          TRIAL: 'Trial',
+          CEO_CHAT: 'CEO Chat',
+          OFFER: 'Offer',
+          HIRED: 'Hired',
+          REJECTED: 'Rejected',
+          WITHDRAWN: 'Withdrawn',
+          ARCHIVED: 'Archived',
+        }
+
+        stageCounts.forEach((s) => {
+          stageInfo.push({
+            stage: s.stage,
+            displayName: defaultStageNames[s.stage] || s.stage.replace(/_/g, ' '),
+            count: s._count,
+          })
+        })
+      }
 
       const counts = {
         all: candidates.length,
@@ -789,13 +827,6 @@ export const jobRouter = router({
       })
 
       counts.all = stageCounts.reduce((sum, s) => sum + s._count, 0)
-
-      // Build stage info with counts and display names from hiring flow
-      const stageInfo = stageCounts.map((s) => ({
-        stage: s.stage,
-        displayName: stageDisplayNames[s.stage] || s.stage.replace(/_/g, ' '),
-        count: s._count,
-      }))
 
       return {
         candidates,
