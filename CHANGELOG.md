@@ -7,6 +7,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Competency Framework UI/UX Redesign**
+  - Complete redesign of competency framework pages with world-class polish
+  - Desktop-specific stats overview cards (Total Sources, Synced, Core Competencies, Status)
+  - Color-coded type system: Blue (DEPARTMENT), Purple (AI), Emerald (VALUES)
+  - Gradient status indicator bars on framework cards
+  - Hover animations with card lift effects and shadow transitions
+  - Enhanced detail page with sticky header and backdrop blur
+  - Real-time search functionality for filtering competencies
+  - Table of contents sidebar with scroll spy (desktop XL+ only)
+  - Color-coded level progression visualization (red→yellow→blue→green→purple)
+  - Hierarchical numbering system for sub-competencies (1.1, 1.2, etc.)
+  - Visual timeline markers and gradient backgrounds
+  - Mobile-optimized layouts with responsive grids and full-width buttons
+  - Stripe-level visual polish with micro-interactions throughout
 - **Public Careers Pages**
   - Public careers landing page (`/careers`) for job seekers
   - Public recruiter application forms (`/recruiter`)
