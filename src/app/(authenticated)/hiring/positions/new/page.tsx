@@ -34,6 +34,8 @@ import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
 import { ScorecardSelector } from '@/components/hiring/scorecard-selector'
 import { CompetencyFrameworkSelector } from '@/components/hiring/competency-framework-selector'
+import { JDSelector } from '@/components/hiring/jd-selector'
+import { InterestFormSelector } from '@/components/hiring/interest-form-selector'
 
 const flowAppearance = {
   standard: { icon: User, color: 'bg-indigo-50 text-indigo-600' },
@@ -66,8 +68,6 @@ const SUGGESTED_LOCATIONS = [
 export default function CreateJobPage() {
   const router = useRouter()
   const { data: teams } = trpc.team.listForSelect.useQuery()
-  const { data: jobDescriptions } = trpc.jobDescription.listForSelect.useQuery()
-  const { data: interestForms } = trpc.interestForm.listForSelect.useQuery()
   const { data: competencies } = trpc.competency.listForSelect.useQuery()
   const { data: employees } = trpc.employee.getAllActive.useQuery()
   const { data: allScorecards } = trpc.scorecard.listForSelection.useQuery()
@@ -139,8 +139,6 @@ export default function CreateJobPage() {
   }, [flows, selectedFlow])
 
   const selectedFlowData = flows.find((flow) => flow.id === selectedFlow) ?? flows[0]
-  const selectedJD = (jobDescriptions || []).find(jd => jd.id === formData.jdId)
-  const availableInterestForms = interestForms || []
 
   // Filter competencies based on search
   const filteredCompetencies = useMemo(() => {
@@ -250,9 +248,6 @@ export default function CreateJobPage() {
     if (!formData.title.trim()) {
       return 'Add a job title to save a draft.'
     }
-    if (availableInterestForms.length > 0 && !formData.interestFormId) {
-      return 'Select an interest form to save a draft.'
-    }
     return null
   }
 
@@ -272,7 +267,7 @@ export default function CreateJobPage() {
     if (!selectedFlow) {
       return 'Select an interview flow to create a job.'
     }
-    if (availableInterestForms.length > 0 && !formData.interestFormId) {
+    if (!formData.interestFormId) {
       return 'Select an interest form to create a job.'
     }
     return null
@@ -359,16 +354,6 @@ export default function CreateJobPage() {
     }
   }
 
-  // Auto-populate title when JD is selected
-  useEffect(() => {
-    if (formData.jdId && selectedJD) {
-      setFormData(prev => ({
-        ...prev,
-        title: prev.title || selectedJD.name,
-        department: prev.department || selectedJD.department || '',
-      }))
-    }
-  }, [formData.jdId, selectedJD])
 
   return (
     <div className="p-4">
@@ -595,75 +580,37 @@ export default function CreateJobPage() {
               </div>
               <h2 className="font-semibold">Job Description</h2>
             </div>
-            <div className="p-5 space-y-4">
-              <div className="space-y-2">
-                <Label>Select from JD Library</Label>
-                <Select
-                  value={formData.jdId || 'none'}
-                  onValueChange={(value) => setFormData({ ...formData, jdId: value === 'none' ? '' : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a job description" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select a JD...</SelectItem>
-                    {(jobDescriptions || []).map((jd) => (
-                      <SelectItem key={jd.id} value={jd.id}>
-                        {jd.name}{jd.department ? ` (${jd.department})` : ''}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {!formData.jdId && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3.5 w-3.5" />
-                    Select from your JD library in{' '}
-                    <Link href="/hiring/settings/jd-templates" className="text-indigo-600 hover:underline">
-                      Job Settings
-                    </Link>
-                  </p>
-                )}
+            <div className="p-5">
+              <JDSelector
+                value={formData.jdId}
+                onChange={(value) => setFormData({ ...formData, jdId: value })}
+                onTitleChange={(title) => {
+                  if (!formData.title) {
+                    setFormData(prev => ({ ...prev, title }))
+                  }
+                }}
+                onDepartmentChange={(department) => {
+                  if (!formData.department) {
+                    setFormData(prev => ({ ...prev, department }))
+                  }
+                }}
+              />
+            </div>
+          </div>
+
+          {/* Interest Form */}
+          <div className="bg-card border border-border rounded-xl">
+            <div className="p-5 border-b border-border flex items-center gap-3">
+              <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">
+                2.25
               </div>
-              <div className="space-y-2">
-                <Label>Interest Form</Label>
-                <Select
-                  value={formData.interestFormId || 'none'}
-                  onValueChange={(value) => setFormData({ ...formData, interestFormId: value === 'none' ? '' : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an interest form" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Select an interest form...</SelectItem>
-                    {availableInterestForms.map((form) => (
-                      <SelectItem key={form.id} value={form.id}>
-                        {form.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {availableInterestForms.length === 0 && (
-                  <p className="text-sm text-muted-foreground flex items-center gap-1">
-                    <Info className="h-3.5 w-3.5" />
-                    Create a form in{' '}
-                    <Link href="/hiring/settings/interest-forms" className="text-indigo-600 hover:underline">
-                      Interest Forms
-                    </Link>
-                    {' '}to attach to this job.
-                  </p>
-                )}
-              </div>
-              {selectedJD && (
-                <div className="p-4 bg-muted/50 rounded-lg border">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium">{selectedJD.name}</span>
-                    <Badge variant="secondary">{selectedJD.department}</Badge>
-                  </div>
-                  <p className="text-sm text-foreground/80">
-                    Job description content will be loaded here...
-                  </p>
-                </div>
-              )}
+              <h2 className="font-semibold">Interest Form</h2>
+            </div>
+            <div className="p-5">
+              <InterestFormSelector
+                value={formData.interestFormId}
+                onChange={(value) => setFormData({ ...formData, interestFormId: value })}
+              />
             </div>
           </div>
 
@@ -1059,10 +1006,10 @@ export default function CreateJobPage() {
                   </div>
                 </div>
               )}
-              {selectedJD && (
+              {formData.jdId && (
                 <div>
                   <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Job Description</div>
-                  <div className="font-medium">{selectedJD.name}</div>
+                  <div className="font-medium">Selected</div>
                 </div>
               )}
               {scorecardData.type !== 'none' && (
