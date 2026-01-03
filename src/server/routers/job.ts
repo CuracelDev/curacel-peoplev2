@@ -12,6 +12,7 @@ type JobStatusType = z.infer<typeof JobStatusEnum>
 
 const JobCandidateStageEnum = z.enum([
   'APPLIED',
+  'SHORTLISTED',
   'HR_SCREEN',     // People Chat
   'TEAM_CHAT',     // Team Chat
   'ADVISOR_CHAT',  // Advisor Chat
@@ -90,6 +91,7 @@ export const jobRouter = router({
 
       const stageDisplayNames: Record<string, string> = {
         APPLIED: 'Applied',
+        SHORTLISTED: 'Short Listed',
         HR_SCREEN: 'HR Screen',
         TECHNICAL: 'Technical',
         PANEL: 'Panel',
@@ -107,6 +109,7 @@ export const jobRouter = router({
 
       const stageEnumOrder = [
         'APPLIED',
+        'SHORTLISTED',
         'HR_SCREEN',
         'TECHNICAL',
         'PANEL',
@@ -155,7 +158,7 @@ export const jobRouter = router({
 
         const stats = {
           applicants: job._count.candidates,
-          inReview: job.candidates.filter((c) => c.stage === 'APPLIED').length,
+          inReview: job.candidates.filter((c) => ['APPLIED', 'SHORTLISTED'].includes(c.stage)).length,
           interviewing: job.candidates.filter((c) =>
             ['HR_SCREEN', 'TECHNICAL', 'PANEL'].includes(c.stage)
           ).length,
@@ -313,6 +316,7 @@ export const jobRouter = router({
       // Standard stage enum order that maps to hiring flow positions
       const stageEnumOrder = [
         'APPLIED',
+        'SHORTLISTED',
         'HR_SCREEN',
         'TECHNICAL',
         'TEAM_CHAT',
@@ -814,6 +818,7 @@ export const jobRouter = router({
         // Standard stage enum order that maps to hiring flow positions
         const stageEnumOrder = [
           'APPLIED',
+          'SHORTLISTED',
           'HR_SCREEN',
           'TECHNICAL',
           'TEAM_CHAT',
@@ -869,6 +874,7 @@ export const jobRouter = router({
         // Fallback: use default names if no hiring flow
         const defaultStageNames: Record<string, string> = {
           APPLIED: 'Applied',
+          SHORTLISTED: 'Short Listed',
           HR_SCREEN: 'People Chat',
           TECHNICAL: 'Coding Test',
           TEAM_CHAT: 'Team Chat',
@@ -895,6 +901,7 @@ export const jobRouter = router({
       const counts = {
         all: candidates.length,
         applied: 0,
+        shortListed: 0,
         hrScreen: 0,
         technical: 0,
         panel: 0,
@@ -907,6 +914,9 @@ export const jobRouter = router({
         switch (s.stage) {
           case 'APPLIED':
             counts.applied = s._count
+            break
+          case 'SHORTLISTED':
+            counts.shortListed = s._count
             break
           case 'HR_SCREEN':
             counts.hrScreen = s._count
@@ -1300,6 +1310,7 @@ export const jobRouter = router({
 
       const stageDisplayNames: Record<string, string> = {
         APPLIED: 'Applied',
+        SHORTLISTED: 'Short Listed',
         HR_SCREEN: 'People Chat',
         TECHNICAL: 'Coding Test',
         TEAM_CHAT: 'Team Chat',
@@ -1434,6 +1445,7 @@ export const jobRouter = router({
       // Build stage display name mapping
       const stageDisplayNames: Record<string, string> = {
         APPLIED: 'Applied',
+        SHORTLISTED: 'Short Listed',
         HR_SCREEN: 'People Chat',
         TECHNICAL: 'Coding Test',
         TEAM_CHAT: 'Team Chat',

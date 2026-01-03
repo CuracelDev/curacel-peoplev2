@@ -1913,6 +1913,7 @@ model InterviewerToken {
 
 enum JobCandidateStage {
   APPLIED
+  SHORTLISTED
   HR_SCREEN      // People Chat
   TEAM_CHAT      // Team Chat (NEW)
   ADVISOR_CHAT   // Advisor Chat (NEW)

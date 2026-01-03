@@ -142,6 +142,7 @@ export const emailSettingsRouter = router({
     // Define all candidate stages
     const stages = [
       'APPLIED',
+      'SHORTLISTED',
       'HR_SCREEN',
       'TECHNICAL',
       'TEAM_CHAT',

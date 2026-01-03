@@ -13,19 +13,19 @@ const DEFAULT_FLOWS = [
   {
     name: 'Standard',
     description: 'General hiring flow for most roles',
-    stages: ['Apply', 'People Chat', 'Assessment', 'Team Chat', 'Trial', 'CEO Chat', 'Offer'],
+    stages: ['Apply', 'Short Listed', 'People Chat', 'Assessment', 'Team Chat', 'Trial', 'CEO Chat', 'Offer'],
     isDefault: true,
   },
   {
     name: 'Engineering',
     description: 'Engineering flow with technical assessments',
-    stages: ['Apply', 'Assessment (Kand.io)', 'Assessment (Coding Test)', 'Trial', 'Team Chat', 'CEO Chat', 'Offer'],
+    stages: ['Apply', 'Short Listed', 'Assessment (Kand.io)', 'Assessment (Coding Test)', 'Trial', 'Team Chat', 'CEO Chat', 'Offer'],
     isDefault: false,
   },
   {
     name: 'Sales',
     description: 'Sales flow with advisor chat',
-    stages: ['Apply', 'People Chat', 'Assessment', 'Team Chat', 'Advisor Chat', 'Trial', 'CEO Chat', 'Offer'],
+    stages: ['Apply', 'Short Listed', 'People Chat', 'Assessment', 'Team Chat', 'Advisor Chat', 'Trial', 'CEO Chat', 'Offer'],
     isDefault: false,
   },
 ]

@@ -303,6 +303,116 @@ const docSections: DocSection[] = [
     ],
   },
   {
+    id: 'auntypelz-dynamic-tools',
+    title: 'AuntyPelz Dynamic Tools',
+    description: 'Create custom AI actions for AuntyPelz without writing code using the dynamic tools system.',
+    blocks: [
+      {
+        title: 'What are Dynamic Tools?',
+        items: [
+          'Custom AI actions stored in the database that AuntyPelz can execute.',
+          'Define tools with parameters, execution logic, and permissions.',
+          'Tools are automatically registered with OpenAI for function calling.',
+          'Create, update, and delete tools without deploying code changes.',
+          'Support for tRPC procedures, webhooks, and custom JavaScript.',
+        ],
+      },
+      {
+        title: 'Execution Types',
+        items: [
+          'tRPC Mutation/Query - Call existing backend procedures with parameter mapping.',
+          'Webhook - Integrate with external services via HTTP requests.',
+          'Custom JavaScript - Run flexible custom logic with full database access.',
+        ],
+      },
+      {
+        title: 'Tool Structure',
+        items: [
+          'name - Unique function identifier (e.g., archive_candidate).',
+          'displayName - Human-readable name shown to users.',
+          'description - What the tool does (AI uses this to decide when to use it).',
+          'category - Grouping like hiring, contracts, or employees.',
+          'parameters - JSON Schema defining function parameters.',
+          'executionConfig - How the tool executes (router path, webhook URL, etc).',
+          'requiresConfirmation - Whether user approval is needed before execution.',
+          'allowedRoles - Array of roles permitted to use this tool.',
+        ],
+      },
+      {
+        title: 'Creating a tRPC Tool',
+        ordered: true,
+        items: [
+          'Use the API: trpc.aiCustomTools.create.mutate() with tool definition.',
+          'Set executionType to "trpc_mutation" or "trpc_query".',
+          'Provide executionConfig with router, procedure, and optional inputMapping.',
+          'Define parameters as a JSON Schema with type, properties, and required fields.',
+          'Specify allowedRoles (e.g., ["ADMIN", "HR_ADMIN"]) and requiresConfirmation flag.',
+          'The tool is immediately available to AuntyPelz for all users with permitted roles.',
+        ],
+      },
+      {
+        title: 'Creating a Webhook Tool',
+        ordered: true,
+        items: [
+          'Set executionType to "webhook".',
+          'Provide executionConfig with url, method (POST/GET/etc), and optional headers.',
+          'Define parameters that will be sent as the webhook payload.',
+          'Use headers for authentication (e.g., Authorization: Bearer TOKEN).',
+          'The webhook receives parameters as JSON and should return a success response.',
+        ],
+      },
+      {
+        title: 'Creating Custom Code Tool',
+        ordered: true,
+        items: [
+          'Set executionType to "custom_code".',
+          'Provide executionConfig with code property containing JavaScript.',
+          'Code has access to args (parameters), context (user info), and prisma (database).',
+          'Return data that will be sent back to the AI.',
+          'Use with caution - code has full database access and runs unsandboxed.',
+        ],
+      },
+      {
+        title: 'Example: Archive Candidate Tool',
+        items: [
+          'Name: archive_candidate',
+          'Description: Move a candidate to archived stage with a reason',
+          'Parameters: candidateId (required), reason (required), notifyCandidate (optional)',
+          'Execution: tRPC mutation calling job.archiveCandidate procedure',
+          'Permissions: ADMIN and HR_ADMIN only',
+          'Confirmation: Required before executing',
+          'Once created, users can say "Archive John Doe because position was filled"',
+        ],
+      },
+      {
+        title: 'Security Best Practices',
+        items: [
+          'Always set allowedRoles to limit access to sensitive operations.',
+          'Enable requiresConfirmation for destructive or irreversible actions.',
+          'Validate webhook URLs and use authentication headers.',
+          'Be extremely careful with custom_code - it has full database access.',
+          'Test new tools thoroughly before enabling them in production.',
+          'Use clear, specific descriptions so AI knows when to use each tool.',
+        ],
+      },
+      {
+        title: 'Managing Tools',
+        items: [
+          'List all tools: trpc.aiCustomTools.list.query({ category, isActive })',
+          'Get single tool: trpc.aiCustomTools.get.query({ id })',
+          'Update tool: trpc.aiCustomTools.update.mutate({ id, ...changes })',
+          'Delete tool: trpc.aiCustomTools.delete.mutate({ id })',
+          'Test execution: trpc.aiCustomTools.test.mutate({ id, args })',
+          'Built-in tools (isBuiltIn: true) cannot be deleted.',
+        ],
+      },
+      {
+        title: 'Documentation',
+        text: 'See docs/AUNTYPELZ_DYNAMIC_TOOLS.md for detailed examples, API usage, and implementation guides.',
+      },
+    ],
+  },
+  {
     id: 'personality-values',
     title: 'Personality & Values',
     description: 'Collect and view employee work style preferences during onboarding.',
