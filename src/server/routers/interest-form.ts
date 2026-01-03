@@ -289,12 +289,33 @@ export const interestFormRouter = router({
         })
       }
 
+      const existingForms = await ctx.prisma.interestFormTemplate.findMany({
+        where: { isActive: true },
+        include: {
+          questions: { orderBy: { sortOrder: 'asc' } },
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 5,
+      })
+
+      const referenceStructure = existingForms
+        .map((form) => {
+          const questions = form.questions
+            .map((q) => `${q.question} (${q.type}${q.required ? ', required' : ''})`)
+            .join('; ')
+          return `- ${form.name}: ${questions}`
+        })
+        .filter(Boolean)
+        .join('\n')
+
       const prompt = `You are AuntyPelz, Curacel's recruiting assistant. Create a concise interest form for this role.
 
 Form name: ${input.name}
 Description: ${input.description || 'None'}
 
 Generate 6-12 questions that capture candidate fit and logistics. Include basic contact info and at least one role-specific question.
+Use the structure patterns from existing interest forms to keep consistency:
+${referenceStructure || '- No existing forms found.'}
 
 Return valid JSON with this structure:
 {

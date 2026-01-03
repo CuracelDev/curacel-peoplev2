@@ -142,10 +142,18 @@ export function CompetencyFrameworkSelector({
 
   if (!department) {
     return (
-      <div className="p-4 bg-muted/50 rounded-lg border flex items-start gap-3">
-        <Info className="h-4 w-4 text-muted-foreground mt-0.5" />
-        <div className="text-sm text-muted-foreground">
-          Select a department first to configure competencies
+      <div className="text-center py-12 space-y-4">
+        <Info className="h-16 w-16 text-indigo-400 mx-auto" />
+        <div>
+          <div className="text-lg font-semibold text-foreground mb-2">
+            Select a Team/Department First
+          </div>
+          <div className="text-sm text-muted-foreground max-w-md mx-auto">
+            Department competencies will appear once you select a team or department in the{' '}
+            <span className="font-medium text-indigo-600">Basic Information</span> section above.
+            <br /><br />
+            You can also select from AI and Values competencies (which don't require a department).
+          </div>
         </div>
       </div>
     )
@@ -155,6 +163,16 @@ export function CompetencyFrameworkSelector({
 
   return (
     <div className="space-y-4">
+      {/* Department indicator for DEPARTMENT framework */}
+      {activeFramework === 'DEPARTMENT' && department && (
+        <div className="p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+          <div className="text-xs font-medium text-indigo-600 uppercase tracking-wide mb-1">
+            Department Competencies For
+          </div>
+          <div className="text-sm font-semibold text-indigo-900">{department}</div>
+        </div>
+      )}
+
       {/* Selected summary */}
       {value.length > 0 && (
         <div className="space-y-2">
@@ -375,8 +393,27 @@ export function CompetencyFrameworkSelector({
       </div>
 
       {filteredCores.length === 0 && (
-        <div className="text-center py-8 text-muted-foreground">
-          {search ? `No competencies found matching "${search}"` : 'No competencies available'}
+        <div className="text-center py-12">
+          {search ? (
+            <div className="text-muted-foreground">
+              No competencies found matching "{search}"
+            </div>
+          ) : activeFramework === 'DEPARTMENT' && !activeSource ? (
+            <div className="space-y-3">
+              <Info className="h-12 w-12 text-indigo-400 mx-auto" />
+              <div className="text-foreground font-medium">No Department Competencies Found</div>
+              <div className="text-sm text-muted-foreground max-w-md mx-auto">
+                Department-specific competencies haven't been configured for "{department}".
+                <br />
+                You can still select from AI and Values competencies.
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <Info className="h-12 w-12 text-muted-foreground mx-auto" />
+              <div className="text-muted-foreground">No {activeFramework.toLowerCase()} competencies available</div>
+            </div>
+          )}
         </div>
       )}
     </div>
