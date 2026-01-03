@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **Dynamic AI Tools System for AuntyPelz**
+  - OpenAI SDK integration with custom function calling capabilities
+  - Database-driven tool definitions for dynamic action creation
+  - Tool registry and execution engine supporting multiple execution types:
+    - tRPC mutations/queries for internal operations
+    - Webhook integrations for external services
+    - Custom JavaScript code for flexible logic
+  - Permission-based tool access control with role restrictions
+  - Confirmation requirements for sensitive actions
+  - Admin API (aiCustomTools router) for creating, updating, and managing custom tools
+  - No code changes required to add new AI capabilities
 - **AuntyPelz Actions Settings**
   - New automated actions page for hiring workflow automation
   - Auto-archive candidates that don't meet job requirements
