@@ -39,6 +39,12 @@ export default function CompanyStageFlowPage() {
   const [showFlowMappingDialog, setShowFlowMappingDialog] = useState(false)
   const [stageMapping, setStageMapping] = useState<Record<string, string | null>>({})
   const [originalStages, setOriginalStages] = useState<string[]>([])
+  const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [newFlow, setNewFlow] = useState({
+    name: '',
+    description: '',
+    stages: ['Applied', 'Interviewed', 'Offered', 'Onboarding', 'Active', 'Promoted', 'Transferred', 'Performance Review', 'Exit Process', 'Alumni'],
+  })
 
   const updateFlowMutation = trpc.companyStageFlow.update.useMutation({
     onSuccess: () => {
@@ -49,8 +55,15 @@ export default function CompanyStageFlowPage() {
   })
 
   const createFlowMutation = trpc.companyStageFlow.create.useMutation({
-    onSuccess: () => {
+    onSuccess: (data) => {
       flowsQuery.refetch()
+      setShowCreateDialog(false)
+      setActiveFlowId(data.id)
+      setNewFlow({
+        name: '',
+        description: '',
+        stages: ['Applied', 'Interviewed', 'Offered', 'Onboarding', 'Active', 'Promoted', 'Transferred', 'Performance Review', 'Exit Process', 'Alumni'],
+      })
     },
   })
 
@@ -156,6 +169,43 @@ export default function CompanyStageFlowPage() {
     })
   }
 
+  const handleCreateFlow = () => {
+    if (!newFlow.name.trim()) return
+    createFlowMutation.mutate({
+      name: newFlow.name.trim(),
+      description: newFlow.description?.trim() || undefined,
+      stages: newFlow.stages,
+      isDefault: flowsQuery.data?.length === 0, // Set as default if it's the first flow
+    })
+  }
+
+  const updateNewFlowStage = (index: number, value: string) => {
+    const nextStages = newFlow.stages.map((stage, i) =>
+      i === index ? value : stage
+    )
+    setNewFlow({ ...newFlow, stages: nextStages })
+  }
+
+  const addNewFlowStage = () => {
+    setNewFlow({ ...newFlow, stages: [...newFlow.stages, 'New Stage'] })
+  }
+
+  const removeNewFlowStage = (index: number) => {
+    if (newFlow.stages.length <= 1) return
+    const nextStages = newFlow.stages.filter((_, i) => i !== index)
+    setNewFlow({ ...newFlow, stages: nextStages })
+  }
+
+  const moveNewFlowStage = (index: number, direction: 'up' | 'down') => {
+    const newIndex = direction === 'up' ? index - 1 : index + 1
+    if (newIndex < 0 || newIndex >= newFlow.stages.length) return
+    const nextStages = [...newFlow.stages]
+    const temp = nextStages[index]
+    nextStages[index] = nextStages[newIndex]
+    nextStages[newIndex] = temp
+    setNewFlow({ ...newFlow, stages: nextStages })
+  }
+
   return (
     <div className="space-y-6">
       <SettingsPageHeader
@@ -173,16 +223,24 @@ export default function CompanyStageFlowPage() {
                 Edit the employee journey stages. Changes apply to employee detail pages, analytics, and progression tracking.
               </p>
             </div>
-            <Button onClick={handleSaveFlows} disabled={updateFlowMutation.isPending} variant={flowSaved ? 'outline' : 'default'} className={flowSaved ? 'bg-success/10 text-success border-success/30' : ''}>
-              {flowSaved ? (
-                <>
-                  <Check className="h-4 w-4 mr-2" />
-                  Saved
-                </>
-              ) : (
-                'Save changes'
+            <div className="flex gap-2">
+              <Button onClick={() => setShowCreateDialog(true)} variant="outline">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Flow
+              </Button>
+              {flowsQuery.data && flowsQuery.data.length > 0 && (
+                <Button onClick={handleSaveFlows} disabled={updateFlowMutation.isPending} variant={flowSaved ? 'outline' : 'default'} className={flowSaved ? 'bg-success/10 text-success border-success/30' : ''}>
+                  {flowSaved ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      Saved
+                    </>
+                  ) : (
+                    'Save changes'
+                  )}
+                </Button>
               )}
-            </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="p-5 space-y-5">
@@ -210,8 +268,16 @@ export default function CompanyStageFlowPage() {
           )}
 
           {!flowsQuery.data || flowsQuery.data.length === 0 ? (
-            <div className="text-center text-muted-foreground py-8">
-              No company stage flows found. Create your first flow to get started.
+            <div className="text-center py-12">
+              <GitBranch className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Company Stage Flows Yet</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Create your first employee lifecycle flow to start tracking progression.
+              </p>
+              <Button onClick={() => setShowCreateDialog(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Your First Flow
+              </Button>
             </div>
           ) : null}
 
@@ -367,6 +433,109 @@ export default function CompanyStageFlowPage() {
             </Button>
             <Button onClick={handleConfirmStageMapping}>
               Confirm & Migrate
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Flow Dialog */}
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Create Company Stage Flow</DialogTitle>
+            <DialogDescription>
+              Define a new employee lifecycle flow with custom stages.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-5 py-4">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Flow Name *</Label>
+                <Input
+                  value={newFlow.name}
+                  onChange={(e) => setNewFlow({ ...newFlow, name: e.target.value })}
+                  placeholder="e.g., Standard, Executive, Contractor"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Description</Label>
+                <Input
+                  value={newFlow.description}
+                  onChange={(e) => setNewFlow({ ...newFlow, description: e.target.value })}
+                  placeholder="Brief description of this flow"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label>Lifecycle Stages *</Label>
+                <Button variant="outline" size="sm" onClick={addNewFlowStage}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Stage
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {newFlow.stages.map((stage, index) => (
+                  <div key={`new-stage-${index}`} className="flex items-center gap-2">
+                    <div className="flex flex-col">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5"
+                        onClick={() => moveNewFlowStage(index, 'up')}
+                        disabled={index === 0}
+                      >
+                        <ChevronUp className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-5 w-5"
+                        onClick={() => moveNewFlowStage(index, 'down')}
+                        disabled={index === newFlow.stages.length - 1}
+                      >
+                        <ChevronDown className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <div className="w-8 text-center text-sm text-muted-foreground">
+                      {index + 1}
+                    </div>
+                    <Input
+                      value={stage}
+                      onChange={(e) => updateNewFlowStage(index, e.target.value)}
+                      placeholder="Stage name"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => removeNewFlowStage(index)}
+                      disabled={newFlow.stages.length <= 1}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-border bg-muted/50 p-4">
+              <div className="text-xs text-muted-foreground uppercase tracking-wide">Preview</div>
+              <div className="flex flex-wrap gap-2 mt-2">
+                {newFlow.stages.map((stage, idx) => (
+                  <Badge key={`preview-new-${idx}-${stage}`} variant="secondary">
+                    {stage}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateFlow} disabled={!newFlow.name.trim() || createFlowMutation.isPending}>
+              {createFlowMutation.isPending ? 'Creating...' : 'Create Flow'}
             </Button>
           </DialogFooter>
         </DialogContent>
