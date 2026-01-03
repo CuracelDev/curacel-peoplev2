@@ -41,6 +41,14 @@ import {
   Activity,
   Mail,
   Calendar,
+  Star,
+  Check,
+  AlertCircle,
+  TrendingUp,
+  Target,
+  Users,
+  Brain,
+  Award,
 } from 'lucide-react'
 import Link from 'next/link'
 import {
@@ -436,6 +444,9 @@ export default function EmployeeDetailPage() {
             </TabsTrigger>
             <TabsTrigger value="personality" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
               Personality
+            </TabsTrigger>
+            <TabsTrigger value="auntypelz" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              AuntyPelz
             </TabsTrigger>
             <TabsTrigger value="contract" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
               Contract
@@ -985,6 +996,359 @@ export default function EmployeeDetailPage() {
                 This employee has not completed their personality profile during onboarding.
               </div>
             )}
+          </div>
+        </TabsContent>
+
+        {/* AuntyPelz Analysis Tab */}
+        <TabsContent value="auntypelz" className="mt-6">
+          <div className="space-y-4">
+              {/* Overall Assessment */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Star className="h-4 w-4 text-indigo-600" />
+                    Overall Assessment
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-foreground/80 leading-relaxed">
+                    {employee.fullName} is a {employee.jobTitle?.toLowerCase() || 'team member'} in the {employee.department || 'organization'} who has been with the company since {employee.startDate ? formatDate(employee.startDate) : 'their start date'}.
+                    {employee.mbtiType && ` With an ${employee.mbtiType} personality type, they bring unique strengths to their role.`}
+                    {' '}AI-powered comprehensive analysis will provide deeper insights into their career trajectory, performance, and team dynamics.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Career Trajectory & Growth */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-success" />
+                    Career Trajectory & Growth
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Progression Path</h4>
+                      <div className="space-y-3">
+                        {employee.startDate && (
+                          <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                            <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                              <Check className="h-4 w-4 text-indigo-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-sm">Joined as {employee.jobTitle || 'Team Member'}</p>
+                              <p className="text-xs text-muted-foreground">{formatDate(employee.startDate)}</p>
+                            </div>
+                          </div>
+                        )}
+                        <div className="text-sm text-muted-foreground">
+                          <p>Career progression data and promotion history will be tracked here. Analysis includes:</p>
+                          <ul className="list-disc list-inside mt-2 space-y-1 ml-2">
+                            <li>Time to promotion relative to peers</li>
+                            <li>Skills acquisition rate</li>
+                            <li>Leadership development trajectory</li>
+                            <li>Cross-functional experience</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Growth Indicators</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className="p-3 border rounded-lg">
+                          <p className="text-xs text-muted-foreground">Tenure</p>
+                          <p className="text-lg font-bold text-foreground">
+                            {employee.startDate ? Math.floor((new Date().getTime() - new Date(employee.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)) : 0} months
+                          </p>
+                        </div>
+                        <div className="p-3 border rounded-lg">
+                          <p className="text-xs text-muted-foreground">Team Size</p>
+                          <p className="text-lg font-bold text-foreground">
+                            {employee._count?.directReports || 0} {employee._count?.directReports === 1 ? 'report' : 'reports'}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Strengths & Achievements */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Award className="h-4 w-4 text-amber-500" />
+                    Strengths & Key Contributions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    {employee.mbtiType && (
+                      <div className="flex items-start gap-2">
+                        <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Personality Type: {employee.mbtiType}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Brings structured thinking and strategic perspective to problem-solving
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {employee.department && (
+                      <div className="flex items-start gap-2">
+                        <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Department Expertise</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Deep knowledge in {employee.department} domain
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {employee.employmentType === 'FULL_TIME' && (
+                      <div className="flex items-start gap-2">
+                        <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Commitment & Dedication</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Full-time contributor with strong organizational alignment
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
+                      <p className="text-xs text-muted-foreground mb-2">Future AI Analysis Will Include:</p>
+                      <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                        <li>Specific achievements and delivered projects</li>
+                        <li>Performance review highlights</li>
+                        <li>Peer feedback and 360 review insights</li>
+                        <li>Technical or domain expertise demonstrated</li>
+                        <li>Leadership and mentorship contributions</li>
+                      </ul>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Skills Development */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Brain className="h-4 w-4 text-purple-600" />
+                    Skills & Development
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    <div>
+                      <h4 className="font-semibold text-sm mb-3">Current Skill Profile</h4>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Skills will be tracked from application, training completions, and performance assessments.
+                      </p>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-sm mb-3">Skill Gaps & Development Needs</h4>
+                      <div className="space-y-2">
+                        <div className="p-3 border border-amber-200 bg-amber-50 rounded-lg">
+                          <p className="text-xs font-medium text-amber-900 mb-1">Recommended Focus Areas</p>
+                          <p className="text-xs text-amber-800">
+                            AI will analyze role requirements vs current skills to identify development opportunities
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <h4 className="font-semibold text-sm mb-3">Learning & Development</h4>
+                      <div className="p-4 bg-muted/50 rounded-lg border">
+                        <p className="text-xs text-muted-foreground mb-2">Integration with Learning Platforms:</p>
+                        <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                          <li>Courses completed and certifications earned</li>
+                          <li>Training hours and learning velocity</li>
+                          <li>Skill acquisition timeline</li>
+                          <li>Recommended learning paths</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Areas for Development */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Target className="h-4 w-4 text-orange-600" />
+                    Areas for Development
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <p className="text-sm text-foreground/80">
+                      AuntyPelz will identify growth opportunities based on:
+                    </p>
+
+                    <div className="space-y-3">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Performance Feedback</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Recurring themes from 1-on-1s and performance reviews
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Skill Gaps</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Comparison with role requirements and career goals
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-start gap-2">
+                        <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-sm font-medium">Growth Opportunities</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Leadership, technical depth, or cross-functional experience
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <p className="text-xs font-medium text-blue-900 mb-1">Personalized Development Plan</p>
+                      <p className="text-xs text-blue-800">
+                        AI-generated recommendations for courses, projects, and experiences to accelerate growth
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Team Fit & Collaboration */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Users className="h-4 w-4 text-blue-600" />
+                    Team Fit & Collaboration
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {employee.lifeValues && (
+                      <div>
+                        <h4 className="font-semibold text-sm mb-2">Values Alignment</h4>
+                        <p className="text-sm text-muted-foreground">
+                          Analysis of life values and company culture fit based on onboarding survey responses.
+                        </p>
+                      </div>
+                    )}
+
+                    {employee.knowAboutMe && (employee.knowAboutMe as any[]).length > 0 && (
+                      <div>
+                        <h4 className="font-semibold text-sm mb-2">Work Style Preferences</h4>
+                        <p className="text-sm text-muted-foreground mb-3">
+                          Insights from "What You Should Know About Me" responses help team members collaborate effectively.
+                        </p>
+                      </div>
+                    )}
+
+                    <div>
+                      <h4 className="font-semibold text-sm mb-3">Collaboration Metrics</h4>
+                      <div className="p-4 bg-muted/50 rounded-lg border">
+                        <p className="text-xs text-muted-foreground mb-2">Integration with Slack & Communication Tools:</p>
+                        <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                          <li>Cross-team collaboration patterns</li>
+                          <li>Communication frequency and channels</li>
+                          <li>Response times and engagement levels</li>
+                          <li>Network centrality and influence</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    {employee.manager && (
+                      <div>
+                        <h4 className="font-semibold text-sm mb-2">Reporting Structure</h4>
+                        <div className="p-3 border rounded-lg">
+                          <p className="text-xs text-muted-foreground">Reports to</p>
+                          <p className="text-sm font-medium">{employee.manager.fullName}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Performance Insights (Placeholder) */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <TrendingUp className="h-4 w-4 text-success" />
+                    Performance Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <p className="text-sm text-foreground/80">
+                      Comprehensive performance analysis will be available upon integration with performance management systems.
+                    </p>
+
+                    <div className="grid grid-cols-1 gap-3">
+                      <div className="p-4 bg-muted/50 rounded-lg border">
+                        <h5 className="text-xs font-semibold mb-2">Performance Review Integration</h5>
+                        <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                          <li>Goal achievement rates and progress</li>
+                          <li>Performance rating trends over time</li>
+                          <li>Manager and peer feedback themes</li>
+                          <li>Improvement areas and action plans</li>
+                        </ul>
+                      </div>
+
+                      <div className="p-4 bg-muted/50 rounded-lg border">
+                        <h5 className="text-xs font-semibold mb-2">Productivity Metrics</h5>
+                        <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                          <li>Project delivery timeline accuracy</li>
+                          <li>Code quality and review metrics (for engineers)</li>
+                          <li>Customer satisfaction scores (for customer-facing roles)</li>
+                          <li>Innovation and initiative contributions</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Analysis Status */}
+              <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+                <div className="flex items-start gap-3">
+                  <Sparkles className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-sm text-indigo-900 mb-1">Comprehensive AI Analysis Coming Soon</h4>
+                    <p className="text-xs text-indigo-800">
+                      AuntyPelz will automatically analyze {employee.fullName}'s complete employee profile, including:
+                    </p>
+                    <ul className="text-xs text-indigo-800 mt-2 space-y-1 ml-4 list-disc">
+                      <li>Career progression from candidacy to current role</li>
+                      <li>Skills development and training history</li>
+                      <li>Performance trends and feedback analysis</li>
+                      <li>Team collaboration and communication patterns</li>
+                      <li>Personalized growth recommendations</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
           </div>
         </TabsContent>
 
