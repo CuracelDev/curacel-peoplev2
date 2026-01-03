@@ -48,9 +48,21 @@ export function CompetencyFrameworkSelector({
   const [expandedCores, setExpandedCores] = useState<Set<string>>(new Set())
   const [initialExpanded, setInitialExpanded] = useState(false)
 
+  const getDepartmentLabel = (value: string | null) => {
+    if (!value) return ''
+    if (value === 'Sales') return 'Commercial'
+    return value
+  }
+
+  const getDepartmentQueryValue = (value: string | null) => {
+    if (!value) return undefined
+    if (value === 'Commercial') return 'Sales'
+    return value
+  }
+
   // Fetch frameworks
   const { data: departmentData } = trpc.competencyFramework.getByType.useQuery(
-    { type: 'DEPARTMENT', department: department || undefined },
+    { type: 'DEPARTMENT', department: getDepartmentQueryValue(department) },
     { enabled: !!department }
   )
 
@@ -169,7 +181,7 @@ export function CompetencyFrameworkSelector({
           <div className="text-xs font-medium text-indigo-600 uppercase tracking-wide mb-1">
             Department Competencies For
           </div>
-          <div className="text-sm font-semibold text-indigo-900">{department}</div>
+          <div className="text-sm font-semibold text-indigo-900">{getDepartmentLabel(department)}</div>
         </div>
       )}
 
@@ -179,8 +191,13 @@ export function CompetencyFrameworkSelector({
           <Label>Selected Requirements ({value.length})</Label>
           <div className="flex flex-wrap gap-2">
             {value.map((req) => {
-              const subComp = activeSource?.coreCompetencies
-                ?.flatMap((c: any) => c.subCompetencies)
+              // Search across all framework sources, not just the active one
+              const subComp = [
+                ...(departmentData?.[0]?.coreCompetencies || []),
+                ...(aiData?.[0]?.coreCompetencies || []),
+                ...(valuesData?.[0]?.coreCompetencies || [])
+              ]
+                .flatMap((c: any) => c.subCompetencies)
                 .find((s: any) => s.id === req.subCompetencyId)
 
               return (

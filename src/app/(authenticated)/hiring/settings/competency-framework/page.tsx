@@ -92,6 +92,12 @@ export default function CompetencyFrameworkPage() {
     }
   }
 
+  const getDepartmentLabel = (department?: string | null) => {
+    if (!department) return ''
+    if (department === 'Sales') return 'Commercial'
+    return department
+  }
+
   return (
     <div className="space-y-6">
       <SettingsPageHeader
@@ -132,7 +138,7 @@ export default function CompetencyFrameworkPage() {
                     <div className="flex items-center gap-2">
                       <Badge variant="outline">{getTypeLabel(source.type)}</Badge>
                       {source.department && (
-                        <Badge variant="secondary">{source.department}</Badge>
+                        <Badge variant="secondary">{getDepartmentLabel(source.department)}</Badge>
                       )}
                       {source.formatType && (
                         <Badge variant="secondary">{getFormatTypeLabel(source.formatType)}</Badge>

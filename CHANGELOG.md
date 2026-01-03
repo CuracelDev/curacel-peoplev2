@@ -121,6 +121,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - Adjusted assessments filter cards layout for consistent sizing and spacing.
 - Interest form generation now references existing form structures for consistency.
+- Renamed the Sales competency framework label to Commercial.
+- Department competency lookup now maps Commercial to Sales for existing data.
 - Simplified assessments list columns and allowed assessment names to wrap.
 - Matched assessments filter cards/button styling to the interviews pill layout.
 - Interest forms are now selected per job with no global default.
