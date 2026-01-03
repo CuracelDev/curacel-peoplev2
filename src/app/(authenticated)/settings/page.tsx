@@ -132,6 +132,12 @@ const settingsSections = [
         icon: Sparkles,
         href: '/hiring/settings/all?section=decision-support',
       },
+      {
+        title: 'AuntyPelz Actions',
+        description: 'Configure automated candidate filtering and archiving.',
+        icon: Brain,
+        href: '/hiring/settings/auntypelz-actions',
+      },
     ],
   },
   {

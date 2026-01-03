@@ -7,6 +7,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased]
 
 ### Added
+- **AuntyPelz Actions Settings**
+  - New automated actions page for hiring workflow automation
+  - Auto-archive candidates that don't meet job requirements
+  - Auto-archive candidates with location mismatches
+  - AI-powered candidate filtering based on competencies, experience, and qualifications
 - **Competency Framework UI/UX Redesign**
   - Complete redesign of competency framework pages with world-class polish
   - Desktop-specific stats overview cards (Total Sources, Synced, Core Competencies, Status)
