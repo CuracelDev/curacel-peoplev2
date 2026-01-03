@@ -18,11 +18,18 @@ export async function fetchSheetData(
 ): Promise<SheetRow[]> {
   const sheetId = extractSpreadsheetId(sheetUrl)
 
+  console.log(`[fetchSheetData] Fetching sheet: ${sheetId}, tab: ${tabName || 'default'}`)
+
   const service = getGoogleSheetsService({ spreadsheetId: sheetId })
-  const sheets = await service['getSheetsClient']() as any // Access private method
+
+  // Access the private method using type assertion
+  const getSheetsClient = (service as any).getSheetsClient.bind(service)
+  const sheets = await getSheetsClient()
 
   // Determine the range to fetch
   const range = tabName ? `${tabName}!A:Z` : 'A:Z'
+
+  console.log(`[fetchSheetData] Fetching range: ${range}`)
 
   const response = await sheets.spreadsheets.values.get({
     spreadsheetId: sheetId,
@@ -30,6 +37,7 @@ export async function fetchSheetData(
   })
 
   const rows = response.data.values || []
+  console.log(`[fetchSheetData] Fetched ${rows.length} rows`)
 
   // Convert to SheetRow format (array of column values)
   return rows.map((row: any[]) => {
@@ -47,36 +55,41 @@ export async function fetchSheetData(
 export function detectSheetFormat(headers: SheetRow): SheetFormatType {
   const h = headers
 
-  // AI Behavioral format: has "Competency" and "0. Unacceptable" columns
+  // Convert all headers to lowercase for comparison
+  const headerValues = Object.values(h).map(v => v?.toLowerCase() || '')
+  const firstFewHeaders = headerValues.slice(0, 10).join('|')
+
+  console.log('[detectSheetFormat] Headers:', firstFewHeaders)
+
+  // AI Behavioral format: has "Competency" in first column and "Unacceptable" in second
   if (
-    h[0]?.toLowerCase().includes('competency') &&
-    h[1]?.toLowerCase().includes('unacceptable')
+    headerValues[0]?.includes('competency') &&
+    headerValues[1]?.includes('unacceptable')
   ) {
+    console.log('[detectSheetFormat] Detected AI_BEHAVIORAL')
     return 'AI_BEHAVIORAL'
   }
 
-  // Values format: has "Values" and "Value Definition" columns
+  // Values format: Column A has "Values", Column C has "Competency" (not Column B)
   if (
-    h[0]?.toLowerCase().includes('value') &&
-    h[1]?.toLowerCase().includes('definition') &&
-    !h[2]?.toLowerCase().includes('competenc')
+    headerValues[0]?.includes('value') &&
+    !headerValues[0]?.includes('values') && // Singular "value"
+    headerValues[2]?.includes('competenc')
   ) {
-    return 'EXTENDED_5_LEVEL' // Values uses 5 levels
+    console.log('[detectSheetFormat] Detected VALUES (EXTENDED_5_LEVEL)')
+    return 'EXTENDED_5_LEVEL'
   }
 
-  // Standard or Extended competency matrix: has "Function" and "Core Competencies"
-  if (
-    h[0]?.toLowerCase().includes('function') &&
-    (h[2]?.toLowerCase().includes('competenc') || h[3]?.toLowerCase().includes('competenc'))
-  ) {
+  // Standard or Extended competency matrix: has "Function" in first column
+  if (headerValues[0]?.includes('function')) {
     // Check for "Expert" column to detect 5-level variant
-    const hasExpert = Object.values(h).some(
-      val => val?.toLowerCase().includes('expert')
-    )
+    const hasExpert = headerValues.some(val => val?.includes('expert'))
 
+    console.log('[detectSheetFormat] Detected', hasExpert ? 'EXTENDED_5_LEVEL' : 'STANDARD_4_LEVEL')
     return hasExpert ? 'EXTENDED_5_LEVEL' : 'STANDARD_4_LEVEL'
   }
 
+  console.error('[detectSheetFormat] Unknown format. Headers:', headers)
   throw new Error(`Unknown sheet format. Headers: ${JSON.stringify(headers)}`)
 }
 
