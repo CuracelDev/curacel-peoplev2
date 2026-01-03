@@ -38,13 +38,42 @@ export async function parseCompetencyFrameworkSheet(
     throw new Error('Sheet is empty')
   }
 
-  // Find the actual header row (some sheets have empty rows or titles before headers)
+  // Try to find the actual header row (some sheets have empty rows or titles before headers)
+  // If not found, each parser will construct expected headers based on data structure
   const headerResult = findHeaderRow(rows)
-  if (!headerResult) {
-    throw new Error('Could not find header row in sheet')
-  }
 
-  const formatType = detectSheetFormat(headerResult.headerRow)
+  let formatType: SheetFormatType
+
+  if (headerResult) {
+    formatType = detectSheetFormat(headerResult.headerRow)
+  } else {
+    // No header found - check if we have a known format type in metadata
+    // Or try to infer from the data structure
+    console.log('[parseCompetencyFrameworkSheet] No header row found, inferring format from metadata or data')
+
+    // Check first row for format hints
+    const firstRow = rows[0]
+    const firstRowText = Object.values(firstRow).join(' ').toLowerCase()
+
+    // AI format: typically starts with competency names like "AI Tool Proficiency"
+    if (firstRowText.includes('ai ') || firstRowText.includes('tool') || firstRowText.includes('workflow')) {
+      formatType = 'AI_BEHAVIORAL'
+    }
+    // Values format: has long value definitions
+    else if (Object.values(firstRow).some(v => v && v.length > 100)) {
+      formatType = 'EXTENDED_5_LEVEL' // Values use extended format
+    }
+    // Has "expert" keyword or 5+ columns with content
+    else if (firstRowText.includes('expert') || Object.keys(firstRow).length >= 8) {
+      formatType = 'EXTENDED_5_LEVEL'
+    }
+    // Default to standard 4-level
+    else {
+      formatType = 'STANDARD_4_LEVEL'
+    }
+
+    console.log(`[parseCompetencyFrameworkSheet] Inferred format: ${formatType}`)
+  }
 
   console.log(`[parseCompetencyFrameworkSheet] Detected format: ${formatType} for ${metadata.name}`)
 

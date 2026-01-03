@@ -39,18 +39,59 @@ export async function parseExtended5LevelSheet(
     throw new Error('Sheet is empty')
   }
 
-  // Find the header row
-  const headerResult = findHeaderRow(rows)
+  // Find the header row, or construct it if not found (some sheets don't return headers via public API)
+  let headerResult = findHeaderRow(rows)
+  let startIndex = 0
+
   if (!headerResult) {
-    throw new Error('Could not find header row in sheet')
+    console.log('[extended-5-level] Header row not found, checking if this is Values format')
+    // Check if first row looks like Values format data (has Value name, competency, etc.)
+    const firstRow = rows[0]
+    const hasValueData = Object.values(firstRow).some(v => v && v.length > 20) // Long descriptions
+
+    if (hasValueData) {
+      console.log('[extended-5-level] Constructing expected headers for Values format')
+      // Construct expected headers for Values format
+      const constructedHeader: SheetRow = {
+        0: '', // Empty column A
+        1: 'Values',
+        2: 'Value Definition',
+        3: '',
+        4: 'Competency',
+        5: 'Definitions',
+        6: '',
+        7: '1. Basic',
+        8: '2. Intermediate',
+        9: '3. Proficient',
+        10: '4. Advanced',
+        11: '5. Expert',
+      }
+      headerResult = { headerRow: constructedHeader, startIndex: 0 }
+      startIndex = 0 // Data starts at row 0
+    } else {
+      // Try standard competency format headers
+      console.log('[extended-5-level] Constructing expected headers for standard format')
+      const constructedHeader: SheetRow = {
+        0: '', // Empty column A
+        1: 'Function Objective',
+        2: 'Core Competencies',
+        3: 'Sub competencies',
+        4: 'Basic',
+        5: 'Intermediate',
+        6: 'Proficient',
+        7: 'Advanced',
+        8: 'Expert',
+      }
+      headerResult = { headerRow: constructedHeader, startIndex: 0 }
+      startIndex = 0
+    }
+  } else {
+    startIndex = headerResult.startIndex
   }
 
-  const { headerRow, startIndex } = headerResult
-  const formatType = detectSheetFormat(headerRow)
-
-  if (formatType !== 'EXTENDED_5_LEVEL') {
-    throw new Error(`Expected EXTENDED_5_LEVEL format, got ${formatType}`)
-  }
+  const { headerRow } = headerResult
+  // We're already in the extended-5-level parser, so format is known
+  const formatType = 'EXTENDED_5_LEVEL'
 
   const levelNames = extractLevelNames(headerRow, formatType)
   const { min, max } = getLevelBounds(formatType)

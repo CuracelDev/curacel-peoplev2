@@ -216,18 +216,23 @@ export function isHeaderRow(row: SheetRow): boolean {
   const values = Object.values(row).map(v => v?.toLowerCase() || '')
   const allText = values.join(' ')
 
-  return (
-    allText.includes('function') ||
-    allText.includes('competency') ||
-    allText.includes('competenc') ||
-    allText.includes('value') ||
-    allText.includes('objective') ||
-    allText.includes('definition') ||
-    allText.includes('basic') ||
-    allText.includes('intermediate') ||
-    allText.includes('proficient') ||
-    allText.includes('advanced')
-  )
+  // Count how many header keywords are present (must have at least 2 to avoid false positives)
+  let keywordCount = 0
+
+  if (allText.includes('function')) keywordCount++
+  if (allText.includes('competenc')) keywordCount++ // Matches both competency and competencies
+  if (allText.match(/\bvalue(s)?\b/)) keywordCount++ // Word boundary to avoid matching "valuable"
+  if (allText.includes('objective')) keywordCount++
+  if (allText.includes('definition')) keywordCount++
+
+  // Level keywords (Basic, Intermediate, etc.) are strong indicators
+  const levelKeywords = ['basic', 'intermediate', 'proficient', 'advanced', 'expert', 'unacceptable']
+  const hasLevelKeyword = levelKeywords.some(kw => allText.includes(kw))
+
+  // Header row should have either:
+  // 1. Multiple structural keywords (function, competency, etc.), OR
+  // 2. Level keywords (which are unique to headers)
+  return keywordCount >= 2 || hasLevelKeyword
 }
 
 /**
