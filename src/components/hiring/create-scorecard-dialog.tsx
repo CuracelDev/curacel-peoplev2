@@ -138,7 +138,7 @@ export function CreateScorecardDialog({
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Generate with AI button */}
+          {/* Generate with AuntyPelz button */}
           <Button
             onClick={() => generateFromJD.mutate({ jobDescriptionId })}
             disabled={generateFromJD.isPending}
@@ -149,12 +149,12 @@ export function CreateScorecardDialog({
             {generateFromJD.isPending ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Generating with AI...
+                Generating with AuntyPelz...
               </>
             ) : (
               <>
                 <Sparkles className="h-4 w-4 mr-2" />
-                Generate with AI
+                Generate with AuntyPelz
               </>
             )}
           </Button>

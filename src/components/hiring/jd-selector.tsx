@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -25,7 +25,17 @@ export function JDSelector({
   const [mode, setMode] = useState<'select' | 'create' | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
 
-  const { data: jobDescriptions } = trpc.jobDescription.listForSelect.useQuery()
+  const { data: jobDescriptions, refetch } = trpc.jobDescription.listForSelect.useQuery()
+
+  // Refetch when window regains focus (e.g., coming back from new tab)
+  useEffect(() => {
+    const handleFocus = () => {
+      refetch()
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [refetch])
 
   const selectedJD = (jobDescriptions || []).find(jd => jd.id === value)
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { trpc } from '@/lib/trpc-client'
@@ -20,7 +20,17 @@ export function InterestFormSelector({
   const [mode, setMode] = useState<'select' | 'create' | null>(null)
   const [isCollapsed, setIsCollapsed] = useState(false)
 
-  const { data: interestForms } = trpc.interestForm.listForSelect.useQuery()
+  const { data: interestForms, refetch } = trpc.interestForm.listForSelect.useQuery()
+
+  // Refetch when window regains focus (e.g., coming back from new tab)
+  useEffect(() => {
+    const handleFocus = () => {
+      refetch()
+    }
+
+    window.addEventListener('focus', handleFocus)
+    return () => window.removeEventListener('focus', handleFocus)
+  }, [refetch])
 
   const selectedForm = (interestForms || []).find(form => form.id === value)
 
