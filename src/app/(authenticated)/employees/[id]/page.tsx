@@ -340,21 +340,12 @@ export default function EmployeeDetailPage() {
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">
                   <h1 className="text-2xl font-semibold text-foreground">{employee.fullName}</h1>
-                  <div className="flex items-center gap-3 mt-2">
-                    <p className="text-sm text-muted-foreground">{employee.personalEmail}</p>
-                    <span className="text-muted-foreground">•</span>
-                    <p className="text-sm text-muted-foreground">
-                      {employee.startDate ? formatDate(employee.startDate) : 'date not specified'}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 mt-3">
-                    <Badge variant="secondary" className="font-normal">
-                      {employee.jobTitle || 'Job title not specified'}
-                    </Badge>
-                    <Badge className={getStatusColor(employee.status)}>
-                      {employeeStatusLabels[employee.status] || employee.status}
-                    </Badge>
-                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    {employee.jobTitle || 'Job title not specified'}
+                  </p>
+                  <Badge className={`mt-2 ${getStatusColor(employee.status)}`}>
+                    {employeeStatusLabels[employee.status] || employee.status}
+                  </Badge>
                 </div>
 
                 {/* Action Buttons */}
@@ -364,6 +355,7 @@ export default function EmployeeDetailPage() {
                     size="sm"
                     onClick={() => setEditDialogOpen(true)}
                   >
+                    <Edit className="mr-2 h-4 w-4" />
                     Update Profile
                   </Button>
                   {activeOffboarding ? (
@@ -374,6 +366,7 @@ export default function EmployeeDetailPage() {
                       className="border-destructive/30 text-destructive hover:bg-destructive/10"
                     >
                       <Link href={`/offboarding/${existingOffboarding.id}`}>
+                        <UserMinus className="mr-2 h-4 w-4" />
                         View Offboarding
                       </Link>
                     </Button>
@@ -397,70 +390,29 @@ export default function EmployeeDetailPage() {
                       }}
                       disabled={employee.status === 'EXITED'}
                     >
+                      <UserMinus className="mr-2 h-4 w-4" />
                       Start Offboarding
                     </Button>
                   )}
                 </div>
               </div>
 
-              {/* Contact Info Row */}
-              <div className="grid grid-cols-3 gap-6 mt-6 pt-6 border-t">
+              {/* Contact Info - matches original sidebar */}
+              <div className="space-y-3 mt-6 pt-6 border-t">
                 <div>
-                  <p className="text-xs text-muted-foreground">Employment Type</p>
-                  <p className="text-sm font-medium mt-1">
-                    {employee.employmentType || 'Not specified'}
-                  </p>
+                  <p className="text-sm text-muted-foreground">Email</p>
+                  <p className="text-sm font-medium">{employee.personalEmail}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Full Name</p>
-                  <p className="text-sm font-medium mt-1">{employee.fullName}</p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Manager</p>
-                  <p className="text-sm font-medium mt-1">
-                    {employee.manager?.fullName || 'Manager not specified'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-6 mt-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">Department</p>
-                  <p className="text-sm font-medium mt-1">
-                    {employee.department || 'Not specified'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Phone number</p>
-                  <p className="text-sm font-medium mt-1">
+                  <p className="text-sm text-muted-foreground">Phone number</p>
+                  <p className="text-sm font-medium">
                     {employee.phone || 'phone number not specified'}
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Home Address</p>
-                  <p className="text-sm font-medium mt-1">
-                    {[
-                      employee.addressStreet,
-                      employee.addressCity,
-                      employee.addressState,
-                    ]
-                      .filter(Boolean)
-                      .join(', ') || 'Not specified'}
-                  </p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-6 mt-4">
-                <div>
-                  <p className="text-xs text-muted-foreground">Nationality</p>
-                  <p className="text-sm font-medium mt-1">
-                    {employee.nationality || 'Not specified'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs text-muted-foreground">Location</p>
-                  <p className="text-sm font-medium mt-1">
-                    {employee.location || 'Not specified'}
+                  <p className="text-sm text-muted-foreground">Joined</p>
+                  <p className="text-sm font-medium">
+                    {employee.startDate ? formatDate(employee.startDate) : 'date not specified'}
                   </p>
                 </div>
               </div>
