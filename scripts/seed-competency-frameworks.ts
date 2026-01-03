@@ -14,7 +14,7 @@ const FRAMEWORK_SOURCES = [
     type: 'DEPARTMENT' as const,
     name: 'People Operations',
     department: 'People Ops',
-    sheetUrl: 'https://docs.google.com/spreadsheets/d/1uRtuyNmNLDyj2B-YfvI3meCOKmHhFJO-UCGj6p_3TxU/edit',
+    sheetUrl: 'https://docs.google.com/spreadsheets/d/1FAI9E5dMS_7cNJ93a5zmyziK6L50ywzNzcY_gZ97r7s/edit?gid=818245557#gid=818245557',
     tabName: undefined,
   },
   {

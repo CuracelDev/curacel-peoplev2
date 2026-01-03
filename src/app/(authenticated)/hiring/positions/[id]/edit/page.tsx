@@ -310,14 +310,22 @@ export default function EditJobPage() {
   return (
     <div className="p-4">
       {/* Action Bar */}
-      <div className="flex justify-end gap-3 mb-4">
-        <Button variant="outline" onClick={() => router.back()}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave} disabled={isSaving}>
-          <Save className="h-4 w-4 mr-2" />
-          {isSaving ? 'Saving...' : 'Save Changes'}
-        </Button>
+      <div className="flex justify-between items-center mb-4">
+        <Link href={`/hiring/positions/${jobId}/scorecard`}>
+          <Button variant="outline" size="sm">
+            <Star className="h-4 w-4 mr-2" />
+            View Scorecard
+          </Button>
+        </Link>
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={() => router.back()}>
+            Cancel
+          </Button>
+          <Button onClick={handleSave} disabled={isSaving}>
+            <Save className="h-4 w-4 mr-2" />
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
       </div>
 
       {saveState && (

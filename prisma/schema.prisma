@@ -1498,6 +1498,7 @@ model Job {
   interviewQuestions  InterviewQuestion[]
   emailTemplates      EmailTemplate[] @relation("JobEmailTemplates")
   assessmentTemplates JobAssessmentTemplate[]
+  scorecard           Scorecard?
 
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
@@ -1510,6 +1511,24 @@ model Job {
   @@index([hiringFlowSnapshotId])
   @@index([slug])
   @@index([isPublic])
+}
+
+model Scorecard {
+  id        String   @id @default(uuid())
+  jobId     String   @unique
+  job       Job      @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  // Mission statement - what this role needs to accomplish
+  mission   String   @db.Text
+
+  // Outcomes - measurable objectives with success criteria
+  // JSON array of objects: [{ name: string, description: string, successCriteria: string[] }]
+  outcomes  Json     @default("[]")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([jobId])
 }
 
 model JobFollower {

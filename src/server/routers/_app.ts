@@ -38,6 +38,7 @@ import { publicPagesRouter } from './public-pages'
 import { webflowRouter } from './webflow'
 import { advisorRouter } from './advisor'
 import { emailSettingsRouter } from './email-settings'
+import { scorecardRouter } from './scorecard'
 
 export const appRouter = router({
   employee: employeeRouter,
@@ -79,6 +80,7 @@ export const appRouter = router({
   webflow: webflowRouter,
   advisor: advisorRouter,
   emailSettings: emailSettingsRouter,
+  scorecard: scorecardRouter,
 })
 
 export type AppRouter = typeof appRouter
