@@ -165,6 +165,165 @@ export const jobRouter = router({
       }
     }),
 
+  // Get comprehensive job details for detailed view page
+  getDetails: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const job = await ctx.prisma.job.findUnique({
+        where: { id: input.id },
+        include: {
+          jobDescription: true,
+          scorecard: true,
+          competencyRequirements: {
+            include: {
+              subCompetency: {
+                include: {
+                  coreCompetency: {
+                    include: {
+                      source: {
+                        select: {
+                          id: true,
+                          name: true,
+                          type: true,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            orderBy: [
+              {
+                priority: 'asc', // CRITICAL first, then HIGH, MEDIUM, LOW
+              },
+              {
+                isRequired: 'desc', // Required before optional
+              },
+            ],
+          },
+          hiringManager: {
+            select: { id: true, fullName: true, workEmail: true, personalEmail: true },
+          },
+          followers: {
+            include: {
+              employee: { select: { id: true, fullName: true, workEmail: true } },
+            },
+          },
+          hiringFlowSnapshot: {
+            include: {
+              flow: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
+          candidates: {
+            select: { id: true, stage: true, score: true },
+          },
+        },
+      })
+
+      if (!job) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Job not found',
+        })
+      }
+
+      // Calculate pipeline stats
+      const activeCandidates = job.candidates.filter(
+        (c) => !['REJECTED', 'WITHDRAWN', 'ARCHIVED'].includes(c.stage)
+      )
+      const scores = job.candidates.filter((c) => c.score != null).map((c) => c.score as number)
+      const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0
+
+      const stats = {
+        totalCandidates: job.candidates.length,
+        activeCandidates: activeCandidates.length,
+        applied: job.candidates.filter((c) => c.stage === 'APPLIED').length,
+        inReview: job.candidates.filter((c) =>
+          ['HR_SCREEN', 'TECHNICAL', 'PANEL'].includes(c.stage)
+        ).length,
+        offerStage: job.candidates.filter((c) => c.stage === 'OFFER').length,
+        hired: job.candidates.filter((c) => c.stage === 'HIRED').length,
+        avgScore,
+      }
+
+      // Extract hiring flow stages
+      const stagesData = (job.hiringFlowSnapshot?.stages as unknown) || []
+      const stages = Array.isArray(stagesData) ? stagesData as string[] : []
+
+      // Group competencies by core competency
+      const competenciesByCore: Record<string, {
+        coreCompetency: {
+          id: string
+          name: string
+          description: string | null
+          functionArea: string | null
+        }
+        source: {
+          id: string
+          name: string
+          type: string
+        }
+        requirements: Array<{
+          id: string
+          subCompetency: {
+            id: string
+            name: string
+            description: string | null
+          }
+          requiredLevel: number
+          requiredLevelName: string
+          validationStage: string | null
+          priority: string
+          isRequired: boolean
+        }>
+      }> = {}
+
+      for (const req of job.competencyRequirements) {
+        const coreId = req.subCompetency.coreCompetency.id
+
+        if (!competenciesByCore[coreId]) {
+          competenciesByCore[coreId] = {
+            coreCompetency: {
+              id: req.subCompetency.coreCompetency.id,
+              name: req.subCompetency.coreCompetency.name,
+              description: req.subCompetency.coreCompetency.description,
+              functionArea: req.subCompetency.coreCompetency.functionArea,
+            },
+            source: req.subCompetency.coreCompetency.source,
+            requirements: [],
+          }
+        }
+
+        competenciesByCore[coreId].requirements.push({
+          id: req.id,
+          subCompetency: {
+            id: req.subCompetency.id,
+            name: req.subCompetency.name,
+            description: req.subCompetency.description,
+          },
+          requiredLevel: req.requiredLevel,
+          requiredLevelName: req.requiredLevelName,
+          validationStage: req.validationStage,
+          priority: req.priority,
+          isRequired: req.isRequired,
+        })
+      }
+
+      const { candidates, ...jobWithoutCandidates } = job
+
+      return {
+        ...jobWithoutCandidates,
+        stats,
+        stages,
+        competenciesByCore: Object.values(competenciesByCore),
+      }
+    }),
+
   // Create a new job
   create: protectedProcedure
     .input(

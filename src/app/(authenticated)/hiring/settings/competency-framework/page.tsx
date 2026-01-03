@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -12,27 +12,13 @@ import {
   ExternalLink,
   Eye,
   Database,
-  X,
-  ChevronDown,
-  ChevronRight,
 } from 'lucide-react'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import { trpc } from '@/lib/trpc-client'
 import { formatDistanceToNow } from 'date-fns'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible'
 
 export default function CompetencyFrameworkPage() {
+  const router = useRouter()
   const utils = trpc.useUtils()
   const { data: sources, isLoading } = trpc.competencyFramework.listSources.useQuery()
 
@@ -47,25 +33,6 @@ export default function CompetencyFrameworkPage() {
       utils.competencyFramework.listSources.invalidate()
     },
   })
-
-  const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null)
-  const [expandedCompetencies, setExpandedCompetencies] = useState<Set<string>>(new Set())
-
-  // Fetch detailed data for selected source
-  const { data: sourceData } = trpc.competencyFramework.getSource.useQuery(
-    { id: selectedSourceId! },
-    { enabled: !!selectedSourceId }
-  )
-
-  const toggleCompetency = (id: string) => {
-    const newExpanded = new Set(expandedCompetencies)
-    if (newExpanded.has(id)) {
-      newExpanded.delete(id)
-    } else {
-      newExpanded.add(id)
-    }
-    setExpandedCompetencies(newExpanded)
-  }
 
   const handleSync = async (sourceId: string, forceRefresh = false) => {
     try {
@@ -255,7 +222,7 @@ export default function CompetencyFrameworkPage() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => setSelectedSourceId(source.id)}
+                    onClick={() => router.push(`/hiring/settings/competency-framework/${source.id}`)}
                     className="text-xs"
                     fullWidth
                   >
@@ -300,114 +267,6 @@ export default function CompetencyFrameworkPage() {
           </p>
         </CardContent>
       </Card>
-
-      {/* Data Viewer Modal */}
-      <Dialog open={!!selectedSourceId} onOpenChange={(open) => !open && setSelectedSourceId(null)}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>{sourceData?.name} - Competency Data</DialogTitle>
-            <DialogDescription>
-              {sourceData?.coreCompetencies.length || 0} core competencies
-            </DialogDescription>
-          </DialogHeader>
-
-          {sourceData ? (
-            <div className="space-y-4 mt-4">
-              {sourceData.coreCompetencies.map((coreComp) => (
-                <Card key={coreComp.id}>
-                  <Collapsible
-                    open={expandedCompetencies.has(coreComp.id)}
-                    onOpenChange={() => toggleCompetency(coreComp.id)}
-                  >
-                    <CardHeader className="cursor-pointer hover:bg-muted/50">
-                      <CollapsibleTrigger className="w-full">
-                        <div className="flex items-start justify-between">
-                          <div className="text-left">
-                            <CardTitle className="text-base flex items-center gap-2">
-                              {expandedCompetencies.has(coreComp.id) ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4" />
-                              )}
-                              {coreComp.name}
-                            </CardTitle>
-                            {coreComp.description && (
-                              <CardDescription className="text-xs mt-1">
-                                {coreComp.description}
-                              </CardDescription>
-                            )}
-                          </div>
-                          <Badge variant="secondary">
-                            {coreComp.subCompetencies.length} sub-competencies
-                          </Badge>
-                        </div>
-                      </CollapsibleTrigger>
-                    </CardHeader>
-
-                    <CollapsibleContent>
-                      <CardContent className="space-y-4">
-                        {coreComp.subCompetencies.map((subComp) => (
-                          <div key={subComp.id} className="border-l-2 border-muted pl-4">
-                            <h4 className="font-medium text-sm mb-2">{subComp.name}</h4>
-                            {subComp.description && (
-                              <p className="text-xs text-muted-foreground mb-3">
-                                {subComp.description}
-                              </p>
-                            )}
-
-                            {/* Level Descriptions */}
-                            {subComp.levelDescriptions && typeof subComp.levelDescriptions === 'object' && (
-                              <div className="space-y-2">
-                                {Object.entries(subComp.levelDescriptions as Record<string, string>)
-                                  .sort(([a], [b]) => parseInt(a) - parseInt(b))
-                                  .map(([level, description]) => {
-                                    const levelIndex = parseInt(level) - (sourceData.minLevel || 1)
-                                    const levelName = (sourceData.levelNames as string[])[levelIndex] || `Level ${level}`
-                                    return (
-                                      <div key={level} className="text-xs">
-                                        <span className="font-medium text-primary">
-                                          {levelName} (Level {level}):
-                                        </span>{' '}
-                                        <span className="text-muted-foreground">{description}</span>
-                                      </div>
-                                    )
-                                  })}
-                              </div>
-                            )}
-
-                            {/* Behavioral Indicators */}
-                            {subComp.hasBehavioralIndicators && subComp.behavioralIndicators && (
-                              <div className="mt-3 space-y-2">
-                                <p className="text-xs font-medium">Behavioral Indicators:</p>
-                                {Object.entries(subComp.behavioralIndicators as Record<string, string[]>)
-                                  .sort(([a], [b]) => parseInt(a) - parseInt(b))
-                                  .map(([level, indicators]) => (
-                                    <div key={level} className="text-xs">
-                                      <span className="font-medium">Level {level}:</span>
-                                      <ul className="list-disc list-inside ml-2 text-muted-foreground">
-                                        {indicators.map((indicator, idx) => (
-                                          <li key={idx}>{indicator}</li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  ))}
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                      </CardContent>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <div className="py-12 text-center text-muted-foreground">
-              Loading competency data...
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }
