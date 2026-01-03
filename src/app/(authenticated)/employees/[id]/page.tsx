@@ -37,6 +37,10 @@ import {
   UserMinus,
   ExternalLink,
   FileText,
+  Sparkles,
+  Activity,
+  Mail,
+  Calendar,
 } from 'lucide-react'
 import Link from 'next/link'
 import {
@@ -323,98 +327,107 @@ export default function EmployeeDetailPage() {
       {/* Header Card */}
       <Card className="mb-6">
         <CardContent className="p-4 sm:p-6">
-          <div className="flex items-start gap-6">
+          <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
             {/* Avatar */}
-            <Avatar className="h-24 w-24 bg-success flex-shrink-0">
+            <Avatar className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl bg-success flex-shrink-0">
               <AvatarImage
                 src={employee.profileImageUrl || employee.user?.image || ''}
                 alt={employee.fullName}
+                className="rounded-xl"
               />
-              <AvatarFallback className="bg-success text-white text-2xl">
+              <AvatarFallback className="bg-success text-white text-xl sm:text-2xl font-semibold rounded-xl">
                 {getInitials(employee.fullName)}
               </AvatarFallback>
             </Avatar>
 
-            {/* Info and Actions */}
+            {/* Info */}
             <div className="flex-1 min-w-0">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <h1 className="text-2xl font-semibold text-foreground">{employee.fullName}</h1>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {employee.jobTitle || 'Job title not specified'}
-                  </p>
-                  <Badge className={`mt-2 ${getStatusColor(employee.status)}`}>
-                    {employeeStatusLabels[employee.status] || employee.status}
-                  </Badge>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setEditDialogOpen(true)}
-                  >
-                    <Edit className="mr-2 h-4 w-4" />
-                    Update Profile
-                  </Button>
-                  {activeOffboarding ? (
-                    <Button
-                      asChild
-                      size="sm"
-                      variant="outline"
-                      className="border-destructive/30 text-destructive hover:bg-destructive/10"
-                    >
-                      <Link href={`/offboarding/${existingOffboarding.id}`}>
-                        <UserMinus className="mr-2 h-4 w-4" />
-                        View Offboarding
-                      </Link>
-                    </Button>
-                  ) : (
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="border-destructive text-destructive hover:bg-destructive/10"
-                      onClick={() => {
-                        setIsImmediate(false)
-                        setEndDate(employee.endDate ? new Date(employee.endDate).toISOString().slice(0, 10) : '')
-                        setReason('')
-                        setNotes('')
-                        setGoogleDeleteAccount(false)
-                        setGoogleTransferToEmail(organization?.googleWorkspaceTransferToEmail || 'admin@curacel.ai')
-                        setTransferSearch(organization?.googleWorkspaceTransferToEmail || 'admin@curacel.ai')
-                        setTransferEnabled(true)
-                        setGoogleTransferApps(['drive', 'calendar'])
-                        setGoogleAliasToEmail('')
-                        setOffboardingOpen(true)
-                      }}
-                      disabled={employee.status === 'EXITED'}
-                    >
-                      <UserMinus className="mr-2 h-4 w-4" />
-                      Start Offboarding
-                    </Button>
-                  )}
-                </div>
+              <div className="flex items-center gap-3 mb-1">
+                <h1 className="text-xl sm:text-2xl font-semibold">{employee.fullName}</h1>
               </div>
-
-              {/* Contact Info - matches original sidebar */}
-              <div className="mt-6 pt-6 border-t">
-                <div>
-                  <p className="text-sm text-muted-foreground">Joined</p>
-                  <p className="text-sm font-medium">
-                    {employee.startDate ? formatDate(employee.startDate) : 'date not specified'}
-                  </p>
-                </div>
+              <div className="flex flex-wrap gap-2 sm:gap-4 text-xs sm:text-sm text-muted-foreground mb-3">
+                {employee.workEmail && (
+                  <span className="flex items-center gap-1.5">
+                    <Mail className="h-3.5 w-3.5 flex-shrink-0" />
+                    <span className="truncate">{employee.workEmail}</span>
+                  </span>
+                )}
+                {employee.startDate && (
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="h-3.5 w-3.5 flex-shrink-0" />
+                    {formatDate(employee.startDate)}
+                  </span>
+                )}
               </div>
+              <div className="flex flex-wrap gap-2">
+                {employee.jobTitle && (
+                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100 text-xs">{employee.jobTitle}</Badge>
+                )}
+                <Badge className="bg-success/10 text-success hover:bg-success/10 text-xs">
+                  {employeeStatusLabels[employee.status] || employee.status}
+                </Badge>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex sm:flex-col gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setEditDialogOpen(true)}
+                className="flex-1 sm:flex-none w-full text-xs sm:text-sm"
+              >
+                <Edit className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Update Profile</span>
+              </Button>
+              {activeOffboarding ? (
+                <Button
+                  asChild
+                  size="sm"
+                  variant="outline"
+                  className="border-destructive/30 text-destructive hover:bg-destructive/10 flex-1 sm:flex-none w-full text-xs sm:text-sm"
+                >
+                  <Link href={`/offboarding/${existingOffboarding.id}`}>
+                    <UserMinus className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">View Offboarding</span>
+                  </Link>
+                </Button>
+              ) : (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="border-destructive text-destructive hover:bg-destructive/10 flex-1 sm:flex-none w-full text-xs sm:text-sm"
+                  onClick={() => {
+                    setIsImmediate(false)
+                    setEndDate(employee.endDate ? new Date(employee.endDate).toISOString().slice(0, 10) : '')
+                    setReason('')
+                    setNotes('')
+                    setGoogleDeleteAccount(false)
+                    setGoogleTransferToEmail(organization?.googleWorkspaceTransferToEmail || 'admin@curacel.ai')
+                    setTransferSearch(organization?.googleWorkspaceTransferToEmail || 'admin@curacel.ai')
+                    setTransferEnabled(true)
+                    setGoogleTransferApps(['drive', 'calendar'])
+                    setGoogleAliasToEmail('')
+                    setOffboardingOpen(true)
+                  }}
+                  disabled={employee.status === 'EXITED'}
+                >
+                  <UserMinus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Start Offboarding</span>
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Tabs */}
-      <Tabs defaultValue="personal" className="mb-6">
+      <Tabs defaultValue="overview" className="mb-6">
         <div className="overflow-x-auto">
           <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
+            <TabsTrigger value="overview" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
+              Overview
+            </TabsTrigger>
             <TabsTrigger value="personal" className="rounded-none border-b-2 border-transparent px-0 pb-3 text-xs sm:text-sm data-[state=active]:border-primary data-[state=active]:text-primary">
               Personal
             </TabsTrigger>
@@ -432,6 +445,41 @@ export default function EmployeeDetailPage() {
             </TabsTrigger>
           </TabsList>
         </div>
+
+        {/* Overview Tab */}
+        <TabsContent value="overview" className="mt-6">
+          <div className="space-y-4">
+              {/* AuntyPelz Summary */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Sparkles className="h-4 w-4 text-indigo-600" />
+                    AuntyPelz Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    AI-powered employee summary coming soon.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Employee Progression */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Activity className="h-4 w-4" />
+                    Employee Progression
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground">
+                    Track employee journey from application to current role.
+                  </p>
+                </CardContent>
+              </Card>
+          </div>
+        </TabsContent>
 
         {/* Personal Tab */}
         <TabsContent value="personal" className="mt-6">
