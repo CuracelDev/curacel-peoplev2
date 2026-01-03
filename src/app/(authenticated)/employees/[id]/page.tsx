@@ -351,9 +351,9 @@ export default function EmployeeDetailPage() {
                     <Badge variant="secondary" className="font-normal">
                       {employee.jobTitle || 'Job title not specified'}
                     </Badge>
-                    <Button variant="ghost" size="sm" className="h-7 px-2">
-                      Apply
-                    </Button>
+                    <Badge className={getStatusColor(employee.status)}>
+                      {employeeStatusLabels[employee.status] || employee.status}
+                    </Badge>
                   </div>
                 </div>
 
@@ -425,10 +425,10 @@ export default function EmployeeDetailPage() {
 
               <div className="grid grid-cols-3 gap-6 mt-4">
                 <div>
-                  <p className="text-xs text-muted-foreground">Status</p>
-                  <Badge className={`mt-1 ${getStatusColor(employee.status)}`}>
-                    {employeeStatusLabels[employee.status] || employee.status}
-                  </Badge>
+                  <p className="text-xs text-muted-foreground">Department</p>
+                  <p className="text-sm font-medium mt-1">
+                    {employee.department || 'Not specified'}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Phone number</p>
@@ -458,9 +458,9 @@ export default function EmployeeDetailPage() {
                   </p>
                 </div>
                 <div>
-                  <p className="text-xs text-muted-foreground">Mobile Phone</p>
+                  <p className="text-xs text-muted-foreground">Location</p>
                   <p className="text-sm font-medium mt-1">
-                    {employee.phone || 'Not specified'}
+                    {employee.location || 'Not specified'}
                   </p>
                 </div>
               </div>
