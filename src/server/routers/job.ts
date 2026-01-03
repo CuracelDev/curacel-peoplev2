@@ -76,6 +76,11 @@ export const jobRouter = router({
           candidates: {
             select: { id: true, stage: true, score: true },
           },
+          hiringFlowSnapshot: {
+            select: {
+              stages: true,
+            },
+          },
           _count: {
             select: { followers: true, competencies: true, candidates: true },
           },
@@ -100,11 +105,15 @@ export const jobRouter = router({
         ARCHIVED: 'Archived',
       }
 
-      const stageOrder = [
+      const stageEnumOrder = [
         'APPLIED',
         'HR_SCREEN',
         'TECHNICAL',
         'PANEL',
+        'TEAM_CHAT',
+        'ADVISOR_CHAT',
+        'TRIAL',
+        'CEO_CHAT',
         'OFFER',
         'HIRED',
         'REJECTED',
@@ -124,11 +133,25 @@ export const jobRouter = router({
           acc[candidate.stage] = (acc[candidate.stage] || 0) + 1
           return acc
         }, {})
-        const stageBreakdown = stageOrder.map((stage) => ({
-          stage,
-          label: stageDisplayNames[stage] || stage,
-          count: stageCounts[stage] || 0,
-        }))
+        const stagesData = (job.hiringFlowSnapshot?.stages as unknown) || []
+        const stages = Array.isArray(stagesData) ? (stagesData as string[]) : []
+        const stageBreakdown = stages.length > 0
+          ? stages
+              .map((stageName, index) => {
+                const stageEnum = stageEnumOrder[index]
+                if (!stageEnum) return null
+                return {
+                  stage: stageEnum,
+                  label: stageName,
+                  count: stageCounts[stageEnum] || 0,
+                }
+              })
+              .filter((item): item is { stage: string; label: string; count: number } => item !== null)
+          : stageEnumOrder.map((stage) => ({
+              stage,
+              label: stageDisplayNames[stage] || stage,
+              count: stageCounts[stage] || 0,
+            }))
 
         const stats = {
           applicants: job._count.candidates,

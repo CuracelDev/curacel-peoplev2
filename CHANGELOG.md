@@ -167,6 +167,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Made competency framework action buttons symmetrical using a fixed grid layout.
 - Job list stage stats now use actual candidate stage breakdowns instead of placeholder labels.
 - Restored job status badge hover text color to avoid dark-on-dark states.
+- Job list stage stats now use custom hiring flow stage names when available.
 - Job list stage stats now link into filtered job candidates views
 - Candidates list adds LinkedIn profile links and a column selector for extra fields
 - Job candidates table now mirrors the candidates list column selector and action menu alignment
