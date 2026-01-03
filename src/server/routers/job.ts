@@ -281,24 +281,48 @@ export const jobRouter = router({
       const scores = job.candidates.filter((c) => c.score != null).map((c) => c.score as number)
       const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0
 
-      // Group candidates by stage for dynamic metrics
-      const candidatesByStage = job.candidates.reduce((acc, candidate) => {
+      // Group candidates by stage enum
+      const candidatesByStageEnum = job.candidates.reduce((acc, candidate) => {
         acc[candidate.stage] = (acc[candidate.stage] || 0) + 1
         return acc
       }, {} as Record<string, number>)
 
+      // Standard stage enum order that maps to hiring flow positions
+      const stageEnumOrder = [
+        'APPLIED',
+        'HR_SCREEN',
+        'TECHNICAL',
+        'TEAM_CHAT',
+        'ADVISOR_CHAT',
+        'PANEL',
+        'TRIAL',
+        'CEO_CHAT',
+        'OFFER',
+      ]
+
+      // Build dynamic stage metrics using actual hiring flow stage names
+      const stageMetrics: Array<{ name: string; count: number; stageEnum: string }> = []
+
+      if (stages.length > 0) {
+        stages.forEach((stageName, index) => {
+          const stageEnum = stageEnumOrder[index]
+          if (stageEnum) {
+            stageMetrics.push({
+              name: stageName, // Use actual hiring flow stage name
+              count: candidatesByStageEnum[stageEnum] || 0,
+              stageEnum,
+            })
+          }
+        })
+      }
+
       const stats = {
         totalCandidates: job.candidates.length,
         activeCandidates: activeCandidates.length,
-        applied: job.candidates.filter((c) => c.stage === 'APPLIED').length,
-        // In Review: all stages between first stage and offer/hired (excluding applied, offer, hired, rejected, withdrawn, archived)
-        inReview: job.candidates.filter((c) =>
-          !['APPLIED', 'OFFER', 'HIRED', 'REJECTED', 'WITHDRAWN', 'ARCHIVED'].includes(c.stage)
-        ).length,
-        offerStage: job.candidates.filter((c) => c.stage === 'OFFER').length,
         hired: job.candidates.filter((c) => c.stage === 'HIRED').length,
         avgScore,
-        byStage: candidatesByStage, // Add per-stage breakdown
+        stageMetrics, // Dynamic stage metrics based on hiring flow
+        byStage: candidatesByStageEnum, // Keep for backwards compatibility
       }
 
       // Group competencies by core competency
