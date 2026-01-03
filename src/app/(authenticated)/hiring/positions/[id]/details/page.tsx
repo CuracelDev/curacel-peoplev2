@@ -515,19 +515,33 @@ export default function JobDetailsPage() {
                 )}
 
                 {/* Stage Stats */}
-                <div className="mt-6 grid grid-cols-2 md:grid-cols-5 gap-4">
-                  <div className="bg-blue-50 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-blue-600">{job.stats.applied}</p>
-                    <p className="text-xs text-gray-600 mt-1">Applied</p>
-                  </div>
-                  <div className="bg-purple-50 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-purple-600">{job.stats.inReview}</p>
-                    <p className="text-xs text-gray-600 mt-1">In Review</p>
-                  </div>
-                  <div className="bg-orange-50 rounded-lg p-3 text-center">
-                    <p className="text-2xl font-bold text-orange-600">{job.stats.offerStage}</p>
-                    <p className="text-xs text-gray-600 mt-1">Offer Stage</p>
-                  </div>
+                <div className="mt-6 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                  {/* Dynamic stage metrics from hiring flow */}
+                  {job.stats.stageMetrics && job.stats.stageMetrics.map((stage, index) => {
+                    const colors = [
+                      'bg-blue-50 text-blue-600',
+                      'bg-purple-50 text-purple-600',
+                      'bg-indigo-50 text-indigo-600',
+                      'bg-pink-50 text-pink-600',
+                      'bg-cyan-50 text-cyan-600',
+                      'bg-teal-50 text-teal-600',
+                      'bg-orange-50 text-orange-600',
+                      'bg-red-50 text-red-600',
+                      'bg-amber-50 text-amber-600',
+                    ]
+                    const colorClass = colors[index % colors.length]
+                    const bgClass = colorClass.split(' ')[0]
+                    const textClass = colorClass.split(' ')[1]
+
+                    return (
+                      <div key={stage.stageEnum} className={`${bgClass} rounded-lg p-3 text-center`}>
+                        <p className={`text-2xl font-bold ${textClass}`}>{stage.count}</p>
+                        <p className="text-xs text-gray-600 mt-1">{stage.name}</p>
+                      </div>
+                    )
+                  })}
+
+                  {/* Special aggregate metrics */}
                   <div className="bg-green-50 rounded-lg p-3 text-center">
                     <p className="text-2xl font-bold text-green-600">{job.stats.hired}</p>
                     <p className="text-xs text-gray-600 mt-1">Hired</p>
