@@ -319,91 +319,69 @@ export default function EmployeeDetailPage() {
   }
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => router.back()}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <h1 className="text-xl font-semibold text-foreground">{employee.fullName}</h1>
-      </div>
+    <div className="space-y-6">
+      {/* Header Card */}
+      <Card>
+        <CardContent className="pt-6">
+          <div className="flex items-start gap-6">
+            {/* Avatar */}
+            <Avatar className="h-24 w-24 bg-success flex-shrink-0">
+              <AvatarImage
+                src={employee.profileImageUrl || employee.user?.image || ''}
+                alt={employee.fullName}
+              />
+              <AvatarFallback className="bg-success text-white text-2xl">
+                {getInitials(employee.fullName)}
+              </AvatarFallback>
+            </Avatar>
 
-      <div className="grid gap-6 lg:grid-cols-4">
-        {/* Left Sidebar */}
-        <div className="lg:col-span-1">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="space-y-6">
-                {/* Avatar */}
-                <div className="flex flex-col items-center">
-                  <Avatar className="h-24 w-24 bg-success">
-                    <AvatarImage
-                      src={employee.profileImageUrl || employee.user?.image || ''}
-                      alt={employee.fullName}
-                    />
-                    <AvatarFallback className="bg-success text-white text-2xl">
-                      {getInitials(employee.fullName)}
-                    </AvatarFallback>
-                  </Avatar>
-                  <h2 className="mt-4 text-xl font-semibold text-foreground">{employee.fullName}</h2>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {employee.jobTitle || 'Job title not specified'}
-                  </p>
-                  <Badge className={`mt-2 ${getStatusColor(employee.status)}`}>
-                    {employeeStatusLabels[employee.status] || employee.status}
-                  </Badge>
-                </div>
-
-                <Separator />
-
-                {/* Contact Info */}
-                <div className="space-y-3">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Email</p>
-                    <p className="text-sm font-medium">{employee.personalEmail}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Phone number</p>
-                    <p className="text-sm font-medium">
-                      {employee.phone || 'phone number not specified'}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Joined</p>
-                    <p className="text-sm font-medium">
+            {/* Info and Actions */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
+                  <h1 className="text-2xl font-semibold text-foreground">{employee.fullName}</h1>
+                  <div className="flex items-center gap-3 mt-2">
+                    <p className="text-sm text-muted-foreground">{employee.personalEmail}</p>
+                    <span className="text-muted-foreground">•</span>
+                    <p className="text-sm text-muted-foreground">
                       {employee.startDate ? formatDate(employee.startDate) : 'date not specified'}
                     </p>
                   </div>
+                  <div className="flex items-center gap-3 mt-3">
+                    <Badge variant="secondary" className="font-normal">
+                      {employee.jobTitle || 'Job title not specified'}
+                    </Badge>
+                    <Button variant="ghost" size="sm" className="h-7 px-2">
+                      Apply
+                    </Button>
+                  </div>
                 </div>
 
-                <Separator />
-
-                {/* Update Button */}
-                <Button
-                  className="w-full border-blue-500 text-blue-600 hover:bg-blue-50"
-                  variant="outline"
-                  onClick={() => setEditDialogOpen(true)}
-                >
-                  <Edit className="mr-2 h-4 w-4" />
-                  Update Profile
-                </Button>
-
-                {/* Offboarding */}
-                <div className="space-y-2">
+                {/* Action Buttons */}
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditDialogOpen(true)}
+                  >
+                    Update Profile
+                  </Button>
                   {activeOffboarding ? (
                     <Button
                       asChild
-                      className="w-full border-destructive/30 text-destructive hover:bg-destructive/10"
+                      size="sm"
                       variant="outline"
+                      className="border-destructive/30 text-destructive hover:bg-destructive/10"
                     >
                       <Link href={`/offboarding/${existingOffboarding.id}`}>
-                        <UserMinus className="mr-2 h-4 w-4" />
                         View Offboarding
                       </Link>
                     </Button>
                   ) : (
                     <Button
-                      className="w-full border-destructive text-destructive hover:bg-destructive/10"
+                      size="sm"
                       variant="outline"
+                      className="border-destructive text-destructive hover:bg-destructive/10"
                       onClick={() => {
                         setIsImmediate(false)
                         setEndDate(employee.endDate ? new Date(employee.endDate).toISOString().slice(0, 10) : '')
@@ -419,21 +397,80 @@ export default function EmployeeDetailPage() {
                       }}
                       disabled={employee.status === 'EXITED'}
                     >
-                      <UserMinus className="mr-2 h-4 w-4" />
                       Start Offboarding
                     </Button>
                   )}
-                  {employee.status === 'EXITED' ? (
-                    <p className="text-xs text-muted-foreground">This employee has already exited.</p>
-                  ) : null}
                 </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
 
-        {/* Right Content */}
-        <div className="lg:col-span-3">
+              {/* Contact Info Row */}
+              <div className="grid grid-cols-3 gap-6 mt-6 pt-6 border-t">
+                <div>
+                  <p className="text-xs text-muted-foreground">Employment Type</p>
+                  <p className="text-sm font-medium mt-1">
+                    {employee.employmentType || 'Not specified'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Full Name</p>
+                  <p className="text-sm font-medium mt-1">{employee.fullName}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Manager</p>
+                  <p className="text-sm font-medium mt-1">
+                    {employee.manager?.fullName || 'Manager not specified'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-6 mt-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">Status</p>
+                  <Badge className={`mt-1 ${getStatusColor(employee.status)}`}>
+                    {employeeStatusLabels[employee.status] || employee.status}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Phone number</p>
+                  <p className="text-sm font-medium mt-1">
+                    {employee.phone || 'phone number not specified'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Home Address</p>
+                  <p className="text-sm font-medium mt-1">
+                    {[
+                      employee.addressStreet,
+                      employee.addressCity,
+                      employee.addressState,
+                    ]
+                      .filter(Boolean)
+                      .join(', ') || 'Not specified'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-6 mt-4">
+                <div>
+                  <p className="text-xs text-muted-foreground">Nationality</p>
+                  <p className="text-sm font-medium mt-1">
+                    {employee.nationality || 'Not specified'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Mobile Phone</p>
+                  <p className="text-sm font-medium mt-1">
+                    {employee.phone || 'Not specified'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tabs Content */}
+      <div>
           <Tabs defaultValue="personal" className="space-y-4">
             <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
               <TabsTrigger value="personal" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
@@ -1028,7 +1065,6 @@ export default function EmployeeDetailPage() {
               </Card>
             </TabsContent>
           </Tabs>
-        </div>
       </div>
 
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
