@@ -153,16 +153,38 @@ export function isEmptyRow(row: SheetRow): boolean {
  * Check if a row is a header row (contains common header keywords)
  */
 export function isHeaderRow(row: SheetRow): boolean {
-  const firstCell = row[0]?.toLowerCase() || ''
-  const secondCell = row[1]?.toLowerCase() || ''
+  const values = Object.values(row).map(v => v?.toLowerCase() || '')
+  const allText = values.join(' ')
 
   return (
-    firstCell.includes('function') ||
-    firstCell.includes('competency') ||
-    firstCell.includes('value') ||
-    secondCell.includes('objective') ||
-    secondCell.includes('definition')
+    allText.includes('function') ||
+    allText.includes('competency') ||
+    allText.includes('competenc') ||
+    allText.includes('value') ||
+    allText.includes('objective') ||
+    allText.includes('definition') ||
+    allText.includes('basic') ||
+    allText.includes('intermediate') ||
+    allText.includes('proficient') ||
+    allText.includes('advanced')
   )
+}
+
+/**
+ * Find the first row that contains headers
+ * Some sheets have empty rows or extra content before the actual header row
+ */
+export function findHeaderRow(rows: SheetRow[]): { headerRow: SheetRow; startIndex: number } | null {
+  for (let i = 0; i < Math.min(10, rows.length); i++) {
+    const row = rows[i]
+    if (isHeaderRow(row)) {
+      console.log(`[findHeaderRow] Found header row at index ${i}`)
+      return { headerRow: row, startIndex: i }
+    }
+  }
+
+  console.warn('[findHeaderRow] No header row found in first 10 rows')
+  return null
 }
 
 /**
