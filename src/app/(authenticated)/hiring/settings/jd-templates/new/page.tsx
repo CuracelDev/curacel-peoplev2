@@ -97,7 +97,7 @@ export default function NewJDPage() {
     },
   })
 
-  const [activeTab, setActiveTab] = useState('manual')
+  const [activeTab, setActiveTab] = useState('generate')
   const [isSaving, setIsSaving] = useState(false)
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
   const [existingJD, setExistingJD] = useState<{ id: string; name: string; version: number } | null>(null)
@@ -324,6 +324,10 @@ export default function NewJDPage() {
       {/* Main Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0 max-w-2xl">
+          <TabsTrigger value="generate" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+            <Sparkles className="h-4 w-4" />
+            AuntyPelz Generate
+          </TabsTrigger>
           <TabsTrigger value="manual" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
             <Pencil className="h-4 w-4" />
             Manual
@@ -335,10 +339,6 @@ export default function NewJDPage() {
           <TabsTrigger value="import" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
             <Globe className="h-4 w-4" />
             Import URL
-          </TabsTrigger>
-          <TabsTrigger value="generate" className="gap-2 rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
-            <Sparkles className="h-4 w-4" />
-            AuntyPelz Generate
           </TabsTrigger>
         </TabsList>
 
