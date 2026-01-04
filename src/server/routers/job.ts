@@ -570,6 +570,11 @@ export const jobRouter = router({
         },
       })
 
+      // Auto-sync to Webflow if job is created as ACTIVE and public
+      if (job.status === 'ACTIVE' && job.isPublic) {
+        syncJobToWebflow(job.id).catch(console.error)
+      }
+
       return job
     }),
 

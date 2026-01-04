@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Legacy Role Competencies settings page and old job competency selection UI (superseded by the competency framework).
 
 ### Added
+- Documentation v2 guide with tabbed layout, visual maps, and simplified onboarding flow.
 - **Dynamic AI Tools System for AuntyPelz**
   - OpenAI SDK integration with custom function calling capabilities
   - Database-driven tool definitions for dynamic action creation
@@ -148,6 +149,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added Short Listed as a hiring stage in default hiring flows and pipeline views
 
 ### Changed
+- Rewrote Documentation V2 with a full, plain-language guide for every major module, plus new onboarding, settings, and workflow diagrams.
 - Adjusted assessments filter cards layout for consistent sizing and spacing.
 - Interest form generation now references existing form structures for consistency.
 - Renamed the Sales competency framework label to Commercial.

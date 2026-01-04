@@ -1,0 +1,30 @@
+<svg width="800" height="240" viewBox="0 0 800 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="240" rx="24" fill="#FFF7ED"/>
+  <rect x="24" y="32" width="752" height="176" rx="20" fill="#FFFFFF"/>
+  <g font-family="Verdana, Arial, sans-serif" font-size="14" fill="#1F2937">
+    <rect x="48" y="84" width="120" height="56" rx="14" fill="#DBEAFE"/>
+    <text x="108" y="118" text-anchor="middle">Recruit</text>
+
+    <rect x="188" y="84" width="120" height="56" rx="14" fill="#E0E7FF"/>
+    <text x="248" y="118" text-anchor="middle">Offer</text>
+
+    <rect x="328" y="84" width="120" height="56" rx="14" fill="#FDE68A"/>
+    <text x="388" y="118" text-anchor="middle">Onboard</text>
+
+    <rect x="468" y="84" width="120" height="56" rx="14" fill="#FBCFE8"/>
+    <text x="528" y="118" text-anchor="middle">Grow</text>
+
+    <rect x="608" y="84" width="120" height="56" rx="14" fill="#E2E8F0"/>
+    <text x="668" y="118" text-anchor="middle">Offboard</text>
+  </g>
+  <g stroke="#94A3B8" stroke-width="2" stroke-linecap="round">
+    <line x1="168" y1="112" x2="188" y2="112"/>
+    <line x1="308" y1="112" x2="328" y2="112"/>
+    <line x1="448" y1="112" x2="468" y2="112"/>
+    <line x1="588" y1="112" x2="608" y2="112"/>
+  </g>
+  <g font-family="Verdana, Arial, sans-serif" font-size="12" fill="#6B7280">
+    <text x="64" y="66">Curacel People Journey</text>
+    <text x="64" y="170">Each stage is a dedicated module in the sidebar.</text>
+  </g>
+</svg>
