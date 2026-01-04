@@ -40,6 +40,7 @@ import { advisorRouter } from './advisor'
 import { emailSettingsRouter } from './email-settings'
 import { scorecardRouter } from './scorecard'
 import { aiCustomToolsRouter } from './ai-custom-tools'
+import { standupSyncRouter } from './standup-sync'
 
 export const appRouter = router({
   employee: employeeRouter,
@@ -83,6 +84,7 @@ export const appRouter = router({
   emailSettings: emailSettingsRouter,
   scorecard: scorecardRouter,
   aiCustomTools: aiCustomToolsRouter,
+  standupSync: standupSyncRouter,
 })
 
 export type AppRouter = typeof appRouter

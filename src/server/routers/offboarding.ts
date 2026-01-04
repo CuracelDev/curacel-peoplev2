@@ -5,6 +5,7 @@ import { TRPCError } from '@trpc/server'
 import { createAuditLog } from '@/lib/audit'
 import { deprovisionEmployeeInApp, deprovisionEmployeeInAppById, deprovisionEmployeeFromAllApps } from '@/lib/integrations'
 import { getOrganization } from '@/lib/organization'
+import { removeEmployeeFromStandup } from '@/lib/integrations/standup-sync'
 
 const DEFAULT_OFFBOARDING_TASK_TEMPLATES = [
   { name: 'Collect company equipment', type: 'MANUAL' as const, sortOrder: 1 },
@@ -914,10 +915,24 @@ async function checkAndCompleteOffboarding(prisma: typeof import('@/lib/prisma')
       },
     })
 
-    await prisma.employee.update({
+    const employee = await prisma.employee.update({
       where: { id: workflow.employeeId },
       data: { status: 'EXITED' },
+      select: {
+        id: true,
+        workEmail: true,
+        personalEmail: true,
+      },
     })
+
+    // Remove employee from standup_mate
+    const email = employee.workEmail || employee.personalEmail
+    if (email) {
+      await removeEmployeeFromStandup(email).catch((error) => {
+        console.error('Failed to remove employee from standup:', error)
+        // Don't fail offboarding if standup sync fails
+      })
+    }
 
     await createAuditLog({
       actorType: 'system',
