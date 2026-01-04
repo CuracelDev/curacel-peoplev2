@@ -1,0 +1,35 @@
+<svg width="800" height="240" viewBox="0 0 800 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="240" rx="24" fill="#FEF3C7"/>
+  <rect x="24" y="32" width="752" height="176" rx="20" fill="#FFFFFF"/>
+  <g font-family="Verdana, Arial, sans-serif" font-size="13" fill="#1F2937">
+    <rect x="56" y="78" width="120" height="84" rx="14" fill="#DBEAFE"/>
+    <text x="116" y="114" text-anchor="middle">Offer Signed</text>
+    <text x="116" y="134" text-anchor="middle" font-size="11" fill="#334155">Trigger</text>
+
+    <rect x="206" y="62" width="130" height="116" rx="14" fill="#E0E7FF"/>
+    <text x="271" y="104" text-anchor="middle">Create</text>
+    <text x="271" y="124" text-anchor="middle" font-size="11" fill="#334155">Work Email</text>
+
+    <rect x="368" y="62" width="130" height="116" rx="14" fill="#FDE68A"/>
+    <text x="433" y="104" text-anchor="middle">Tasks</text>
+    <text x="433" y="124" text-anchor="middle" font-size="11" fill="#334155">Apps + Manual</text>
+
+    <rect x="530" y="62" width="130" height="116" rx="14" fill="#FBCFE8"/>
+    <text x="595" y="104" text-anchor="middle">Self Service</text>
+    <text x="595" y="124" text-anchor="middle" font-size="11" fill="#334155">Profile + Values</text>
+
+    <rect x="692" y="78" width="80" height="84" rx="14" fill="#E2E8F0"/>
+    <text x="732" y="114" text-anchor="middle">Done</text>
+    <text x="732" y="134" text-anchor="middle" font-size="11" fill="#334155">Ready</text>
+  </g>
+  <g stroke="#94A3B8" stroke-width="2" stroke-linecap="round">
+    <line x1="176" y1="120" x2="206" y2="120"/>
+    <line x1="336" y1="120" x2="368" y2="120"/>
+    <line x1="498" y1="120" x2="530" y2="120"/>
+    <line x1="660" y1="120" x2="692" y2="120"/>
+  </g>
+  <g font-family="Verdana, Arial, sans-serif" font-size="12" fill="#6B7280">
+    <text x="64" y="66">Onboarding flow at a glance</text>
+    <text x="64" y="192">Automated steps run when integrations are connected.</text>
+  </g>
+</svg>

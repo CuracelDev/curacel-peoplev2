@@ -2,12 +2,22 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 type DocBlock = {
   title: string
   text?: string
   items?: string[]
   ordered?: boolean
+  image?: {
+    src: string
+    alt: string
+    caption?: string
+  }
+  diagram?: {
+    steps: string[]
+    caption?: string
+  }
 }
 
 type DocSection = {
@@ -17,7 +27,579 @@ type DocSection = {
   blocks: DocBlock[]
 }
 
-const docSections: DocSection[] = [
+const docSectionsV2: DocSection[] = [
+  {
+    id: 'v2-welcome',
+    title: 'Welcome to Curacel People',
+    description: 'A simple, human guide for HR teams who want clarity and calm.',
+    blocks: [
+      {
+        title: 'This guide is for you if...',
+        items: [
+          'You are new to HR software and want plain-language steps.',
+          'You want every HR workflow in one place, from hiring to offboarding.',
+          'You need confidence that nothing important gets missed.',
+        ],
+      },
+      {
+        title: 'The people journey',
+        diagram: {
+          steps: ['Recruit', 'Offer', 'Onboard', 'Grow', 'Offboard'],
+          caption: 'Think of the sidebar as this journey broken into modules.',
+        },
+      },
+      {
+        title: 'Visual map',
+        image: {
+          src: '/docs/people-journey.svg',
+          alt: 'Diagram showing the Curacel People journey from recruiting to offboarding.',
+          caption: 'Start here when you want to remember where a task lives.',
+        },
+      },
+    ],
+  },
+  {
+    id: 'v2-navigation',
+    title: 'Navigation and roles',
+    description: 'Find your way and understand who can see what.',
+    blocks: [
+      {
+        title: 'Navigation basics',
+        items: [
+          'Use the left sidebar to move between Hiring, Offers, People, and Settings.',
+          'The top of each page has search, filters, and quick actions.',
+          'The bell icon shows notifications for admin roles.',
+          'AuntyPelz lives in the sidebar for fast questions or drafting.',
+        ],
+      },
+      {
+        title: 'Roles, in plain language',
+        items: [
+          'SUPER_ADMIN: everything, including system settings and data exports.',
+          'HR_ADMIN: hiring, contracts, onboarding/offboarding, and people settings.',
+          'IT_ADMIN: integrations, provisioning, automation, and security-related settings.',
+          'MANAGER: views their team and onboarding/offboarding visibility.',
+          'EMPLOYEE: personal profile and self-service onboarding tasks.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-first-day',
+    title: 'Your first day checklist',
+    description: 'Set up the basics so the team can work without you.',
+    blocks: [
+      {
+        title: 'Company setup',
+        ordered: true,
+        items: [
+          'Settings > Organization profile: add company name, logo, and letterhead.',
+          'Settings > App Admins: invite admins and assign roles.',
+          'Settings > Signature blocks: create signers for contracts.',
+          'Settings > Legal entities: add the entities used in offers.',
+        ],
+      },
+      {
+        title: 'Hiring readiness',
+        ordered: true,
+        items: [
+          'Settings > Hiring > Hiring Flows: confirm your stages.',
+          'Settings > Hiring > Interview Types and Rubrics: align on evaluation.',
+          'Settings > Hiring > Interest Forms: create application forms.',
+          'Settings > Hiring > JD Templates: add reusable job descriptions.',
+        ],
+      },
+      {
+        title: 'Automation and alerts',
+        ordered: true,
+        items: [
+          'Settings > Applications: connect apps and run Test Connection.',
+          'Settings > Notifications: decide who gets email alerts.',
+          'Settings > On/Offboarding Settings: confirm default tasks.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-hiring-overview',
+    title: 'Hiring overview',
+    description: 'A clear flow from applicant to offer.',
+    blocks: [
+      {
+        title: 'Pipeline overview',
+        image: {
+          src: '/docs/hiring-pipeline.svg',
+          alt: 'Diagram of a hiring pipeline with stages for apply, screen, interview, offer, and hired.',
+          caption: 'Stages are editable in Settings > Hiring > Hiring Flows.',
+        },
+      },
+      {
+        title: 'A simple hiring rhythm',
+        ordered: true,
+        items: [
+          'Create a job in Hiring > Positions.',
+          'Attach an interest form so candidates can apply.',
+          'Review candidates and move them through stages.',
+          'Schedule interviews and capture feedback with scorecards.',
+          'Advance a decision and issue an offer when ready.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-positions',
+    title: 'Positions and job setup',
+    description: 'Define the role clearly so the pipeline runs smoothly.',
+    blocks: [
+      {
+        title: 'Create a position',
+        ordered: true,
+        items: [
+          'Go to Hiring > Positions and click Create Job.',
+          'Add job title, team, employment type, priority, and deadline.',
+          'Select a hiring flow and competency expectations if needed.',
+          'Attach a JD template or write the responsibilities directly.',
+          'Save as Draft or publish immediately.',
+        ],
+      },
+      {
+        title: 'Job descriptions (JD templates)',
+        items: [
+          'Settings > Hiring > JD Templates holds reusable templates.',
+          'Use Manual, Upload Files, or Import from URL to build templates.',
+          'Templates help keep language consistent across roles.',
+        ],
+      },
+      {
+        title: 'Interest forms',
+        items: [
+          'Settings > Hiring > Interest Forms lets you build application questions.',
+          'Each job must be linked to one interest form before it can accept applicants.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-candidates',
+    title: 'Candidates and profiles',
+    description: 'Everything about a candidate lives in one place.',
+    blocks: [
+      {
+        title: 'The candidates list',
+        items: [
+          'Use filters, search, and stage tags to find the right people fast.',
+          'Customize columns using the three-dot menu (country, source, salary, MBTI).',
+          'Open a candidate to see their full profile and timeline.',
+        ],
+      },
+      {
+        title: 'Inside a candidate profile',
+        items: [
+          'Stages show where the candidate sits in the hiring flow.',
+          'Scorecards capture interview feedback and weighted scores.',
+          'Assessments show linked tests and results.',
+          'Notes and activity keep all context in one timeline.',
+        ],
+      },
+      {
+        title: 'Export a profile',
+        ordered: true,
+        items: [
+          'Open the candidate profile.',
+          'Click Export Profile in the header actions.',
+          'Share the PDF with stakeholders or attach to approvals.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-interviews',
+    title: 'Interviews, rubrics, and scorecards',
+    description: 'Fair, structured evaluation for every role.',
+    blocks: [
+      {
+        title: 'Schedule interviews',
+        ordered: true,
+        items: [
+          'Open a candidate and click Schedule Interview.',
+          'Select interview type, interviewer, and time.',
+          'Assign a rubric so the scorecard is consistent.',
+        ],
+      },
+      {
+        title: 'Interview Types and Rubrics',
+        items: [
+          'Settings > Hiring > Interview Types controls format and default questions.',
+          'Settings > Hiring > Interview Rubrics defines scoring criteria.',
+          'Use weights to reflect what matters most for the role.',
+        ],
+      },
+      {
+        title: 'Candidate scoring settings',
+        items: [
+          'Settings > Hiring > Candidate Scoring lets you weight inputs.',
+          'Only available data is included in the final score.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-assessments',
+    title: 'Assessments',
+    description: 'Bring external tests into the hiring flow.',
+    blocks: [
+      {
+        title: 'Use assessment templates',
+        items: [
+          'Go to Hiring > Assessments to manage templates.',
+          'Feature the most common assessments as quick filters.',
+        ],
+      },
+      {
+        title: 'Send an assessment',
+        ordered: true,
+        items: [
+          'Open a candidate profile.',
+          'Select the assessment and send it.',
+          'Review results in the candidate timeline once completed.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-offers',
+    title: 'Offers and contracts',
+    description: 'Create, send, and track signatures with confidence.',
+    blocks: [
+      {
+        title: 'Create an offer',
+        ordered: true,
+        items: [
+          'Open Contracts and click New employment contract.',
+          'Select the candidate and employment type.',
+          'Fill compensation details and start date.',
+          'Pick the correct legal entity and signature block.',
+        ],
+      },
+      {
+        title: 'Send for signature',
+        ordered: true,
+        items: [
+          'Review the HTML preview to confirm variables.',
+          'Click Send for signature.',
+          'Track status: Draft, Sent, Viewed, Signed, Declined.',
+          'Download signed documents from the contract timeline.',
+        ],
+      },
+      {
+        title: 'Templates and signature blocks',
+        items: [
+          'Settings > Contract templates stores template bodies.',
+          'Settings > Signature blocks stores signing profiles.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-onboarding',
+    title: 'Onboarding',
+    description: 'A guided, respectful start for every new hire.',
+    blocks: [
+      {
+        title: 'Onboarding flow at a glance',
+        image: {
+          src: '/docs/onboarding-flow.svg',
+          alt: 'Diagram of the onboarding flow from offer signed to completed tasks.',
+          caption: 'Automated steps run as soon as apps are connected.',
+        },
+      },
+      {
+        title: 'Start onboarding',
+        ordered: true,
+        items: [
+          'Go to Onboarding and click Onboard New Employee.',
+          'Select the candidate from Offer Signed.',
+          'Confirm start date, manager, and work email provider.',
+          'Create the workflow and monitor task progress.',
+        ],
+      },
+      {
+        title: 'Employee self-service',
+        items: [
+          'New hires complete their profile, values, and work style preferences.',
+          'They receive a secure link via email to finish onboarding.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-offboarding',
+    title: 'Offboarding',
+    description: 'A respectful exit with access removal and clear tasks.',
+    blocks: [
+      {
+        title: 'Start offboarding',
+        ordered: true,
+        items: [
+          'Go to Offboarding and click Offboard employee.',
+          'Choose immediate or scheduled, add notes, and confirm.',
+          'Run automated tasks (apps connected) or complete manual steps.',
+        ],
+      },
+      {
+        title: 'Google Workspace options',
+        items: [
+          'Transfer Drive/Calendar data to another account.',
+          'Set aliases or forward mail if needed.',
+          'Delete the account to remove access immediately.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-employees',
+    title: 'Employees',
+    description: 'A complete record of every team member.',
+    blocks: [
+      {
+        title: 'Create and manage employees',
+        ordered: true,
+        items: [
+          'Go to Employees and click Add Employee.',
+          'Fill in required basics (name, personal email).',
+          'Use the profile to update job info, manager, and location.',
+          'Track status: Active, Offboarding, or Exited.',
+        ],
+      },
+      {
+        title: 'Personality and values',
+        items: [
+          'The Personality tab shows values and work style answers.',
+          'Use this for team alignment and onboarding conversations.',
+        ],
+      },
+      {
+        title: 'Example snapshots',
+        image: {
+          src: '/samples/mbti-example.png',
+          alt: 'Sample MBTI profile chart used for personality templates.',
+          caption: 'Personality templates help managers understand work styles.',
+        },
+      },
+    ],
+  },
+  {
+    id: 'v2-notifications',
+    title: 'Notifications and audit log',
+    description: 'Stay informed and keep a compliance trail.',
+    blocks: [
+      {
+        title: 'Notifications',
+        ordered: true,
+        items: [
+          'Open Notifications from the sidebar or the bell icon.',
+          'Archive items you no longer need.',
+          'Configure email alerts in Settings > Notifications.',
+        ],
+      },
+      {
+        title: 'Audit Log',
+        items: [
+          'Settings > Audit Log records every key action.',
+          'Filter by action type, resource, or date range.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-applications',
+    title: 'Applications and integrations',
+    description: 'Connect the tools your team already uses.',
+    blocks: [
+      {
+        title: 'Connect an app',
+        ordered: true,
+        items: [
+          'Settings > Applications shows all available integrations.',
+          'Open an app, add credentials, and click Save.',
+          'Use Test Connection to confirm it works.',
+        ],
+      },
+      {
+        title: 'Provisioning rules',
+        items: [
+          'Use integration rules to automate onboarding and offboarding steps.',
+          'Rules run when tasks move to In Progress.',
+        ],
+      },
+      {
+        title: 'Troubleshooting',
+        items: [
+          'Reconnect apps when tokens expire.',
+          'Check the Audit Log if an automation fails.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-auntypelz',
+    title: 'AuntyPelz: your HR co-pilot',
+    description: 'Ask questions, generate content, and automate safe actions.',
+    blocks: [
+      {
+        title: 'Using AuntyPelz',
+        ordered: true,
+        items: [
+          'Open AuntyPelz from the sidebar.',
+          'Ask questions like “Who starts next week?” or “Draft a welcome email.”',
+          'Use the microphone for voice input if you prefer speaking.',
+        ],
+      },
+      {
+        title: 'Dynamic tools',
+        items: [
+          'Create no-code actions that AuntyPelz can run for you.',
+          'Choose tRPC, webhook, or custom code execution.',
+          'Limit access with roles and confirmations.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-settings',
+    title: 'Settings map',
+    description: 'Know where to configure anything, without guessing.',
+    blocks: [
+      {
+        title: 'Settings map',
+        image: {
+          src: '/docs/settings-map.svg',
+          alt: 'Diagram grouping Settings pages into company setup, people ops, hiring, contracts, integrations, notifications, and security.',
+          caption: 'Think of Settings as clusters of related pages.',
+        },
+      },
+      {
+        title: 'Company setup',
+        items: [
+          'Organization profile: company details and letterhead.',
+          'App Admins: invite and manage admin roles.',
+          'Teams: build departments and sub-teams.',
+          'Legal entities: choose the correct contracting entity.',
+          'Signature blocks: store signers for contracts.',
+        ],
+      },
+      {
+        title: 'Hiring settings',
+        items: [
+          'Hiring flows: stage design for each role type.',
+          'Interview types, rubrics, and scoring settings.',
+          'Assessments and question bank.',
+          'JD templates and interest forms.',
+        ],
+      },
+      {
+        title: 'People operations',
+        items: [
+          'On/Offboarding settings for default tasks.',
+          'Public pages for careers and recruiter pages.',
+          'Contract templates and offer settings.',
+        ],
+      },
+      {
+        title: 'Communication settings',
+        items: [
+          'Email settings: sending preferences and tracking.',
+          'Email templates: stage-based templates for candidates.',
+          'Notifications: in-app and email alert rules.',
+        ],
+      },
+      {
+        title: 'Security and API',
+        items: [
+          'API settings: generate and revoke API keys.',
+          'Audit Log: compliance and troubleshooting.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-public-pages',
+    title: 'Public pages',
+    description: 'Candidate-facing pages you can share externally.',
+    blocks: [
+      {
+        title: 'Careers and recruiter pages',
+        items: [
+          'Public Careers page lists open positions.',
+          'Recruiter page lets you share a controlled application form.',
+        ],
+      },
+      {
+        title: 'Candidate application flow',
+        items: [
+          'Candidates apply through the public job page.',
+          'They complete the interest form you selected for the job.',
+          'Applications appear instantly in the Candidates list.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-api',
+    title: 'API access (for technical teams)',
+    description: 'Only needed if you connect external systems.',
+    blocks: [
+      {
+        title: 'Create an API key',
+        ordered: true,
+        items: [
+          'Go to Settings > API settings.',
+          'Click Create new key and copy it immediately.',
+          'Store the key securely and share with your engineering team.',
+        ],
+      },
+      {
+        title: 'API documentation',
+        items: [
+          'Open the API Docs page to see endpoints and examples.',
+          'Share the docs link with your technical team.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-troubleshooting',
+    title: 'Troubleshooting',
+    description: 'Quick checks for common issues.',
+    blocks: [
+      {
+        title: 'If something is missing',
+        items: [
+          'Check your role permissions first.',
+          'Use search or filters to locate items faster.',
+        ],
+      },
+      {
+        title: 'If automation fails',
+        items: [
+          'Confirm the app connection in Settings > Applications.',
+          'Run Test Connection and try again.',
+          'Review the Audit Log for details.',
+        ],
+      },
+      {
+        title: 'If an email does not send',
+        items: [
+          'Confirm email settings and signature blocks.',
+          'Ensure the record is in Draft or Ready-to-send state.',
+          'Check Notifications for error messages.',
+        ],
+      },
+    ],
+  },
+]
+
+const docSectionsV1: DocSection[] = [
   {
     id: 'quick-start',
     title: 'Quick start',
@@ -1091,6 +1673,101 @@ const docSections: DocSection[] = [
 ]
 
 export default function DocumentationPage() {
+  const renderSections = (sections: DocSection[]) => (
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Table of contents</CardTitle>
+          <CardDescription>Jump to any section in this guide.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-2 sm:grid-cols-2">
+          {sections.map((section) => (
+            <a
+              key={section.id}
+              href={`#${section.id}`}
+              className="text-sm text-blue-600 hover:underline"
+            >
+              {section.title}
+            </a>
+          ))}
+        </CardContent>
+      </Card>
+
+      {sections.map((section) => (
+        <section key={section.id} id={section.id} className="scroll-mt-24">
+          <Card>
+            <CardHeader>
+              <CardTitle>{section.title}</CardTitle>
+              <CardDescription>{section.description}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {section.blocks.map((block, blockIndex) => (
+                <div key={`${section.id}-${blockIndex}`} className="space-y-2">
+                  <h4 className="text-sm font-semibold text-foreground">{block.title}</h4>
+                  {block.text ? <p className="text-sm text-foreground/80">{block.text}</p> : null}
+                  {block.items ? (
+                    block.ordered ? (
+                      <ol className="list-decimal list-inside text-sm text-foreground/80 space-y-1">
+                        {block.items.map((item, itemIndex) => (
+                          <li key={`${section.id}-${blockIndex}-${itemIndex}`}>{item}</li>
+                        ))}
+                      </ol>
+                    ) : (
+                      <ul className="list-disc list-inside text-sm text-foreground/80 space-y-1">
+                        {block.items.map((item, itemIndex) => (
+                          <li key={`${section.id}-${blockIndex}-${itemIndex}`}>{item}</li>
+                        ))}
+                      </ul>
+                    )
+                  ) : null}
+                  {block.diagram ? (
+                    <div className="rounded-lg border bg-muted/30 p-3">
+                      <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                        Diagram
+                      </p>
+                      <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-foreground/80">
+                        {block.diagram.steps.map((step, stepIndex) => (
+                          <span key={`${section.id}-${blockIndex}-diagram-${stepIndex}`}>
+                            <span className="rounded-full border bg-background px-2 py-1 text-xs font-medium text-foreground">
+                              {step}
+                            </span>
+                            {stepIndex < block.diagram.steps.length - 1 ? (
+                              <span className="mx-2 text-xs text-muted-foreground">-&gt;</span>
+                            ) : null}
+                          </span>
+                        ))}
+                      </div>
+                      {block.diagram.caption ? (
+                        <p className="mt-2 text-sm text-foreground/70">{block.diagram.caption}</p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  {block.image ? (
+                    <figure className="space-y-2">
+                      <div className="overflow-hidden rounded-lg border bg-muted/30">
+                        <img
+                          src={block.image.src}
+                          alt={block.image.alt}
+                          className="h-auto w-full"
+                          loading="lazy"
+                        />
+                      </div>
+                      {block.image.caption ? (
+                        <figcaption className="text-xs text-muted-foreground">
+                          {block.image.caption}
+                        </figcaption>
+                      ) : null}
+                    </figure>
+                  ) : null}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        </section>
+      ))}
+    </>
+  )
+
   return (
     <div className="space-y-6">
       <SettingsPageHeader
@@ -1098,61 +1775,19 @@ export default function DocumentationPage() {
         description="Step-by-step guidance for every area of Curacel People."
       />
 
-      <div className="space-y-6 max-w-5xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Table of contents</CardTitle>
-            <CardDescription>Jump to any section in this guide.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-2 sm:grid-cols-2">
-            {docSections.map((section) => (
-              <a
-                key={section.id}
-                href={`#${section.id}`}
-                className="text-sm text-blue-600 hover:underline"
-              >
-                {section.title}
-              </a>
-            ))}
-          </CardContent>
-        </Card>
+      <Tabs defaultValue="v2" className="space-y-6">
+        <TabsList className="w-fit">
+          <TabsTrigger value="v2">Documentation V2</TabsTrigger>
+          <TabsTrigger value="v1">Classic documentation</TabsTrigger>
+        </TabsList>
 
-        {docSections.map((section) => (
-          <section key={section.id} id={section.id} className="scroll-mt-24">
-            <Card>
-              <CardHeader>
-                <CardTitle>{section.title}</CardTitle>
-                <CardDescription>{section.description}</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {section.blocks.map((block, blockIndex) => (
-                  <div key={`${section.id}-${blockIndex}`} className="space-y-2">
-                    <h4 className="text-sm font-semibold text-foreground">{block.title}</h4>
-                    {block.text ? (
-                      <p className="text-sm text-foreground/80">{block.text}</p>
-                    ) : null}
-                    {block.items ? (
-                      block.ordered ? (
-                        <ol className="list-decimal list-inside text-sm text-foreground/80 space-y-1">
-                          {block.items.map((item, itemIndex) => (
-                            <li key={`${section.id}-${blockIndex}-${itemIndex}`}>{item}</li>
-                          ))}
-                        </ol>
-                      ) : (
-                        <ul className="list-disc list-inside text-sm text-foreground/80 space-y-1">
-                          {block.items.map((item, itemIndex) => (
-                            <li key={`${section.id}-${blockIndex}-${itemIndex}`}>{item}</li>
-                          ))}
-                        </ul>
-                      )
-                    ) : null}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </section>
-        ))}
-      </div>
+        <TabsContent value="v2">
+          <div className="space-y-6 max-w-5xl">{renderSections(docSectionsV2)}</div>
+        </TabsContent>
+        <TabsContent value="v1">
+          <div className="space-y-6 max-w-5xl">{renderSections(docSectionsV1)}</div>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 }

@@ -1,0 +1,33 @@
+<svg width="800" height="240" viewBox="0 0 800 240" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="240" rx="24" fill="#EEF2FF"/>
+  <rect x="24" y="32" width="752" height="176" rx="20" fill="#FFFFFF"/>
+  <g font-family="Verdana, Arial, sans-serif" font-size="12" fill="#1F2937">
+    <rect x="50" y="70" width="150" height="40" rx="12" fill="#DBEAFE"/>
+    <text x="125" y="95" text-anchor="middle">Company Setup</text>
+
+    <rect x="50" y="120" width="150" height="40" rx="12" fill="#E0E7FF"/>
+    <text x="125" y="145" text-anchor="middle">People Ops</text>
+
+    <rect x="230" y="70" width="150" height="40" rx="12" fill="#FDE68A"/>
+    <text x="305" y="95" text-anchor="middle">Hiring Settings</text>
+
+    <rect x="230" y="120" width="150" height="40" rx="12" fill="#FBCFE8"/>
+    <text x="305" y="145" text-anchor="middle">Contracts</text>
+
+    <rect x="410" y="70" width="150" height="40" rx="12" fill="#E2E8F0"/>
+    <text x="485" y="95" text-anchor="middle">Integrations</text>
+
+    <rect x="410" y="120" width="150" height="40" rx="12" fill="#DCFCE7"/>
+    <text x="485" y="145" text-anchor="middle">Notifications</text>
+
+    <rect x="590" y="70" width="160" height="40" rx="12" fill="#FED7AA"/>
+    <text x="670" y="95" text-anchor="middle">Security + API</text>
+
+    <rect x="590" y="120" width="160" height="40" rx="12" fill="#F1F5F9"/>
+    <text x="670" y="145" text-anchor="middle">Audit Log</text>
+  </g>
+  <g font-family="Verdana, Arial, sans-serif" font-size="12" fill="#6B7280">
+    <text x="64" y="60">Settings map</text>
+    <text x="64" y="192">Each tile represents a cluster of pages in Settings.</text>
+  </g>
+</svg>
