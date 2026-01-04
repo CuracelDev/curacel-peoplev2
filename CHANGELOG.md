@@ -153,6 +153,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Wired "Advance to Next Stage" to move selected candidates forward from candidate lists.
 - Updated README with current V1/V2 status, architecture paths, and documentation pointers.
 - Updated candidate email header layout to use breadcrumb, back link, and larger title styling.
+- Removed the extra Emails wrapper card on the candidate email page.
+- Updated documentation header copy and replaced the version tabs with a footer link to the classic (V1) guide.
+- Made candidate rows clickable so profile navigation is reliable from the candidates list.
 - Adjusted assessments filter cards layout for consistent sizing and spacing.
 - Interest form generation now references existing form structures for consistency.
 - Renamed the Sales competency framework label to Commercial.

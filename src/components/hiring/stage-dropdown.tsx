@@ -60,6 +60,47 @@ const ALL_STAGES: StageInfo[] = [
   { value: 'ARCHIVED', label: 'Archived', isTerminal: true },
 ]
 
+const STAGE_ALIASES: Record<string, JobCandidateStage> = {
+  SHORTLISTED: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATES: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATE: 'SHORTLISTED',
+  SHORTLISTEDSTAGE: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESSTAGE: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESTAGE: 'SHORTLISTED',
+  SHORTLISTEDSTAGES: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESSTAGES: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESTAGES: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESTAGES: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESTAGE: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESTAGE: 'SHORTLISTED',
+  SHORTLIST: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESPOOL: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATEPOOL: 'SHORTLISTED',
+  SHORTLISTEDPOOL: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATEPOOLSTAGE: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESPOOLSTAGE: 'SHORTLISTED',
+  SHORTLISTEDPOOLSTAGE: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATEPOOLSTAGES: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESPOOLSTAGES: 'SHORTLISTED',
+  SHORTLISTEDPOOLSTAGES: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESSTAGE: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESTAGE: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESTAGE: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESTAGES: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESTAGES: 'SHORTLISTED',
+  SHORTLISTEDCANDIDATESSTAGES: 'SHORTLISTED',
+  PEOPLECHAT: 'HR_SCREEN',
+  HRSCREEN: 'HR_SCREEN',
+  CODINGTEST: 'TECHNICAL',
+  TECHTEST: 'TECHNICAL',
+  TEAMCHAT: 'TEAM_CHAT',
+  ADVISORCHAT: 'ADVISOR_CHAT',
+  CEOCHAT: 'CEO_CHAT',
+}
+
+const normalizeStageKey = (value: string) =>
+  value.toUpperCase().replace(/[^A-Z0-9]+/g, '')
+
 interface StageDropdownProps {
   currentStage: JobCandidateStage
   hiringFlowStages?: string[] | null // Stages from job hiring flow
@@ -101,13 +142,24 @@ export function StageDropdown({
       // Map hiring flow stages to stage info
       const flowStageValues = hiringFlowStages
         .map((flowStage) => {
-          // Normalize flow stage name to enum value
-          const normalized = flowStage.toUpperCase().replace(/[^A-Z0-9]+/g, '_')
-          // Find matching stage
-          const stage = ALL_STAGES.find((s) => s.value === normalized || s.label === flowStage)
+          const normalized = normalizeStageKey(flowStage)
+          const alias = STAGE_ALIASES[normalized]
+          const stage =
+            (alias ? ALL_STAGES.find((s) => s.value === alias) : null) ||
+            ALL_STAGES.find(
+              (s) =>
+                normalizeStageKey(s.value) === normalized ||
+                normalizeStageKey(s.label) === normalized
+            )
           return stage
         })
         .filter((s): s is StageInfo => s !== undefined)
+
+      if (flowStageValues.length === 0) {
+        return allowBackwardMovement
+          ? ALL_STAGES.filter((s) => s.value !== currentStage)
+          : ALL_STAGES.filter((s, index) => index > currentStageIndex)
+      }
 
       // Add terminal stages at the end
       const terminalStages = ALL_STAGES.filter((s) => s.isTerminal)

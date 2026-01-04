@@ -2,8 +2,7 @@
 
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { ChevronLeft, Mail } from 'lucide-react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ChevronLeft } from 'lucide-react'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
 import { EmailTab } from '@/components/hiring/email-tab'
 import { trpc } from '@/lib/trpc-client'
@@ -57,24 +56,13 @@ export default function CandidateEmailsPage() {
         </p>
       </div>
 
-      {/* Email Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Mail className="h-5 w-5" />
-            Emails
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <EmailTab
-            candidateId={candidate.id}
-            candidateName={candidate.name}
-            candidateEmail={candidate.email}
-            jobId={candidate.job?.id}
-            jobTitle={candidate.job?.title}
-          />
-        </CardContent>
-      </Card>
+      <EmailTab
+        candidateId={candidate.id}
+        candidateName={candidate.name}
+        candidateEmail={candidate.email}
+        jobId={candidate.job?.id}
+        jobTitle={candidate.job?.title}
+      />
     </div>
   )
 }

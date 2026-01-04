@@ -1828,6 +1828,9 @@ model JobCandidate {
   // Email threads with candidate
   emailThreads CandidateEmailThread[]
 
+  // Complete email sync tracking
+  emailSyncs   CandidateEmailSync[]
+
   // AI analysis versions
   aiAnalyses   CandidateAIAnalysis[]
 
@@ -2359,6 +2362,17 @@ enum EmailStatus {
   FAILED
 }
 
+enum EmailCategory {
+  APPLICATION              // Application/initial contact
+  INTERVIEW_SCHEDULING     // Interview scheduling
+  INTERVIEW_FOLLOWUP       // Interview follow-up
+  ASSESSMENT               // Assessment/test
+  OFFER                    // Offer
+  ONBOARDING               // Onboarding
+  GENERAL_FOLLOWUP         // General follow-up
+  OTHER                    // Other
+}
+
 enum AnalysisType {
   APPLICATION_REVIEW     // Initial application analysis
   STAGE_SUMMARY          // After completing a stage
@@ -2753,12 +2767,26 @@ model CandidateEmail {
   // Reminders for this email
   reminders       EmailReminder[]
 
+  // AI Categorization
+  category          EmailCategory?
+  categoryConfidence Float?         // 0.0 to 1.0
+  categorizedAt     DateTime?
+  categorizedBy     String?         // 'AI' or userId
+
+  // Hiring period tracking
+  isInHiringPeriod  Boolean         @default(false)
+
+  // Enhanced metadata
+  participants      Json?           // Array of all email addresses involved
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
   @@index([threadId])
   @@index([status])
   @@index([sentAt])
+  @@index([category])
+  @@index([isInHiringPeriod])
 }
 
 // Email Template with hierarchical overrides
@@ -2844,6 +2872,35 @@ model EmailTrackingEvent {
   @@index([emailId])
   @@index([eventType])
   @@index([occurredAt])
+}
+
+// Complete Email Sync Tracking for Candidates
+model CandidateEmailSync {
+  id            String   @id @default(uuid())
+  candidateId   String
+  candidate     JobCandidate @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+
+  // Sync metadata
+  lastSyncAt    DateTime @default(now())
+  emailsFound   Int      @default(0)
+  emailsNew     Int      @default(0)
+  emailsFailed  Int      @default(0)
+  syncStatus    String   // 'IN_PROGRESS', 'COMPLETED', 'FAILED'
+  errorMessage  String?  @db.Text
+
+  // Date range synced
+  fromDate      DateTime
+  toDate        DateTime
+
+  // AI categorization status
+  categorizationStatus String @default("PENDING") // 'PENDING', 'IN_PROGRESS', 'COMPLETED', 'FAILED'
+  categorizedCount     Int    @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([candidateId])
+  @@index([syncStatus])
 }
 
 // ============================================

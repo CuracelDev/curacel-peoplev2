@@ -502,6 +502,69 @@ export class GmailConnector {
       return false
     }
   }
+
+  /**
+   * Search for messages using Gmail search query
+   * Handles pagination to retrieve all matching messages
+   */
+  async searchMessages(
+    userEmail: string,
+    query: string,
+    maxResults?: number
+  ): Promise<ParsedEmail[]> {
+    try {
+      const gmail = await this.getGmailClient(userEmail)
+      const allMessages: ParsedEmail[] = []
+      let pageToken: string | undefined
+
+      const limit = maxResults || 500 // Default to 500 max messages
+
+      do {
+        const response = await gmail.users.messages.list({
+          userId: 'me',
+          q: query,
+          maxResults: Math.min(100, limit - allMessages.length), // Gmail API max is 100 per request
+          pageToken,
+        })
+
+        if (!response.data.messages) {
+          break
+        }
+
+        // Fetch full message details for each message
+        const messagePromises = response.data.messages.map(async (msg) => {
+          if (!msg.id) return null
+          try {
+            const fullMessage = await gmail.users.messages.get({
+              userId: 'me',
+              id: msg.id,
+              format: 'full',
+            })
+            return this.parseMessage(fullMessage.data)
+          } catch (error) {
+            console.error(`Error fetching message ${msg.id}:`, error)
+            return null
+          }
+        })
+
+        const messages = await Promise.all(messagePromises)
+        const validMessages = messages.filter((m): m is ParsedEmail => m !== null)
+        allMessages.push(...validMessages)
+
+        pageToken = response.data.nextPageToken || undefined
+
+        // Stop if we've reached the limit
+        if (maxResults && allMessages.length >= maxResults) {
+          break
+        }
+      } while (pageToken)
+
+      return allMessages
+    } catch (error) {
+      console.error('Gmail searchMessages error:', error)
+      return []
+    }
+  }
 }
 
 /**

@@ -33,6 +33,7 @@ import { hiringFlowRouter } from './hiringFlow'
 import { companyStageFlowRouter } from './companyStageFlow'
 import { questionRouter } from './question'
 import { candidateEmailRouter } from './candidate-email'
+import { candidateCommunicationsRouter } from './candidate-communications'
 import { auntyPelzAnalysisRouter } from './auntypelz-analysis'
 import { publicPagesRouter } from './public-pages'
 import { webflowRouter } from './webflow'
@@ -77,6 +78,7 @@ export const appRouter = router({
   companyStageFlow: companyStageFlowRouter,
   question: questionRouter,
   candidateEmail: candidateEmailRouter,
+  candidateCommunications: candidateCommunicationsRouter,
   auntyPelzAnalysis: auntyPelzAnalysisRouter,
   publicPages: publicPagesRouter,
   webflow: webflowRouter,
