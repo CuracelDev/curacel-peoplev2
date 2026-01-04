@@ -76,8 +76,11 @@ export async function testStandupSyncConnection(
   apiKey: string
 ): Promise<{ success: boolean; message: string }> {
   try {
+    const fullUrl = `${apiUrl}/api/health`
+    console.log(`Testing StandupNinja connection to: ${fullUrl}`)
+
     // Call health check endpoint to verify connection
-    const response = await fetch(`${apiUrl}/api/health`, {
+    const response = await fetch(fullUrl, {
       method: 'GET',
       headers: {
         'X-API-Key': apiKey,
@@ -85,22 +88,30 @@ export async function testStandupSyncConnection(
       },
     })
 
+    console.log(`StandupNinja response status: ${response.status}`)
+
     if (!response.ok) {
       const errorText = await response.text()
+      console.error(`StandupNinja connection failed: ${response.status} ${errorText}`)
       return {
         success: false,
         message: `Connection failed: ${response.status} ${errorText}`,
       }
     }
 
+    const data = await response.json()
+    console.log('StandupNinja connection successful:', data)
+
     return {
       success: true,
       message: 'Successfully connected to standup_mate',
     }
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error(`StandupNinja connection error:`, error)
     return {
       success: false,
-      message: `Connection error: ${error instanceof Error ? error.message : 'Unknown error'}`,
+      message: `Connection error: ${errorMessage}. Please verify the API URL is correct and standup_mate is running.`,
     }
   }
 }
