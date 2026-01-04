@@ -206,6 +206,12 @@ function validateConnectionConfig(appType: string, config: Record<string, unknow
       }
       return
     }
+    case 'STANDUPNINJA': {
+      if (!config.apiUrl || typeof config.apiUrl !== 'string') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'StandupNinja API URL is required' })
+      }
+      return
+    }
     default:
       return
   }

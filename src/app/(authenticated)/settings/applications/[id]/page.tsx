@@ -22,6 +22,7 @@ import { Switch } from '@/components/ui/switch'
 import { Loader2, Settings2, TestTubeIcon } from 'lucide-react'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 import { WebflowConfigSection } from '@/components/settings/WebflowConfigSection'
+import { StandupNinjaConfigSection } from '@/components/settings/StandupNinjaConfigSection'
 import { AppIcon } from '@/components/ui/app-icon'
 
 function csvToList(value: string) {
@@ -998,13 +999,36 @@ export default function ApplicationSettingsDetailPage() {
             />
           ) : null}
 
-          {type && !['SLACK', 'BITBUCKET', 'JIRA', 'HUBSPOT', 'PASSBOLT', 'FIREFLIES', 'WEBFLOW', 'GOOGLE_WORKSPACE'].includes(type) ? (
+          {type === 'STANDUPNINJA' ? (
+            <StandupNinjaConfigSection
+              appId={appId}
+              secrets={secrets as Record<string, unknown>}
+              canEdit={canEdit}
+              busy={busy}
+              onSave={(config) => {
+                upsert.mutate({
+                  appId,
+                  config: {
+                    apiUrl: config.apiUrl,
+                    apiKey: config.apiKey,
+                    syncOnHire: config.syncOnHire,
+                    syncOnTermination: config.syncOnTermination,
+                  },
+                })
+              }}
+              onSaveSuccess={() => {
+                summaryQuery.refetch()
+              }}
+            />
+          ) : null}
+
+          {type && !['SLACK', 'BITBUCKET', 'JIRA', 'HUBSPOT', 'PASSBOLT', 'FIREFLIES', 'WEBFLOW', 'STANDUPNINJA', 'GOOGLE_WORKSPACE'].includes(type) ? (
             <p className="text-sm text-foreground/80">
               This application currently supports webhook-based provisioning via the "View app" page.
             </p>
           ) : null}
 
-          {type !== 'WEBFLOW' && (
+          {type !== 'WEBFLOW' && type !== 'STANDUPNINJA' && (
             <div className="flex justify-end gap-2">
               <Button variant="outline" onClick={() => router.push('/settings/applications')} disabled={busy}>
                 Cancel

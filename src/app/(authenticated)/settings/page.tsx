@@ -26,7 +26,6 @@ import {
   Sparkles,
   Target,
   Clock,
-  MessageSquare,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -80,12 +79,6 @@ const settingsSections = [
         description: 'Configure onboarding and offboarding workflows.',
         icon: ListChecks,
         href: '/settings/on-offboarding',
-      },
-      {
-        title: 'Standup Sync',
-        description: 'Automatically sync employees to standup_mate for daily standups.',
-        icon: MessageSquare,
-        href: '/settings/standup-sync',
       },
       {
         title: 'Company Stage Process',

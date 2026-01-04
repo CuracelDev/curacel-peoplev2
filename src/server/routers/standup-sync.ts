@@ -19,36 +19,61 @@ export const standupSyncRouter = router({
    * Get standup sync settings
    */
   getSettings: protectedProcedure.query(async ({ ctx }) => {
-    let settings = await ctx.prisma.standupSyncSettings.findFirst()
-
-    // Create default settings if they don't exist
-    if (!settings) {
-      settings = await ctx.prisma.standupSyncSettings.create({
-        data: {
-          apiUrl: '',
-          isEnabled: false,
-          syncOnHire: true,
-          syncOnTermination: true,
+    // Find StandupNinja app
+    const app = await ctx.prisma.app.findFirst({
+      where: { type: 'STANDUPNINJA' },
+      include: {
+        connections: {
+          where: { isActive: true },
+          orderBy: { updatedAt: 'desc' },
+          take: 1,
         },
-      })
+      },
+    })
+
+    if (!app || app.connections.length === 0) {
+      return {
+        apiUrl: '',
+        isEnabled: false,
+        syncOnHire: true,
+        syncOnTermination: true,
+        lastSyncAt: null,
+        lastTestAt: null,
+        lastTestResult: null,
+        hasApiKey: false,
+      }
     }
 
-    // Return settings without encrypted fields
+    const connection = app.connections[0]
+
+    // Decrypt config to check for settings
+    let config: Record<string, unknown> = {}
+    try {
+      config = JSON.parse(decrypt(connection.configEncrypted))
+    } catch (error) {
+      console.error('Failed to decrypt StandupNinja config:', error)
+    }
+
+    const apiUrl = typeof config.apiUrl === 'string' ? config.apiUrl : ''
+    const hasApiKey = typeof config.apiKey === 'string' && config.apiKey.length > 0
+    const syncOnHire = config.syncOnHire !== false // default to true
+    const syncOnTermination = config.syncOnTermination !== false // default to true
+
     return {
-      id: settings.id,
-      apiUrl: settings.apiUrl,
-      isEnabled: settings.isEnabled,
-      syncOnHire: settings.syncOnHire,
-      syncOnTermination: settings.syncOnTermination,
-      lastSyncAt: settings.lastSyncAt,
-      lastTestAt: settings.lastTestAt,
-      lastTestResult: settings.lastTestResult,
-      hasApiKey: !!settings.apiKeyEncrypted,
+      apiUrl,
+      isEnabled: app.isEnabled,
+      syncOnHire,
+      syncOnTermination,
+      lastSyncAt: connection.lastSyncAt,
+      lastTestAt: connection.lastTestedAt,
+      lastTestResult: connection.lastTestStatus === 'SUCCESS' ? 'success' : connection.lastTestError || null,
+      hasApiKey,
     }
   }),
 
   /**
    * Update standup sync settings
+   * Note: This is deprecated. Settings are now saved via integration.upsertConnectionConfig
    */
   updateSettings: protectedProcedure
     .input(
@@ -60,40 +85,8 @@ export const standupSyncRouter = router({
         syncOnTermination: z.boolean(),
       })
     )
-    .mutation(async ({ ctx, input }) => {
-      const settings = await ctx.prisma.standupSyncSettings.findFirst()
-
-      if (!settings) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Settings not found',
-        })
-      }
-
-      // Prepare update data
-      const updateData: {
-        apiUrl: string
-        isEnabled: boolean
-        syncOnHire: boolean
-        syncOnTermination: boolean
-        apiKeyEncrypted?: string
-      } = {
-        apiUrl: input.apiUrl,
-        isEnabled: input.isEnabled,
-        syncOnHire: input.syncOnHire,
-        syncOnTermination: input.syncOnTermination,
-      }
-
-      // Only update API key if provided
-      if (input.apiKey) {
-        updateData.apiKeyEncrypted = encrypt(input.apiKey)
-      }
-
-      await ctx.prisma.standupSyncSettings.update({
-        where: { id: settings.id },
-        data: updateData,
-      })
-
+    .mutation(async () => {
+      // Deprecated - settings are now managed through AppConnection
       return { success: true }
     }),
 
@@ -110,13 +103,18 @@ export const standupSyncRouter = router({
     .mutation(async ({ ctx, input }) => {
       const result = await testStandupSyncConnection(input.apiUrl, input.apiKey)
 
-      // Update test result in database
-      await ctx.prisma.standupSyncSettings.updateMany({
-        data: {
-          lastTestAt: new Date(),
-          lastTestResult: result.success ? 'success' : result.message,
-        },
-      })
+      // Update test result in AppConnection
+      const app = await ctx.prisma.app.findFirst({ where: { type: 'STANDUPNINJA' } })
+      if (app) {
+        await ctx.prisma.appConnection.updateMany({
+          where: { appId: app.id, isActive: true },
+          data: {
+            lastTestedAt: new Date(),
+            lastTestStatus: result.success ? 'SUCCESS' : 'FAILED',
+            lastTestError: result.success ? null : result.message,
+          },
+        })
+      }
 
       if (!result.success) {
         throw new TRPCError({
@@ -243,6 +241,18 @@ export const standupSyncRouter = router({
    * Bulk sync all active employees
    */
   syncAllEmployees: protectedProcedure.mutation(async ({ ctx }) => {
+    // Check if StandupNinja app is enabled
+    const app = await ctx.prisma.app.findFirst({
+      where: { type: 'STANDUPNINJA', isEnabled: true },
+    })
+
+    if (!app) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'StandupNinja app is not enabled',
+      })
+    }
+
     const userId = ctx.session?.user?.id
     const employees = await ctx.prisma.employee.findMany({
       where: { status: 'ACTIVE' },
