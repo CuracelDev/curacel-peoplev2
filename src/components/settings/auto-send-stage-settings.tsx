@@ -24,6 +24,7 @@ import { toast } from 'sonner'
 
 const STAGES = [
   { value: 'APPLIED', label: 'Applied', description: 'When candidate applies for the job' },
+  { value: 'SHORTLISTED', label: 'Short Listed', description: 'Shortlist decision stage' },
   { value: 'HR_SCREEN', label: 'People Chat', description: 'Initial HR screening stage' },
   { value: 'TECHNICAL', label: 'Technical Assessment', description: 'Technical evaluation stage' },
   { value: 'TEAM_CHAT', label: 'Team Chat', description: 'Team interview stage' },
@@ -89,10 +90,26 @@ export function AutoSendStageSettings() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
-      await updateSettings.mutateAsync({ autoSendStages: stageConfigs })
+      const normalizedConfigs = STAGES.reduce((acc, stage) => {
+        const config = stageConfigs[stage.value]
+        if (!config) return acc
+        acc[stage.value] = {
+          enabled: !!config.enabled,
+          delayMinutes: Number.isFinite(config.delayMinutes) ? config.delayMinutes : 0,
+          templateId: config.templateId || undefined,
+          reminderEnabled: !!config.reminderEnabled,
+          reminderDelayHours: Number.isFinite(config.reminderDelayHours)
+            ? config.reminderDelayHours
+            : 72,
+        }
+        return acc
+      }, {} as Record<string, StageConfig>)
+
+      await updateSettings.mutateAsync({ autoSendStages: normalizedConfigs })
       toast.success('Auto-send settings saved successfully')
     } catch (error) {
-      toast.error('Failed to save settings')
+      const message = error instanceof Error ? error.message : 'Failed to save settings'
+      toast.error(message)
       console.error(error)
     } finally {
       setIsSaving(false)
@@ -114,7 +131,7 @@ export function AutoSendStageSettings() {
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <Zap className="h-4 w-4" />
-          Auto-Send Email Settings
+          AuntyPelz Emails
         </CardTitle>
         <CardDescription>
           Configure automatic email sending when candidates move between stages.{' '}
@@ -283,7 +300,7 @@ export function AutoSendStageSettings() {
         })}
 
         <div className="flex justify-end pt-4 border-t">
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button onClick={handleSave} disabled={isSaving} type="button">
             {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
             Save Settings
           </Button>

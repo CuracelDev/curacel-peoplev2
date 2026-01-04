@@ -701,13 +701,13 @@ const docSections: DocSection[] = [
   },
   {
     id: 'auto-send-settings',
-    title: 'Auto Send Settings',
+    title: 'AuntyPelz Emails',
     description: 'Manage candidate email templates and sending behavior.',
     blocks: [
       {
         title: 'Where to configure',
         items: [
-          'Go to Settings > Hiring > Auto Send Settings.',
+          'Go to Settings > Hiring > AuntyPelz Emails.',
           'Choose Email Settings or Email Templates from the list.',
         ],
       },

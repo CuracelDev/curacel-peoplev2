@@ -1089,12 +1089,22 @@ model AICustomTool {
   isActive        Boolean  @default(true)
   isBuiltIn       Boolean  @default(false) // True for system tools, false for custom
 
+  // Auto-creation and approval workflow
+  autoCreated     Boolean  @default(false) // True if created by AuntyPelz
+  approvalStatus  ApprovalStatus? // PENDING, APPROVED, REJECTED for auto-created tools
+  approvedBy      String?  // User ID who approved/rejected
+  approvedAt      DateTime?
+  rejectionReason String?  @db.Text
+  sourceContext   String?  @db.Text // The user request that triggered auto-creation
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   createdBy       String?
 
   @@index([category, isActive])
   @@index([isActive, isBuiltIn])
+  @@index([approvalStatus])
+  @@index([autoCreated])
 }
 
 // V3: Approval workflow for bulk/destructive actions

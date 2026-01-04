@@ -72,7 +72,7 @@ export default function OffboardingPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'COMPLETED': return 'bg-success/10 text-success-foreground'
+      case 'COMPLETED': return 'bg-success/10 text-success'
       case 'IN_PROGRESS': return 'bg-blue-100 text-blue-800'
       case 'PENDING': return 'bg-yellow-100 text-yellow-800'
       case 'FAILED': return 'bg-destructive/10 text-destructive-foreground'

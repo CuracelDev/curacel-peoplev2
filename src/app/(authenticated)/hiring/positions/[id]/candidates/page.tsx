@@ -56,6 +56,8 @@ function getStageBadge(stage: string) {
   switch (stage) {
     case 'APPLIED':
       return <Badge variant="secondary" className="bg-muted text-foreground/80">Applied</Badge>
+    case 'SHORTLISTED':
+      return <Badge className="bg-indigo-50 text-indigo-700 hover:bg-indigo-50">Short Listed</Badge>
     case 'HR_SCREEN':
       return <Badge className="bg-indigo-100 text-indigo-600 hover:bg-indigo-100">HR Screen</Badge>
     case 'TECHNICAL':

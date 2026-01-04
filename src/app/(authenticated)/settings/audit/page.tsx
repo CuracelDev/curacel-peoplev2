@@ -39,7 +39,7 @@ export default function AuditLogPage() {
   const { data: resourceTypes } = trpc.audit.getResourceTypes.useQuery()
 
   const getActionColor = (action: string) => {
-    if (action.includes('CREATED')) return 'bg-success/10 text-success-foreground'
+    if (action.includes('CREATED')) return 'bg-success/10 text-success'
     if (action.includes('UPDATED')) return 'bg-blue-100 text-blue-800'
     if (action.includes('DELETED') || action.includes('TERMINATED')) return 'bg-red-100 text-red-800'
     if (action.includes('SIGNED')) return 'bg-purple-100 text-purple-800'

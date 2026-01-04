@@ -56,7 +56,7 @@ function EmployeeTaskItem({
 
   const statusColor = taskStatus
     ? taskStatus === 'completed'
-      ? 'bg-success/10 text-success-foreground'
+      ? 'bg-success/10 text-success'
       : taskStatus === 'in_progress'
         ? 'bg-blue-100 text-blue-800'
         : 'bg-muted text-foreground/80'
@@ -442,7 +442,7 @@ export default function OnboardingDetailPage() {
           </p>
         </div>
         <Badge className={
-          workflow.status === 'COMPLETED' ? 'bg-success/10 text-success-foreground' :
+          workflow.status === 'COMPLETED' ? 'bg-success/10 text-success' :
           workflow.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
           workflow.status === 'FAILED' ? 'bg-destructive/10 text-destructive-foreground' :
           'bg-muted text-foreground'

@@ -43,7 +43,8 @@ export default function EmailSettingsPage() {
       })
       toast.success('Email settings saved successfully')
     } catch (error) {
-      toast.error('Failed to save settings')
+      const message = error instanceof Error ? error.message : 'Failed to save settings'
+      toast.error(message)
       console.error(error)
     } finally {
       setIsSaving(false)
@@ -159,7 +160,7 @@ export default function EmailSettingsPage() {
       </Card>
 
       <div className="flex justify-end">
-        <Button onClick={handleSaveSettings} disabled={isSaving}>
+        <Button onClick={handleSaveSettings} disabled={isSaving} type="button">
           {isSaving && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
           Save Settings
         </Button>

@@ -30,7 +30,7 @@ export default function AutoSendSettingsPage() {
           </Button>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Auto Send Settings</h1>
+          <h1 className="text-2xl font-bold text-foreground">AuntyPelz Emails</h1>
           <p className="text-sm text-foreground/80">
             Control email templates and auto-send behavior for hiring communications.
           </p>

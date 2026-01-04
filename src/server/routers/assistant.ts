@@ -4,6 +4,7 @@ import { TRPCError } from '@trpc/server'
 import { encrypt, decrypt } from '@/lib/encryption'
 import { createAuditLog } from '@/lib/audit'
 import type { AIProvider, EmployeeStatus } from '@prisma/client'
+import { ToolRegistry } from '@/lib/ai/tool-registry'
 
 // ============================================
 // TYPES
@@ -609,7 +610,7 @@ Available data: Employee, Job, JobCandidate, Offer, OnboardingWorkflow, Offboard
           jobId: { type: 'string', description: 'Filter by specific job ID' },
           stage: {
             type: 'string',
-            enum: ['APPLIED', 'HR_SCREEN', 'TEAM_CHAT', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED', 'REJECTED', 'ARCHIVED'],
+            enum: ['APPLIED', 'SHORTLISTED', 'HR_SCREEN', 'TEAM_CHAT', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED', 'REJECTED', 'ARCHIVED'],
             description: 'Filter by pipeline stage',
           },
           limit: { type: 'number', description: 'Maximum number of results (default 10)' },
@@ -723,6 +724,84 @@ Available data: Employee, Job, JobCandidate, Offer, OnboardingWorkflow, Offboard
           candidateId: { type: 'string', description: 'ID of the candidate' },
         },
         required: ['candidateId'],
+      },
+    },
+  },
+  // Auto-creation tool - AuntyPelz can create new tools when needed
+  {
+    type: 'function' as const,
+    function: {
+      name: 'create_custom_tool',
+      description: `Create a new custom tool when existing tools cannot fulfill a user request. This tool allows AuntyPelz to extend its capabilities dynamically.
+
+IMPORTANT: Only create tools for tRPC mutations or queries. Do NOT create webhook or custom code tools for security reasons.
+
+Examples of when to use this:
+- User asks "Can you archive all candidates who haven't responded in 30 days?" but no bulk archive tool exists
+- User wants to "Move candidate X to the Interview stage" but no stage transition tool exists
+- User needs to "Update job description for position Y" but no JD update tool exists
+
+The tool will be created in PENDING_APPROVAL status and requires admin approval before use.`,
+      parameters: {
+        type: 'object',
+        properties: {
+          name: {
+            type: 'string',
+            description: 'Unique function name in snake_case (e.g., "bulk_archive_candidates", "update_candidate_stage")',
+          },
+          displayName: {
+            type: 'string',
+            description: 'Human-readable name (e.g., "Bulk Archive Candidates")',
+          },
+          description: {
+            type: 'string',
+            description: 'Clear description of what the tool does and when to use it',
+          },
+          category: {
+            type: 'string',
+            enum: ['hiring', 'contracts', 'employees', 'onboarding', 'offboarding', 'general'],
+            description: 'Category for organizing tools',
+          },
+          parameters: {
+            type: 'object',
+            description: 'JSON Schema for the function parameters (must include type, properties, and required fields)',
+          },
+          executionType: {
+            type: 'string',
+            enum: ['trpc_mutation', 'trpc_query'],
+            description: 'Execution type - ONLY trpc_mutation or trpc_query allowed for auto-created tools',
+          },
+          executionConfig: {
+            type: 'object',
+            description: 'Configuration object with router, procedure, and optional inputMapping',
+            properties: {
+              router: { type: 'string', description: 'tRPC router name (e.g., "job", "candidate")' },
+              procedure: { type: 'string', description: 'Procedure name (e.g., "update", "archive")' },
+              inputMapping: {
+                type: 'object',
+                description: 'Optional mapping from tool parameters to procedure input',
+              },
+            },
+          },
+          requiresConfirmation: {
+            type: 'boolean',
+            description: 'Whether user confirmation is required before execution (recommended for destructive actions)',
+          },
+          sourceContext: {
+            type: 'string',
+            description: 'The original user request that triggered this tool creation',
+          },
+        },
+        required: [
+          'name',
+          'displayName',
+          'description',
+          'category',
+          'parameters',
+          'executionType',
+          'executionConfig',
+          'sourceContext',
+        ],
       },
     },
   },
@@ -977,7 +1056,24 @@ async function executeTool(
 
   try {
     let result: ToolResult
-    switch (toolName) {
+
+    // Check if this is a dynamic custom tool
+    const customTool = await ctx.prisma.aICustomTool.findUnique({
+      where: { name: toolName, isActive: true },
+    })
+
+    if (customTool) {
+      // Execute dynamic tool using ToolRegistry
+      const toolRegistry = new ToolRegistry(ctx.prisma)
+      console.log(`[Assistant] Executing dynamic tool: ${toolName}`)
+      result = await toolRegistry.executeTool(toolName, args, {
+        prisma: ctx.prisma,
+        userId: ctx.user.id,
+        userRole: ctx.user.role,
+      })
+    } else {
+      // Execute built-in tool
+      switch (toolName) {
       case 'find_contracts':
         result = await findContracts(args, ctx)
         break
@@ -1086,8 +1182,12 @@ async function executeTool(
       case 'get_candidate_sentiment_history':
         result = await getCandidateSentimentHistory(args, ctx)
         break
+      case 'create_custom_tool':
+        result = await createCustomTool(args, ctx)
+        break
       default:
         result = { status: 'error', message: `Unknown tool: ${toolName}` }
+      }
     }
 
     const latencyMs = Date.now() - startTime
@@ -1834,7 +1934,7 @@ Job:
 JobCandidate:
 - id, jobId, name, email, phone, resumeUrl, linkedinUrl
 - currentRole, currentCompany, yearsOfExperience, location
-- stage (APPLIED|HR_SCREEN|TEAM_CHAT|ADVISOR_CHAT|TECHNICAL|PANEL|TRIAL|CEO_CHAT|OFFER|HIRED|REJECTED|ARCHIVED)
+- stage (APPLIED|SHORTLISTED|HR_SCREEN|TEAM_CHAT|ADVISOR_CHAT|TECHNICAL|PANEL|TRIAL|CEO_CHAT|OFFER|HIRED|REJECTED|ARCHIVED)
 - score (0-100), experienceMatchScore, skillsMatchScore
 - createdAt, updatedAt
 - Relations: job (Job), interviews (CandidateInterview[]), assessments (CandidateAssessment[])
@@ -4410,7 +4510,7 @@ async function getJobPipeline(
   })
 
   // Group by stage
-  const stageOrder = ['APPLIED', 'HR_SCREEN', 'TEAM_CHAT', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED', 'REJECTED', 'ARCHIVED']
+  const stageOrder = ['APPLIED', 'SHORTLISTED', 'HR_SCREEN', 'TEAM_CHAT', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED', 'REJECTED', 'ARCHIVED']
   const pipeline: Record<string, Array<{ id: string; name: string; email: string; score?: number }>> = {}
 
   stageOrder.forEach(stage => {
@@ -4635,6 +4735,118 @@ async function getCandidateSentimentHistory(
     status: 'ok',
     data: { candidate: { id: candidate.id, name: candidate.name }, history, trend },
     message: `${candidate.name}: ${history.length} analyses. Trend: ${trend}. Latest: ${history[history.length - 1]?.recommendation || 'N/A'}`,
+  }
+}
+
+async function createCustomTool(
+  args: Record<string, unknown>,
+  ctx: { prisma: any; user: { id: string } }
+): Promise<ToolResult> {
+  const {
+    name,
+    displayName,
+    description,
+    category,
+    parameters,
+    executionType,
+    executionConfig,
+    requiresConfirmation,
+    sourceContext,
+  } = args as {
+    name?: string
+    displayName?: string
+    description?: string
+    category?: string
+    parameters?: any
+    executionType?: string
+    executionConfig?: any
+    requiresConfirmation?: boolean
+    sourceContext?: string
+  }
+
+  // Validate required fields
+  const missingFields: string[] = []
+  if (!name) missingFields.push('name')
+  if (!displayName) missingFields.push('displayName')
+  if (!description) missingFields.push('description')
+  if (!category) missingFields.push('category')
+  if (!parameters) missingFields.push('parameters')
+  if (!executionType) missingFields.push('executionType')
+  if (!executionConfig) missingFields.push('executionConfig')
+  if (!sourceContext) missingFields.push('sourceContext')
+
+  if (missingFields.length > 0) {
+    return {
+      status: 'missing_fields',
+      missingFields,
+      message: `Missing required fields: ${missingFields.join(', ')}`,
+    }
+  }
+
+  // Security check: only allow tRPC execution types for auto-created tools
+  if (executionType !== 'trpc_mutation' && executionType !== 'trpc_query') {
+    return {
+      status: 'error',
+      message: 'Auto-created tools can only use trpc_mutation or trpc_query execution types for security reasons.',
+    }
+  }
+
+  // Validate execution config
+  if (!executionConfig.router || !executionConfig.procedure) {
+    return {
+      status: 'error',
+      message: 'executionConfig must include router and procedure fields.',
+    }
+  }
+
+  // Check if tool name already exists
+  const existing = await ctx.prisma.aICustomTool.findUnique({
+    where: { name },
+  })
+
+  if (existing) {
+    return {
+      status: 'error',
+      message: `A tool with the name "${name}" already exists. Please choose a different name.`,
+    }
+  }
+
+  try {
+    // Create the tool in PENDING approval status
+    const tool = await ctx.prisma.aICustomTool.create({
+      data: {
+        name,
+        displayName,
+        description,
+        category,
+        parameters,
+        executionType,
+        executionConfig,
+        requiresConfirmation: requiresConfirmation ?? true, // Default to true for safety
+        autoCreated: true,
+        approvalStatus: 'PENDING',
+        sourceContext,
+        isActive: false, // Inactive until approved
+        createdBy: ctx.user.id,
+      },
+    })
+
+    return {
+      status: 'ok',
+      data: {
+        toolId: tool.id,
+        name: tool.name,
+        displayName: tool.displayName,
+        approvalStatus: 'PENDING',
+      },
+      message: `Custom tool "${displayName}" has been created and is pending admin approval. You'll be notified once it's approved and ready to use.`,
+    }
+  } catch (error) {
+    console.error('[Assistant] Failed to create custom tool:', error)
+    return {
+      status: 'error',
+      message: `Failed to create tool: ${error instanceof Error ? error.message : 'Unknown error'}`,
+    }
   }
 }
 
@@ -4877,14 +5089,21 @@ export const assistantRouter = router({
       // Create AI client
       const aiClient = await getAIClient(settings)
 
+      // Load dynamic tools from database and merge with built-in tools
+      const toolRegistry = new ToolRegistry(ctx.prisma)
+      const dynamicTools = await toolRegistry.loadTools()
+      const allTools = [...TOOL_DEFINITIONS, ...dynamicTools]
+
+      console.log(`[Assistant] Loaded ${dynamicTools.length} dynamic tools, ${allTools.length} total tools`)
+
       // Build messages with system prompt
       const messages: Message[] = [
         { role: 'system', content: SYSTEM_PROMPT },
         ...input.messages,
       ]
 
-      // First API call
-      let response = await aiClient.chat(messages, TOOL_DEFINITIONS)
+      // First API call with all tools (built-in + dynamic)
+      let response = await aiClient.chat(messages, allTools)
       let iterations = 0
       const maxIterations = 5
 
@@ -4920,8 +5139,8 @@ export const assistantRouter = router({
           content: `[Tool Results]\n${toolResponseContent}`,
         })
 
-        // Get next response
-        response = await aiClient.chat(messages, TOOL_DEFINITIONS)
+        // Get next response with all tools (built-in + dynamic)
+        response = await aiClient.chat(messages, allTools)
       }
 
       // Return final response

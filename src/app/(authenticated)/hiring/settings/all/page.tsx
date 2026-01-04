@@ -1800,7 +1800,7 @@ export default function SettingsPage() {
                   <h3 className="font-medium">How Sources Are Displayed</h3>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="p-3 bg-success/10 rounded-lg">
-                      <Badge className="bg-success/10 text-success-foreground mb-2">INBOUND</Badge>
+                      <Badge className="bg-success/10 text-success mb-2">INBOUND</Badge>
                       <p className="text-sm text-foreground/80">Shows channel name: &quot;YC&quot;, &quot;PeopleOS&quot;</p>
                     </div>
                     <div className="p-3 bg-blue-50 rounded-lg">

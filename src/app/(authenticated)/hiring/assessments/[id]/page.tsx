@@ -46,7 +46,7 @@ const typeConfig: Record<string, { label: string; color: string; icon: React.Com
   COMPETENCY_TEST: { label: 'Competency Test', color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300', icon: ClipboardCheck },
   CODING_TEST: { label: 'Coding Test', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300', icon: Code },
   PERSONALITY_TEST: { label: 'Personality Test', color: 'bg-pink-100 text-pink-800 dark:bg-pink-900/30 dark:text-pink-300', icon: Brain },
-  WORK_TRIAL: { label: 'Work Trial', color: 'bg-success/10 text-success-foreground dark:bg-success/30 dark:text-success', icon: Briefcase },
+  WORK_TRIAL: { label: 'Work Trial', color: 'bg-success/10 text-success dark:bg-success/30 dark:text-success', icon: Briefcase },
   CUSTOM: { label: 'Custom', color: 'bg-muted text-foreground', icon: FileText },
 }
 
@@ -54,7 +54,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   NOT_STARTED: { label: 'Not Started', color: 'bg-muted text-foreground/80' },
   INVITED: { label: 'Invited', color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300' },
   IN_PROGRESS: { label: 'In Progress', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-300' },
-  COMPLETED: { label: 'Completed', color: 'bg-success/10 text-success-foreground dark:bg-success/30 dark:text-success' },
+  COMPLETED: { label: 'Completed', color: 'bg-success/10 text-success dark:bg-success/30 dark:text-success' },
   EXPIRED: { label: 'Expired', color: 'bg-destructive/10 text-destructive-foreground dark:bg-destructive/30 dark:text-destructive' },
   CANCELLED: { label: 'Cancelled', color: 'bg-muted text-muted-foreground' },
 }
@@ -617,7 +617,7 @@ export default function AssessmentDetailPage() {
                   <Badge
                     className={cn(
                       'text-lg px-4 py-2',
-                      assessment.recommendation === 'HIRE' && 'bg-success/10 text-success-foreground dark:bg-success/30 dark:text-success',
+                      assessment.recommendation === 'HIRE' && 'bg-success/10 text-success dark:bg-success/30 dark:text-success',
                       assessment.recommendation === 'HOLD' && 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
                       assessment.recommendation === 'NO_HIRE' && 'bg-destructive/10 text-destructive-foreground dark:bg-destructive/30 dark:text-destructive'
                     )}

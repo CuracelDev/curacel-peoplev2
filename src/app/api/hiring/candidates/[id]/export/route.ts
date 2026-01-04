@@ -10,6 +10,7 @@ export const runtime = 'nodejs'
 
 const stageDisplayNames: Record<string, string> = {
   APPLIED: 'Applied',
+  SHORTLISTED: 'Short Listed',
   HR_SCREEN: 'People Chat',
   TECHNICAL: 'Coding Test',
   TEAM_CHAT: 'Team Chat',
