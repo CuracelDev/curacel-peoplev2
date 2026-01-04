@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { format, formatDistanceToNow } from 'date-fns'
 import { MoreHorizontal, MoreVertical } from 'lucide-react'
 import { Card } from '@/components/ui/card'
@@ -162,6 +163,7 @@ export function CandidatesTable({
   footer,
   bulkActions,
 }: CandidatesTableProps) {
+  const router = useRouter()
   const [visibleColumns, setVisibleColumns] = useState<Record<ColumnKey, boolean>>(defaultVisibleColumns)
   const [isColumnsLoaded, setIsColumnsLoaded] = useState(false)
 
@@ -217,6 +219,11 @@ export function CandidatesTable({
   const renderLink = (candidate: CandidateRow, node: React.ReactNode) => {
     if (!candidateHref) return node
     return <Link href={candidateHref(candidate)}>{node}</Link>
+  }
+
+  const shouldIgnoreRowClick = (target: EventTarget | null) => {
+    if (!(target instanceof HTMLElement)) return false
+    return Boolean(target.closest('a,button,input,select,textarea,[role="menuitem"],[data-row-click="ignore"]'))
   }
 
   return (
@@ -284,6 +291,18 @@ export function CandidatesTable({
                     'hover:bg-muted cursor-pointer transition-colors',
                     selectedCandidates.includes(candidate.id) && 'bg-indigo-50/50'
                   )}
+                  onClick={(event) => {
+                    if (!candidateHref || shouldIgnoreRowClick(event.target)) return
+                    router.push(candidateHref(candidate))
+                  }}
+                  onKeyDown={(event) => {
+                    if (!candidateHref || shouldIgnoreRowClick(event.target)) return
+                    if (event.key === 'Enter') {
+                      router.push(candidateHref(candidate))
+                    }
+                  }}
+                  role={candidateHref ? 'button' : undefined}
+                  tabIndex={candidateHref ? 0 : undefined}
                 >
                   <td className="py-3 px-4" onClick={(e) => e.stopPropagation()}>
                     <Checkbox

@@ -2,7 +2,6 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 type DocBlock = {
   title: string
@@ -30,7 +29,7 @@ type DocSection = {
 const docSectionsV2: DocSection[] = [
   {
     id: 'v2-welcome',
-    title: 'Welcome to Curacel People',
+    title: 'Welcome to Curacel PeopleOs',
     description: 'A full, plain-language guide for PeopleOps managers and HR teams.',
     blocks: [
       {
@@ -1896,19 +1895,24 @@ export default function DocumentationPage() {
         description="Step-by-step guidance for every area of Curacel People."
       />
 
-      <Tabs defaultValue="v2" className="space-y-6">
-        <TabsList className="w-fit">
-          <TabsTrigger value="v2">Documentation V2</TabsTrigger>
-          <TabsTrigger value="v1">Classic documentation</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="v2">
-          <div className="space-y-6 max-w-5xl">{renderSections(docSectionsV2)}</div>
-        </TabsContent>
-        <TabsContent value="v1">
-          <div className="space-y-6 max-w-5xl">{renderSections(docSectionsV1)}</div>
-        </TabsContent>
-      </Tabs>
+      <div className="space-y-6 max-w-5xl">
+        {renderSections(docSectionsV2)}
+        <div className="flex items-center justify-between border-t pt-6">
+          <p className="text-sm text-muted-foreground">Looking for the classic guide?</p>
+          <a href="#classic-documentation" className="text-sm text-blue-600 hover:underline">
+            Version 1 documentation
+          </a>
+        </div>
+        <div id="classic-documentation" className="scroll-mt-24">
+          <div className="space-y-2">
+            <h2 className="text-xl font-semibold">Classic documentation (V1)</h2>
+            <p className="text-sm text-muted-foreground">
+              The original reference guide for legacy workflows and labels.
+            </p>
+          </div>
+        </div>
+        {renderSections(docSectionsV1)}
+      </div>
     </div>
   )
 }

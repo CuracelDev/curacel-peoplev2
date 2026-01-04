@@ -752,6 +752,12 @@ export default function CandidateProfilePage() {
                   <span className="hidden sm:inline">View Emails</span>
                 </Button>
               </Link>
+              <Link href={`/hiring/candidates/${candidateId}/communications`} className="flex-1 sm:flex-none">
+                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
+                  <Activity className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Communications</span>
+                </Button>
+              </Link>
             </div>
           </div>
         </CardContent>
