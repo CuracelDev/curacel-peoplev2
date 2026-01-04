@@ -11,7 +11,6 @@ import {
   Star,
   Info,
   Check,
-  Search,
   X,
   MapPin,
   DollarSign,
@@ -68,7 +67,6 @@ const SUGGESTED_LOCATIONS = [
 export default function CreateJobPage() {
   const router = useRouter()
   const { data: teams } = trpc.team.listForSelect.useQuery()
-  const { data: competencies } = trpc.competency.listForSelect.useQuery()
   const { data: employees } = trpc.employee.getAllActive.useQuery()
   const { data: allScorecards } = trpc.scorecard.listForSelection.useQuery()
   const createJob = trpc.job.create.useMutation()
@@ -100,8 +98,6 @@ export default function CreateJobPage() {
   const [followerSearch, setFollowerSearch] = useState('')
 
   const [selectedFlow, setSelectedFlow] = useState('')
-  const [selectedCompetencies, setSelectedCompetencies] = useState<string[]>([])
-  const [competencySearch, setCompetencySearch] = useState('')
   const [saveState, setSaveState] = useState<{
     type: 'draft' | 'active' | 'error'
     message: string
@@ -150,16 +146,6 @@ export default function CreateJobPage() {
 
   const selectedFlowData = flows.find((flow) => flow.id === selectedFlow) ?? flows[0]
 
-  // Filter competencies based on search
-  const filteredCompetencies = useMemo(() => {
-    const allCompetencies = competencies || []
-    if (!competencySearch.trim()) return allCompetencies
-    return allCompetencies.filter(c =>
-      c.name.toLowerCase().includes(competencySearch.toLowerCase()) ||
-      c.category.toLowerCase().includes(competencySearch.toLowerCase())
-    )
-  }, [competencies, competencySearch])
-
   // Filter office locations based on search
   const filteredLocations = useMemo(() => {
     const query = locationSearch.trim()
@@ -191,18 +177,6 @@ export default function CreateJobPage() {
     ).slice(0, 10)
   }, [employees, followerSearch])
 
-  const toggleCompetency = (id: string) => {
-    setSelectedCompetencies((prev) =>
-      prev.includes(id)
-        ? prev.filter((c) => c !== id)
-        : [...prev, id]
-    )
-  }
-
-  const removeCompetency = (id: string) => {
-    setSelectedCompetencies((prev) => prev.filter((c) => c !== id))
-  }
-
   const toggleLocation = (value: string) => {
     const trimmed = value.trim()
     if (!trimmed) return
@@ -232,10 +206,6 @@ export default function CreateJobPage() {
   const removeFollower = (id: string) => {
     setFollowers((prev) => prev.filter((f) => f !== id))
   }
-
-  const selectedCompetencyNames = selectedCompetencies.map(
-    id => (competencies || []).find(c => c.id === id)?.name || ''
-  ).filter(Boolean)
 
   const formattedDeadline = formData.deadline
     ? new Date(formData.deadline).toLocaleDateString('en-US', {
@@ -337,7 +307,6 @@ export default function CreateJobPage() {
         hiringManagerId: formData.hiringManagerId || undefined,
         autoArchiveLocation: formData.autoArchiveLocation,
         followerIds: followers,
-        competencyIds: selectedCompetencies,
         scorecardData: scorecardDataToSend,
         competencyRequirements: competencyRequirements,
       })

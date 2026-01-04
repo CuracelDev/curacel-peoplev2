@@ -11,7 +11,6 @@ import {
   Star,
   Info,
   Check,
-  Search,
   X,
   MapPin,
   Users,
@@ -70,7 +69,6 @@ export default function EditJobPage() {
   const { data: teams } = trpc.team.listForSelect.useQuery()
   const { data: jobDescriptions } = trpc.jobDescription.listForSelect.useQuery()
   const { data: interestForms } = trpc.interestForm.listForSelect.useQuery()
-  const { data: competencies } = trpc.competency.listForSelect.useQuery()
   const { data: employees } = trpc.employee.getAllActive.useQuery()
   const updateJob = trpc.job.update.useMutation()
 
@@ -100,8 +98,6 @@ export default function EditJobPage() {
   const [followers, setFollowers] = useState<string[]>([])
   const [followerSearch, setFollowerSearch] = useState('')
   const [selectedFlow, setSelectedFlow] = useState('')
-  const [selectedCompetencies, setSelectedCompetencies] = useState<string[]>([])
-  const [competencySearch, setCompetencySearch] = useState('')
   const [saveState, setSaveState] = useState<{ type: 'success' | 'error'; message: string } | null>(null)
   const [isSaving, setIsSaving] = useState(false)
   const [initialized, setInitialized] = useState(false)
@@ -134,7 +130,6 @@ export default function EditJobPage() {
       })
       setOfficeLocations(Array.isArray(job.locations) ? job.locations as string[] : [])
       setFollowers(job.followers?.map(f => f.employeeId) || [])
-      setSelectedCompetencies(job.competencies?.map(c => c.competencyId) || [])
       if (job.hiringFlowId) setSelectedFlow(job.hiringFlowId)
       setInitialized(true)
     }
@@ -150,15 +145,6 @@ export default function EditJobPage() {
   const selectedFlowData = flows.find((flow) => flow.id === selectedFlow) ?? flows[0]
   const selectedJD = (jobDescriptions || []).find(jd => jd.id === formData.jdId)
   const availableInterestForms = interestForms || []
-
-  const filteredCompetencies = useMemo(() => {
-    const allCompetencies = competencies || []
-    if (!competencySearch.trim()) return allCompetencies
-    return allCompetencies.filter(c =>
-      c.name.toLowerCase().includes(competencySearch.toLowerCase()) ||
-      c.category.toLowerCase().includes(competencySearch.toLowerCase())
-    )
-  }, [competencies, competencySearch])
 
   const filteredLocations = useMemo(() => {
     const query = locationSearch.trim()
@@ -188,16 +174,6 @@ export default function EditJobPage() {
       emp.workEmail?.toLowerCase().includes(followerSearch.toLowerCase())
     ).slice(0, 10)
   }, [employees, followerSearch])
-
-  const toggleCompetency = (id: string) => {
-    setSelectedCompetencies((prev) =>
-      prev.includes(id) ? prev.filter((c) => c !== id) : [...prev, id]
-    )
-  }
-
-  const removeCompetency = (id: string) => {
-    setSelectedCompetencies((prev) => prev.filter((c) => c !== id))
-  }
 
   const toggleLocation = (value: string) => {
     const trimmed = value.trim()
@@ -265,7 +241,6 @@ export default function EditJobPage() {
         hiringManagerId: formData.hiringManagerId || null,
         autoArchiveLocation: formData.autoArchiveLocation,
         followerIds: followers,
-        competencyIds: selectedCompetencies,
       })
 
       setSaveState({ type: 'success', message: 'Job updated successfully.' })
@@ -577,59 +552,10 @@ export default function EditJobPage() {
             </div>
           </div>
 
-          {/* Competencies */}
-          <div className="bg-card border border-border rounded-xl">
-            <div className="p-5 border-b border-border flex items-center gap-3">
-              <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">4</div>
-              <h2 className="font-semibold">Role Competencies</h2>
-            </div>
-            <div className="p-5">
-              {selectedCompetencies.length > 0 && (
-                <div className="mb-4">
-                  <Label className="mb-2 block">Selected ({selectedCompetencies.length})</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedCompetencies.map((id) => {
-                      const comp = (competencies || []).find(c => c.id === id)
-                      if (!comp) return null
-                      return (
-                        <Badge key={id} className="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 cursor-pointer gap-1" onClick={() => removeCompetency(id)}>
-                          {comp.name}
-                          <X className="h-3 w-3" />
-                        </Badge>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
-              <div className="relative mb-4">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input placeholder="Search competencies..." value={competencySearch} onChange={(e) => setCompetencySearch(e.target.value)} className="pl-10" />
-              </div>
-              <div className="grid grid-cols-2 gap-2 max-h-[200px] overflow-y-auto">
-                {filteredCompetencies.map((comp) => (
-                  <button
-                    key={comp.id}
-                    type="button"
-                    onClick={() => toggleCompetency(comp.id)}
-                    className={cn(
-                      'flex items-center gap-2 p-3 border rounded-lg transition-all text-left',
-                      selectedCompetencies.includes(comp.id) ? 'border-indigo-500 bg-indigo-50/50' : 'border-border hover:border-border'
-                    )}
-                  >
-                    <div className={cn('w-[18px] h-[18px] rounded flex items-center justify-center flex-shrink-0', selectedCompetencies.includes(comp.id) ? 'bg-indigo-600 text-white' : 'border-2 border-border')}>
-                      {selectedCompetencies.includes(comp.id) && <Check className="h-3 w-3" />}
-                    </div>
-                    <span className="text-sm font-medium">{comp.name}</span>
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
-
           {/* Additional Details */}
           <div className="bg-card border border-border rounded-xl">
             <div className="p-5 border-b border-border flex items-center gap-3">
-              <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">5</div>
+              <div className="w-7 h-7 bg-indigo-600 text-white rounded-full flex items-center justify-center font-semibold text-sm">4</div>
               <h2 className="font-semibold">Additional Details</h2>
             </div>
             <div className="p-5 space-y-5">

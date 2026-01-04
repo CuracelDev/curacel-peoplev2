@@ -925,7 +925,7 @@ const docSections: DocSection[] = [
           'Set a Deadline date to indicate when the role should be filled.',
           'Set Number of Hires if you plan to fill multiple seats.',
           'Add locations (multi-select); you can enter any city or region and Lagos is suggested.',
-          'Choose the interview flow and required competencies.',
+          'Choose the interview flow and competency requirements.',
           'Click Create Job to publish or Save as Draft to finish later.',
         ],
       },

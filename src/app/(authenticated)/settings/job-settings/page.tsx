@@ -7,7 +7,6 @@ import {
   Briefcase,
   ChevronRight,
   ArrowLeft,
-  Target,
   FileQuestion,
   UserCircle2,
   Layers,
@@ -27,13 +26,6 @@ const jobSettingsOptions = [
     description: 'Create candidate application forms.',
     icon: FileQuestion,
     href: '/hiring/settings/interest-forms',
-    iconBg: 'bg-indigo-100',
-  },
-  {
-    title: 'Role Competencies',
-    description: 'Define competencies that can be selected when creating job positions.',
-    icon: Target,
-    href: '/hiring/settings/competencies',
     iconBg: 'bg-indigo-100',
   },
   {

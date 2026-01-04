@@ -123,7 +123,6 @@ const sectionMap: Record<string, string> = {
   forms: 'interestForms',
   questions: 'questions',
   // Evaluation Criteria
-  competencies: 'competencies',
   decisionSupport: 'decision-support',
   'decision-support': 'decision-support',
   personality: 'personality',
@@ -139,7 +138,7 @@ const sectionMap: Record<string, string> = {
 
 export default function SettingsPage() {
   const searchParams = useSearchParams()
-  const [activeSection, setActiveSection] = useState('competencies')
+  const [activeSection, setActiveSection] = useState('interview')
   const [selectedDepartment, setSelectedDepartment] = useState('engineering')
   const [oceanProfile, setOceanProfile] = useState({
     openness: 75,
@@ -206,8 +205,6 @@ export default function SettingsPage() {
   // API queries
   const interestFormsQuery = trpc.interestForm.list.useQuery()
   const rubricTemplatesQuery = trpc.interviewStage.listTemplates.useQuery()
-  const competenciesQuery = trpc.competency.list.useQuery()
-
   // New recruiting settings queries
   const recruitingSettingsQuery = trpc.hiringSettings.get.useQuery()
   const recruitersQuery = trpc.recruiter.list.useQuery()
@@ -267,9 +264,6 @@ export default function SettingsPage() {
     },
   })
 
-  const createCompetencyMutation = trpc.competency.create.useMutation({
-    onSuccess: () => competenciesQuery.refetch(),
-  })
 
   // New recruiting settings mutations
   const updateSettingsMutation = trpc.hiringSettings.update.useMutation({
@@ -654,7 +648,6 @@ export default function SettingsPage() {
 
   const interestForms = interestFormsQuery.data || []
   const rubricTemplates = rubricTemplatesQuery.data || []
-  const competencies = competenciesQuery.data || []
 
   const selectedForm = interestForms.find((f) => f.id === selectedFormId)
   const selectedRubric = rubricTemplates.find((r) => r.id === selectedRubricId)
@@ -663,56 +656,6 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Settings Content */}
       <div className="space-y-6">
-          {/* Competency Framework */}
-          {activeSection === 'competencies' && (
-            <Card id="competencies">
-              <CardHeader className="p-5 border-b">
-                <h2 className="text-lg font-semibold">Competency Framework</h2>
-                <p className="text-sm text-muted-foreground">Define the competencies expected of all hires. Role-specific competencies are set per job.</p>
-              </CardHeader>
-              <CardContent className="p-5">
-                {competenciesQuery.isLoading ? (
-                  <div className="flex items-center justify-center py-10">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="grid grid-cols-2 gap-3">
-                      {competencies.map((competency) => (
-                        <div key={competency.id} className="p-4 border border-border rounded-xl">
-                          <div className="flex justify-between items-start mb-2">
-                            <div className="font-semibold">{competency.name}</div>
-                            <Badge variant="secondary">{competency.category}</Badge>
-                          </div>
-                          <div className="text-sm text-foreground/80">{competency.description}</div>
-                        </div>
-                      ))}
-                    </div>
-                    {competencies.length === 0 && (
-                      <div className="text-center py-10 text-muted-foreground">
-                        No competencies defined yet. Add your first competency.
-                      </div>
-                    )}
-                    <Button
-                      variant="outline"
-                      className="mt-4"
-                      onClick={() => {
-                        const name = prompt('Competency name:')
-                        if (!name) return
-                        const description = prompt('Description:')
-                        const category = prompt('Category (e.g., Technical, Leadership):') || 'General'
-                        createCompetencyMutation.mutate({ name, description: description || undefined, category })
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Competency
-                    </Button>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
           {/* AuntyPelz Decision Support */}
           {activeSection === 'decision-support' && (
             <>
