@@ -59,12 +59,13 @@ function formatEmploymentType(type: string) {
 function getStageBadgeColor(stage: string) {
   const colors: Record<string, string> = {
     APPLIED: 'bg-blue-100 text-blue-800',
+    SHORTLISTED: 'bg-indigo-50 text-indigo-700',
     HR_SCREEN: 'bg-indigo-100 text-indigo-800',
     TECHNICAL: 'bg-purple-100 text-purple-800',
     PANEL: 'bg-violet-100 text-violet-800',
     TRIAL: 'bg-amber-100 text-amber-800',
     CEO_CHAT: 'bg-orange-100 text-orange-800',
-    OFFER: 'bg-success/10 text-success-foreground',
+    OFFER: 'bg-success/10 text-success',
     HIRED: 'bg-emerald-100 text-emerald-800',
     REJECTED: 'bg-destructive/10 text-destructive-foreground',
     WITHDRAWN: 'bg-muted text-foreground',
@@ -76,6 +77,7 @@ function getStageBadgeColor(stage: string) {
 function formatStageName(stage: string) {
   const names: Record<string, string> = {
     APPLIED: 'Applied',
+    SHORTLISTED: 'Short Listed',
     HR_SCREEN: 'HR Screen',
     TECHNICAL: 'Technical',
     PANEL: 'Panel Interview',

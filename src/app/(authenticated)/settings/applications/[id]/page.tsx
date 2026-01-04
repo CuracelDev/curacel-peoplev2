@@ -489,7 +489,7 @@ export default function ApplicationSettingsDetailPage() {
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2">
               {connectionLabel.tone === 'success' ? (
-                <Badge className="bg-success/10 text-success-foreground">{connectionLabel.text}</Badge>
+                <Badge className="bg-success/10 text-success">{connectionLabel.text}</Badge>
               ) : connectionLabel.tone === 'error' ? (
                 <Badge className="bg-red-100 text-red-800">{connectionLabel.text}</Badge>
               ) : (

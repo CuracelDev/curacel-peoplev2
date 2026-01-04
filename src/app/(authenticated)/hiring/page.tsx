@@ -117,6 +117,7 @@ export default function RecruitingDashboard() {
   // Build pipeline stages from database
   const pipelineStages = pipelineData ? [
     { label: 'Applied', count: pipelineData.stages.find(s => s.stage === 'APPLIED')?.count || 0 },
+    { label: 'Short Listed', count: pipelineData.stages.find(s => s.stage === 'SHORTLISTED')?.count || 0 },
     { label: 'People Chat', count: pipelineData.stages.find(s => s.stage === 'HR_SCREEN')?.count || 0 },
     { label: 'Coding Test', count: pipelineData.stages.find(s => s.stage === 'TECHNICAL')?.count || 0 },
     { label: 'Team Chat', count: pipelineData.stages.find(s => s.stage === 'TEAM_CHAT')?.count || 0 },

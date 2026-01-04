@@ -61,7 +61,7 @@ const typeConfig: Record<AssessmentType, { label: string; icon: React.ComponentT
   COMPETENCY_TEST: { label: 'Competency Test', icon: Target, color: 'bg-purple-100 text-purple-800', description: 'Skills and competency-based assessments' },
   CODING_TEST: { label: 'Coding Test', icon: Code, color: 'bg-blue-100 text-blue-800', description: 'Technical coding challenges and assessments' },
   PERSONALITY_TEST: { label: 'Personality Test', icon: Brain, color: 'bg-pink-100 text-pink-800', description: 'Personality and behavioral assessments' },
-  WORK_TRIAL: { label: 'Work Trial', icon: Briefcase, color: 'bg-success/10 text-success-foreground', description: 'Paid or unpaid work trial period' },
+  WORK_TRIAL: { label: 'Work Trial', icon: Briefcase, color: 'bg-success/10 text-success', description: 'Paid or unpaid work trial period' },
   CUSTOM: { label: 'Custom', icon: FileText, color: 'bg-gray-100 text-gray-800', description: 'Custom assessment or evaluation' },
 }
 

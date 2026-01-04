@@ -52,6 +52,7 @@ const TEMPLATE_CATEGORIES = [
 
 const STAGES = [
   { value: 'APPLIED', label: 'Applied' },
+  { value: 'SHORTLISTED', label: 'Short Listed' },
   { value: 'HR_SCREEN', label: 'HR Screen' },
   { value: 'ASSESSMENT', label: 'Assessment' },
   { value: 'TEAM_CHAT', label: 'Team Chat' },

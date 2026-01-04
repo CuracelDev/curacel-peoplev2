@@ -25,6 +25,7 @@ import {
   Zap,
   Sparkles,
   Target,
+  Clock,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -121,7 +122,7 @@ const settingsSections = [
         href: '/hiring/settings/assessments',
       },
       {
-        title: 'Auto Send Settings',
+        title: 'AuntyPelz Emails',
         description: 'Configure automatic stage emails and templates.',
         icon: Zap,
         href: '/settings/email-settings',
@@ -177,6 +178,12 @@ const settingsSections = [
         description: 'Configure AuntyPelz API keys.',
         icon: Bot,
         href: '/settings/ai-agent',
+      },
+      {
+        title: 'Pending AI Tools',
+        description: 'Approve auto-created tools from AuntyPelz.',
+        icon: Clock,
+        href: '/settings/ai-agent/pending-tools',
       },
       {
         title: 'Audit Log',

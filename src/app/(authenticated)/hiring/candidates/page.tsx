@@ -62,6 +62,7 @@ type DateFilter = 'all' | 'today' | 'week' | 'month' | 'quarter'
 
 const stageStyles: Record<string, string> = {
   'APPLIED': 'bg-muted text-foreground/80',
+  'SHORTLISTED': 'bg-indigo-50 text-indigo-700',
   'HR_SCREEN': 'bg-indigo-100 text-indigo-700',
   'TECHNICAL': 'bg-amber-100 text-amber-700',
   'TEAM_CHAT': 'bg-success/10 text-success',
@@ -76,6 +77,7 @@ const stageStyles: Record<string, string> = {
 const defaultStageCards = [
   { key: 'all', label: 'All', stageKeys: [] as string[] },
   { key: 'applied', label: 'Applied', stageKeys: ['APPLIED'] },
+  { key: 'shortlisted', label: 'Short Listed', stageKeys: ['SHORTLISTED'] },
   { key: 'hrScreen', label: 'People Chat', stageKeys: ['HR_SCREEN'] },
   { key: 'technical', label: 'Coding Test', stageKeys: ['TECHNICAL'] },
   { key: 'panel', label: 'Team Chat', stageKeys: ['TEAM_CHAT', 'PANEL'] },
@@ -176,6 +178,7 @@ export default function CandidatesPage() {
   // Map filter to stage
   const stageFilter = activeFilter === 'all' ? undefined :
                       activeFilter === 'applied' ? 'APPLIED' as const :
+                      activeFilter === 'shortlisted' ? 'SHORTLISTED' as const :
                       activeFilter === 'hrScreen' ? 'HR_SCREEN' as const :
                       activeFilter === 'technical' ? 'TECHNICAL' as const :
                       activeFilter === 'panel' ? 'TEAM_CHAT' as const :

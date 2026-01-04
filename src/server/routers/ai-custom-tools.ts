@@ -186,4 +186,75 @@ export const aiCustomToolsRouter = router({
         }
       )
     }),
+
+  // List pending tools (auto-created and awaiting approval)
+  listPending: adminProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.aICustomTool.findMany({
+      where: {
+        autoCreated: true,
+        approvalStatus: 'PENDING',
+      },
+      orderBy: { createdAt: 'desc' },
+    })
+  }),
+
+  // Approve a pending tool
+  approve: adminProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const tool = await ctx.prisma.aICustomTool.findUnique({
+        where: { id: input.id },
+      })
+
+      if (!tool) {
+        throw new Error('Tool not found')
+      }
+
+      if (!tool.autoCreated || tool.approvalStatus !== 'PENDING') {
+        throw new Error('This tool is not pending approval')
+      }
+
+      return ctx.prisma.aICustomTool.update({
+        where: { id: input.id },
+        data: {
+          approvalStatus: 'APPROVED',
+          approvedBy: ctx.user!.id,
+          approvedAt: new Date(),
+          isActive: true, // Activate the tool
+        },
+      })
+    }),
+
+  // Reject a pending tool
+  reject: adminProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        reason: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const tool = await ctx.prisma.aICustomTool.findUnique({
+        where: { id: input.id },
+      })
+
+      if (!tool) {
+        throw new Error('Tool not found')
+      }
+
+      if (!tool.autoCreated || tool.approvalStatus !== 'PENDING') {
+        throw new Error('This tool is not pending approval')
+      }
+
+      return ctx.prisma.aICustomTool.update({
+        where: { id: input.id },
+        data: {
+          approvalStatus: 'REJECTED',
+          approvedBy: ctx.user!.id,
+          approvedAt: new Date(),
+          rejectionReason: input.reason,
+          isActive: false, // Keep inactive
+        },
+      })
+    }),
 })

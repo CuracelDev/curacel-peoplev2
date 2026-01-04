@@ -41,7 +41,34 @@ async function main() {
     })
 
     if (existingFlow) {
-      console.log(`⏭️  Flow "${flowData.name}" already exists (${existingFlow.snapshots.length} snapshots)`)
+      const existingStages = (existingFlow.stages as string[]) || []
+      if (!existingStages.includes('Short Listed') && flowData.stages.includes('Short Listed')) {
+        const insertIndex = Math.min(1, existingStages.length)
+        const nextStages = [...existingStages]
+        nextStages.splice(insertIndex, 0, 'Short Listed')
+
+        const latestVersion = existingFlow.snapshots.reduce(
+          (max, snapshot) => Math.max(max, snapshot.version),
+          0
+        )
+
+        await prisma.hiringFlow.update({
+          where: { id: existingFlow.id },
+          data: {
+            stages: nextStages,
+            snapshots: {
+              create: {
+                version: latestVersion + 1,
+                stages: nextStages,
+              },
+            },
+          },
+        })
+
+        console.log(`✅ Updated flow "${flowData.name}" to include Short Listed (snapshot v${latestVersion + 1})`)
+      } else {
+        console.log(`⏭️  Flow "${flowData.name}" already exists (${existingFlow.snapshots.length} snapshots)`)
+      }
       continue
     }
 

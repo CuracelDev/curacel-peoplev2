@@ -201,10 +201,17 @@ export class ToolRegistry {
 
   /**
    * Load all active tools (built-in + custom)
+   * Only includes approved tools for auto-created ones
    */
   async loadTools(): Promise<ToolDefinition[]> {
     const customTools = await this.prisma.aICustomTool.findMany({
-      where: { isActive: true },
+      where: {
+        isActive: true,
+        OR: [
+          { autoCreated: false }, // Include all manually created tools
+          { autoCreated: true, approvalStatus: 'APPROVED' }, // Only approved auto-created tools
+        ],
+      },
       orderBy: { category: 'asc' },
     })
 

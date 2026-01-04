@@ -18,6 +18,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Confirmation requirements for sensitive actions
   - Admin API (aiCustomTools router) for creating, updating, and managing custom tools
   - No code changes required to add new AI capabilities
+  - **Auto-Creation & Approval Workflow**
+    - AuntyPelz can now create custom tools automatically when needed
+    - New `create_custom_tool` function allows AI to extend its own capabilities
+    - Auto-created tools start in PENDING approval status for security
+    - Admin approval UI at `/settings/ai-agent/pending-tools`
+    - Approve or reject tools with optional rejection reasons
+    - Only tRPC execution types allowed for auto-created tools (security restriction)
+    - Tools become active immediately upon approval
+    - Source context tracking shows what user request triggered tool creation
 - **AuntyPelz Actions Settings**
   - New automated actions page for hiring workflow automation
   - Auto-archive candidates that don't meet job requirements
@@ -133,6 +142,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Project context reference doc (`CONTEXT.md`) for V1/V2 scope, links, and design decisions
 - Hiring flow editor in Recruiting settings with shared flow data used in job creation, JD templates, and question stage selection
 - Interview settings entry on the main Settings page linking to hiring flow editor
+- Added Short Listed as a hiring stage in default hiring flows and pipeline views
 
 ### Changed
 - Adjusted assessments filter cards layout for consistent sizing and spacing.
@@ -140,6 +150,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Renamed the Sales competency framework label to Commercial.
 - Department competency lookup now maps Commercial to Sales for existing data.
 - Grouped job description, interest form, and scorecard into a single Job Setup card on job creation.
+- Renamed Auto Send Settings to AuntyPelz Emails in settings navigation and documentation.
+- Updated auto-send stage settings to show AuntyPelz Emails and include Short Listed.
+- Normalized auto-send stage payloads and surfaced mutation errors in email settings saves.
+- Set email settings save buttons to type=button to avoid silent form submits.
+- Adjusted success status badge text color for better readability.
 - Simplified assessments list columns and allowed assessment names to wrap.
 - Matched assessments filter cards/button styling to the interviews pill layout.
 - Interest forms are now selected per job with no global default.
