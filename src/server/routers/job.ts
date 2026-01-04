@@ -1079,6 +1079,26 @@ export const jobRouter = router({
           // Log error but don't fail the mutation
           console.error('[updateCandidate] Failed to queue stage email:', error)
         }
+
+        // Auto-create employee and offer when candidate moves to OFFER stage
+        if (input.stage === 'OFFER') {
+          try {
+            const { queueHireFlow } = await import('@/lib/jobs/hire-flow')
+            const { getWorker } = await import('@/lib/jobs/worker')
+
+            const boss = getWorker()
+            if (boss) {
+              await queueHireFlow(boss, {
+                candidateId: id,
+                jobId: result.jobId,
+              })
+              console.log('[updateCandidate] Queued hire flow for candidate:', id)
+            }
+          } catch (error) {
+            // Log error but don't fail the mutation
+            console.error('[updateCandidate] Failed to queue hire flow:', error)
+          }
+        }
       }
 
       return result

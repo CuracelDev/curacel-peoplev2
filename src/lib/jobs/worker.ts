@@ -10,6 +10,7 @@ import { initDailyBriefJob, scheduleDailyBrief } from './daily-brief'
 import { initStageEmailJob, STAGE_EMAIL_JOB_NAME } from './stage-email'
 import { initReminderJob, REMINDER_JOB_NAME } from './reminder'
 import { initEscalationJob, ESCALATION_JOB_NAME } from './escalation'
+import { hireFlowHandler, HIRE_FLOW_JOB_NAME } from './hire-flow'
 
 let boss: PgBoss | null = null
 let isInitializing = false
@@ -60,6 +61,10 @@ export async function initializeWorker(): Promise<PgBoss> {
     initStageEmailJob(boss)
     initReminderJob(boss)
     initEscalationJob(boss)
+
+    // Register hire flow job handler
+    await boss.work(HIRE_FLOW_JOB_NAME, { teamSize: 2, teamConcurrency: 1 }, hireFlowHandler)
+    console.log(`[Worker] Job handler registered: ${HIRE_FLOW_JOB_NAME}`)
 
     // Schedule recurring jobs
     await scheduleDailyBrief(boss)
@@ -119,20 +124,24 @@ export async function getQueueStats(): Promise<{
   stageEmails: { pending: number; failed: number }
   reminders: { pending: number }
   dailyBrief: { pending: number }
+  hireFlow: { pending: number; failed: number }
 } | null> {
   if (!boss) return null
 
-  const [stageEmailPending, stageEmailFailed, remindersPending, dailyBriefPending] =
+  const [stageEmailPending, stageEmailFailed, remindersPending, dailyBriefPending, hireFlowPending, hireFlowFailed] =
     await Promise.all([
       boss.getQueueSize(STAGE_EMAIL_JOB_NAME, { state: 'created' }),
       boss.getQueueSize(STAGE_EMAIL_JOB_NAME, { state: 'failed' }),
       boss.getQueueSize(REMINDER_JOB_NAME, { state: 'created' }),
       boss.getQueueSize('daily-brief-compute', { state: 'created' }),
+      boss.getQueueSize(HIRE_FLOW_JOB_NAME, { state: 'created' }),
+      boss.getQueueSize(HIRE_FLOW_JOB_NAME, { state: 'failed' }),
     ])
 
   return {
     stageEmails: { pending: stageEmailPending, failed: stageEmailFailed },
     reminders: { pending: remindersPending },
     dailyBrief: { pending: dailyBriefPending },
+    hireFlow: { pending: hireFlowPending, failed: hireFlowFailed },
   }
 }

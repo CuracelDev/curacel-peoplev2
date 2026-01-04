@@ -18,23 +18,24 @@ The foundational platform for post-hire employee lifecycle management.
 - **Integrations**: Google Workspace and Slack account provisioning/deprovisioning
 - **RBAC**: Role-based access (Super Admin, HR Admin, IT Admin, Manager, Employee)
 - **Audit Logging**: Complete audit trail of all actions
-- **Blue AI Assistant**: AI-powered HR assistant for natural language queries
+- **AuntyPelz Assistant**: AI-powered HR assistant for natural language queries
 
 ---
 
-### V2 - Recruiter Agent (Planned)
+### V2 - Recruiter Agent (In Progress)
 
 AI-powered recruitment decision support system that sits before the onboarding flow, handling the full candidate pipeline from application to hire decision.
 
-**New Features:**
-- **Job Position Management**: Create and manage open positions with JD, rubrics, and scorecards
-- **Applicant Tracking**: Full candidate pipeline with stage progression (Screening → Interview → Assessment → Offer)
-- **AI Resume Screening**: Automated candidate scoring based on role requirements and company values
-- **Interview Management**: Schedule interviews, upload transcripts, get AI-powered analysis
-- **Question Generation**: AI generates customized interview questions per candidate/stage
-- **Assessment Integration**: Track results from Kand.io, TestGorilla, and other platforms
-- **Hire Decision Module**: Data-driven hire/no-hire recommendations with evidence
-- **Seamless Transition**: Convert hired applicants to employees → triggers existing offer/onboarding flow
+**Current capabilities:**
+- **Job Position Management**: Create and manage roles with hiring flows, JD templates, and scorecards
+- **Applicant Tracking**: Full candidate pipeline with stage progression and bulk stage updates
+- **AI Resume Screening**: Automated candidate scoring and summaries
+- **Interview Management**: Schedule interviews, attach transcripts, and capture rubric-based evaluations
+- **Question Generation**: AI-generated interview questions by category
+- **Assessment Tracking**: Manage assessment templates and attach results
+- **Candidate Profile Export**: PDF export for stakeholder review
+
+**Planned next:** decision module UI, hire → employee/offer automation, recruiting analytics, and deeper AI tools.
 
 **Workflow:**
 ```
@@ -235,7 +236,7 @@ src/
 │   │   ├── offers/
 │   │   ├── onboarding/
 │   │   ├── offboarding/
-│   │   ├── recruiting/     # V2: Recruiter Agent
+│   │   ├── hiring/         # V2: Recruiter Agent
 │   │   └── integrations/
 │   ├── api/
 │   │   ├── auth/          # NextAuth endpoints
@@ -243,7 +244,7 @@ src/
 │   └── auth/              # Auth pages
 ├── components/
 │   ├── layout/            # Sidebar, header
-│   ├── recruiting/        # V2: Recruiting components
+│   ├── hiring/            # V2: Hiring components
 │   ├── providers.tsx      # React Query, tRPC, Session
 │   └── ui/                # shadcn/ui components
 ├── lib/
@@ -264,7 +265,11 @@ src/
 │       ├── offer.ts
 │       ├── onboarding.ts
 │       ├── offboarding.ts
-│       ├── recruiting.ts  # V2: Recruiting router
+│       ├── job.ts         # V2: Recruiting core
+│       ├── interview.ts
+│       ├── assessment.ts
+│       ├── hiringFlow.ts
+│       └── ...
 │       └── ...
 └── types/                 # TypeScript types
 ```
@@ -281,16 +286,16 @@ src/
 
 ## Main Workflows
 
-### Recruiting Flow (V2)
+### Hiring Flow (V2)
 
 1. HR creates job position with JD and rubric
 2. Candidates apply (or imported from ATS)
 3. AI screens applications and generates initial scores
-4. HR advances qualified candidates to interview stages
+4. HR advances qualified candidates to interview stages (bulk or single)
 5. Interviewers conduct interviews, upload transcripts
 6. AI analyzes transcripts and generates insights
-7. HR makes hire decision with AI recommendation
-8. Hired → Creates Employee + Draft Offer
+7. HR makes hire decision (decision UI is planned)
+8. Hired → Employee + Draft Offer automation is planned
 
 ### Offer → Hire Flow (V1)
 
@@ -336,6 +341,12 @@ npm run db:seed       # Seed database
 # Worker (for background jobs)
 npm run worker        # Start job worker
 ```
+
+## Documentation
+
+- Product docs live in-app: Settings → Documentation
+- API docs live in-app: `/api-docs`
+- Full roadmap: `ROADMAP.md`
 
 ## API Endpoints
 
