@@ -2076,6 +2076,9 @@ model HiringSettings {
   autoArchiveUnqualified Boolean @default(false) // Auto-archive applicants that don't meet requirements
   autoArchiveLocationMismatch Boolean @default(false) // Auto-archive applicants that don't meet location requirements
 
+  // Stage movement restrictions
+  allowBackwardStageMovement Boolean @default(false) // Allow moving candidates to earlier stages
+
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
 }

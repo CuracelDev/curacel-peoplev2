@@ -70,6 +70,7 @@ export const hiringSettingsRouter = router({
         teamProfilesEnabled: z.boolean().optional(),
         autoArchiveUnqualified: z.boolean().optional(),
         autoArchiveLocationMismatch: z.boolean().optional(),
+        allowBackwardStageMovement: z.boolean().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
