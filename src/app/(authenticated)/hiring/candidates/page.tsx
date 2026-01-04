@@ -56,9 +56,25 @@ import {
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
 import { format, formatDistanceToNow, startOfDay, endOfDay, startOfWeek, startOfMonth, startOfQuarter } from 'date-fns'
+import { toast } from 'sonner'
 
 type SortOption = 'score-desc' | 'score-asc' | 'date-desc' | 'date-asc' | 'name-asc' | 'name-desc'
 type DateFilter = 'all' | 'today' | 'week' | 'month' | 'quarter'
+type CandidateStage =
+  | 'APPLIED'
+  | 'SHORTLISTED'
+  | 'HR_SCREEN'
+  | 'TECHNICAL'
+  | 'TEAM_CHAT'
+  | 'ADVISOR_CHAT'
+  | 'PANEL'
+  | 'TRIAL'
+  | 'CEO_CHAT'
+  | 'OFFER'
+  | 'HIRED'
+  | 'REJECTED'
+  | 'WITHDRAWN'
+  | 'ARCHIVED'
 
 const stageStyles: Record<string, string> = {
   'APPLIED': 'bg-muted text-foreground/80',
@@ -84,6 +100,46 @@ const defaultStageCards = [
   { key: 'offer', label: 'Offer', stageKeys: ['OFFER'] },
 ]
 
+const stageOrder: CandidateStage[] = [
+  'APPLIED',
+  'SHORTLISTED',
+  'HR_SCREEN',
+  'TECHNICAL',
+  'TEAM_CHAT',
+  'ADVISOR_CHAT',
+  'PANEL',
+  'TRIAL',
+  'CEO_CHAT',
+  'OFFER',
+  'HIRED',
+]
+
+const stageLabels: Record<CandidateStage, string> = {
+  APPLIED: 'Applied',
+  SHORTLISTED: 'Short Listed',
+  HR_SCREEN: 'People Chat',
+  TECHNICAL: 'Coding Test',
+  TEAM_CHAT: 'Team Chat',
+  ADVISOR_CHAT: 'Advisor Chat',
+  PANEL: 'Panel',
+  TRIAL: 'Trial',
+  CEO_CHAT: 'CEO Chat',
+  OFFER: 'Offer',
+  HIRED: 'Hired',
+  REJECTED: 'Rejected',
+  WITHDRAWN: 'Withdrawn',
+  ARCHIVED: 'Archived',
+}
+
+const terminalStages = new Set<CandidateStage>(['HIRED', 'REJECTED', 'WITHDRAWN', 'ARCHIVED'])
+
+const getNextStage = (stage?: CandidateStage | null) => {
+  if (!stage || terminalStages.has(stage)) return null
+  const index = stageOrder.indexOf(stage)
+  if (index < 0 || index >= stageOrder.length - 1) return null
+  return stageOrder[index + 1]
+}
+
 export default function CandidatesPage() {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
   const [activeFilter, setActiveFilter] = useState('all')
@@ -106,7 +162,7 @@ export default function CandidatesPage() {
   const [stageChangeDialog, setStageChangeDialog] = useState<{
     open: boolean
     candidateIds: string[]
-    stage: string
+    stage: CandidateStage
     stageName: string
   } | null>(null)
   const [skipAutoEmail, setSkipAutoEmail] = useState(false)
@@ -155,7 +211,7 @@ export default function CandidatesPage() {
   })
 
   // Handle bulk stage change with dialog
-  const handleBulkStageChange = (candidateIds: string[], stage: string, stageName: string) => {
+  const handleBulkStageChange = (candidateIds: string[], stage: CandidateStage, stageName: string) => {
     setStageChangeDialog({ open: true, candidateIds, stage, stageName })
   }
 
@@ -163,7 +219,7 @@ export default function CandidatesPage() {
     if (stageChangeDialog) {
       bulkUpdateStage.mutate({
         candidateIds: stageChangeDialog.candidateIds,
-        stage: stageChangeDialog.stage as 'ARCHIVED' | 'REJECTED',
+        stage: stageChangeDialog.stage,
         skipAutoEmail,
       })
     }
@@ -219,6 +275,35 @@ export default function CandidatesPage() {
   const candidates = candidatesData?.candidates || []
   const total = candidatesData?.total || 0
   const byStageCounts = candidatesData?.byStageCounts || {}
+
+  const selectedStage = useMemo(() => {
+    const stages = selectedCandidates
+      .map((id) => candidates.find((candidate) => candidate.id === id)?.stage)
+      .filter((stage): stage is CandidateStage => Boolean(stage))
+    const uniqueStages = new Set(stages)
+    if (uniqueStages.size !== 1) return null
+    return stages[0] ?? null
+  }, [selectedCandidates, candidates])
+
+  const nextStage = useMemo(() => getNextStage(selectedStage), [selectedStage])
+  const canAdvanceSelected = selectedCandidates.length > 0 && Boolean(nextStage)
+
+  const handleAdvanceSelected = () => {
+    if (selectedCandidates.length === 0) {
+      toast.error('Select at least one candidate to advance.')
+      return
+    }
+    if (!selectedStage) {
+      toast.error('Select candidates in the same stage to advance.')
+      return
+    }
+    const next = getNextStage(selectedStage)
+    if (!next) {
+      toast.error('No next stage available for the selected candidates.')
+      return
+    }
+    handleBulkStageChange(selectedCandidates, next, stageLabels[next] || next)
+  }
 
   const stageCards = useMemo(() => defaultStageCards, [])
 
@@ -881,7 +966,12 @@ export default function CandidatesPage() {
         onBulkArchive={(ids) => handleBulkStageChange(ids, 'ARCHIVED', 'Archive')}
         onBulkReject={(ids) => handleBulkStageChange(ids, 'REJECTED', 'Reject')}
         bulkActions={(
-          <Button size="sm" className="bg-success hover:bg-success text-xs sm:text-sm">
+          <Button
+            size="sm"
+            className="bg-success hover:bg-success text-xs sm:text-sm"
+            disabled={!canAdvanceSelected || bulkUpdateStage.isPending}
+            onClick={handleAdvanceSelected}
+          >
             <span className="hidden sm:inline">Advance to Next Stage</span>
             <span className="sm:hidden">Advance</span>
           </Button>

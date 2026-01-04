@@ -234,6 +234,7 @@ const docSectionsV2: DocSection[] = [
         items: [
           'Use filters, search, and stage tags to find the right people fast.',
           'Customize columns using the three-dot menu (country, source, salary, MBTI).',
+          'Select one or more candidates and click Advance to Next Stage to move them forward together.',
           'Open a candidate to see their full profile and timeline.',
         ],
       },
