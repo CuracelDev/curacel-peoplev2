@@ -452,6 +452,7 @@ export const jobRouter = router({
         // Relations
         followerIds: z.array(z.string()).default([]),
         competencyIds: z.array(z.string()).default([]),
+        actionIds: z.array(z.string()).default([]),
         // Scorecard
         scorecardData: z
           .object({
@@ -483,6 +484,7 @@ export const jobRouter = router({
       const {
         followerIds,
         competencyIds,
+        actionIds,
         deadline,
         hiringFlowId,
         interestFormId,
@@ -528,6 +530,10 @@ export const jobRouter = router({
           },
           competencies: {
             create: competencyIds.map((competencyId) => ({ competencyId })),
+          },
+          // Create AI action associations
+          actions: {
+            create: actionIds.map((actionId) => ({ actionId })),
           },
           // Create scorecard if provided
           scorecard: scorecardData

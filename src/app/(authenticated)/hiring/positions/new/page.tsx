@@ -15,6 +15,7 @@ import {
   MapPin,
   DollarSign,
   Users,
+  Zap,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -35,6 +36,7 @@ import { ScorecardSelector } from '@/components/hiring/scorecard-selector'
 import { CompetencyFrameworkSelector } from '@/components/hiring/competency-framework-selector'
 import { JDSelector } from '@/components/hiring/jd-selector'
 import { InterestFormSelector } from '@/components/hiring/interest-form-selector'
+import { AuntyPelzActionSelector } from '@/components/hiring/auntypelz-action-selector'
 
 const flowAppearance = {
   standard: { icon: User, color: 'bg-indigo-50 text-indigo-600' },
@@ -120,6 +122,9 @@ export default function CreateJobPage() {
     priority: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
     isRequired: boolean
   }>>([])
+
+  // AuntyPelz Actions state
+  const [selectedActions, setSelectedActions] = useState<string[]>([])
 
   // Use tRPC for hiring flows instead of localStorage
   const { data: hiringFlows, isLoading: flowsLoading, refetch: refetchFlows } = trpc.hiringFlow.list.useQuery()
@@ -309,6 +314,7 @@ export default function CreateJobPage() {
         followerIds: followers,
         scorecardData: scorecardDataToSend,
         competencyRequirements: competencyRequirements,
+        actionIds: selectedActions,
       })
 
       setSaveState({
@@ -787,14 +793,10 @@ export default function CreateJobPage() {
               <h2 className="font-semibold">AuntyPelz Actions</h2>
             </div>
             <div className="p-5">
-              <p className="text-sm text-muted-foreground mb-4">Auto-archive applicants that do not meet your requirements.</p>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <Checkbox
-                  checked={formData.autoArchiveLocation}
-                  onCheckedChange={(checked) => setFormData({ ...formData, autoArchiveLocation: !!checked })}
-                />
-                <span className="text-sm">Auto-archive applicants that do not meet any location requirements</span>
-              </label>
+              <AuntyPelzActionSelector
+                value={selectedActions}
+                onChange={setSelectedActions}
+              />
             </div>
           </div>
 
@@ -1048,10 +1050,15 @@ export default function CreateJobPage() {
                   </div>
                 </div>
               )}
-              {formData.autoArchiveLocation && (
-                <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-                  <Check className="h-3.5 w-3.5 text-success" />
-                  <span>Auto-archive non-matching locations</span>
+              {selectedActions.length > 0 && (
+                <div>
+                  <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">
+                    AuntyPelz Actions ({selectedActions.length})
+                  </div>
+                  <div className="flex items-center gap-2 text-xs bg-indigo-50 rounded-lg px-3 py-2">
+                    <Zap className="h-3.5 w-3.5 text-indigo-600" />
+                    <span className="text-foreground/80">{selectedActions.length} automated action{selectedActions.length !== 1 ? 's' : ''}</span>
+                  </div>
                 </div>
               )}
             </div>
