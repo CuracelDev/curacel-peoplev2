@@ -328,10 +328,11 @@ model OfferTemplate {
   
   // Variable schema (JSON describing expected variables)
   variableSchema  Json?
-  
+
   isActive        Boolean   @default(true)
   offers          Offer[]
-  
+  jobsAsDefault   Job[]     @relation("JobDefaultTemplate")
+
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 }
@@ -1580,6 +1581,10 @@ model Job {
   // Job Description reference
   jobDescriptionId    String?
   jobDescription      JobDescription? @relation(fields: [jobDescriptionId], references: [id])
+
+  // Default Offer Template for hire flow automation
+  defaultOfferTemplateId String?
+  defaultOfferTemplate   OfferTemplate? @relation("JobDefaultTemplate", fields: [defaultOfferTemplateId], references: [id])
 
   // Hiring Manager
   hiringManagerId     String?

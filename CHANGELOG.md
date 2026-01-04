@@ -151,6 +151,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 - Rewrote Documentation V2 with a full, plain-language PeopleOps guide that now includes an exhaustive Settings reference and expanded module coverage.
 - Wired "Advance to Next Stage" to move selected candidates forward from candidate lists.
+- Updated README with current V1/V2 status, architecture paths, and documentation pointers.
+- Updated candidate email header layout to use breadcrumb, back link, and larger title styling.
 - Adjusted assessments filter cards layout for consistent sizing and spacing.
 - Interest form generation now references existing form structures for consistency.
 - Renamed the Sales competency framework label to Commercial.

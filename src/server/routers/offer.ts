@@ -11,6 +11,7 @@ import { wrapAgreementHtmlWithLetterhead } from '@/lib/letterhead'
 
 const offerCreateSchema = z.object({
   employeeId: z.string().optional(),
+  candidateId: z.string().optional(),
   candidateEmail: z.string().email(),
   candidateName: z.string().min(1),
   templateId: z.string(),
@@ -121,6 +122,46 @@ export const offerRouter = router({
       }
     }),
 
+  getCandidatesInOfferStage: hrAdminProcedure
+    .query(async ({ ctx }) => {
+      const candidates = await ctx.prisma.jobCandidate.findMany({
+        where: {
+          stage: 'OFFER',
+        },
+        include: {
+          job: {
+            select: {
+              id: true,
+              title: true,
+              department: true,
+              employmentType: true,
+              locations: true,
+            },
+          },
+          employee: {
+            select: {
+              id: true,
+              fullName: true,
+              status: true,
+              offers: {
+                where: {
+                  status: { in: ['DRAFT', 'SENT', 'VIEWED', 'SIGNED'] },
+                },
+                select: {
+                  id: true,
+                  status: true,
+                },
+              },
+            },
+          },
+        },
+        orderBy: { updatedAt: 'desc' },
+        take: 100,
+      })
+
+      return candidates
+    }),
+
   create: hrAdminProcedure
     .input(offerCreateSchema)
     .mutation(async ({ ctx, input }) => {
@@ -132,33 +173,81 @@ export const offerRouter = router({
         throw new TRPCError({ code: 'NOT_FOUND', message: 'Template not found' })
       }
 
-      // Create or find employee
-      let employeeId = input.employeeId
-      
-      if (!employeeId) {
-        // Check if employee exists with this email
-        const existingEmployee = await ctx.prisma.employee.findUnique({
-          where: { personalEmail: input.candidateEmail },
+      // If candidateId is provided, fetch candidate data
+      let candidateData: { id: string; candidateId?: string } | null = null
+      if (input.candidateId) {
+        const candidate = await ctx.prisma.jobCandidate.findUnique({
+          where: { id: input.candidateId },
+          include: {
+            job: {
+              select: {
+                title: true,
+                department: true,
+                locations: true,
+                employmentType: true,
+              },
+            },
+            employee: {
+              select: { id: true },
+            },
+          },
         })
 
-        if (existingEmployee) {
-          employeeId = existingEmployee.id
-        } else {
-          // Create new employee as candidate
-          const newEmployee = await ctx.prisma.employee.create({
-            data: {
-              fullName: input.candidateName,
-              personalEmail: input.candidateEmail,
-              status: 'CANDIDATE',
-              jobTitle: input.variables.role || input.variables.job_title,
-              department: input.variables.department,
-              salaryAmount: input.variables.salary ? parseFloat(input.variables.salary) : undefined,
-              salaryCurrency: input.variables.currency || 'USD',
-              startDate: input.variables.start_date ? new Date(input.variables.start_date) : undefined,
-              location: input.variables.location,
-            },
+        if (candidate) {
+          candidateData = { id: candidate.id, candidateId: input.candidateId }
+        }
+      }
+
+      // Create or find employee
+      let employeeId = input.employeeId
+
+      if (!employeeId) {
+        // If candidate has an existing employee, use it
+        if (candidateData && input.candidateId) {
+          const candidate = await ctx.prisma.jobCandidate.findUnique({
+            where: { id: input.candidateId },
+            include: { employee: true },
           })
-          employeeId = newEmployee.id
+
+          if (candidate?.employee) {
+            employeeId = candidate.employee.id
+          }
+        }
+
+        // Otherwise, check if employee exists with this email
+        if (!employeeId) {
+          const existingEmployee = await ctx.prisma.employee.findUnique({
+            where: { personalEmail: input.candidateEmail },
+          })
+
+          if (existingEmployee) {
+            employeeId = existingEmployee.id
+          } else {
+            // Create new employee as candidate
+            const newEmployee = await ctx.prisma.employee.create({
+              data: {
+                fullName: input.candidateName,
+                personalEmail: input.candidateEmail,
+                status: 'CANDIDATE',
+                jobTitle: input.variables.role || input.variables.job_title,
+                department: input.variables.department,
+                salaryAmount: input.variables.salary ? parseFloat(input.variables.salary) : undefined,
+                salaryCurrency: input.variables.currency || 'USD',
+                startDate: input.variables.start_date ? new Date(input.variables.start_date) : undefined,
+                location: input.variables.location,
+                candidateId: candidateData?.candidateId,
+              },
+            })
+            employeeId = newEmployee.id
+          }
+        } else {
+          // Update existing employee to link to candidate
+          if (candidateData?.candidateId) {
+            await ctx.prisma.employee.update({
+              where: { id: employeeId },
+              data: { candidateId: candidateData.candidateId },
+            })
+          }
         }
       }
 
@@ -190,7 +279,11 @@ export const offerRouter = router({
         actorId: (ctx.user as { id: string }).id,
         action: 'OFFER_CREATED',
         offerId: offer.id,
-        metadata: { candidateName: input.candidateName, templateId: input.templateId },
+        metadata: {
+          candidateName: input.candidateName,
+          templateId: input.templateId,
+          candidateId: input.candidateId,
+        },
       })
 
       return offer

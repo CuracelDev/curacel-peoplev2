@@ -59,8 +59,14 @@ export default function NewContractPage() {
   const router = useRouter()
   const [showAddCandidate, setShowAddCandidate] = useState(false)
   const [showAddSignatureBlock, setShowAddSignatureBlock] = useState(false)
+  const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null)
+  const [selectedSource, setSelectedSource] = useState<'candidates' | 'employees'>('candidates')
 
-  const { data: candidates } = trpc.employee.list.useQuery({
+  // Get candidates in OFFER stage
+  const { data: offerCandidates } = trpc.offer.getCandidatesInOfferStage.useQuery()
+
+  // Get existing employees
+  const { data: employees } = trpc.employee.list.useQuery({
     limit: 100,
   })
 
@@ -138,6 +144,41 @@ export default function NewContractPage() {
     }
   }, [setValue, watchedOfferDate, watchedOfferExpirationDate])
 
+  // Pre-fill form when candidate is selected
+  useEffect(() => {
+    if (selectedCandidateId && offerCandidates) {
+      const candidate = offerCandidates.find(c => c.id === selectedCandidateId)
+      if (candidate) {
+        // Pre-fill employment type
+        if (candidate.job.employmentType) {
+          setValue('employmentType', candidate.job.employmentType as 'FULL_TIME' | 'PART_TIME' | 'CONTRACTOR' | 'INTERN')
+        }
+
+        // Pre-fill job title
+        if (candidate.job.title) {
+          setValue('jobTitle', candidate.job.title)
+        }
+
+        // Pre-fill salary
+        if (candidate.salaryExpMax) {
+          setValue('salaryAmount', candidate.salaryExpMax.toString())
+        }
+
+        if (candidate.salaryExpCurrency) {
+          setValue('salaryCurrency', candidate.salaryExpCurrency)
+        }
+
+        // Calculate and set estimated start date
+        if (candidate.noticePeriod) {
+          const noticeDays = parseInt(candidate.noticePeriod.match(/(\d+)/)?.[0] || '30')
+          const estimatedStartDate = new Date()
+          estimatedStartDate.setDate(estimatedStartDate.getDate() + noticeDays)
+          setValue('anticipatedStartDate', estimatedStartDate.toISOString().split('T')[0])
+        }
+      }
+    }
+  }, [selectedCandidateId, offerCandidates, setValue])
+
   const onSubmit = (data: OfferFormData) => {
     // Find the selected signature block
     const selectedSignatureBlock = signatureBlocks?.find(sb => sb.id === data.signatureBlock)
@@ -154,15 +195,20 @@ export default function NewContractPage() {
     }
 
     // Map form data to template variables (matching the template placeholders exactly)
-    const selectedEmployee = candidates?.employees.find(e => e.id === data.employeeId)
-    
+    let selectedEmployee = employees?.employees.find(e => e.id === data.employeeId)
+    let selectedCandidate = selectedCandidateId ? offerCandidates?.find(c => c.id === selectedCandidateId) : null
+
+    // If selecting from candidates, use candidate data
+    const candidateName = selectedCandidate?.name || selectedEmployee?.fullName || ''
+    const candidateEmail = selectedCandidate?.email || selectedEmployee?.personalEmail || ''
+
     // Format salary based on payment frequency
-    const salaryText = data.paymentFrequency === 'MONTHLY' 
+    const salaryText = data.paymentFrequency === 'MONTHLY'
       ? `${data.salaryCurrency} ${data.salaryAmount}`
       : `${data.salaryCurrency} ${data.salaryAmount} per ${data.paymentFrequency.toLowerCase()}`
-    
+
     const variables: Record<string, string> = {
-      employee_name: selectedEmployee?.fullName || '',
+      employee_name: candidateName,
       employment_start_date: data.anticipatedStartDate,
       start_date: data.anticipatedStartDate, // alias for detail view
       job_title: data.jobTitle,
@@ -189,9 +235,10 @@ export default function NewContractPage() {
     }
 
     createOffer.mutate({
-      employeeId: data.employeeId,
-      candidateName: selectedEmployee?.fullName || '',
-      candidateEmail: selectedEmployee?.personalEmail || '',
+      employeeId: selectedCandidate?.employee?.id || data.employeeId,
+      candidateId: selectedCandidateId || undefined,
+      candidateName,
+      candidateEmail,
       templateId: selectedTemplate.id,
       variables,
     })
@@ -215,45 +262,128 @@ export default function NewContractPage() {
           </div>
 
           <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2">
-            {/* Candidate */}
-            <div className="md:col-span-2">
-              <Label htmlFor="employeeId" className="text-sm font-medium">
+            {/* Candidate Selector with Tabs */}
+            <div className="md:col-span-2 space-y-3">
+              <Label className="text-sm font-medium">
                 Candidate <span className="text-destructive">*</span>
               </Label>
-              <div className="flex gap-2 mt-1">
-                <Controller
-                  name="employeeId"
-                  control={control}
-                  rules={{ required: 'Candidate is required' }}
-                  render={({ field }) => (
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="ring-border focus:ring-indigo-600">
-                        <SelectValue placeholder="Select a candidate" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {candidates?.employees.map((employee) => (
-                          <SelectItem key={employee.id} value={employee.id}>
-                            {employee.fullName} ({employee.personalEmail})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  )}
-                />
-                <Button
+
+              {/* Tab Buttons */}
+              <div className="flex gap-2 border-b border-border">
+                <button
                   type="button"
-                  variant="outline"
-                  onClick={() => router.push('/employees?action=create')}
-                  className="whitespace-nowrap"
+                  onClick={() => setSelectedSource('candidates')}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    selectedSource === 'candidates'
+                      ? 'border-indigo-600 text-indigo-600'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add New
-                </Button>
+                  Candidates in Offer Stage {offerCandidates?.length ? `(${offerCandidates.length})` : ''}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedSource('employees')}
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
+                    selectedSource === 'employees'
+                      ? 'border-indigo-600 text-indigo-600'
+                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  Existing Employees
+                </button>
               </div>
-              {errors.employeeId && (
+
+              {/* Candidate List */}
+              {selectedSource === 'candidates' && (
+                <div className="space-y-2">
+                  {offerCandidates && offerCandidates.length > 0 ? (
+                    <div className="space-y-2">
+                      {offerCandidates.map((candidate) => (
+                        <div
+                          key={candidate.id}
+                          onClick={() => setSelectedCandidateId(candidate.id)}
+                          className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                            selectedCandidateId === candidate.id
+                              ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950'
+                              : 'border-border hover:border-indigo-300 hover:bg-accent'
+                          }`}
+                        >
+                          <div className="flex justify-between items-start">
+                            <div className="space-y-1">
+                              <h4 className="font-medium text-foreground">{candidate.name}</h4>
+                              <p className="text-sm text-muted-foreground">{candidate.email}</p>
+                              <div className="flex gap-2 mt-2">
+                                <span className="text-xs px-2 py-1 rounded-full bg-accent text-accent-foreground">
+                                  {candidate.job.title}
+                                </span>
+                                {candidate.job.department && (
+                                  <span className="text-xs px-2 py-1 rounded-full bg-accent text-accent-foreground">
+                                    {candidate.job.department}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {candidate.employee?.offers && candidate.employee.offers.length > 0 && (
+                              <span className="text-xs px-2 py-1 rounded-full bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100">
+                                Has Offer
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground italic p-4 border border-dashed border-border rounded-lg">
+                      No candidates in OFFER stage. Move candidates to OFFER stage to create offers for them.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Employee List */}
+              {selectedSource === 'employees' && (
+                <div className="flex gap-2">
+                  <Controller
+                    name="employeeId"
+                    control={control}
+                    rules={{ required: selectedSource === 'employees' ? 'Candidate is required' : false }}
+                    render={({ field }) => (
+                      <Select value={field.value} onValueChange={(value) => {
+                        field.onChange(value)
+                        setSelectedCandidateId(null)
+                      }}>
+                        <SelectTrigger className="ring-border focus:ring-indigo-600">
+                          <SelectValue placeholder="Select an employee" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {employees?.employees.map((employee) => (
+                            <SelectItem key={employee.id} value={employee.id}>
+                              {employee.fullName} ({employee.personalEmail})
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => router.push('/employees?action=create')}
+                    className="whitespace-nowrap"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add New
+                  </Button>
+                </div>
+              )}
+
+              {errors.employeeId && selectedSource === 'employees' && (
                 <p className="text-sm text-destructive mt-1">{errors.employeeId.message}</p>
               )}
-              <p className="text-xs text-muted-foreground italic mt-1">Select from list of candidates with link to add new candidate</p>
+              {selectedSource === 'candidates' && !selectedCandidateId && (
+                <p className="text-sm text-destructive mt-1">Please select a candidate</p>
+              )}
             </div>
 
             {/* Employment Type */}
