@@ -29,6 +29,7 @@ import {
 import { Switch } from '@/components/ui/switch'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
+import { toast } from 'sonner'
 
 function getRelativeTime(date: Date | string) {
   const now = new Date()
@@ -87,6 +88,45 @@ const STATUS_LABELS: Record<string, string> = {
   ACTIVE: 'Active',
   DRAFT: 'Draft',
   CLOSED: 'Closed',
+}
+
+type CandidateStage =
+  | 'APPLIED'
+  | 'SHORTLISTED'
+  | 'HR_SCREEN'
+  | 'TECHNICAL'
+  | 'TEAM_CHAT'
+  | 'ADVISOR_CHAT'
+  | 'PANEL'
+  | 'TRIAL'
+  | 'CEO_CHAT'
+  | 'OFFER'
+  | 'HIRED'
+  | 'REJECTED'
+  | 'WITHDRAWN'
+  | 'ARCHIVED'
+
+const stageOrder: CandidateStage[] = [
+  'APPLIED',
+  'SHORTLISTED',
+  'HR_SCREEN',
+  'TECHNICAL',
+  'TEAM_CHAT',
+  'ADVISOR_CHAT',
+  'PANEL',
+  'TRIAL',
+  'CEO_CHAT',
+  'OFFER',
+  'HIRED',
+]
+
+const terminalStages = new Set<CandidateStage>(['HIRED', 'REJECTED', 'WITHDRAWN', 'ARCHIVED'])
+
+const getNextStage = (stage?: CandidateStage | null) => {
+  if (!stage || terminalStages.has(stage)) return null
+  const index = stageOrder.indexOf(stage)
+  if (index < 0 || index >= stageOrder.length - 1) return null
+  return stageOrder[index + 1]
 }
 
 export default function CandidatesListPage() {
@@ -211,6 +251,35 @@ export default function CandidatesListPage() {
   const startIndex = (currentPage - 1) * pageSize
   const endIndex = Math.min(startIndex + pageSize, totalCandidates)
   const filteredCandidates = stageFilteredCandidates.slice(startIndex, endIndex)
+
+  const selectedStageForAdvance = useMemo(() => {
+    const stages = selectedCandidates
+      .map((id) => filteredCandidates.find((candidate) => candidate.id === id)?.stage)
+      .filter((stage): stage is CandidateStage => Boolean(stage))
+    const uniqueStages = new Set(stages)
+    if (uniqueStages.size !== 1) return null
+    return stages[0] ?? null
+  }, [selectedCandidates, filteredCandidates])
+
+  const nextStage = useMemo(() => getNextStage(selectedStageForAdvance), [selectedStageForAdvance])
+  const canAdvanceSelected = selectedCandidates.length > 0 && Boolean(nextStage)
+
+  const handleAdvanceSelected = () => {
+    if (selectedCandidates.length === 0) {
+      toast.error('Select at least one candidate to advance.')
+      return
+    }
+    if (!selectedStageForAdvance) {
+      toast.error('Select candidates in the same stage to advance.')
+      return
+    }
+    const next = getNextStage(selectedStageForAdvance)
+    if (!next) {
+      toast.error('No next stage available for the selected candidates.')
+      return
+    }
+    bulkUpdateStage.mutate({ candidateIds: selectedCandidates, stage: next })
+  }
 
   // Reset to page 1 when stage or page size changes
   const handleStageChange = (stage: string) => {
@@ -460,7 +529,12 @@ export default function CandidatesListPage() {
         onBulkArchive={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'ARCHIVED' })}
         onBulkReject={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'REJECTED' })}
         bulkActions={(
-          <Button size="sm" className="bg-success hover:bg-success">
+          <Button
+            size="sm"
+            className="bg-success hover:bg-success"
+            disabled={!canAdvanceSelected || bulkUpdateStage.isPending}
+            onClick={handleAdvanceSelected}
+          >
             Advance to Next Stage
           </Button>
         )}
