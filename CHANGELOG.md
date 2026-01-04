@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Removed
+- Legacy Role Competencies settings page and old job competency selection UI (superseded by the competency framework).
+
 ### Added
 - **Dynamic AI Tools System for AuntyPelz**
   - OpenAI SDK integration with custom function calling capabilities
