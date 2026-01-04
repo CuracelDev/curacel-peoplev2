@@ -9,7 +9,7 @@
 import PgBoss from 'pg-boss'
 import { prisma } from '@/lib/prisma'
 import { logEmployeeEvent, logOfferEvent } from '@/lib/audit'
-import { renderTemplate } from '@/lib/offer-template'
+import { renderTemplate } from '@/lib/utils'
 
 export const HIRE_FLOW_JOB_NAME = 'hire-flow'
 
