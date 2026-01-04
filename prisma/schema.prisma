@@ -1101,6 +1101,8 @@ model AICustomTool {
   updatedAt       DateTime @updatedAt
   createdBy       String?
 
+  jobs            JobAction[]
+
   @@index([category, isActive])
   @@index([isActive, isBuiltIn])
   @@index([approvalStatus])
@@ -1620,6 +1622,7 @@ model Job {
   emailTemplates      EmailTemplate[] @relation("JobEmailTemplates")
   assessmentTemplates JobAssessmentTemplate[]
   scorecard           Scorecard?
+  actions             JobAction[]
 
   createdAt           DateTime    @default(now())
   updatedAt           DateTime    @updatedAt
@@ -1662,6 +1665,26 @@ model JobFollower {
 
   @@unique([jobId, employeeId])
   @@index([employeeId])
+}
+
+// AI-powered automated actions linked to jobs
+model JobAction {
+  id          String        @id @default(uuid())
+  jobId       String
+  job         Job           @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  actionId    String
+  action      AICustomTool  @relation(fields: [actionId], references: [id], onDelete: Cascade)
+
+  // Configuration for this specific action on this job
+  isEnabled   Boolean       @default(true)
+  config      Json?         // Action-specific configuration (e.g., thresholds, conditions)
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@unique([jobId, actionId])
+  @@index([jobId])
+  @@index([actionId])
 }
 
 model JobCompetency {
