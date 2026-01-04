@@ -76,8 +76,8 @@ export async function testStandupSyncConnection(
   apiKey: string
 ): Promise<{ success: boolean; message: string }> {
   try {
-    // Try to list teams to verify connection
-    const response = await fetch(`${apiUrl}/api/teams`, {
+    // Call health check endpoint to verify connection
+    const response = await fetch(`${apiUrl}/api/health`, {
       method: 'GET',
       headers: {
         'X-API-Key': apiKey,
