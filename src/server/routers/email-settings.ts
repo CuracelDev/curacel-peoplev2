@@ -24,8 +24,18 @@ const AutoSendStagesSchema = z.record(AutoSendStageConfigSchema)
 
 // Schema for general email settings update
 const UpdateEmailSettingsSchema = z.object({
-  defaultCcEmail: z.union([z.string().email(), z.literal('')]).optional(),
-  defaultReplyTo: z.union([z.string().email(), z.literal('')]).optional(),
+  defaultCcEmail: z
+    .string()
+    .optional()
+    .refine((val) => !val || val === '' || z.string().email().safeParse(val).success, {
+      message: 'Invalid email address',
+    }),
+  defaultReplyTo: z
+    .string()
+    .optional()
+    .refine((val) => !val || val === '' || z.string().email().safeParse(val).success, {
+      message: 'Invalid email address',
+    }),
   trackOpens: z.boolean().optional(),
   trackClicks: z.boolean().optional(),
   autoSendOnApplication: z.boolean().optional(),
