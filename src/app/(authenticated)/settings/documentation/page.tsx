@@ -31,21 +31,21 @@ const docSectionsV2: DocSection[] = [
   {
     id: 'v2-welcome',
     title: 'Welcome to Curacel People',
-    description: 'A simple, human guide for HR teams who want clarity and calm.',
+    description: 'A full, plain-language guide for PeopleOps managers and HR teams.',
     blocks: [
       {
-        title: 'This guide is for you if...',
+        title: 'Who this guide is written for',
         items: [
-          'You are new to HR software and want plain-language steps.',
-          'You want every HR workflow in one place, from hiring to offboarding.',
-          'You need confidence that nothing important gets missed.',
+          'PeopleOps managers who need an end-to-end view of the employee journey.',
+          'HR admins who want step-by-step instructions without technical jargon.',
+          'Teams who need repeatable processes for hiring, onboarding, and offboarding.',
         ],
       },
       {
         title: 'The people journey',
         diagram: {
           steps: ['Recruit', 'Offer', 'Onboard', 'Grow', 'Offboard'],
-          caption: 'Think of the sidebar as this journey broken into modules.',
+          caption: 'Each stage is a module in the sidebar with its own workflows.',
         },
       },
       {
@@ -53,50 +53,62 @@ const docSectionsV2: DocSection[] = [
         image: {
           src: '/docs/people-journey.svg',
           alt: 'Diagram showing the Curacel People journey from recruiting to offboarding.',
-          caption: 'Start here when you want to remember where a task lives.',
+          caption: 'Use this map to orient yourself before you start.',
         },
       },
     ],
   },
   {
     id: 'v2-navigation',
-    title: 'Navigation and roles',
-    description: 'Find your way and understand who can see what.',
+    title: 'Navigation, roles, and daily rhythm',
+    description: 'How to move around the product and what a typical PeopleOps day looks like.',
     blocks: [
       {
         title: 'Navigation basics',
         items: [
           'Use the left sidebar to move between Hiring, Offers, People, and Settings.',
-          'The top of each page has search, filters, and quick actions.',
+          'The top of each page has filters, search, and quick actions.',
           'The bell icon shows notifications for admin roles.',
-          'AuntyPelz lives in the sidebar for fast questions or drafting.',
+          'AuntyPelz is the AI assistant for quick questions and drafting.',
         ],
       },
       {
         title: 'Roles, in plain language',
         items: [
-          'SUPER_ADMIN: everything, including system settings and data exports.',
+          'SUPER_ADMIN: full access, including system configuration.',
           'HR_ADMIN: hiring, contracts, onboarding/offboarding, and people settings.',
-          'IT_ADMIN: integrations, provisioning, automation, and security-related settings.',
-          'MANAGER: views their team and onboarding/offboarding visibility.',
-          'EMPLOYEE: personal profile and self-service onboarding tasks.',
+          'IT_ADMIN: integrations, automation, provisioning, and security.',
+          'MANAGER: visibility into their team and workflows.',
+          'EMPLOYEE: self-service profile and onboarding tasks.',
+        ],
+      },
+      {
+        title: 'A typical PeopleOps day',
+        ordered: true,
+        items: [
+          'Check Dashboard for pending contracts, onboarding, and upcoming starts.',
+          'Review Notifications for anything urgent.',
+          'Confirm hiring stages, interviews, and offer approvals.',
+          'Track onboarding/offboarding tasks and close blockers.',
+          'Update employee records as changes come in.',
         ],
       },
     ],
   },
   {
     id: 'v2-first-day',
-    title: 'Your first day checklist',
-    description: 'Set up the basics so the team can work without you.',
+    title: 'First-day setup checklist',
+    description: 'Make sure the workspace is ready before your team starts using it.',
     blocks: [
       {
         title: 'Company setup',
         ordered: true,
         items: [
           'Settings > Organization profile: add company name, logo, and letterhead.',
+          'Settings > Legal entities: add entities used in contracts.',
+          'Settings > Signature blocks: create signers for offers and contracts.',
           'Settings > App Admins: invite admins and assign roles.',
-          'Settings > Signature blocks: create signers for contracts.',
-          'Settings > Legal entities: add the entities used in offers.',
+          'Settings > Teams: create departments and reporting structure.',
         ],
       },
       {
@@ -105,7 +117,8 @@ const docSectionsV2: DocSection[] = [
         items: [
           'Settings > Hiring > Hiring Flows: confirm your stages.',
           'Settings > Hiring > Interview Types and Rubrics: align on evaluation.',
-          'Settings > Hiring > Interest Forms: create application forms.',
+          'Settings > Hiring > Candidate Scoring: set weighted inputs.',
+          'Settings > Hiring > Interest Forms: build candidate forms.',
           'Settings > Hiring > JD Templates: add reusable job descriptions.',
         ],
       },
@@ -114,8 +127,34 @@ const docSectionsV2: DocSection[] = [
         ordered: true,
         items: [
           'Settings > Applications: connect apps and run Test Connection.',
-          'Settings > Notifications: decide who gets email alerts.',
-          'Settings > On/Offboarding Settings: confirm default tasks.',
+          'Settings > On/Offboarding: confirm default tasks and order.',
+          'Settings > Notifications: choose who gets email alerts.',
+          'Settings > AuntyPelz Emails: set candidate email defaults.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-dashboard',
+    title: 'Dashboard',
+    description: 'Your at-a-glance overview of work in motion.',
+    blocks: [
+      {
+        title: 'What you will see',
+        items: [
+          'Pending contracts and signature status.',
+          'Active onboarding/offboarding workflows.',
+          'Hiring pipeline activity and upcoming interviews.',
+          'Recent hires and start dates.',
+        ],
+      },
+      {
+        title: 'How to use it',
+        ordered: true,
+        items: [
+          'Use it every morning to spot bottlenecks.',
+          'Click any card to jump to the related list.',
+          'Watch the contract pipeline to keep offers moving.',
         ],
       },
     ],
@@ -137,7 +176,7 @@ const docSectionsV2: DocSection[] = [
         title: 'A simple hiring rhythm',
         ordered: true,
         items: [
-          'Create a job in Hiring > Positions.',
+          'Create a position in Hiring > Positions.',
           'Attach an interest form so candidates can apply.',
           'Review candidates and move them through stages.',
           'Schedule interviews and capture feedback with scorecards.',
@@ -163,11 +202,17 @@ const docSectionsV2: DocSection[] = [
         ],
       },
       {
+        title: 'Job settings (Settings > Job Settings)',
+        items: [
+          'Manage JD templates, interest forms, and public careers settings.',
+          'Update recruiter-facing pages and job visibility rules.',
+        ],
+      },
+      {
         title: 'Job descriptions (JD templates)',
         items: [
           'Settings > Hiring > JD Templates holds reusable templates.',
           'Use Manual, Upload Files, or Import from URL to build templates.',
-          'Templates help keep language consistent across roles.',
         ],
       },
       {
@@ -227,18 +272,19 @@ const docSectionsV2: DocSection[] = [
         ],
       },
       {
-        title: 'Interview Types and Rubrics',
+        title: 'Interview settings',
         items: [
-          'Settings > Hiring > Interview Types controls format and default questions.',
+          'Settings > Hiring > Interview Types controls format and defaults.',
           'Settings > Hiring > Interview Rubrics defines scoring criteria.',
-          'Use weights to reflect what matters most for the role.',
+          'Settings > Hiring > Candidate Scoring controls weights.',
+          'Settings > Hiring > Question Bank stores reusable questions.',
         ],
       },
       {
-        title: 'Candidate scoring settings',
+        title: 'Featured filters',
         items: [
-          'Settings > Hiring > Candidate Scoring lets you weight inputs.',
-          'Only available data is included in the final score.',
+          'Choose which interview types show as quick filters.',
+          'Use featured items to highlight the most common formats.',
         ],
       },
     ],
@@ -252,7 +298,7 @@ const docSectionsV2: DocSection[] = [
         title: 'Use assessment templates',
         items: [
           'Go to Hiring > Assessments to manage templates.',
-          'Feature the most common assessments as quick filters.',
+          'Feature common assessments as quick filters.',
         ],
       },
       {
@@ -267,18 +313,18 @@ const docSectionsV2: DocSection[] = [
     ],
   },
   {
-    id: 'v2-offers',
+    id: 'v2-contracts',
     title: 'Offers and contracts',
     description: 'Create, send, and track signatures with confidence.',
     blocks: [
       {
-        title: 'Create an offer',
+        title: 'Create a contract',
         ordered: true,
         items: [
           'Open Contracts and click New employment contract.',
           'Select the candidate and employment type.',
           'Fill compensation details and start date.',
-          'Pick the correct legal entity and signature block.',
+          'Pick the legal entity and signature block.',
         ],
       },
       {
@@ -292,7 +338,7 @@ const docSectionsV2: DocSection[] = [
         ],
       },
       {
-        title: 'Templates and signature blocks',
+        title: 'Contract templates and signatures',
         items: [
           'Settings > Contract templates stores template bodies.',
           'Settings > Signature blocks stores signing profiles.',
@@ -330,6 +376,13 @@ const docSectionsV2: DocSection[] = [
           'They receive a secure link via email to finish onboarding.',
         ],
       },
+      {
+        title: 'Onboarding settings',
+        items: [
+          'Settings > On/Offboarding controls default tasks.',
+          'Settings > Onboarding Flow lets you reorder or add steps.',
+        ],
+      },
     ],
   },
   {
@@ -354,6 +407,13 @@ const docSectionsV2: DocSection[] = [
           'Delete the account to remove access immediately.',
         ],
       },
+      {
+        title: 'Offboarding settings',
+        items: [
+          'Settings > On/Offboarding controls default tasks.',
+          'Settings > Offboarding Flow lets you reorder or add steps.',
+        ],
+      },
     ],
   },
   {
@@ -372,6 +432,13 @@ const docSectionsV2: DocSection[] = [
         ],
       },
       {
+        title: 'Company stage process',
+        items: [
+          'Settings > Company Stage Process defines lifecycle stages.',
+          'Use it to track progression and internal milestones.',
+        ],
+      },
+      {
         title: 'Personality and values',
         items: [
           'The Personality tab shows values and work style answers.',
@@ -379,12 +446,33 @@ const docSectionsV2: DocSection[] = [
         ],
       },
       {
-        title: 'Example snapshots',
+        title: 'Example snapshot',
         image: {
           src: '/samples/mbti-example.png',
           alt: 'Sample MBTI profile chart used for personality templates.',
           caption: 'Personality templates help managers understand work styles.',
         },
+      },
+    ],
+  },
+  {
+    id: 'v2-analytics',
+    title: 'Analytics',
+    description: 'Understand what is working in hiring and people operations.',
+    blocks: [
+      {
+        title: 'Hiring analytics',
+        items: [
+          'Track pipeline conversion and stage drop-off.',
+          'Review time-to-hire and interview velocity.',
+        ],
+      },
+      {
+        title: 'Employee analytics',
+        items: [
+          'View headcount changes and department breakdowns.',
+          'Use trend charts to spot growth or attrition patterns.',
+        ],
       },
     ],
   },
@@ -456,6 +544,14 @@ const docSectionsV2: DocSection[] = [
         ],
       },
       {
+        title: 'AuntyPelz settings',
+        items: [
+          'Settings > AuntyPelz manages keys and core behavior.',
+          'Settings > Pending AI Tools lets you approve auto-created tools.',
+          'Settings > AuntyPelz Interviews configures interview automations.',
+        ],
+      },
+      {
         title: 'Dynamic tools',
         items: [
           'Create no-code actions that AuntyPelz can run for you.',
@@ -466,58 +562,82 @@ const docSectionsV2: DocSection[] = [
     ],
   },
   {
-    id: 'v2-settings',
-    title: 'Settings map',
-    description: 'Know where to configure anything, without guessing.',
+    id: 'v2-email',
+    title: 'Email settings and templates',
+    description: 'Control how the platform sends messages.',
     blocks: [
       {
-        title: 'Settings map',
-        image: {
-          src: '/docs/settings-map.svg',
-          alt: 'Diagram grouping Settings pages into company setup, people ops, hiring, contracts, integrations, notifications, and security.',
-          caption: 'Think of Settings as clusters of related pages.',
-        },
-      },
-      {
-        title: 'Company setup',
+        title: 'Email settings',
+        ordered: true,
         items: [
-          'Organization profile: company details and letterhead.',
-          'App Admins: invite and manage admin roles.',
-          'Teams: build departments and sub-teams.',
-          'Legal entities: choose the correct contracting entity.',
-          'Signature blocks: store signers for contracts.',
+          'Go to Settings > AuntyPelz Emails.',
+          'Use Email Settings to set default CC and tracking.',
+          'Choose whether emails auto-send on application.',
         ],
       },
       {
-        title: 'Hiring settings',
+        title: 'Email templates',
         items: [
-          'Hiring flows: stage design for each role type.',
-          'Interview types, rubrics, and scoring settings.',
-          'Assessments and question bank.',
-          'JD templates and interest forms.',
+          'Use Email Templates to create or update stage templates.',
+          'Templates power automated and manual candidate emails.',
+        ],
+      },
+    ],
+  },
+  {
+    id: 'v2-settings',
+    title: 'Settings reference (exhaustive)',
+    description: 'Every Settings page, in one place.',
+    blocks: [
+      {
+        title: 'Organization',
+        items: [
+          'Organization profile: company info and letterhead.',
+          'Legal entities: companies used in offers.',
+          'Signature blocks: signing profiles and signature images.',
         ],
       },
       {
-        title: 'People operations',
+        title: 'People',
         items: [
-          'On/Offboarding settings for default tasks.',
-          'Public pages for careers and recruiter pages.',
-          'Contract templates and offer settings.',
+          'App Admins: invite admins and manage roles.',
+          'Teams: create departments and sub-teams.',
+          'Contract templates: edit offer and contract templates.',
+          'On/Offboarding: configure default tasks and ordering.',
+          'Company Stage Process: track lifecycle stages.',
+          'Advisors: manage advisors and access as needed.',
         ],
       },
       {
-        title: 'Communication settings',
+        title: 'Hiring',
         items: [
-          'Email settings: sending preferences and tracking.',
-          'Email templates: stage-based templates for candidates.',
-          'Notifications: in-app and email alert rules.',
+          'General Settings: shared hiring defaults and display.',
+          'Job Settings: JD templates, interest forms, recruiters, careers.',
+          'Hiring Flows: pipeline stages and role-specific flows.',
+          'Interview Settings: types, rubrics, scoring, question bank.',
+          'Assessments: manage assessment templates.',
+          'AuntyPelz Emails: email settings and templates.',
+          'Decision Support: personality templates and team profiles.',
+          'AuntyPelz Actions: automated candidate filtering.',
         ],
       },
       {
-        title: 'Security and API',
+        title: 'Performance',
         items: [
-          'API settings: generate and revoke API keys.',
-          'Audit Log: compliance and troubleshooting.',
+          'Competency Framework: manage and sync competencies.',
+        ],
+      },
+      {
+        title: 'System',
+        items: [
+          'Public Pages: careers and recruiter pages.',
+          'Integrations: connect apps and manage credentials.',
+          'API Settings: create and revoke API keys.',
+          'AuntyPelz: configure AI settings and access.',
+          'Pending AI Tools: approve new tools.',
+          'Audit Log: compliance history.',
+          'Notifications: admin alerts and email rules.',
+          'Documentation: this guide.',
         ],
       },
     ],
@@ -531,7 +651,7 @@ const docSectionsV2: DocSection[] = [
         title: 'Careers and recruiter pages',
         items: [
           'Public Careers page lists open positions.',
-          'Recruiter page lets you share a controlled application form.',
+          'Recruiter page shares a controlled application form.',
         ],
       },
       {
@@ -553,9 +673,9 @@ const docSectionsV2: DocSection[] = [
         title: 'Create an API key',
         ordered: true,
         items: [
-          'Go to Settings > API settings.',
+          'Go to Settings > API Settings.',
           'Click Create new key and copy it immediately.',
-          'Store the key securely and share with your engineering team.',
+          'Store the key securely and share with engineering.',
         ],
       },
       {
@@ -575,7 +695,7 @@ const docSectionsV2: DocSection[] = [
       {
         title: 'If something is missing',
         items: [
-          'Check your role permissions first.',
+          'Check role permissions first.',
           'Use search or filters to locate items faster.',
         ],
       },

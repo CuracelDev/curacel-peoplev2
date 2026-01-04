@@ -8,6 +8,7 @@ import { hasMatchingProvisioningRule } from '@/lib/integrations/provisioning-rul
 import { getOrganization } from '@/lib/organization'
 import { getGoogleSheetsService, extractSpreadsheetId, type OnboardingRosterRow, type TaskCatalogRow, type TaskProgressRow } from '@/lib/google-sheets'
 import { ONBOARDING_TASKS, TASK_SECTIONS, type OnboardingTask } from '@/lib/onboarding-tasks'
+import { addEmployeeToStandup } from '@/lib/integrations/standup-sync'
 
 const DEFAULT_ONBOARDING_TASKS = [
   // Automated tasks
@@ -1688,10 +1689,25 @@ async function checkAndCompleteWorkflow(prisma: typeof import('@/lib/prisma').de
     })
 
     // Update employee status to ACTIVE
-    await prisma.employee.update({
+    const employee = await prisma.employee.update({
       where: { id: workflow.employeeId },
       data: { status: 'ACTIVE' },
+      select: {
+        id: true,
+        workEmail: true,
+        personalEmail: true,
+        department: true,
+      },
     })
+
+    // Sync employee to standup_mate
+    const email = employee.workEmail || employee.personalEmail
+    if (email) {
+      await addEmployeeToStandup(email, employee.department).catch((error) => {
+        console.error('Failed to sync employee to standup:', error)
+        // Don't fail onboarding if standup sync fails
+      })
+    }
 
     await createAuditLog({
       actorType: 'system',

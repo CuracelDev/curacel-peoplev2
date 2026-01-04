@@ -3070,3 +3070,43 @@ model WebhookLog {
   @@index([status])
   @@index([createdAt])
 }
+
+// Standup Sync Settings - configuration for standup_mate integration
+model StandupSyncSettings {
+  id                    String   @id @default(uuid())
+
+  // Connection
+  apiUrl                String   @db.Text  // Standup Mate API URL
+  apiKeyEncrypted       String?  @db.Text  // API key for authentication
+
+  // Configuration
+  isEnabled             Boolean  @default(false)
+  syncOnHire            Boolean  @default(true)   // Auto-sync when employee is hired
+  syncOnTermination     Boolean  @default(true)   // Auto-sync when employee exits
+
+  // Status
+  lastSyncAt            DateTime?
+  lastTestAt            DateTime?
+  lastTestResult        String?  @db.Text  // "success" or error message
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+// Standup Team Mapping - map departments/teams to standup teams
+model StandupTeamMapping {
+  id                    String   @id @default(uuid())
+
+  // Mapping
+  department            String   @unique  // Department name from Employee.department
+  standupTeamName       String              // Team name in standup_mate
+
+  // Status
+  isActive              Boolean  @default(true)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([department])
+  @@index([isActive])
+}

@@ -149,7 +149,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Added Short Listed as a hiring stage in default hiring flows and pipeline views
 
 ### Changed
-- Rewrote Documentation V2 with a full, plain-language guide for every major module, plus new onboarding, settings, and workflow diagrams.
+- Rewrote Documentation V2 with a full, plain-language PeopleOps guide that now includes an exhaustive Settings reference and expanded module coverage.
 - Adjusted assessments filter cards layout for consistent sizing and spacing.
 - Interest form generation now references existing form structures for consistency.
 - Renamed the Sales competency framework label to Commercial.
