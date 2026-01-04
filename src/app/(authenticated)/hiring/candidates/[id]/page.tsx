@@ -55,6 +55,7 @@ import { normalizeCandidateScoreWeights, type CandidateScoreComponent } from '@/
 import { format } from 'date-fns'
 import { EmailTab } from '@/components/hiring/email-tab'
 import { AuntyPelzAnalysisTab } from '@/components/hiring/auntypelz-analysis-tab'
+import { StageDropdown, type JobCandidateStage } from '@/components/hiring/stage-dropdown'
 import { toast } from 'sonner'
 
 const normalizeStageKey = (value: string) =>
@@ -619,6 +620,20 @@ export default function CandidateProfilePage() {
     }
   }
 
+  const handleMoveToStage = async (stage: JobCandidateStage, skipAutoEmail: boolean) => {
+    try {
+      await updateCandidate.mutateAsync({
+        id: candidateId,
+        stage,
+        skipAutoEmail,
+      })
+      toast.success(`Candidate moved to ${stage}`)
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to move candidate')
+      throw error // Re-throw to let the dropdown know it failed
+    }
+  }
+
   const handleSubmitDecision = async () => {
     if (!selectedDecision || updateCandidate.isPending) return
     setActionInFlight('decision')
@@ -724,12 +739,13 @@ export default function CandidateProfilePage() {
             )}
 
             <div className="flex sm:flex-col gap-2">
-              <Link href={`/recruiting/candidates/${candidateId}/stages/panel`} className="flex-1 sm:flex-none">
-                <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
-                  <FileText className="h-4 w-4 sm:mr-2" />
-                  <span className="hidden sm:inline">View Stages</span>
-                </Button>
-              </Link>
+              <StageDropdown
+                currentStage={candidate.rawStage as JobCandidateStage}
+                hiringFlowStages={candidate.flowStages}
+                allowBackwardMovement={scoreSettings?.allowBackwardStageMovement ?? false}
+                onStageChange={handleMoveToStage}
+                className="flex-1 sm:flex-none w-full text-xs sm:text-sm"
+              />
               <Link href={`/hiring/candidates/${candidateId}/emails`} className="flex-1 sm:flex-none">
                 <Button variant="outline" size="sm" className="w-full text-xs sm:text-sm">
                   <Mail className="h-4 w-4 sm:mr-2" />

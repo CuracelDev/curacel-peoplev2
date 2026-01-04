@@ -298,6 +298,7 @@ export default function SettingsPage() {
   const [decisionSupportEnabled, setDecisionSupportEnabled] = useState(true)
   const [personalityProfilesEnabled, setPersonalityProfilesEnabled] = useState(true)
   const [teamProfilesEnabled, setTeamProfilesEnabled] = useState(true)
+  const [allowBackwardStageMovement, setAllowBackwardStageMovement] = useState(false)
 
   // Handle section query parameter from URL
   useEffect(() => {
@@ -337,6 +338,9 @@ export default function SettingsPage() {
     }
     if (typeof data.teamProfilesEnabled === 'boolean') {
       setTeamProfilesEnabled(data.teamProfilesEnabled)
+    }
+    if (typeof data.allowBackwardStageMovement === 'boolean') {
+      setAllowBackwardStageMovement(data.allowBackwardStageMovement)
     }
   }, [recruitingSettingsQuery.data])
 
@@ -411,6 +415,11 @@ export default function SettingsPage() {
       setTeamProfilesEnabled(value)
       updateSettingsMutation.mutate({ teamProfilesEnabled: value })
     }
+  }
+
+  const handleAllowBackwardStageMovementToggle = (value: boolean) => {
+    setAllowBackwardStageMovement(value)
+    updateSettingsMutation.mutate({ allowBackwardStageMovement: value })
   }
 
   const removeStage = (index: number) => {
@@ -832,6 +841,33 @@ export default function SettingsPage() {
 
           {/* Interview/Hiring Flow */}
           {activeSection === 'interview' && (
+            <>
+            {/* General Pipeline Settings */}
+            <Card className="mb-6">
+              <CardHeader className="p-5 border-b">
+                <div>
+                  <h2 className="text-lg font-semibold">General Settings</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Configure general hiring pipeline behavior
+                  </p>
+                </div>
+              </CardHeader>
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between gap-4">
+                  <div>
+                    <div className="font-medium">Allow backward stage movement</div>
+                    <p className="text-sm text-muted-foreground">
+                      When enabled, candidates can be moved to earlier stages in the hiring pipeline. By default, candidates can only be moved forward.
+                    </p>
+                  </div>
+                  <Switch
+                    checked={allowBackwardStageMovement}
+                    onCheckedChange={handleAllowBackwardStageMovementToggle}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
             <Card id="interview">
               <CardHeader className="p-5 border-b">
                 <div className="flex justify-between items-start">
@@ -1066,6 +1102,8 @@ export default function SettingsPage() {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </>
+          )}
 
           {/* Interest Forms */}
           {activeSection === 'interestForms' && (
