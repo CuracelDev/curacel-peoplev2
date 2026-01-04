@@ -28,20 +28,44 @@ interface SyncResponse {
  * Get standup sync configuration
  */
 export async function getStandupSyncConfig(): Promise<StandupSyncConfig | null> {
-  const settings = await prisma.standupSyncSettings.findFirst()
+  // Find the StandupNinja app
+  const app = await prisma.app.findFirst({
+    where: { type: 'STANDUPNINJA', isEnabled: true },
+    include: {
+      connections: {
+        where: { isActive: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 1,
+      },
+    },
+  })
 
-  if (!settings || !settings.isEnabled) {
+  if (!app || app.connections.length === 0) {
+    console.log('StandupNinja app not configured or not enabled')
     return null
   }
 
-  if (!settings.apiKeyEncrypted) {
-    throw new Error('Standup sync API key is not configured')
+  const connection = app.connections[0]
+
+  // Decrypt config
+  let config: Record<string, unknown>
+  try {
+    const { decrypt } = await import('@/lib/encryption')
+    config = JSON.parse(decrypt(connection.configEncrypted))
+  } catch (error) {
+    console.error('Failed to decrypt StandupNinja config:', error)
+    return null
   }
 
-  return {
-    apiUrl: settings.apiUrl,
-    apiKey: decrypt(settings.apiKeyEncrypted),
+  const apiUrl = typeof config.apiUrl === 'string' ? config.apiUrl : ''
+  const apiKey = typeof config.apiKey === 'string' ? config.apiKey : ''
+
+  if (!apiUrl || !apiKey) {
+    console.log('StandupNinja connection missing apiUrl or apiKey')
+    return null
   }
+
+  return { apiUrl, apiKey }
 }
 
 /**
@@ -124,10 +148,14 @@ export async function addEmployeeToStandup(
       throw new Error(result.error || `HTTP ${response.status}`)
     }
 
-    // Update last sync time
-    await prisma.standupSyncSettings.updateMany({
-      data: { lastSyncAt: new Date() },
-    })
+    // Update last sync time on AppConnection
+    const app = await prisma.app.findFirst({ where: { type: 'STANDUPNINJA' } })
+    if (app) {
+      await prisma.appConnection.updateMany({
+        where: { appId: app.id, isActive: true },
+        data: { lastSyncAt: new Date() },
+      })
+    }
 
     console.log(`Successfully added ${email} to standup team: ${teamName}`)
 
@@ -177,10 +205,14 @@ export async function removeEmployeeFromStandup(
       throw new Error(result.error || `HTTP ${response.status}`)
     }
 
-    // Update last sync time
-    await prisma.standupSyncSettings.updateMany({
-      data: { lastSyncAt: new Date() },
-    })
+    // Update last sync time on AppConnection
+    const app = await prisma.app.findFirst({ where: { type: 'STANDUPNINJA' } })
+    if (app) {
+      await prisma.appConnection.updateMany({
+        where: { appId: app.id, isActive: true },
+        data: { lastSyncAt: new Date() },
+      })
+    }
 
     console.log(`Successfully removed ${email} from standup teams`)
 
@@ -225,11 +257,34 @@ export async function syncEmployeeOnStatusChange(
   newStatus: string,
   userId?: string
 ): Promise<void> {
-  const settings = await prisma.standupSyncSettings.findFirst()
+  // Check if StandupNinja app is enabled and configured
+  const app = await prisma.app.findFirst({
+    where: { type: 'STANDUPNINJA', isEnabled: true },
+    include: {
+      connections: {
+        where: { isActive: true },
+        orderBy: { updatedAt: 'desc' },
+        take: 1,
+      },
+    },
+  })
 
-  if (!settings || !settings.isEnabled) {
+  if (!app || app.connections.length === 0) {
     return
   }
+
+  // Get sync settings from connection config
+  let config: Record<string, unknown>
+  try {
+    const { decrypt } = await import('@/lib/encryption')
+    config = JSON.parse(decrypt(app.connections[0].configEncrypted))
+  } catch (error) {
+    console.error('Failed to decrypt StandupNinja config:', error)
+    return
+  }
+
+  const syncOnHire = config.syncOnHire !== false // default to true
+  const syncOnTermination = config.syncOnTermination !== false // default to true
 
   const employee = await prisma.employee.findUnique({
     where: { id: employeeId },
@@ -253,12 +308,12 @@ export async function syncEmployeeOnStatusChange(
   }
 
   // Add to standup when hired/activated
-  if (settings.syncOnHire && newStatus === 'ACTIVE') {
+  if (syncOnHire && newStatus === 'ACTIVE') {
     await addEmployeeToStandup(email, employee.department, userId)
   }
 
   // Remove from standup when terminated
-  if (settings.syncOnTermination && (newStatus === 'EXITED' || newStatus === 'OFFBOARDING')) {
+  if (syncOnTermination && (newStatus === 'EXITED' || newStatus === 'OFFBOARDING')) {
     await removeEmployeeFromStandup(email, userId)
   }
 }
