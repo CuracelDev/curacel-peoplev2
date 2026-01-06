@@ -7,8 +7,11 @@ pipelines:
         caches:
           - node
         script:
+          # Set dummy DB URL for build step (required for validation, not connection)
+          - export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/curacel_people"
           - npm ci --legacy-peer-deps
-          - npx prisma generate
+          # FIX: Use local binary to avoid version mismatch (v5 vs v7)
+          - ./node_modules/.bin/prisma generate
           - npm run lint
           - npm run build
 
@@ -19,8 +22,9 @@ pipelines:
           caches:
             - node
           script:
+            - export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/curacel_people"
             - npm ci --legacy-peer-deps
-            - npx prisma generate
+            - ./node_modules/.bin/prisma generate
             - npm run lint
             - npm run build
       - step:
@@ -36,7 +40,7 @@ pipelines:
                 LOCAL_PATH: '.'
                 DELETE_FLAG: 'true'
                 # Exclude heavy/env files. node_modules is rebuilt in Docker.
-                EXCLUDE: "['.git', 'node_modules', '.env', '.next', 'bitbucket-pipelines.yml']"
+                EXTRA_ARGS: "--exclude='.git' --exclude='node_modules' --exclude='.next' --exclude='.env'"
             
             # 2. Rebuild Containers & Migrate DB
             - pipe: atlassian/ssh-run:0.8.0
@@ -46,6 +50,7 @@ pipelines:
                 COMMAND: |
                   cd $DEPLOY_PATH
                   # Rebuild and restart containers
+                  docker-compose down
                   docker-compose up -d --build
                   # Run migrations inside the running app container
                   docker-compose exec -T app npx prisma migrate deploy
