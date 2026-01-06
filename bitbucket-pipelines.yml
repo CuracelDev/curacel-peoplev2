@@ -3,11 +3,11 @@ image: node:20
 pipelines:
   default:
     - step:
-        name: Build and Lint
+        name: Build and Test
         caches:
           - node
         script:
-          - npm ci
+          - npm ci --legacy-peer-deps
           - npx prisma generate
           - npm run lint
           - npm run build
@@ -15,11 +15,11 @@ pipelines:
   branches:
     main:
       - step:
-          name: Build and Lint
+          name: Build and Test
           caches:
             - node
           script:
-            - npm ci
+            - npm ci --legacy-peer-deps
             - npx prisma generate
             - npm run lint
             - npm run build
@@ -27,7 +27,7 @@ pipelines:
           name: Deploy to Production
           deployment: production
           script:
-            # 1. Sync files to server (excludes git and node_modules to save bandwidth)
+            # 1. Sync files to server
             - pipe: atlassian/rsync-deploy:0.10.1
               variables:
                 USER: $SSH_USER
@@ -35,16 +35,17 @@ pipelines:
                 REMOTE_PATH: $DEPLOY_PATH
                 LOCAL_PATH: '.'
                 DELETE_FLAG: 'true'
-                EXCLUDE: "['.git', 'node_modules', '.env', '.next']"
+                # Exclude heavy/env files. node_modules is rebuilt in Docker.
+                EXCLUDE: "['.git', 'node_modules', '.env', '.next', 'bitbucket-pipelines.yml']"
             
-            # 2. Rebuild Docker containers and run migrations
+            # 2. Rebuild Containers & Migrate DB
             - pipe: atlassian/ssh-run:0.8.0
               variables:
                 SSH_USER: $SSH_USER
                 SERVER: $SSH_HOST
                 COMMAND: |
                   cd $DEPLOY_PATH
-                  # Build and start containers
+                  # Rebuild and restart containers
                   docker-compose up -d --build
-                  # Run database migrations inside the running container
+                  # Run migrations inside the running app container
                   docker-compose exec -T app npx prisma migrate deploy
