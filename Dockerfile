@@ -1,21 +1,24 @@
 FROM node:20-alpine AS base
+# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
+# openssl is required for Prisma Client to work on Alpine
+RUN apk add --no-cache libc6-compat openssl
 
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install dependencies based on the preferred package manager
 COPY package.json package-lock.json* ./
-# Fix dependency conflict between next-auth and nodemailer using --legacy-peer-deps
-RUN npm install --legacy-peer-deps
+# Remove package-lock.json to ensure platform-specific dependencies (like SWC for Alpine) are installed correctly
+RUN rm -f package-lock.json && npm install --legacy-peer-deps
 
 # Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Remove node_modules that might have been copied from the host to ensure a clean state
+RUN rm -rf node_modules
+COPY --from=deps /app/node_modules ./node_modules
 
 # Generate Prisma Client
 RUN npx prisma generate
@@ -23,7 +26,7 @@ RUN npx prisma generate
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_TELEMETRY_DISABLED 1
 
 # Build the application
 # Note: Ensure "output: 'standalone'" is configured in next.config.js
@@ -33,8 +36,8 @@ RUN npm run build
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -56,8 +59,8 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
 
 # Health check using wget (available in alpine)
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
