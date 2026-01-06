@@ -1,68 +1,50 @@
 image: node:20
 
-options:
-  docker: true
-
 pipelines:
   default:
     - step:
-        name: Build and Verify
+        name: Build and Lint
         caches:
           - node
         script:
           - npm ci
           - npx prisma generate
+          - npm run lint
           - npm run build
-          - docker-compose build
 
   branches:
     main:
       - step:
-          name: Build and Verify
+          name: Build and Lint
           caches:
             - node
-        script:
-          - npm ci
-          - npx prisma generate
-          - npm run build
-          - docker-compose build
+          script:
+            - npm ci
+            - npx prisma generate
+            - npm run lint
+            - npm run build
       - step:
           name: Deploy to Production
           deployment: production
           script:
-            # 1. Sync files to server
+            # 1. Sync files to server (excludes git and node_modules to save bandwidth)
             - pipe: atlassian/rsync-deploy:0.10.1
               variables:
                 USER: $SSH_USER
                 SERVER: $SSH_HOST
-                REMOTE_PATH: $REMOTE_PATH
+                REMOTE_PATH: $DEPLOY_PATH
                 LOCAL_PATH: '.'
                 DELETE_FLAG: 'true'
-                EXCLUDE: "['.git', 'node_modules', '.next', '.env']"
-                SSH_KEY: $SSH_PRIVATE_KEY
+                EXCLUDE: "['.git', 'node_modules', '.env', '.next']"
             
-            # 2. Build, Restart, and Migrate on server
-            - pipe: atlassian/ssh-run:0.4.1
+            # 2. Rebuild Docker containers and run migrations
+            - pipe: atlassian/ssh-run:0.8.0
               variables:
                 SSH_USER: $SSH_USER
                 SERVER: $SSH_HOST
-                SSH_KEY: $SSH_PRIVATE_KEY
                 COMMAND: |
-                  cd $REMOTE_PATH
-                  
-                  # Generate .env file from Pipeline Variables
-                  echo "DATABASE_URL=$DATABASE_URL" > .env
-                  echo "NEXTAUTH_SECRET=$NEXTAUTH_SECRET" >> .env
-                  echo "NEXTAUTH_URL=$NEXTAUTH_URL" >> .env
-                  echo "NODE_ENV=production" >> .env
-                  # Add other integration keys as needed
-                  
-                  # Restart Containers
-                  docker-compose down
+                  cd $DEPLOY_PATH
+                  # Build and start containers
                   docker-compose up -d --build
-                  
-                  # Wait for DB to initialize
-                  sleep 10
-                  
-                  # Run Prisma Migrations
+                  # Run database migrations inside the running container
                   docker-compose exec -T app npx prisma migrate deploy
