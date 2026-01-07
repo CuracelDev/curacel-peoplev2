@@ -10,6 +10,8 @@ pipelines:
           # Set dummy DB URL for build step (required for validation, not connection)
           - export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/curacel_people"
           - npm ci --legacy-peer-deps
+          # Verify Prisma version installed
+          - npx prisma --version
           # Generate Prisma Client using local version (5.10.2)
           - npm run db:generate
           - npm run lint
@@ -24,6 +26,9 @@ pipelines:
           script:
             - export DATABASE_URL="postgresql://postgres:postgres@localhost:5432/curacel_people"
             - npm ci --legacy-peer-deps
+            # Verify Prisma version installed
+            - npx prisma --version
+            # Generate Prisma Client
             - npm run db:generate
             - npm run lint
             - npm run build
