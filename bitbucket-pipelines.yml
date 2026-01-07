@@ -34,7 +34,7 @@ pipelines:
                   cd /home/$SSH_USER/curacel-people
                   
                   # Create .env file
-                  cat > .env << 'ENVEOF'
+                  cat > .env << ENVEOF
                   NODE_ENV=production
                   PORT=3500
                   NEXTAUTH_SECRET=$NEXTAUTH_SECRET
