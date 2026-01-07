@@ -12,6 +12,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Bitbucket pipeline: Improved database migration handling with status checks and wait time
 - Docker PostgreSQL port mapping: Changed from 5432 to 5433 to avoid conflicts with existing database services
 - Application port: Changed from 3000 to 3800 to avoid port conflicts
+- Bitbucket pipeline: Use local Prisma version instead of npx to prevent version conflicts
 
 ### Removed
 - Legacy Role Competencies settings page and old job competency selection UI (superseded by the competency framework).
