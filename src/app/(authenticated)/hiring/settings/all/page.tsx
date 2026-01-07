@@ -665,9 +665,9 @@ export default function SettingsPage() {
     <div className="space-y-6">
       {/* Settings Content */}
       <div className="space-y-6">
-          {/* AuntyPelz Decision Support */}
-          {activeSection === 'decision-support' && (
-            <>
+        {/* AuntyPelz Decision Support */}
+        {activeSection === 'decision-support' && (
+          <>
             <div className="flex items-center gap-4 mb-6">
               <Link href="/settings">
                 <Button variant="ghost" size="icon">
@@ -752,96 +752,96 @@ export default function SettingsPage() {
               </CardContent>
             </Card>
 
-            </>
-          )}
+          </>
+        )}
 
-          {/* Personality Templates */}
-          {activeSection === 'personality' && (
-            <Card id="personality">
-              <CardHeader className="p-5 border-b">
-                <h2 className="text-lg font-semibold">Personality Templates</h2>
-                <p className="text-sm text-muted-foreground">Define ideal OCEAN personality profiles for different departments. Used for team fit analysis.</p>
-              </CardHeader>
-              <CardContent className="p-5">
-                <div className="mb-4">
-                  <Label className="mb-2 block">Department</Label>
-                  <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                    <SelectTrigger className="w-[200px]">
-                      <SelectValue placeholder="Select department" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="engineering">Engineering</SelectItem>
-                      <SelectItem value="design">Design</SelectItem>
-                      <SelectItem value="growth">Growth</SelectItem>
-                      <SelectItem value="operations">Operations</SelectItem>
-                    </SelectContent>
-                  </Select>
+        {/* Personality Templates */}
+        {activeSection === 'personality' && (
+          <Card id="personality">
+            <CardHeader className="p-5 border-b">
+              <h2 className="text-lg font-semibold">Personality Templates</h2>
+              <p className="text-sm text-muted-foreground">Define ideal OCEAN personality profiles for different departments. Used for team fit analysis.</p>
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="mb-4">
+                <Label className="mb-2 block">Department</Label>
+                <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="engineering">Engineering</SelectItem>
+                    <SelectItem value="design">Design</SelectItem>
+                    <SelectItem value="growth">Growth</SelectItem>
+                    <SelectItem value="operations">Operations</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="mt-6">
+                <Label className="mb-4 block">OCEAN Profile ({selectedDepartment})</Label>
+                <div className="grid grid-cols-5 gap-3">
+                  {Object.entries(oceanProfile).map(([key, value]) => (
+                    <div key={key} className="text-center p-3 border border-border rounded-lg">
+                      <div className="text-xs text-muted-foreground mb-2 capitalize">{key}</div>
+                      <div className="text-lg font-semibold mb-2">{value}%</div>
+                      <Slider
+                        value={[value]}
+                        max={100}
+                        step={1}
+                        onValueChange={([v]) => setOceanProfile((prev) => ({ ...prev, [key]: v }))}
+                        className="w-full"
+                      />
+                    </div>
+                  ))}
                 </div>
+              </div>
 
-                <div className="mt-6">
-                  <Label className="mb-4 block">OCEAN Profile ({selectedDepartment})</Label>
-                  <div className="grid grid-cols-5 gap-3">
-                    {Object.entries(oceanProfile).map(([key, value]) => (
-                      <div key={key} className="text-center p-3 border border-border rounded-lg">
-                        <div className="text-xs text-muted-foreground mb-2 capitalize">{key}</div>
-                        <div className="text-lg font-semibold mb-2">{value}%</div>
-                        <Slider
-                          value={[value]}
-                          max={100}
-                          step={1}
-                          onValueChange={([v]) => setOceanProfile((prev) => ({ ...prev, [key]: v }))}
-                          className="w-full"
-                        />
-                      </div>
-                    ))}
-                  </div>
+              <div className="mt-6">
+                <Label className="mb-2 block">Preferred MBTI Types</Label>
+                <div className="flex flex-wrap gap-2">
+                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTJ</Badge>
+                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTP</Badge>
+                  <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">ENTJ</Badge>
+                  <Badge variant="secondary">ENTP</Badge>
+                  <Badge variant="secondary">ISTJ</Badge>
+                  <Badge variant="secondary">ISTP</Badge>
                 </div>
+              </div>
 
-                <div className="mt-6">
-                  <Label className="mb-2 block">Preferred MBTI Types</Label>
-                  <div className="flex flex-wrap gap-2">
-                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTJ</Badge>
-                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">INTP</Badge>
-                    <Badge className="bg-indigo-100 text-indigo-700 hover:bg-indigo-100">ENTJ</Badge>
-                    <Badge variant="secondary">ENTP</Badge>
-                    <Badge variant="secondary">ISTJ</Badge>
-                    <Badge variant="secondary">ISTP</Badge>
-                  </div>
-                </div>
+              <Button className="mt-6">
+                <Save className="h-4 w-4 mr-2" />
+                Save Profile
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
-                <Button className="mt-6">
-                  <Save className="h-4 w-4 mr-2" />
-                  Save Profile
+        {/* Team Profiles */}
+        {activeSection === 'team' && (
+          <Card id="team">
+            <CardHeader className="p-5 border-b">
+              <h2 className="text-lg font-semibold">Team Profiles</h2>
+              <p className="text-sm text-muted-foreground">Configure team-specific settings and preferences.</p>
+            </CardHeader>
+            <CardContent className="p-5">
+              <div className="text-center py-10 text-muted-foreground">
+                <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
+                <p>Team profiles are managed in the Teams settings.</p>
+                <Button variant="outline" className="mt-4" asChild>
+                  <Link href="/settings/teams">
+                    Go to Teams
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Link>
                 </Button>
-              </CardContent>
-            </Card>
-          )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-          {/* Team Profiles */}
-          {activeSection === 'team' && (
-            <Card id="team">
-              <CardHeader className="p-5 border-b">
-                <h2 className="text-lg font-semibold">Team Profiles</h2>
-                <p className="text-sm text-muted-foreground">Configure team-specific settings and preferences.</p>
-              </CardHeader>
-              <CardContent className="p-5">
-                <div className="text-center py-10 text-muted-foreground">
-                  <Users className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
-                  <p>Team profiles are managed in the Teams settings.</p>
-                  <Button variant="outline" className="mt-4" asChild>
-                    <Link href="/settings/teams">
-                      Go to Teams
-                      <ArrowRight className="h-4 w-4 ml-2" />
-                    </Link>
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Interview/Hiring Flow */}
-          {activeSection === 'interview' && (
-            <>
+        {/* Interview/Hiring Flow */}
+        {activeSection === 'interview' && (
+          <>
             {/* General Pipeline Settings */}
             <Card className="mb-6">
               <CardHeader className="p-5 border-b">
@@ -898,501 +898,500 @@ export default function SettingsPage() {
                     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                   </div>
                 ) : (
-                <div className="grid grid-cols-[220px_1fr] gap-6">
-                  <div className="space-y-4">
-                    <div>
-                      <Label className="mb-2 block">Role Flow</Label>
-                      <Select value={activeFlowId ?? ''} onValueChange={handleFlowChange}>
+                  <div className="grid grid-cols-[220px_1fr] gap-6">
+                    <div className="space-y-4">
+                      <div>
+                        <Label className="mb-2 block">Role Flow</Label>
+                        <Select value={activeFlowId ?? ''} onValueChange={handleFlowChange}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select flow" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {flows.map((flow) => (
+                              <SelectItem key={flow.id} value={flow.id}>
+                                <div className="flex items-center gap-2">
+                                  <span>{flow.name}</span>
+                                  {flow.isDefault && (
+                                    <Badge variant="secondary" className="text-xs">Default</Badge>
+                                  )}
+                                </div>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      {/* Flow stats */}
+                      {activeFlow && (
+                        <div className="rounded-lg border border-border p-3 space-y-2">
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Jobs using this flow:</span>
+                            <span className="font-medium">{activeFlow.totalJobs}</span>
+                          </div>
+                          <div className="flex justify-between text-sm">
+                            <span className="text-muted-foreground">Current version:</span>
+                            <span className="font-medium">v{activeFlow.latestVersion}</span>
+                          </div>
+                          {activeFlow.outdatedJobs > 0 && (
+                            <div className="mt-2 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5">
+                              <span>⚠️</span>
+                              <span>{activeFlow.outdatedJobs} job(s) on older version</span>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="rounded-lg border border-border p-3 text-xs text-muted-foreground">
+                        These stages power the flow preview in job creation and the flow selector in JD templates.
+                      </div>
+                      <Button variant="outline" size="sm" onClick={handleResetFlow}>
+                        <RotateCcw className="h-4 w-4 mr-2" />
+                        Discard Changes
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <Label>Flow Name</Label>
+                          <Input
+                            value={editedFlow?.name ?? ''}
+                            onChange={(e) => updateEditedFlow({ name: e.target.value })}
+                            placeholder="e.g., Engineering"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Description</Label>
+                          <Input
+                            value={editedFlow?.description ?? ''}
+                            onChange={(e) => updateEditedFlow({ description: e.target.value })}
+                            placeholder="Short description for this flow"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label>Stages</Label>
+                          <Button variant="outline" size="sm" onClick={addStage}>
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Stage
+                          </Button>
+                        </div>
+                        <div className="space-y-2">
+                          {(editedFlow?.stages ?? []).map((stage, index) => (
+                            <div key={`${activeFlowId}-stage-${index}`} className="flex items-center gap-2">
+                              <div className="flex flex-col">
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-5 w-5"
+                                  onClick={() => moveStage(index, 'up')}
+                                  disabled={index === 0}
+                                >
+                                  <ChevronUp className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-5 w-5"
+                                  onClick={() => moveStage(index, 'down')}
+                                  disabled={index === (editedFlow?.stages.length ?? 0) - 1}
+                                >
+                                  <ChevronDown className="h-3 w-3" />
+                                </Button>
+                              </div>
+                              <div className="h-9 w-9 rounded-lg bg-muted text-foreground/80 flex items-center justify-center text-sm font-semibold flex-shrink-0">
+                                {index + 1}
+                              </div>
+                              <Input
+                                value={stage}
+                                onChange={(e) => updateStage(index, e.target.value)}
+                                placeholder="Stage name"
+                              />
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => removeStage(index)}
+                                disabled={(editedFlow?.stages.length ?? 0) <= 1}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="rounded-lg border border-border bg-muted/50 p-4">
+                        <div className="text-xs text-muted-foreground uppercase tracking-wide">Preview</div>
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {(editedFlow?.stages ?? []).map((stage, idx) => (
+                            <Badge key={`preview-${idx}-${stage}`} variant="secondary">
+                              {stage}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Stage Mapping Dialog */}
+            <Dialog open={showFlowMappingDialog} onOpenChange={setShowFlowMappingDialog}>
+              <DialogContent className="max-w-lg">
+                <DialogHeader>
+                  <DialogTitle>Map Existing Stages</DialogTitle>
+                  <DialogDescription>
+                    {activeFlow?.totalJobs} job(s) are using this flow. Map old stages to new stages to migrate candidates.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center text-sm font-medium text-muted-foreground">
+                    <div>Old Stage</div>
+                    <div></div>
+                    <div>New Stage</div>
+                  </div>
+                  {originalStages.map((oldStage) => (
+                    <div key={oldStage} className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                      <div className="px-3 py-2 bg-muted rounded-md text-sm">{oldStage}</div>
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                      <Select
+                        value={stageMapping[oldStage] ?? 'unmapped'}
+                        onValueChange={(value) =>
+                          setStageMapping((prev) => ({
+                            ...prev,
+                            [oldStage]: value === 'unmapped' ? null : value,
+                          }))
+                        }
+                      >
                         <SelectTrigger>
-                          <SelectValue placeholder="Select flow" />
+                          <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {flows.map((flow) => (
-                            <SelectItem key={flow.id} value={flow.id}>
-                              <div className="flex items-center gap-2">
-                                <span>{flow.name}</span>
-                                {flow.isDefault && (
-                                  <Badge variant="secondary" className="text-xs">Default</Badge>
-                                )}
-                              </div>
+                          <SelectItem value="unmapped">
+                            <span className="text-muted-foreground">Keep as legacy</span>
+                          </SelectItem>
+                          {(editedFlow?.stages ?? []).map((newStage) => (
+                            <SelectItem key={newStage} value={newStage}>
+                              {newStage}
                             </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
+                  ))}
+                  {editedFlow && (
+                    <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
+                      <strong>New stages added:</strong>{' '}
+                      {editedFlow.stages
+                        .filter((s) => !originalStages.includes(s))
+                        .join(', ') || 'None'}
+                    </div>
+                  )}
+                </div>
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowFlowMappingDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleConfirmFlowUpdate} disabled={updateFlowMutation.isPending}>
+                    {updateFlowMutation.isPending ? 'Saving...' : 'Save & Update Jobs'}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </>
+        )}
 
-                    {/* Flow stats */}
-                    {activeFlow && (
-                      <div className="rounded-lg border border-border p-3 space-y-2">
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Jobs using this flow:</span>
-                          <span className="font-medium">{activeFlow.totalJobs}</span>
+        {/* Interest Forms */}
+        {activeSection === 'interestForms' && (
+          <Card id="interestForms">
+            <CardHeader className="p-5 border-b">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-lg font-semibold">Interest Forms</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Create and manage application forms that candidates fill out when applying. These forms can be linked to specific jobs.
+                  </p>
+                </div>
+                <Button onClick={() => openFormDialog()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Form
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-5">
+              {interestFormsQuery.isLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    {interestForms.map((form) => (
+                      <div
+                        key={form.id}
+                        className={cn(
+                          'flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all',
+                          selectedFormId === form.id
+                            ? 'border-indigo-300 bg-indigo-50'
+                            : 'border-border hover:border-border'
+                        )}
+                        onClick={() => setSelectedFormId(selectedFormId === form.id ? null : form.id)}
+                      >
+                        <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
+                          <FileQuestion className="h-6 w-6" />
                         </div>
-                        <div className="flex justify-between text-sm">
-                          <span className="text-muted-foreground">Current version:</span>
-                          <span className="font-medium">v{activeFlow.latestVersion}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-semibold">{form.name}</span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {form.questions.length} questions · Linked to {form._count.jobs} job{form._count.jobs !== 1 ? 's' : ''}
+                          </div>
                         </div>
-                        {activeFlow.outdatedJobs > 0 && (
-                          <div className="mt-2 flex items-center gap-2 text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-2 py-1.5">
-                            <span>⚠️</span>
-                            <span>{activeFlow.outdatedJobs} job(s) on older version</span>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openFormDialog(form); }}>
+                            <Edit2 className="h-4 w-4 mr-2" />
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (confirm('Delete this form?')) {
+                                deleteFormMutation.mutate({ id: form.id })
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {interestForms.length === 0 && (
+                    <div className="text-center py-10 text-muted-foreground">
+                      <FileQuestion className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
+                      <p>No interest forms yet. Create your first form to start collecting candidate applications.</p>
+                    </div>
+                  )}
+
+                  {/* Form Preview */}
+                  {selectedForm && (
+                    <div className="mt-6 border-t pt-6">
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="font-semibold">Form Preview: {selectedForm.name}</h3>
+                        <Button variant="outline" size="sm" onClick={() => openFormDialog(selectedForm)}>
+                          <Edit2 className="h-4 w-4 mr-2" />
+                          Edit Form
+                        </Button>
+                      </div>
+                      <div className="bg-muted/50 rounded-lg p-4 space-y-3 max-h-[400px] overflow-y-auto">
+                        {selectedForm.questions.map((q, i) => (
+                          <div key={q.id} className="flex items-start gap-3 bg-card p-3 rounded-lg border border-border">
+                            <div className="flex items-center justify-center w-6 h-6 rounded bg-muted text-muted-foreground text-xs font-medium flex-shrink-0">
+                              {i + 1}
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">{q.question}</span>
+                                {q.required && <span className="text-red-500 text-xs">*</span>}
+                              </div>
+                              <div className="text-xs text-muted-foreground mt-1">{q.type}</div>
+                            </div>
+                          </div>
+                        ))}
+                        {selectedForm.questions.length === 0 && (
+                          <div className="text-center py-6 text-muted-foreground">
+                            No questions yet. Edit the form to add questions.
                           </div>
                         )}
                       </div>
-                    )}
-
-                    <div className="rounded-lg border border-border p-3 text-xs text-muted-foreground">
-                      These stages power the flow preview in job creation and the flow selector in JD templates.
                     </div>
-                    <Button variant="outline" size="sm" onClick={handleResetFlow}>
-                      <RotateCcw className="h-4 w-4 mr-2" />
-                      Discard Changes
-                    </Button>
-                  </div>
+                  )}
 
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label>Flow Name</Label>
-                        <Input
-                          value={editedFlow?.name ?? ''}
-                          onChange={(e) => updateEditedFlow({ name: e.target.value })}
-                          placeholder="e.g., Engineering"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label>Description</Label>
-                        <Input
-                          value={editedFlow?.description ?? ''}
-                          onChange={(e) => updateEditedFlow({ description: e.target.value })}
-                          placeholder="Short description for this flow"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label>Stages</Label>
-                        <Button variant="outline" size="sm" onClick={addStage}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Stage
-                        </Button>
-                      </div>
-                      <div className="space-y-2">
-                        {(editedFlow?.stages ?? []).map((stage, index) => (
-                          <div key={`${activeFlowId}-stage-${index}`} className="flex items-center gap-2">
-                            <div className="flex flex-col">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5"
-                                onClick={() => moveStage(index, 'up')}
-                                disabled={index === 0}
-                              >
-                                <ChevronUp className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-5 w-5"
-                                onClick={() => moveStage(index, 'down')}
-                                disabled={index === (editedFlow?.stages.length ?? 0) - 1}
-                              >
-                                <ChevronDown className="h-3 w-3" />
-                              </Button>
-                            </div>
-                            <div className="h-9 w-9 rounded-lg bg-muted text-foreground/80 flex items-center justify-center text-sm font-semibold flex-shrink-0">
-                              {index + 1}
-                            </div>
-                            <Input
-                              value={stage}
-                              onChange={(e) => updateStage(index, e.target.value)}
-                              placeholder="Stage name"
-                            />
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => removeStage(index)}
-                              disabled={(editedFlow?.stages.length ?? 0) <= 1}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="rounded-lg border border-border bg-muted/50 p-4">
-                      <div className="text-xs text-muted-foreground uppercase tracking-wide">Preview</div>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {(editedFlow?.stages ?? []).map((stage, idx) => (
-                          <Badge key={`preview-${idx}-${stage}`} variant="secondary">
-                            {stage}
-                          </Badge>
-                        ))}
+                  <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <Link2 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <div className="font-medium text-blue-900">Public Application Link</div>
+                        <p className="text-sm text-blue-700 mt-1">
+                          When you assign an interest form to a job, candidates can access it via the apply page.
+                        </p>
                       </div>
                     </div>
                   </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Interview Rubrics */}
+        {activeSection === 'rubrics' && (
+          <Card id="rubrics">
+            <CardHeader className="p-5 border-b">
+              <div className="flex justify-between items-start">
+                <div>
+                  <h2 className="text-lg font-semibold">Interview Rubrics</h2>
+                  <p className="text-sm text-muted-foreground">
+                    Define scoring criteria for each interview stage. Evaluators use these to consistently score candidates.
+                  </p>
                 </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Stage Mapping Dialog */}
-          <Dialog open={showFlowMappingDialog} onOpenChange={setShowFlowMappingDialog}>
-            <DialogContent className="max-w-lg">
-              <DialogHeader>
-                <DialogTitle>Map Existing Stages</DialogTitle>
-                <DialogDescription>
-                  {activeFlow?.totalJobs} job(s) are using this flow. Map old stages to new stages to migrate candidates.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4 py-4">
-                <div className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center text-sm font-medium text-muted-foreground">
-                  <div>Old Stage</div>
-                  <div></div>
-                  <div>New Stage</div>
-                </div>
-                {originalStages.map((oldStage) => (
-                  <div key={oldStage} className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
-                    <div className="px-3 py-2 bg-muted rounded-md text-sm">{oldStage}</div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    <Select
-                      value={stageMapping[oldStage] ?? 'unmapped'}
-                      onValueChange={(value) =>
-                        setStageMapping((prev) => ({
-                          ...prev,
-                          [oldStage]: value === 'unmapped' ? null : value,
-                        }))
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="unmapped">
-                          <span className="text-muted-foreground">Keep as legacy</span>
-                        </SelectItem>
-                        {(editedFlow?.stages ?? []).map((newStage) => (
-                          <SelectItem key={newStage} value={newStage}>
-                            {newStage}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                ))}
-                {editedFlow && (
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg text-sm text-blue-800">
-                    <strong>New stages added:</strong>{' '}
-                    {editedFlow.stages
-                      .filter((s) => !originalStages.includes(s))
-                      .join(', ') || 'None'}
-                  </div>
-                )}
+                <Button onClick={() => openRubricDialog()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Rubric
+                </Button>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowFlowMappingDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleConfirmFlowUpdate} disabled={updateFlowMutation.isPending}>
-                  {updateFlowMutation.isPending ? 'Saving...' : 'Save & Update Jobs'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-          </>
-          )}
-
-          {/* Interest Forms */}
-          {activeSection === 'interestForms' && (
-            <Card id="interestForms">
-              <CardHeader className="p-5 border-b">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-lg font-semibold">Interest Forms</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Create and manage application forms that candidates fill out when applying. These forms can be linked to specific jobs.
-                    </p>
-                  </div>
-                  <Button onClick={() => openFormDialog()}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Form
-                  </Button>
+            </CardHeader>
+            <CardContent className="p-5">
+              {rubricTemplatesQuery.isLoading ? (
+                <div className="flex items-center justify-center py-10">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                 </div>
-              </CardHeader>
-              <CardContent className="p-5">
-                {interestFormsQuery.isLoading ? (
-                  <div className="flex items-center justify-center py-10">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="space-y-3">
-                      {interestForms.map((form) => (
-                        <div
-                          key={form.id}
-                          className={cn(
-                            'flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all',
-                            selectedFormId === form.id
-                              ? 'border-indigo-300 bg-indigo-50'
-                              : 'border-border hover:border-border'
-                          )}
-                          onClick={() => setSelectedFormId(selectedFormId === form.id ? null : form.id)}
-                        >
-                          <div className="w-12 h-12 bg-indigo-100 text-indigo-600 rounded-lg flex items-center justify-center">
-                            <FileQuestion className="h-6 w-6" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold">{form.name}</span>
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {form.questions.length} questions · Linked to {form._count.jobs} job{form._count.jobs !== 1 ? 's' : ''}
-                            </div>
-                          </div>
+              ) : (
+                <>
+                  <div className="space-y-3">
+                    {rubricTemplates.map((rubric) => (
+                      <div
+                        key={rubric.id}
+                        className={cn(
+                          'flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all',
+                          selectedRubricId === rubric.id
+                            ? 'border-indigo-300 bg-indigo-50'
+                            : 'border-border hover:border-border'
+                        )}
+                        onClick={() => setSelectedRubricId(selectedRubricId === rubric.id ? null : rubric.id)}
+                      >
+                        <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                          <ClipboardCheck className="h-6 w-6" />
+                        </div>
+                        <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openFormDialog(form); }}>
-                              <Edit2 className="h-4 w-4 mr-2" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                if (confirm('Delete this form?')) {
-                                  deleteFormMutation.mutate({ id: form.id })
-                                }
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
+                            <span className="font-semibold">{rubric.name}</span>
+                            <Badge variant="secondary">{rubric.stage.replace('_', ' ')}</Badge>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {rubric.criteria.length} criteria
                           </div>
                         </div>
-                      ))}
-                    </div>
-
-                    {interestForms.length === 0 && (
-                      <div className="text-center py-10 text-muted-foreground">
-                        <FileQuestion className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
-                        <p>No interest forms yet. Create your first form to start collecting candidate applications.</p>
-                      </div>
-                    )}
-
-                    {/* Form Preview */}
-                    {selectedForm && (
-                      <div className="mt-6 border-t pt-6">
-                        <div className="flex justify-between items-center mb-4">
-                          <h3 className="font-semibold">Form Preview: {selectedForm.name}</h3>
-                          <Button variant="outline" size="sm" onClick={() => openFormDialog(selectedForm)}>
+                        <div className="flex items-center gap-2">
+                          <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openRubricDialog(rubric); }}>
                             <Edit2 className="h-4 w-4 mr-2" />
-                            Edit Form
+                            Edit
                           </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (confirm('Delete this rubric?')) {
+                                deleteRubricMutation.mutate({ id: rubric.id })
+                              }
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                          </Button>
+                          {selectedRubricId === rubric.id ? (
+                            <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                          ) : (
+                            <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                          )}
                         </div>
-                        <div className="bg-muted/50 rounded-lg p-4 space-y-3 max-h-[400px] overflow-y-auto">
-                          {selectedForm.questions.map((q, i) => (
-                            <div key={q.id} className="flex items-start gap-3 bg-card p-3 rounded-lg border border-border">
-                              <div className="flex items-center justify-center w-6 h-6 rounded bg-muted text-muted-foreground text-xs font-medium flex-shrink-0">
-                                {i + 1}
-                              </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {rubricTemplates.length === 0 && (
+                    <div className="text-center py-10 text-muted-foreground">
+                      <ClipboardCheck className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
+                      <p>No interview rubrics yet. Create your first rubric to standardize candidate evaluation.</p>
+                    </div>
+                  )}
+
+                  {/* Rubric Criteria Preview */}
+                  {selectedRubric && (
+                    <div className="mt-6 border-t pt-6">
+                      <h3 className="font-semibold mb-4">Scoring Criteria: {selectedRubric.name}</h3>
+                      <div className="space-y-3">
+                        {selectedRubric.criteria.map((criteria) => (
+                          <div
+                            key={criteria.id}
+                            className="border border-border rounded-lg overflow-hidden"
+                          >
+                            <div
+                              className="flex items-center gap-4 p-4 cursor-pointer hover:bg-muted"
+                              onClick={() => setExpandedCriteria(expandedCriteria === criteria.id ? null : criteria.id)}
+                            >
                               <div className="flex-1">
                                 <div className="flex items-center gap-2">
-                                  <span className="text-sm font-medium">{q.question}</span>
-                                  {q.required && <span className="text-red-500 text-xs">*</span>}
+                                  <span className="font-medium">{criteria.name}</span>
+                                  <Badge variant="outline">Weight: {criteria.weight}</Badge>
                                 </div>
-                                <div className="text-xs text-muted-foreground mt-1">{q.type}</div>
-                              </div>
-                            </div>
-                          ))}
-                          {selectedForm.questions.length === 0 && (
-                            <div className="text-center py-6 text-muted-foreground">
-                              No questions yet. Edit the form to add questions.
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                      <div className="flex items-start gap-3">
-                        <Link2 className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <div className="font-medium text-blue-900">Public Application Link</div>
-                          <p className="text-sm text-blue-700 mt-1">
-                            When you assign an interest form to a job, candidates can access it via the apply page.
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Interview Rubrics */}
-          {activeSection === 'rubrics' && (
-            <Card id="rubrics">
-              <CardHeader className="p-5 border-b">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h2 className="text-lg font-semibold">Interview Rubrics</h2>
-                    <p className="text-sm text-muted-foreground">
-                      Define scoring criteria for each interview stage. Evaluators use these to consistently score candidates.
-                    </p>
-                  </div>
-                  <Button onClick={() => openRubricDialog()}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Rubric
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="p-5">
-                {rubricTemplatesQuery.isLoading ? (
-                  <div className="flex items-center justify-center py-10">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-                  </div>
-                ) : (
-                  <>
-                    <div className="space-y-3">
-                      {rubricTemplates.map((rubric) => (
-                        <div
-                          key={rubric.id}
-                          className={cn(
-                            'flex items-center gap-4 p-4 border rounded-xl cursor-pointer transition-all',
-                            selectedRubricId === rubric.id
-                              ? 'border-indigo-300 bg-indigo-50'
-                              : 'border-border hover:border-border'
-                          )}
-                          onClick={() => setSelectedRubricId(selectedRubricId === rubric.id ? null : rubric.id)}
-                        >
-                          <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
-                            <ClipboardCheck className="h-6 w-6" />
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold">{rubric.name}</span>
-                              <Badge variant="secondary">{rubric.stage.replace('_', ' ')}</Badge>
-                            </div>
-                            <div className="text-sm text-muted-foreground">
-                              {rubric.criteria.length} criteria
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); openRubricDialog(rubric); }}>
-                              <Edit2 className="h-4 w-4 mr-2" />
-                              Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                if (confirm('Delete this rubric?')) {
-                                  deleteRubricMutation.mutate({ id: rubric.id })
-                                }
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-500" />
-                            </Button>
-                            {selectedRubricId === rubric.id ? (
-                              <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                            ) : (
-                              <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                            )}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-
-                    {rubricTemplates.length === 0 && (
-                      <div className="text-center py-10 text-muted-foreground">
-                        <ClipboardCheck className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
-                        <p>No interview rubrics yet. Create your first rubric to standardize candidate evaluation.</p>
-                      </div>
-                    )}
-
-                    {/* Rubric Criteria Preview */}
-                    {selectedRubric && (
-                      <div className="mt-6 border-t pt-6">
-                        <h3 className="font-semibold mb-4">Scoring Criteria: {selectedRubric.name}</h3>
-                        <div className="space-y-3">
-                          {selectedRubric.criteria.map((criteria) => (
-                            <div
-                              key={criteria.id}
-                              className="border border-border rounded-lg overflow-hidden"
-                            >
-                              <div
-                                className="flex items-center gap-4 p-4 cursor-pointer hover:bg-muted"
-                                onClick={() => setExpandedCriteria(expandedCriteria === criteria.id ? null : criteria.id)}
-                              >
-                                <div className="flex-1">
-                                  <div className="flex items-center gap-2">
-                                    <span className="font-medium">{criteria.name}</span>
-                                    <Badge variant="outline">Weight: {criteria.weight}</Badge>
-                                  </div>
-                                  {criteria.description && (
-                                    <p className="text-sm text-muted-foreground mt-1">{criteria.description}</p>
-                                  )}
-                                </div>
-                                {expandedCriteria === criteria.id ? (
-                                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                                ) : (
-                                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
+                                {criteria.description && (
+                                  <p className="text-sm text-muted-foreground mt-1">{criteria.description}</p>
                                 )}
                               </div>
-                              {expandedCriteria === criteria.id && (
-                                <div className="bg-muted/50 p-4 border-t">
-                                  <div className="text-sm font-medium mb-3">Scoring Scale</div>
-                                  <div className="grid grid-cols-5 gap-2">
-                                    {Object.entries(scoreScaleLabels).map(([score, label]) => (
-                                      <div key={score} className="text-center p-2 bg-card rounded-lg border border-border">
-                                        <div className={cn(
-                                          'text-lg font-bold mb-1',
-                                          parseInt(score) >= 4 ? 'text-success' :
-                                          parseInt(score) >= 3 ? 'text-amber-600' : 'text-red-600'
-                                        )}>
-                                          {score}
-                                        </div>
-                                        <div className="text-xs text-muted-foreground leading-tight">{label}</div>
-                                      </div>
-                                    ))}
-                                  </div>
-                                </div>
+                              {expandedCriteria === criteria.id ? (
+                                <ChevronUp className="h-5 w-5 text-muted-foreground" />
+                              ) : (
+                                <ChevronDown className="h-5 w-5 text-muted-foreground" />
                               )}
                             </div>
-                          ))}
-                          {selectedRubric.criteria.length === 0 && (
-                            <div className="text-center py-6 text-muted-foreground">
-                              No criteria yet. Edit the rubric to add scoring criteria.
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
-                      <div className="flex items-start gap-3">
-                        <ClipboardCheck className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <div className="font-medium text-purple-900">How Rubrics Work</div>
-                          <p className="text-sm text-purple-700 mt-1">
-                            Each interviewer fills out a scorecard using the rubric criteria. Scores are aggregated across evaluators to provide a comprehensive view of the candidate.
-                          </p>
-                        </div>
+                            {expandedCriteria === criteria.id && (
+                              <div className="bg-muted/50 p-4 border-t">
+                                <div className="text-sm font-medium mb-3">Scoring Scale</div>
+                                <div className="grid grid-cols-5 gap-2">
+                                  {Object.entries(scoreScaleLabels).map(([score, label]) => (
+                                    <div key={score} className="text-center p-2 bg-card rounded-lg border border-border">
+                                      <div className={cn(
+                                        'text-lg font-bold mb-1',
+                                        parseInt(score) >= 4 ? 'text-success' :
+                                          parseInt(score) >= 3 ? 'text-amber-600' : 'text-red-600'
+                                      )}>
+                                        {score}
+                                      </div>
+                                      <div className="text-xs text-muted-foreground leading-tight">{label}</div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        {selectedRubric.criteria.length === 0 && (
+                          <div className="text-center py-6 text-muted-foreground">
+                            No criteria yet. Edit the rubric to add scoring criteria.
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  )}
 
-          {/* Candidate Scoring */}
-          {activeSection === 'scoring' && (
-            <>
+                  <div className="mt-6 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <ClipboardCheck className="h-5 w-5 text-purple-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <div className="font-medium text-purple-900">How Rubrics Work</div>
+                        <p className="text-sm text-purple-700 mt-1">
+                          Each interviewer fills out a scorecard using the rubric criteria. Scores are aggregated across evaluators to provide a comprehensive view of the candidate.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Candidate Scoring */}
+        {activeSection === 'scoring' && (
+          <>
             <div className="flex items-center gap-4 mb-6">
               <Link href="/hiring/settings/interview">
                 <Button variant="ghost" size="icon">
@@ -1456,22 +1455,22 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
-            </>
-          )}
+          </>
+        )}
 
-          {/* Interview Types Section */}
-          {activeSection === 'interviewTypes' && (
-            <InterviewTypesSection />
-          )}
+        {/* Interview Types Section */}
+        {activeSection === 'interviewTypes' && (
+          <InterviewTypesSection />
+        )}
 
-          {/* Question Bank Section */}
-          {activeSection === 'questions' && (
-            <QuestionBankSection />
-          )}
+        {/* Question Bank Section */}
+        {activeSection === 'questions' && (
+          <QuestionBankSection />
+        )}
 
-          {/* Webhooks Section */}
-          {activeSection === 'webhooks' && (
-            <>
+        {/* Webhooks Section */}
+        {activeSection === 'webhooks' && (
+          <>
             <div className="flex items-center gap-4 mb-6">
               <Link href="/settings">
                 <Button variant="ghost" size="icon">
@@ -1593,12 +1592,12 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
-            </>
-          )}
+          </>
+        )}
 
-          {/* External Recruiters Section */}
-          {activeSection === 'recruiters' && (
-            <>
+        {/* External Recruiters Section */}
+        {activeSection === 'recruiters' && (
+          <>
             <div className="flex items-center gap-4 mb-6">
               <Link href="/settings/job-settings">
                 <Button variant="ghost" size="icon">
@@ -1719,12 +1718,12 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
-            </>
-          )}
+          </>
+        )}
 
-          {/* Source Channels Section */}
-          {activeSection === 'sources' && (
-            <>
+        {/* Source Channels Section */}
+        {activeSection === 'sources' && (
+          <>
             <div className="flex items-center gap-4 mb-6">
               <Link href="/settings/job-settings">
                 <Button variant="ghost" size="icon">
@@ -1751,9 +1750,9 @@ export default function SettingsPage() {
                     {sourceChannelsQuery.data?.inbound.map((channel) => (
                       <Badge key={channel} variant="secondary" className="py-1.5 px-3">
                         {channel === 'YC' ? 'Y Combinator' :
-                         channel === 'PEOPLEOS' ? 'PeopleOS' :
-                         channel === 'COMPANY_SITE' ? 'Company Website' :
-                         channel}
+                          channel === 'PEOPLEOS' ? 'PeopleOS' :
+                            channel === 'COMPANY_SITE' ? 'Company Website' :
+                              channel}
                       </Badge>
                     ))}
                   </div>
@@ -1767,10 +1766,10 @@ export default function SettingsPage() {
                     {sourceChannelsQuery.data?.outbound.map((channel) => (
                       <Badge key={channel} variant="outline" className="py-1.5 px-3">
                         {channel === 'LINKEDIN' ? 'LinkedIn' :
-                         channel === 'JOB_BOARDS' ? 'Job Boards' :
-                         channel === 'GITHUB' ? 'GitHub' :
-                         channel === 'TWITTER' ? 'Twitter/X' :
-                         channel}
+                          channel === 'JOB_BOARDS' ? 'Job Boards' :
+                            channel === 'GITHUB' ? 'GitHub' :
+                              channel === 'TWITTER' ? 'Twitter/X' :
+                                channel}
                       </Badge>
                     ))}
                   </div>
@@ -1800,12 +1799,12 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
-            </>
-          )}
+          </>
+        )}
 
-          {/* Public Careers Section */}
-          {activeSection === 'careers' && (
-            <>
+        {/* Public Careers Section */}
+        {activeSection === 'careers' && (
+          <>
             <div className="flex items-center gap-4 mb-6">
               <Link href="/settings/job-settings">
                 <Button variant="ghost" size="icon">
@@ -1927,9 +1926,9 @@ export default function SettingsPage() {
                 </div>
               </CardContent>
             </Card>
-            </>
-          )}
-        </div>
+          </>
+        )}
+      </div>
 
       {/* Add Recruiter Dialog */}
       <Dialog open={recruiterDialogOpen} onOpenChange={handleRecruiterDialogChange}>
@@ -2680,293 +2679,226 @@ function QuestionBankSection() {
 
   return (
     <>
-    <div className="flex items-center gap-4 mb-6">
-      <Link href="/hiring/settings/interview">
-        <Button variant="ghost" size="icon">
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-      </Link>
-      <div className="flex-1">
-        <h1 className="text-2xl font-bold text-foreground">Question Bank</h1>
-        <p className="text-sm text-foreground/80">
-          Manage reusable interview questions. Questions are automatically suggested when scheduling interviews.
-        </p>
-      </div>
-      <Button onClick={() => setCreateDialogOpen(true)}>
-        <Plus className="h-4 w-4 mr-2" />
-        Add Question
-      </Button>
-    </div>
-    <Card id="questions">
-      <CardHeader className="p-5 border-b">
-        <div className="flex justify-between items-start">
-          <div>
-            <h3 className="text-lg font-semibold">All Questions</h3>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="p-5">
-        {/* Filters */}
-        <div className="flex items-center gap-3 mb-4 pb-4 border-b">
-          <Input
-            placeholder="Search questions..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-64"
-          />
-          <Select value={selectedJob || 'all'} onValueChange={(v) => setSelectedJob(v === 'all' ? '' : v)}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="All jobs" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All jobs</SelectItem>
-              {jobs?.map((job) => (
-                <SelectItem key={job.id} value={job.id}>
-                  {job.title}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedInterviewType || 'all'} onValueChange={(v) => setSelectedInterviewType(v === 'all' ? '' : v)}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="All types" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All types</SelectItem>
-              {interviewTypes?.map((type) => (
-                <SelectItem key={type.id} value={type.id}>
-                  {type.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Button
-            variant={showFavoritesOnly ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-          >
-            <Star className={cn('h-4 w-4 mr-2', showFavoritesOnly && 'fill-current')} />
-            Favorites
+      <div className="flex items-center gap-4 mb-6">
+        <Link href="/hiring/settings/interview">
+          <Button variant="ghost" size="icon">
+            <ArrowLeft className="h-5 w-5" />
           </Button>
+        </Link>
+        <div className="flex-1">
+          <h1 className="text-2xl font-bold text-foreground">Question Bank</h1>
+          <p className="text-sm text-foreground/80">
+            Manage reusable interview questions. Questions are automatically suggested when scheduling interviews.
+          </p>
         </div>
-
-        {/* Category Filters */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {categoryOrder.map((catId) => {
-            const category = categoryConfig[catId]
-            const count = categoriesData?.find((c) => c.value === catId)?.count ?? 0
-            return (
-              <Badge
-                key={catId}
-                variant={selectedCategories.includes(catId) ? 'default' : 'outline'}
-                className="cursor-pointer"
-                onClick={() => toggleCategory(catId)}
-              >
-                {selectedCategories.includes(catId) && <Check className="h-3 w-3 mr-1" />}
-                {category.name} ({count})
-              </Badge>
-            )
-          })}
-        </div>
-
-        {/* Content */}
-        {questionsLoading ? (
-          <div className="flex items-center justify-center py-10">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-          </div>
-        ) : isEmpty ? (
-          <div className="text-center py-10 text-muted-foreground">
-            <FileQuestion className="h-12 w-12 mx-auto mb-3 text-muted-foreground/60" />
-            <p className="font-medium">No questions in the bank</p>
-            <p className="text-sm mt-1 mb-4">Add interview questions that can be reused across interviews.</p>
-            <div className="flex justify-center gap-3">
-              <Button onClick={() => setCreateDialogOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add First Question
-              </Button>
-              <Button
-                variant="outline"
-                onClick={() => seedDefaultsMutation.mutate()}
-                disabled={seedDefaultsMutation.isPending}
-              >
-                {seedDefaultsMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                Seed Defaults
-              </Button>
+        <Button onClick={() => setCreateDialogOpen(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Question
+        </Button>
+      </div>
+      <Card id="questions">
+        <CardHeader className="p-5 border-b">
+          <div className="flex justify-between items-start">
+            <div>
+              <h3 className="text-lg font-semibold">All Questions</h3>
             </div>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {categoryOrder.map((catId) => {
-              const questions = questionsByCategory[catId]
-              if (!questions?.length) return null
-              const category = categoryConfig[catId]
+        </CardHeader>
+        <CardContent className="p-5">
+          {/* Filters */}
+          <div className="flex items-center gap-3 mb-4 pb-4 border-b">
+            <Input
+              placeholder="Search questions..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-64"
+            />
+            <Select value={selectedJob || 'all'} onValueChange={(v) => setSelectedJob(v === 'all' ? '' : v)}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All jobs" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All jobs</SelectItem>
+                {jobs?.map((job) => (
+                  <SelectItem key={job.id} value={job.id}>
+                    {job.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={selectedInterviewType || 'all'} onValueChange={(v) => setSelectedInterviewType(v === 'all' ? '' : v)}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="All types" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                {interviewTypes?.map((type) => (
+                  <SelectItem key={type.id} value={type.id}>
+                    {type.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant={showFavoritesOnly ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+            >
+              <Star className={cn('h-4 w-4 mr-2', showFavoritesOnly && 'fill-current')} />
+              Favorites
+            </Button>
+          </div>
 
+          {/* Category Filters */}
+          <div className="flex flex-wrap gap-2 mb-4">
+            {categoryOrder.map((catId) => {
+              const category = categoryConfig[catId]
+              const count = categoriesData?.find((c) => c.value === catId)?.count ?? 0
               return (
-                <div key={catId} className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Badge className={category.badgeColor}>{category.name}</Badge>
-                    <span className="text-sm text-muted-foreground">{questions.length} questions</span>
-                  </div>
-                  <div className="space-y-2">
-                    {questions.map((question, index) => (
-                      <div
-                        key={question.id}
-                        className="flex gap-3 p-3 border rounded-lg hover:bg-muted/30 transition-colors"
-                      >
-                        <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center font-medium text-xs text-foreground/70 flex-shrink-0">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-foreground mb-1">{question.text}</p>
-                          {question.followUp && (
-                            <p className="text-xs text-muted-foreground italic mb-1">{question.followUp}</p>
-                          )}
-                          <div className="flex flex-wrap gap-1">
-                            {question.tags.map((tag, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs py-0">
-                                {tag}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onClick={() => toggleFavoriteMutation.mutate({ id: question.id })}
-                          >
-                            <Star className={cn('h-4 w-4', question.isFavorite && 'fill-amber-400 text-amber-400')} />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onClick={() => copyToClipboard(question.text)}
-                          >
-                            <Copy className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0"
-                            onClick={() =>
-                              setEditingQuestion({
-                                id: question.id,
-                                text: question.text,
-                                followUp: question.followUp ?? '',
-                                category: question.category,
-                                tags: question.tags,
-                              })
-                            }
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 text-red-500 hover:text-red-600"
-                            onClick={() => {
-                              if (confirm('Delete this question?')) {
-                                deleteMutation.mutate({ id: question.id })
-                              }
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                <Badge
+                  key={catId}
+                  variant={selectedCategories.includes(catId) ? 'default' : 'outline'}
+                  className="cursor-pointer"
+                  onClick={() => toggleCategory(catId)}
+                >
+                  {selectedCategories.includes(catId) && <Check className="h-3 w-3 mr-1" />}
+                  {category.name} ({count})
+                </Badge>
               )
             })}
           </div>
-        )}
-      </CardContent>
 
-      {/* Create Question Dialog */}
-      <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Add Question to Bank</DialogTitle>
-            <DialogDescription>
-              Create a reusable interview question.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Category *</Label>
-              <Select
-                value={newQuestion.category}
-                onValueChange={(v) => setNewQuestion((prev) => ({ ...prev, category: v as typeof newQuestion.category }))}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {categoryOrder.map((catId) => (
-                    <SelectItem key={catId} value={catId}>
-                      {categoryConfig[catId].name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+          {/* Content */}
+          {questionsLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
             </div>
-            <div className="space-y-2">
-              <Label>Question *</Label>
-              <Textarea
-                placeholder="Enter the interview question..."
-                value={newQuestion.text}
-                onChange={(e) => setNewQuestion((prev) => ({ ...prev, text: e.target.value }))}
-                rows={3}
-              />
+          ) : isEmpty ? (
+            <div className="text-center py-10 text-muted-foreground">
+              <FileQuestion className="h-12 w-12 mx-auto mb-3 text-muted-foreground/60" />
+              <p className="font-medium">No questions in the bank</p>
+              <p className="text-sm mt-1 mb-4">Add interview questions that can be reused across interviews.</p>
+              <div className="flex justify-center gap-3">
+                <Button onClick={() => setCreateDialogOpen(true)}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add First Question
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => seedDefaultsMutation.mutate()}
+                  disabled={seedDefaultsMutation.isPending}
+                >
+                  {seedDefaultsMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                  Seed Defaults
+                </Button>
+              </div>
             </div>
-            <div className="space-y-2">
-              <Label>Follow-up Question (optional)</Label>
-              <Input
-                placeholder="What would you do differently?"
-                value={newQuestion.followUp}
-                onChange={(e) => setNewQuestion((prev) => ({ ...prev, followUp: e.target.value }))}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Tags (comma-separated)</Label>
-              <Input
-                placeholder="Leadership, Problem Solving, Communication"
-                value={newQuestion.tags}
-                onChange={(e) => setNewQuestion((prev) => ({ ...prev, tags: e.target.value }))}
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
-            <Button
-              onClick={handleCreateQuestion}
-              disabled={!newQuestion.text.trim() || createMutation.isPending}
-            >
-              {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Add Question
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          ) : (
+            <div className="space-y-4">
+              {categoryOrder.map((catId) => {
+                const questions = questionsByCategory[catId]
+                if (!questions?.length) return null
+                const category = categoryConfig[catId]
 
-      {/* Edit Question Dialog */}
-      <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle>Edit Question</DialogTitle>
-          </DialogHeader>
-          {editingQuestion && (
+                return (
+                  <div key={catId} className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Badge className={category.badgeColor}>{category.name}</Badge>
+                      <span className="text-sm text-muted-foreground">{questions.length} questions</span>
+                    </div>
+                    <div className="space-y-2">
+                      {questions.map((question, index) => (
+                        <div
+                          key={question.id}
+                          className="flex gap-3 p-3 border rounded-lg hover:bg-muted/30 transition-colors"
+                        >
+                          <div className="w-6 h-6 bg-muted rounded-full flex items-center justify-center font-medium text-xs text-foreground/70 flex-shrink-0">
+                            {index + 1}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm text-foreground mb-1">{question.text}</p>
+                            {question.followUp && (
+                              <p className="text-xs text-muted-foreground italic mb-1">{question.followUp}</p>
+                            )}
+                            <div className="flex flex-wrap gap-1">
+                              {question.tags.map((tag, i) => (
+                                <Badge key={i} variant="secondary" className="text-xs py-0">
+                                  {tag}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() => toggleFavoriteMutation.mutate({ id: question.id })}
+                            >
+                              <Star className={cn('h-4 w-4', question.isFavorite && 'fill-amber-400 text-amber-400')} />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() => copyToClipboard(question.text)}
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0"
+                              onClick={() =>
+                                setEditingQuestion({
+                                  id: question.id,
+                                  text: question.text,
+                                  followUp: question.followUp ?? '',
+                                  category: question.category,
+                                  tags: question.tags,
+                                })
+                              }
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-red-500 hover:text-red-600"
+                              onClick={() => {
+                                if (confirm('Delete this question?')) {
+                                  deleteMutation.mutate({ id: question.id })
+                                }
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </CardContent>
+
+        {/* Create Question Dialog */}
+        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Add Question to Bank</DialogTitle>
+              <DialogDescription>
+                Create a reusable interview question.
+              </DialogDescription>
+            </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Category *</Label>
                 <Select
-                  value={editingQuestion.category}
-                  onValueChange={(v) =>
-                    setEditingQuestion((prev) => prev && { ...prev, category: v })
-                  }
+                  value={newQuestion.category}
+                  onValueChange={(v) => setNewQuestion((prev) => ({ ...prev, category: v as typeof newQuestion.category }))}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -2983,72 +2915,139 @@ function QuestionBankSection() {
               <div className="space-y-2">
                 <Label>Question *</Label>
                 <Textarea
-                  value={editingQuestion.text}
-                  onChange={(e) =>
-                    setEditingQuestion((prev) => prev && { ...prev, text: e.target.value })
-                  }
+                  placeholder="Enter the interview question..."
+                  value={newQuestion.text}
+                  onChange={(e) => setNewQuestion((prev) => ({ ...prev, text: e.target.value }))}
                   rows={3}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Follow-up Question</Label>
+                <Label>Follow-up Question (optional)</Label>
                 <Input
-                  value={editingQuestion.followUp}
-                  onChange={(e) =>
-                    setEditingQuestion((prev) => prev && { ...prev, followUp: e.target.value })
-                  }
+                  placeholder="What would you do differently?"
+                  value={newQuestion.followUp}
+                  onChange={(e) => setNewQuestion((prev) => ({ ...prev, followUp: e.target.value }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Tags</Label>
-                <div className="flex flex-wrap gap-2">
-                  {editingQuestion.tags.map((tag, i) => (
-                    <Badge key={i} variant="secondary" className="gap-1">
-                      {tag}
-                      <button
-                        onClick={() =>
-                          setEditingQuestion((prev) =>
-                            prev && { ...prev, tags: prev.tags.filter((_, idx) => idx !== i) }
-                          )
-                        }
-                        className="ml-1 hover:text-destructive"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </Badge>
-                  ))}
-                  <Input
-                    placeholder="Add tag..."
-                    className="w-32 h-6 text-xs"
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter') {
-                        const value = (e.target as HTMLInputElement).value.trim()
-                        if (value) {
-                          setEditingQuestion((prev) =>
-                            prev && { ...prev, tags: [...prev.tags, value] }
-                          )
-                          ;(e.target as HTMLInputElement).value = ''
-                        }
-                      }
-                    }}
-                  />
-                </div>
+                <Label>Tags (comma-separated)</Label>
+                <Input
+                  placeholder="Leadership, Problem Solving, Communication"
+                  value={newQuestion.tags}
+                  onChange={(e) => setNewQuestion((prev) => ({ ...prev, tags: e.target.value }))}
+                />
               </div>
             </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditingQuestion(null)}>Cancel</Button>
-            <Button
-              onClick={handleUpdateQuestion}
-              disabled={!editingQuestion?.text.trim() || updateMutation.isPending}
-            >
-              {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </Card>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCreateDialogOpen(false)}>Cancel</Button>
+              <Button
+                onClick={handleCreateQuestion}
+                disabled={!newQuestion.text.trim() || createMutation.isPending}
+              >
+                {createMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Add Question
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Edit Question Dialog */}
+        <Dialog open={!!editingQuestion} onOpenChange={(open) => !open && setEditingQuestion(null)}>
+          <DialogContent className="max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Question</DialogTitle>
+            </DialogHeader>
+            {editingQuestion && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Category *</Label>
+                  <Select
+                    value={editingQuestion.category}
+                    onValueChange={(v) =>
+                      setEditingQuestion((prev) => prev && { ...prev, category: v })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categoryOrder.map((catId) => (
+                        <SelectItem key={catId} value={catId}>
+                          {categoryConfig[catId].name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Question *</Label>
+                  <Textarea
+                    value={editingQuestion.text}
+                    onChange={(e) =>
+                      setEditingQuestion((prev) => prev && { ...prev, text: e.target.value })
+                    }
+                    rows={3}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Follow-up Question</Label>
+                  <Input
+                    value={editingQuestion.followUp}
+                    onChange={(e) =>
+                      setEditingQuestion((prev) => prev && { ...prev, followUp: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Tags</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {editingQuestion.tags.map((tag, i) => (
+                      <Badge key={i} variant="secondary" className="gap-1">
+                        {tag}
+                        <button
+                          onClick={() =>
+                            setEditingQuestion((prev) =>
+                              prev && { ...prev, tags: prev.tags.filter((_, idx) => idx !== i) }
+                            )
+                          }
+                          className="ml-1 hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    ))}
+                    <Input
+                      placeholder="Add tag..."
+                      className="w-32 h-6 text-xs"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          const value = (e.target as HTMLInputElement).value.trim()
+                          if (value) {
+                            setEditingQuestion((prev) =>
+                              prev && { ...prev, tags: [...prev.tags, value] }
+                            )
+                              ; (e.target as HTMLInputElement).value = ''
+                          }
+                        }
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditingQuestion(null)}>Cancel</Button>
+              <Button
+                onClick={handleUpdateQuestion}
+                disabled={!editingQuestion?.text.trim() || updateMutation.isPending}
+              >
+                {updateMutation.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                Save Changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </Card>
     </>
   )
 }
