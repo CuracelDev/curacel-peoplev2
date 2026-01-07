@@ -1,0 +1,53 @@
+version: '3.8'
+
+services:
+  app:
+    container_name: curacel-people-app
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runner
+    ports:
+      - "3800:3800"
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - app-network
+    restart: always
+
+  postgres:
+    image: postgres:15-alpine
+    container_name: curacel-people-db
+    environment:
+      - POSTGRES_USER=curacel
+      - POSTGRES_PASSWORD=curacel_password
+      - POSTGRES_DB=curacel_people
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U curacel -d curacel_people"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+    restart: always
+
+  redis:
+    image: redis:7-alpine
+    container_name: curacel-people-redis
+    networks:
+      - app-network
+    restart: always
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
