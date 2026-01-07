@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Fixed
+- Docker configuration: Added missing development stage for docker-compose compatibility
+- Next.js configuration: Added required `output: 'standalone'` setting for Docker deployment
+- Bitbucket pipeline: Improved database migration handling with status checks and wait time
+- Docker PostgreSQL port mapping: Changed from 5432 to 5433 to avoid conflicts with existing database services
+- Application port: Changed from 3000 to 3800 to avoid port conflicts
+
 ### Removed
 - Legacy Role Competencies settings page and old job competency selection UI (superseded by the competency framework).
 

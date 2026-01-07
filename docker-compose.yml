@@ -9,11 +9,11 @@ services:
       args:
         - NODE_ENV=development
     ports:
-      - "3000:3000"
+      - "3800:3800"
     environment:
       - NODE_ENV=development
       - DATABASE_URL=postgresql://postgres:postgres@db:5432/curacel_people?schema=public
-      - NEXTAUTH_URL=http://localhost:3000
+      - NEXTAUTH_URL=http://localhost:3800
       - NEXTAUTH_SECRET=development_secret_key_change_me
       # Add API keys here as needed (OPENAI_API_KEY, ANTHROPIC_API_KEY, etc.)
     volumes:
@@ -31,7 +31,7 @@ services:
     image: postgres:15-alpine
     container_name: curacel-people-db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres

@@ -52,5 +52,11 @@ pipelines:
                   # Rebuild and restart containers
                   docker-compose down
                   docker-compose up -d --build
-                  # Run migrations inside the running app container
-                  docker-compose exec -T app npx prisma migrate deploy
+                  # Wait for containers to be ready
+                  sleep 30
+                  # Run migrations inside the running app container (only if migrations exist)
+                  if docker-compose exec -T app npx prisma migrate status | grep -q "Database schema is up to date"; then
+                    echo "Database is up to date"
+                  else
+                    docker-compose exec -T app npx prisma migrate deploy
+                  fi

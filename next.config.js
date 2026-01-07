@@ -7,6 +7,8 @@ module.exports = (phase) => {
     reactStrictMode: true,
     // Prevent `next build` from corrupting a running `next dev` by separating outputs.
     distDir: phase === PHASE_DEVELOPMENT_SERVER ? '.next-dev' : '.next',
+    // Required for Docker deployment
+    output: 'standalone',
     experimental: {
       serverComponentsExternalPackages: ['pg-boss'],
     },
