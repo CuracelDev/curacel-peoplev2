@@ -47,7 +47,7 @@ export async function fetchSheetData(
     const text = await response.text()
 
     // Google returns JSONP, need to extract JSON
-    const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\((.*)\);?\s*$/s)
+    const jsonMatch = text.match(/google\.visualization\.Query\.setResponse\(([\s\S]*)\);?\s*$/)
     if (!jsonMatch) {
       throw new Error('Failed to parse Google Sheets response')
     }
@@ -141,7 +141,7 @@ export function detectSheetFormat(headers: SheetRow): SheetFormatType {
   // Has ("Function" OR "Function Objective" OR "Role") AND ("Core Competencies" OR "Competencies")
   const hasFunction = allHeadersText.includes('function') || allHeadersText.includes('role')
   const hasCoreComp = allHeadersText.includes('core competenc') ||
-                      (allHeadersText.includes('competenc') && !allHeadersText.includes('value definition'))
+    (allHeadersText.includes('competenc') && !allHeadersText.includes('value definition'))
 
   if ((hasFunction || hasCoreComp) && !hasValues) {
     // Check for "Expert" column to detect 5-level variant

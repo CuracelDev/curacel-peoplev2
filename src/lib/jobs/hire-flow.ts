@@ -8,6 +8,7 @@
 
 import PgBoss from 'pg-boss'
 import { prisma } from '@/lib/prisma'
+import { EmploymentType } from '@prisma/client'
 import { logEmployeeEvent, logOfferEvent } from '@/lib/audit'
 import { renderTemplate } from '@/lib/utils'
 
@@ -152,7 +153,7 @@ async function getDefaultOfferTemplate(job: {
   // Second, try template matching employment type
   if (job.employmentType) {
     const template = await prisma.offerTemplate.findFirst({
-      where: { employmentType: job.employmentType },
+      where: { employmentType: job.employmentType as EmploymentType },
       select: { id: true, bodyHtml: true },
     })
     if (template) return template
@@ -389,10 +390,22 @@ export async function hireFlowHandler(job: PgBoss.Job<HireFlowJobData>): Promise
     const template = await getDefaultOfferTemplate(candidate.job)
 
     // Create or update employee
-    const employee = await createOrUpdateEmployee(candidate)
+    const employee = await createOrUpdateEmployee({
+      ...candidate,
+      job: {
+        ...candidate.job,
+        locations: candidate.job.locations as string[],
+      },
+    })
 
     // Create offer if needed
-    const offer = await createOfferIfNeeded(employee, candidate, template)
+    const offer = await createOfferIfNeeded(employee, {
+      ...candidate,
+      job: {
+        ...candidate.job,
+        locations: candidate.job.locations as string[],
+      },
+    }, template)
 
     console.log('[HireFlow] Hire flow completed successfully', {
       candidateId,
@@ -425,5 +438,5 @@ export async function queueHireFlow(
     }
   )
 
-  return jobId
+  return jobId!
 }

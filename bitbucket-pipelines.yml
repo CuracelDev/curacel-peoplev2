@@ -122,7 +122,7 @@ pipelines:
           - echo "Testing Next.js build..."
           - npm ci --legacy-peer-deps
           - npx -y prisma@5.10.2 generate
-          - npm run build
+          - NODE_OPTIONS=--max-old-space-size=4096 npm run build
           - echo "✓ Build successful!"
 
   pull-requests:
@@ -137,5 +137,5 @@ pipelines:
             - echo "Testing Next.js build..."
             - npm ci --legacy-peer-deps
             - npx -y prisma@5.10.2 generate
-            - npm run build
+            - NODE_OPTIONS=--max-old-space-size=4096 npm run build
             - echo "✓ Build successful!"

@@ -195,8 +195,7 @@ export default function CompetencyFrameworkPage() {
                     variant="outline"
                     onClick={() => handleSync(source.id, false)}
                     disabled={syncSourceMutation.isPending}
-                    className="text-xs"
-                    fullWidth
+                    className="text-xs w-full"
                   >
                     <RefreshCw className={`h-3 w-3 mr-1 ${syncSourceMutation.isPending ? 'animate-spin' : ''}`} />
                     Sync
@@ -207,8 +206,7 @@ export default function CompetencyFrameworkPage() {
                     variant="outline"
                     onClick={() => handleSync(source.id, true)}
                     disabled={syncSourceMutation.isPending}
-                    className="text-xs"
-                    fullWidth
+                    className="text-xs w-full"
                   >
                     <RefreshCw className={`h-3 w-3 mr-1 ${syncSourceMutation.isPending ? 'animate-spin' : ''}`} />
                     Force Refresh
@@ -218,8 +216,7 @@ export default function CompetencyFrameworkPage() {
                     size="sm"
                     variant="outline"
                     onClick={() => window.open(source.sheetUrl, '_blank')}
-                    className="text-xs"
-                    fullWidth
+                    className="text-xs w-full"
                   >
                     <ExternalLink className="h-3 w-3 mr-1" />
                     View Sheet
@@ -229,8 +226,7 @@ export default function CompetencyFrameworkPage() {
                     size="sm"
                     variant="outline"
                     onClick={() => router.push(`/hiring/settings/competency-framework/${source.id}`)}
-                    className="text-xs"
-                    fullWidth
+                    className="text-xs w-full"
                   >
                     <Eye className="h-3 w-3 mr-1" />
                     View Data

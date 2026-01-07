@@ -1074,119 +1074,119 @@ async function executeTool(
     } else {
       // Execute built-in tool
       switch (toolName) {
-      case 'find_contracts':
-        result = await findContracts(args, ctx)
-        break
-      case 'create_contract_draft':
-        result = await createContractDraft(args, ctx)
-        break
-      case 'send_contract':
-        result = await sendContract(args, ctx)
-        break
-      case 'get_employee':
-        result = await getEmployee(args, ctx)
-        break
-      case 'start_onboarding':
-        result = await startOnboarding(args, ctx)
-        break
-      case 'get_onboarding_status':
-        result = await getOnboardingStatus(args, ctx)
-        break
-      case 'count_hires_by_year':
-        result = await countHiresByYear(args, ctx)
-        break
-      case 'count_employees':
-        result = await countEmployees(args, ctx)
-        break
-      case 'flexible_query':
-        result = await flexibleQuery(args, ctx)
-        break
-      // V2 Contract Tools
-      case 'update_contract_draft':
-        result = await updateContractDraft(args, ctx)
-        break
-      case 'resend_contract':
-        result = await resendContract(args, ctx)
-        break
-      case 'cancel_contract':
-        result = await cancelContract(args, ctx)
-        break
-      // V2 Onboarding Task Tools
-      case 'complete_onboarding_task':
-        result = await completeOnboardingTask(args, ctx)
-        break
-      case 'run_onboarding_task':
-        result = await runOnboardingTask(args, ctx)
-        break
-      case 'skip_onboarding_task':
-        result = await skipOnboardingTask(args, ctx)
-        break
-      // V2 Offboarding Tools
-      case 'start_offboarding':
-        result = await startOffboarding(args, ctx)
-        break
-      case 'get_offboarding_status':
-        result = await getOffboardingStatus(args, ctx)
-        break
-      // V2 Integration Tools
-      case 'list_integrations':
-        result = await listIntegrations(args, ctx)
-        break
-      case 'test_integration_connection':
-        result = await testIntegrationConnection(args, ctx)
-        break
-      // V2 Notification & Audit Tools
-      case 'list_notifications':
-        result = await listNotifications(args, ctx)
-        break
-      case 'search_audit_log':
-        result = await searchAuditLog(args, ctx)
-        break
-      // V3 Proactive Tools
-      case 'get_daily_brief':
-        result = await getDailyBrief(args, ctx)
-        break
-      // V3 Bulk Operations
-      case 'bulk_start_onboarding':
-        result = await bulkStartOnboarding(args, ctx)
-        break
-      case 'bulk_resend_contracts':
-        result = await bulkResendContracts(args, ctx)
-        break
-      case 'bulk_deprovision_access':
-        result = await bulkDeprovisionAccess(args, ctx)
-        break
-      // V4 Hiring Pipeline Tools
-      case 'search_candidates':
-        result = await searchCandidates(args, ctx)
-        break
-      case 'get_candidate':
-        result = await getCandidate(args, ctx)
-        break
-      case 'get_candidate_timeline':
-        result = await getCandidateTimeline(args, ctx)
-        break
-      case 'list_jobs':
-        result = await listJobs(args, ctx)
-        break
-      case 'get_job_pipeline':
-        result = await getJobPipeline(args, ctx)
-        break
-      // V4 AI Analysis Tools
-      case 'get_candidate_analysis':
-        result = await getCandidateAnalysis(args, ctx)
-        break
-      case 'analyze_candidate':
-        result = await analyzeCandidate(args, ctx)
-        break
-      case 'get_candidate_sentiment_history':
-        result = await getCandidateSentimentHistory(args, ctx)
-        break
-      case 'create_custom_tool':
-        result = await createCustomTool(args, ctx)
-        break
-      default:
-        result = { status: 'error', message: `Unknown tool: ${toolName}` }
+        case 'find_contracts':
+          result = await findContracts(args, ctx)
+          break
+        case 'create_contract_draft':
+          result = await createContractDraft(args, ctx)
+          break
+        case 'send_contract':
+          result = await sendContract(args, ctx)
+          break
+        case 'get_employee':
+          result = await getEmployee(args, ctx)
+          break
+        case 'start_onboarding':
+          result = await startOnboarding(args, ctx)
+          break
+        case 'get_onboarding_status':
+          result = await getOnboardingStatus(args, ctx)
+          break
+        case 'count_hires_by_year':
+          result = await countHiresByYear(args, ctx)
+          break
+        case 'count_employees':
+          result = await countEmployees(args, ctx)
+          break
+        case 'flexible_query':
+          result = await flexibleQuery(args, ctx)
+          break
+        // V2 Contract Tools
+        case 'update_contract_draft':
+          result = await updateContractDraft(args, ctx)
+          break
+        case 'resend_contract':
+          result = await resendContract(args, ctx)
+          break
+        case 'cancel_contract':
+          result = await cancelContract(args, ctx)
+          break
+        // V2 Onboarding Task Tools
+        case 'complete_onboarding_task':
+          result = await completeOnboardingTask(args, ctx)
+          break
+        case 'run_onboarding_task':
+          result = await runOnboardingTask(args, ctx)
+          break
+        case 'skip_onboarding_task':
+          result = await skipOnboardingTask(args, ctx)
+          break
+        // V2 Offboarding Tools
+        case 'start_offboarding':
+          result = await startOffboarding(args, ctx)
+          break
+        case 'get_offboarding_status':
+          result = await getOffboardingStatus(args, ctx)
+          break
+        // V2 Integration Tools
+        case 'list_integrations':
+          result = await listIntegrations(args, ctx)
+          break
+        case 'test_integration_connection':
+          result = await testIntegrationConnection(args, ctx)
+          break
+        // V2 Notification & Audit Tools
+        case 'list_notifications':
+          result = await listNotifications(args, ctx)
+          break
+        case 'search_audit_log':
+          result = await searchAuditLog(args, ctx)
+          break
+        // V3 Proactive Tools
+        case 'get_daily_brief':
+          result = await getDailyBrief(args, ctx)
+          break
+        // V3 Bulk Operations
+        case 'bulk_start_onboarding':
+          result = await bulkStartOnboarding(args, ctx)
+          break
+        case 'bulk_resend_contracts':
+          result = await bulkResendContracts(args, ctx)
+          break
+        case 'bulk_deprovision_access':
+          result = await bulkDeprovisionAccess(args, ctx)
+          break
+        // V4 Hiring Pipeline Tools
+        case 'search_candidates':
+          result = await searchCandidates(args, ctx)
+          break
+        case 'get_candidate':
+          result = await getCandidate(args, ctx)
+          break
+        case 'get_candidate_timeline':
+          result = await getCandidateTimeline(args, ctx)
+          break
+        case 'list_jobs':
+          result = await listJobs(args, ctx)
+          break
+        case 'get_job_pipeline':
+          result = await getJobPipeline(args, ctx)
+          break
+        // V4 AI Analysis Tools
+        case 'get_candidate_analysis':
+          result = await getCandidateAnalysis(args, ctx)
+          break
+        case 'analyze_candidate':
+          result = await analyzeCandidate(args, ctx)
+          break
+        case 'get_candidate_sentiment_history':
+          result = await getCandidateSentimentHistory(args, ctx)
+          break
+        case 'create_custom_tool':
+          result = await createCustomTool(args, ctx)
+          break
+        default:
+          result = { status: 'error', message: `Unknown tool: ${toolName}` }
       }
     }
 
@@ -1572,24 +1572,24 @@ async function getEmployee(
       // HR-only sensitive fields
       ...(isHR
         ? {
-            // Compensation
-            salaryAmount: employee.salaryAmount,
-            salaryCurrency: employee.salaryCurrency,
-            contractType: employee.contractType,
-            taxId: employee.taxId,
+          // Compensation
+          salaryAmount: employee.salaryAmount,
+          salaryCurrency: employee.salaryCurrency,
+          contractType: employee.contractType,
+          taxId: employee.taxId,
 
-            // Bank details
-            bankName: employee.bankName,
-            accountName: employee.accountName,
-            accountNumber: employee.accountNumber,
-            accountSortCode: employee.accountSortCode,
+          // Bank details
+          bankName: employee.bankName,
+          accountName: employee.accountName,
+          accountNumber: employee.accountNumber,
+          accountSortCode: employee.accountSortCode,
 
-            // Emergency contact
-            emergencyContactName: employee.emergencyContactName,
-            emergencyContactRelation: employee.emergencyContactRelation,
-            emergencyContactPhone: employee.emergencyContactPhone,
-            emergencyContactEmail: employee.emergencyContactEmail,
-          }
+          // Emergency contact
+          emergencyContactName: employee.emergencyContactName,
+          emergencyContactRelation: employee.emergencyContactRelation,
+          emergencyContactPhone: employee.emergencyContactPhone,
+          emergencyContactEmail: employee.emergencyContactEmail,
+        }
         : {}),
 
       link: buildDeepLink('employee', employee.id),
@@ -1704,18 +1704,18 @@ async function startOnboarding(
 
   const tasks = templates.length > 0
     ? templates.map((t: any, idx: number) => ({
-        name: t.name,
-        type: t.type,
-        automationType: t.automationType,
-        automationConfig: t.appId ? { appId: t.appId, appType: t.appType } : t.appType ? { appType: t.appType } : undefined,
-        sortOrder: idx + 1,
-      }))
+      name: t.name,
+      type: t.type,
+      automationType: t.automationType,
+      automationConfig: t.appId ? { appId: t.appId, appType: t.appType } : t.appType ? { appType: t.appType } : undefined,
+      sortOrder: idx + 1,
+    }))
     : [
-        { name: 'Provision Google Workspace account', type: 'AUTOMATED', automationType: 'provision_google', sortOrder: 1 },
-        { name: 'Provision Slack account', type: 'AUTOMATED', automationType: 'provision_slack', sortOrder: 2 },
-        { name: 'Confirm laptop/hardware has been ordered', type: 'MANUAL', sortOrder: 3 },
-        { name: 'Schedule orientation meeting', type: 'MANUAL', sortOrder: 4 },
-      ]
+      { name: 'Provision Google Workspace account', type: 'AUTOMATED', automationType: 'provision_google', sortOrder: 1 },
+      { name: 'Provision Slack account', type: 'AUTOMATED', automationType: 'provision_slack', sortOrder: 2 },
+      { name: 'Confirm laptop/hardware has been ordered', type: 'MANUAL', sortOrder: 3 },
+      { name: 'Schedule orientation meeting', type: 'MANUAL', sortOrder: 4 },
+    ]
 
   const effectiveStartDate = startDate ? new Date(startDate) : employee.startDate || new Date()
 
@@ -1790,20 +1790,20 @@ async function getOnboardingStatus(
 
   const workflow = workflowId
     ? await ctx.prisma.onboardingWorkflow.findUnique({
-        where: { id: workflowId },
-        include: {
-          employee: { select: { id: true, fullName: true, jobTitle: true, startDate: true } },
-          tasks: { orderBy: { sortOrder: 'asc' } },
-        },
-      })
+      where: { id: workflowId },
+      include: {
+        employee: { select: { id: true, fullName: true, jobTitle: true, startDate: true } },
+        tasks: { orderBy: { sortOrder: 'asc' } },
+      },
+    })
     : await ctx.prisma.onboardingWorkflow.findFirst({
-        where: { employeeId, status: { in: ['PENDING', 'IN_PROGRESS'] } },
-        include: {
-          employee: { select: { id: true, fullName: true, jobTitle: true, startDate: true } },
-          tasks: { orderBy: { sortOrder: 'asc' } },
-        },
-        orderBy: { createdAt: 'desc' },
-      })
+      where: { employeeId, status: { in: ['PENDING', 'IN_PROGRESS'] } },
+      include: {
+        employee: { select: { id: true, fullName: true, jobTitle: true, startDate: true } },
+        tasks: { orderBy: { sortOrder: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
 
   if (!workflow) {
     return { status: 'ok', data: null, message: 'No onboarding workflow found for this employee.' }
@@ -2116,7 +2116,7 @@ async function flexibleQuery(
 
     // Validate the query spec
     const allowedModels = ['employee', 'job', 'jobCandidate', 'offer', 'onboardingWorkflow', 'offboardingWorkflow',
-                          'candidateInterview', 'candidateAssessment', 'candidateAIAnalysis', 'team', 'auditLog', 'app', 'appAccount']
+      'candidateInterview', 'candidateAssessment', 'candidateAIAnalysis', 'team', 'auditLog', 'app', 'appAccount']
     const allowedOps = ['findMany', 'count', 'aggregate', 'groupBy']
 
     if (!allowedModels.includes(querySpec.model)) {
@@ -2944,20 +2944,20 @@ async function startOffboarding(
 
   const defaultTasks = templates.length > 0
     ? templates.map((t: any, idx: number) => ({
-        name: t.name,
-        type: t.type,
-        automationType: t.automationType,
-        appId: t.appId,
-        sortOrder: idx + 1,
-      }))
+      name: t.name,
+      type: t.type,
+      automationType: t.automationType,
+      appId: t.appId,
+      sortOrder: idx + 1,
+    }))
     : [
-        { name: 'Collect company equipment', type: 'MANUAL', sortOrder: 1 },
-        { name: 'Revoke building/office access', type: 'MANUAL', sortOrder: 2 },
-        { name: 'Transfer files and documents', type: 'MANUAL', sortOrder: 3 },
-        { name: 'Exit interview', type: 'MANUAL', sortOrder: 4 },
-        { name: 'Deprovision Google Workspace', type: 'AUTOMATED', automationType: 'deprovision_google_workspace', sortOrder: 10 },
-        { name: 'Deprovision Slack', type: 'AUTOMATED', automationType: 'deprovision_slack', sortOrder: 11 },
-      ]
+      { name: 'Collect company equipment', type: 'MANUAL', sortOrder: 1 },
+      { name: 'Revoke building/office access', type: 'MANUAL', sortOrder: 2 },
+      { name: 'Transfer files and documents', type: 'MANUAL', sortOrder: 3 },
+      { name: 'Exit interview', type: 'MANUAL', sortOrder: 4 },
+      { name: 'Deprovision Google Workspace', type: 'AUTOMATED', automationType: 'deprovision_google_workspace', sortOrder: 10 },
+      { name: 'Deprovision Slack', type: 'AUTOMATED', automationType: 'deprovision_slack', sortOrder: 11 },
+    ]
 
   const effectiveEndDate = endDate ? new Date(endDate) : new Date()
 
@@ -3045,20 +3045,20 @@ async function getOffboardingStatus(
 
   const workflow = workflowId
     ? await ctx.prisma.offboardingWorkflow.findUnique({
-        where: { id: workflowId },
-        include: {
-          employee: { select: { id: true, fullName: true, jobTitle: true, endDate: true } },
-          tasks: { orderBy: { sortOrder: 'asc' } },
-        },
-      })
+      where: { id: workflowId },
+      include: {
+        employee: { select: { id: true, fullName: true, jobTitle: true, endDate: true } },
+        tasks: { orderBy: { sortOrder: 'asc' } },
+      },
+    })
     : await ctx.prisma.offboardingWorkflow.findFirst({
-        where: { employeeId, status: { in: ['PENDING', 'IN_PROGRESS'] } },
-        include: {
-          employee: { select: { id: true, fullName: true, jobTitle: true, endDate: true } },
-          tasks: { orderBy: { sortOrder: 'asc' } },
-        },
-        orderBy: { createdAt: 'desc' },
-      })
+      where: { employeeId, status: { in: ['PENDING', 'IN_PROGRESS'] } },
+      include: {
+        employee: { select: { id: true, fullName: true, jobTitle: true, endDate: true } },
+        tasks: { orderBy: { sortOrder: 'asc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    })
 
   if (!workflow) {
     return { status: 'ok', data: null, message: 'No offboarding workflow found for this employee.' }
@@ -4875,9 +4875,9 @@ export const assistantRouter = router({
       updatedAt: chat.updatedAt,
       lastMessage: chat.messages[0]
         ? {
-            content: chat.messages[0].content,
-            createdAt: chat.messages[0].createdAt,
-          }
+          content: chat.messages[0].content,
+          createdAt: chat.messages[0].createdAt,
+        }
         : null,
     }))
   }),
@@ -5091,7 +5091,7 @@ export const assistantRouter = router({
 
       // Load dynamic tools from database and merge with built-in tools
       const toolRegistry = new ToolRegistry(ctx.prisma)
-      const dynamicTools = await toolRegistry.loadTools()
+      const dynamicTools = await toolRegistry.loadTools() as typeof TOOL_DEFINITIONS
       const allTools = [...TOOL_DEFINITIONS, ...dynamicTools]
 
       console.log(`[Assistant] Loaded ${dynamicTools.length} dynamic tools, ${allTools.length} total tools`)
@@ -5308,7 +5308,7 @@ export const assistantRouter = router({
         return { text: transcription.text }
       } catch (error) {
         // Clean up temp file on error
-        try { fs.unlinkSync(tempFile) } catch {}
+        try { fs.unlinkSync(tempFile) } catch { }
         console.error('[Whisper] Transcription failed:', error)
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',

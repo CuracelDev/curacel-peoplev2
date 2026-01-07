@@ -73,6 +73,7 @@ export async function createAuditLog(params: AuditLogParams): Promise<void> {
 export async function logOfferEvent(params: {
   actorId?: string
   actorEmail?: string
+  actorType?: 'user' | 'system' | 'webhook'
   action: AuditAction
   offerId: string
   metadata?: Record<string, unknown>
@@ -80,6 +81,7 @@ export async function logOfferEvent(params: {
   await createAuditLog({
     actorId: params.actorId,
     actorEmail: params.actorEmail,
+    actorType: params.actorType,
     action: params.action,
     resourceType: 'offer',
     resourceId: params.offerId,
@@ -90,6 +92,7 @@ export async function logOfferEvent(params: {
 export async function logEmployeeEvent(params: {
   actorId?: string
   actorEmail?: string
+  actorType?: 'user' | 'system' | 'webhook'
   action: AuditAction
   employeeId: string
   metadata?: Record<string, unknown>
@@ -97,6 +100,7 @@ export async function logEmployeeEvent(params: {
   await createAuditLog({
     actorId: params.actorId,
     actorEmail: params.actorEmail,
+    actorType: params.actorType,
     action: params.action,
     resourceType: 'employee',
     resourceId: params.employeeId,

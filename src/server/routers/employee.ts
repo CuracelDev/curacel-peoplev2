@@ -127,6 +127,7 @@ export const employeeRouter = router({
           appAccounts: { include: { app: true } },
           onboardingWorkflows: { orderBy: { createdAt: 'desc' }, take: 1, include: { tasks: true } },
           offboardingWorkflows: { orderBy: { createdAt: 'desc' }, take: 1, include: { tasks: true } },
+          _count: { select: { directReports: true } },
         },
       })
 
@@ -136,7 +137,7 @@ export const employeeRouter = router({
 
       // Check access - HR can see all, managers can see their reports, employees can see themselves
       const user = ctx.user as { role: string; employeeId?: string }
-      const canAccess = 
+      const canAccess =
         user.role === 'SUPER_ADMIN' ||
         user.role === 'HR_ADMIN' ||
         user.role === 'IT_ADMIN' ||
@@ -197,7 +198,6 @@ export const employeeRouter = router({
                   id: true,
                   stage: true,
                   stageName: true,
-                  stageDisplayName: true,
                   scheduledAt: true,
                   completedAt: true,
                   status: true,
@@ -265,7 +265,7 @@ export const employeeRouter = router({
           timeline.push({
             id: interview.id,
             type: 'interview',
-            title: interview.stageName || interview.stageDisplayName || interview.stage,
+            title: interview.stageName || interview.stage,
             date: interview.completedAt || interview.scheduledAt || new Date(),
             status: interview.status,
             score: interview.overallScore || interview.score,
@@ -334,7 +334,7 @@ export const employeeRouter = router({
   getDirectReports: managerProcedure
     .query(async ({ ctx }) => {
       const user = ctx.user as { employeeId?: string }
-      
+
       if (!user.employeeId) {
         return []
       }
@@ -408,7 +408,7 @@ export const employeeRouter = router({
           : {}
       const nextMeta: Record<string, unknown> = { ...existingMeta }
       let metaUpdated = false
-      
+
       // Process date fields
       if (data.startDate !== undefined) {
         updateData.startDate = data.startDate ? new Date(data.startDate) : null
@@ -444,8 +444,8 @@ export const employeeRouter = router({
           actorId: (ctx.user as { id: string }).id,
           action: 'EMPLOYEE_STATUS_CHANGED',
           employeeId: id,
-          metadata: { 
-            previousStatus: existingEmployee.status, 
+          metadata: {
+            previousStatus: existingEmployee.status,
             newStatus: data.status,
           },
         })
@@ -467,7 +467,7 @@ export const employeeRouter = router({
     .input(selfUpdateSchema)
     .mutation(async ({ ctx, input }) => {
       const user = ctx.user as { id: string; employeeId?: string }
-      
+
       if (!user.employeeId) {
         throw new TRPCError({ code: 'NOT_FOUND', message: 'No employee profile linked' })
       }
@@ -503,7 +503,7 @@ export const employeeRouter = router({
     .query(async ({ ctx }) => {
       await autoActivateEmployees(ctx.prisma)
       return ctx.prisma.employee.findMany({
-        where: { 
+        where: {
           status: 'ACTIVE',
           directReports: { some: {} },
         },

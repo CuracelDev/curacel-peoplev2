@@ -187,12 +187,12 @@ export async function GET(
     ? candidate.pressValuesAvg
     : pressValuesScores
       ? (() => {
-          const values = Object.values(pressValuesScores)
-            .map((value) => normalizeTo100(value))
-            .filter((score): score is number => typeof score === 'number')
-          if (!values.length) return null
-          return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
-        })()
+        const values = Object.values(pressValuesScores)
+          .map((value) => normalizeTo100(value))
+          .filter((score): score is number => typeof score === 'number')
+        if (!values.length) return null
+        return Math.round(values.reduce((sum, value) => sum + value, 0) / values.length)
+      })()
       : null
 
   const interviews = candidate.interviews || []
@@ -214,7 +214,7 @@ export async function GET(
     ? Math.round(assessmentScores.reduce((sum, value) => sum + value, 0) / assessmentScores.length)
     : null
 
-  const competencyScores = (candidate.competencyScores as Record<string, number> | null) || null
+  const competencyScores = (candidate.legacyCompetencyScores as Record<string, number> | null) || null
   const personalityProfile = (candidate.personalityProfile as Record<string, number> | null) || null
 
   const averageFromScores = (scores?: Record<string, number> | null) => {
@@ -257,9 +257,9 @@ export async function GET(
   const overallScore =
     totalWeight > 0
       ? Math.round(
-          scoreComponents.reduce((sum, component) => sum + component.value * component.weight, 0) /
-            totalWeight
-        )
+        scoreComponents.reduce((sum, component) => sum + component.value * component.weight, 0) /
+        totalWeight
+      )
       : null
 
   const flowStages = Array.isArray(candidate.job?.hiringFlowSnapshot?.stages)
@@ -336,8 +336,8 @@ export async function GET(
       : []
   const recommendationConcerns = Array.isArray(latestAnalysis?.concerns)
     ? (latestAnalysis?.concerns as Array<string | { title?: string; description?: string }>)
-        .map((item) => (typeof item === 'string' ? item : item.title || item.description || ''))
-        .filter(Boolean)
+      .map((item) => (typeof item === 'string' ? item : item.title || item.description || ''))
+      .filter(Boolean)
     : []
 
   const assessmentsSummary = assessments.map((assessment) => ({
@@ -501,11 +501,11 @@ export async function GET(
               </div>
               <table class="table">
                 ${buildRow(
-                  'Salary Expectation',
-                  typeof candidate.salaryExpMin === 'number' && typeof candidate.salaryExpMax === 'number'
-                    ? `$${candidate.salaryExpMin.toLocaleString()} - $${candidate.salaryExpMax.toLocaleString()}`
-                    : null
-                )}
+    'Salary Expectation',
+    typeof candidate.salaryExpMin === 'number' && typeof candidate.salaryExpMax === 'number'
+      ? `$${candidate.salaryExpMin.toLocaleString()} - $${candidate.salaryExpMax.toLocaleString()}`
+      : null
+  )}
                 ${buildRow('Notice Period', candidate.noticePeriod)}
                 ${buildRow('MBTI', candidate.mbtiType)}
               </table>
@@ -590,10 +590,9 @@ export async function GET(
                   </tr>
                 </thead>
                 <tbody>
-                  ${
-                    interviewsSummary.length
-                      ? interviewsSummary
-                          .map((interview) => `
+                  ${interviewsSummary.length
+      ? interviewsSummary
+        .map((interview) => `
                             <tr>
                               <td>${escapeHtml(interview.stage)}</td>
                               <td class="center">${escapeHtml(interview.status)}</td>
@@ -601,9 +600,9 @@ export async function GET(
                               <td class="center">${escapeHtml(interview.score)}</td>
                             </tr>
                           `)
-                          .join('')
-                      : '<tr><td colspan="4" class="muted">No interviews recorded.</td></tr>'
-                  }
+        .join('')
+      : '<tr><td colspan="4" class="muted">No interviews recorded.</td></tr>'
+    }
                 </tbody>
               </table>
             </div>
@@ -621,10 +620,9 @@ export async function GET(
                   </tr>
                 </thead>
                 <tbody>
-                  ${
-                    assessmentsSummary.length
-                      ? assessmentsSummary
-                          .map((assessment) => `
+                  ${assessmentsSummary.length
+      ? assessmentsSummary
+        .map((assessment) => `
                             <tr>
                               <td>${escapeHtml(assessment.name)}</td>
                               <td class="center">${escapeHtml(assessment.status)}</td>
@@ -632,16 +630,15 @@ export async function GET(
                               <td class="center">${escapeHtml(assessment.completedAt)}</td>
                             </tr>
                           `)
-                          .join('')
-                      : '<tr><td colspan="4" class="muted">No assessments recorded.</td></tr>'
-                  }
+        .join('')
+      : '<tr><td colspan="4" class="muted">No assessments recorded.</td></tr>'
+    }
                 </tbody>
               </table>
-              ${
-                assessmentsSummary.some((assessment) => assessment.summary)
-                  ? `<p class="muted" style="margin-top: 8px;">Assessment notes included on candidate record.</p>`
-                  : ''
-              }
+              ${assessmentsSummary.some((assessment) => assessment.summary)
+      ? `<p class="muted" style="margin-top: 8px;">Assessment notes included on candidate record.</p>`
+      : ''
+    }
             </div>
           </div>
 
@@ -651,9 +648,9 @@ export async function GET(
             <span class="muted">Resume highlights</span>
           </div>
           <p>${candidate.resumeSummary || candidate.bio
-            ? escapeHtml(candidate.resumeSummary || candidate.bio || '')
-            : 'No resume summary available.'
-          }</p>
+      ? escapeHtml(candidate.resumeSummary || candidate.bio || '')
+      : 'No resume summary available.'
+    }</p>
         </div>
         </div>
       </body>

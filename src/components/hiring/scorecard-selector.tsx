@@ -132,7 +132,7 @@ export function ScorecardSelector({
                     existingScorecardId: scorecard.id,
                     scorecardData: {
                       mission: scorecard.mission,
-                      outcomes: scorecard.outcomes as Outcome[],
+                      outcomes: scorecard.outcomes as unknown as Outcome[],
                     },
                   })
                 }

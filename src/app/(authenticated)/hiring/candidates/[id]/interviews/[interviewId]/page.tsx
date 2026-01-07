@@ -430,8 +430,8 @@ export default function InterviewDetailPage() {
         status === 'SUBMITTED'
           ? 'Completed'
           : status === 'IN_PROGRESS'
-          ? 'In Progress'
-          : 'Pending'
+            ? 'In Progress'
+            : 'Pending'
       return `${interviewer.name} (${statusLabel})`
     })
     .join(', ')
@@ -450,7 +450,7 @@ export default function InterviewDetailPage() {
               <Badge className="bg-indigo-600 text-white hover:bg-indigo-700 px-2.5 py-0.5">
                 <span className="flex items-center gap-1.5 text-xs">
                   <span>●</span>
-                  Stage {interview.stageNumber || 5} of {interview.totalStages || 6}
+                  Interview Stage
                 </span>
               </Badge>
             </div>
@@ -607,7 +607,7 @@ export default function InterviewDetailPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => window.open(interview.transcriptUrl, '_blank')}
+                          onClick={() => window.open(interview.transcriptUrl!, '_blank')}
                         >
                           <ExternalLink className="h-4 w-4 mr-2" />
                           Open Fireflies
@@ -666,7 +666,7 @@ export default function InterviewDetailPage() {
                             <Button
                               variant="link"
                               size="sm"
-                              onClick={() => window.open(interview.transcriptUrl, '_blank')}
+                              onClick={() => window.open(interview.transcriptUrl!, '_blank')}
                               className="h-auto p-0 text-xs"
                             >
                               View on Fireflies
@@ -708,8 +708,8 @@ export default function InterviewDetailPage() {
                                   ? score >= 4
                                     ? 'bg-success border-success text-white'
                                     : score === 3
-                                    ? 'bg-amber-500 border-amber-500 text-white'
-                                    : 'bg-red-500 border-red-500 text-white'
+                                      ? 'bg-amber-500 border-amber-500 text-white'
+                                      : 'bg-red-500 border-red-500 text-white'
                                   : 'border-border'
                               )}
                             >
@@ -760,22 +760,22 @@ export default function InterviewDetailPage() {
                     </p>
                   )}
 
-                  {interview.firefliesHighlights && interview.firefliesHighlights.length > 0 && (
+                  {interview.firefliesHighlights && Array.isArray(interview.firefliesHighlights) && interview.firefliesHighlights.length > 0 && (
                     <>
                       <h4 className="font-semibold mb-2 text-success">Strengths Observed</h4>
                       <ul className="text-sm text-foreground/80 mb-4 list-disc pl-4 space-y-1">
-                        {interview.firefliesHighlights.slice(0, 3).map((highlight, i) => (
+                        {(interview.firefliesHighlights as string[]).slice(0, 3).map((highlight, i) => (
                           <li key={i}>{highlight}</li>
                         ))}
                       </ul>
                     </>
                   )}
 
-                  {interview.firefliesActionItems && interview.firefliesActionItems.length > 0 && (
+                  {interview.firefliesActionItems && Array.isArray(interview.firefliesActionItems) && interview.firefliesActionItems.length > 0 && (
                     <>
                       <h4 className="font-semibold mb-2 text-amber-600">Areas to Note</h4>
                       <ul className="text-sm text-foreground/80 list-disc pl-4 space-y-1">
-                        {interview.firefliesActionItems.slice(0, 2).map((item, i) => (
+                        {(interview.firefliesActionItems as string[]).slice(0, 2).map((item, i) => (
                           <li key={i}>{item}</li>
                         ))}
                       </ul>
@@ -856,8 +856,8 @@ export default function InterviewDetailPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="px-5 pb-5 space-y-2">
-                  {interview.candidate?.suggestedQuestions && interview.candidate.suggestedQuestions.length > 0 ? (
-                    interview.candidate.suggestedQuestions.slice(0, 3).map((question, i) => (
+                  {interview.candidate?.suggestedQuestions && Array.isArray(interview.candidate.suggestedQuestions) && interview.candidate.suggestedQuestions.length > 0 ? (
+                    (interview.candidate.suggestedQuestions as string[]).slice(0, 3).map((question, i) => (
                       <div key={i} className="flex gap-3 p-3 bg-muted/50 rounded-lg">
                         <div className="w-6 h-6 bg-indigo-600 text-white rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0">
                           {i + 1}
@@ -1155,7 +1155,7 @@ export default function InterviewDetailPage() {
                                     )}
                                   >
                                     {token.evaluationStatus === 'SUBMITTED' ? 'Submitted' :
-                                     token.evaluationStatus === 'IN_PROGRESS' ? 'In Progress' : 'Pending'}
+                                      token.evaluationStatus === 'IN_PROGRESS' ? 'In Progress' : 'Pending'}
                                   </Badge>
                                 </div>
                                 <div className="flex items-center gap-2 mt-2">

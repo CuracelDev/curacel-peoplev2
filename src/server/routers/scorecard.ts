@@ -166,9 +166,7 @@ Job Title: ${job.title}
 Department: ${job.department || 'Not specified'}
 
 Job Description:
-${job.jobDescription.overview || ''}
-${job.jobDescription.responsibilities || ''}
-${job.jobDescription.requirements || ''}
+${job.jobDescription.content || ''}
 
 Please provide a JSON response with:
 1. mission: A clear, concise mission statement (1-2 sentences) describing what this role needs to accomplish
@@ -388,9 +386,7 @@ Job Title: ${jd.name}
 Department: ${jd.department || 'Not specified'}
 
 Job Description:
-${jd.overview || ''}
-${jd.responsibilities || ''}
-${jd.requirements || ''}
+${jd.content || ''}
 
 Please provide a JSON response with:
 1. mission: A clear, concise mission statement (1-2 sentences) describing what this role needs to accomplish

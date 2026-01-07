@@ -156,28 +156,28 @@ export default function CandidateProfilePage() {
     // Parse JSON fields with type safety
     const workExperience = Array.isArray(c.workExperience)
       ? (c.workExperience as Array<Record<string, unknown>>).map((item) => ({
-          title: typeof item?.title === 'string' ? item.title : null,
-          company: typeof item?.company === 'string' ? item.company : null,
-          startDate: typeof item?.startDate === 'string' ? item.startDate : null,
-          endDate: typeof item?.endDate === 'string' ? item.endDate : null,
-          isCurrent: typeof item?.isCurrent === 'boolean' ? item.isCurrent : false,
-          description: typeof item?.description === 'string' ? item.description : null,
-          highlights: Array.isArray(item?.highlights)
-            ? item.highlights.filter((highlight): highlight is string => typeof highlight === 'string')
-            : [],
-          skills: Array.isArray(item?.skills)
-            ? item.skills.filter((skill): skill is string => typeof skill === 'string')
-            : [],
-        }))
+        title: typeof item?.title === 'string' ? item.title : null,
+        company: typeof item?.company === 'string' ? item.company : null,
+        startDate: typeof item?.startDate === 'string' ? item.startDate : null,
+        endDate: typeof item?.endDate === 'string' ? item.endDate : null,
+        isCurrent: typeof item?.isCurrent === 'boolean' ? item.isCurrent : false,
+        description: typeof item?.description === 'string' ? item.description : null,
+        highlights: Array.isArray(item?.highlights)
+          ? item.highlights.filter((highlight): highlight is string => typeof highlight === 'string')
+          : [],
+        skills: Array.isArray(item?.skills)
+          ? item.skills.filter((skill): skill is string => typeof skill === 'string')
+          : [],
+      }))
       : []
     const education = Array.isArray(c.education)
       ? (c.education as Array<Record<string, unknown>>).map((item) => ({
-          degree: typeof item?.degree === 'string' ? item.degree : '',
-          field: typeof item?.field === 'string' ? item.field : '',
-          institution: typeof item?.institution === 'string' ? item.institution : '',
-          honors: typeof item?.honors === 'string' ? item.honors : '',
-          years: typeof item?.years === 'string' ? item.years : '',
-        }))
+        degree: typeof item?.degree === 'string' ? item.degree : '',
+        field: typeof item?.field === 'string' ? item.field : '',
+        institution: typeof item?.institution === 'string' ? item.institution : '',
+        honors: typeof item?.honors === 'string' ? item.honors : '',
+        years: typeof item?.years === 'string' ? item.years : '',
+      }))
       : []
     const skillsData = (c.skills as {
       languages?: string[]
@@ -192,7 +192,7 @@ export default function CandidateProfilePage() {
       frameworks: Array.isArray(skillsData.frameworks) ? skillsData.frameworks : [],
     }
     const pressValuesScores = c.pressValuesScores as Record<string, number> | null
-    const competencyScores = (c.competencyScores as Record<string, number> | null) || null
+    const competencyScores = (c.legacyCompetencyScores as Record<string, number> | null) || null
     const personalityProfile = (c.personalityProfile as Record<string, number> | null) || null
     const teamFitAnalysis = c.teamFitAnalysis as { strengths?: unknown; considerations?: unknown } | null
 
@@ -471,6 +471,7 @@ export default function CandidateProfilePage() {
       decisionStatus: c.decisionStatus || null,
       decisionNotes: c.decisionNotes || null,
       interviewEvaluations,
+      flowStages,
     }
   }, [profileData])
 
@@ -1242,9 +1243,9 @@ export default function CandidateProfilePage() {
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {candidate.skills.languages.length > 0 ||
-                  candidate.skills.frameworks.length > 0 ||
-                  candidate.skills.databases.length > 0 ||
-                  candidate.skills.infrastructure.length > 0 ? (
+                    candidate.skills.frameworks.length > 0 ||
+                    candidate.skills.databases.length > 0 ||
+                    candidate.skills.infrastructure.length > 0 ? (
                     <>
                       <div>
                         <div className="text-xs font-medium text-muted-foreground uppercase mb-2">Languages & Frameworks</div>
@@ -1312,8 +1313,8 @@ export default function CandidateProfilePage() {
                     candidate.salaryExpMax === null &&
                     !candidate.mbtiType &&
                     candidate.yearsOfExperience === null) && (
-                    <div className="text-sm text-muted-foreground">No application details yet.</div>
-                  )}
+                      <div className="text-sm text-muted-foreground">No application details yet.</div>
+                    )}
                 </CardContent>
               </Card>
 
@@ -1348,176 +1349,176 @@ export default function CandidateProfilePage() {
         <TabsContent value="stages" className="mt-6">
           {candidate.interviewEvaluations.length > 0 ? (
             <div className="space-y-6">
-            {candidate.interviewEvaluations.map((evaluation, evalIdx) => (
-              <Card key={evalIdx} className="hover:border-indigo-300 transition-colors">
-                <Link href={`/recruiting/candidates/${candidateId}/interviews/${evaluation.stageType.toLowerCase()}`}>
-                  <CardHeader className="pb-4 cursor-pointer">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <CardTitle className="text-lg flex items-center gap-2">
-                          {evaluation.stage}
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                        </CardTitle>
-                        {evaluation.date && <Badge variant="outline">{evaluation.date}</Badge>}
-                        <Badge variant="outline" className="bg-indigo-50 text-indigo-600 border-indigo-200">
-                          <Mic className="h-3 w-3 mr-1" />
-                          Fireflies
-                        </Badge>
-                      </div>
-                      {typeof evaluation.overallScore === 'number' && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm text-muted-foreground">Overall Score:</span>
-                          <Badge className={cn(
-                            'text-lg px-3 py-1',
-                            evaluation.overallScore >= 85 ? 'bg-success' :
-                            evaluation.overallScore >= 70 ? 'bg-amber-500' : 'bg-red-500'
-                          )}>
-                            {evaluation.overallScore}
+              {candidate.interviewEvaluations.map((evaluation, evalIdx) => (
+                <Card key={evalIdx} className="hover:border-indigo-300 transition-colors">
+                  <Link href={`/recruiting/candidates/${candidateId}/interviews/${evaluation.stageType.toLowerCase()}`}>
+                    <CardHeader className="pb-4 cursor-pointer">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <CardTitle className="text-lg flex items-center gap-2">
+                            {evaluation.stage}
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          </CardTitle>
+                          {evaluation.date && <Badge variant="outline">{evaluation.date}</Badge>}
+                          <Badge variant="outline" className="bg-indigo-50 text-indigo-600 border-indigo-200">
+                            <Mic className="h-3 w-3 mr-1" />
+                            Fireflies
                           </Badge>
                         </div>
-                      )}
-                    </div>
-                  </CardHeader>
-                </Link>
-                <CardContent>
-                  {evaluation.evaluators.length > 0 ? (
-                  <div className="space-y-6">
-                    {evaluation.evaluators.map((evaluator, evIdx) => {
-                      const rating = typeof evaluator.overallRating === 'number' ? evaluator.overallRating : null
-
-                      return (
-                      <div key={evIdx} className={cn(evIdx > 0 && 'pt-6 border-t')}>
-                        {/* Evaluator Header */}
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-3">
-                            <Avatar className="h-10 w-10">
-                              <AvatarFallback className="bg-indigo-100 text-indigo-700 font-medium">
-                                {getInitials(evaluator.name)}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <div className="font-semibold">{evaluator.name}</div>
-                              <div className="text-sm text-muted-foreground">{evaluator.role}</div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-4">
-                            <div className="text-right">
-                              <div className="text-sm text-muted-foreground">Rating</div>
-                              {rating !== null ? (
-                                <div className="flex items-center gap-1">
-                                  {[1, 2, 3, 4, 5].map((star) => (
-                                    <Star
-                                      key={star}
-                                      className={cn(
-                                        'h-4 w-4',
-                                        star <= rating
-                                          ? 'fill-amber-400 text-amber-400'
-                                          : 'text-muted-foreground/40'
-                                      )}
-                                    />
-                                  ))}
-                                </div>
-                              ) : (
-                                <div className="text-xs text-muted-foreground">No rating yet</div>
-                              )}
-                            </div>
-                            {evaluator.recommendation && (
-                              <Badge className={cn(
-                                evaluator.recommendation === 'STRONG_HIRE' || evaluator.recommendation === 'STRONG_ADVANCE'
-                                  ? 'bg-success'
-                                  : evaluator.recommendation === 'HIRE' || evaluator.recommendation === 'ADVANCE'
-                                  ? 'bg-success'
-                                  : evaluator.recommendation === 'HOLD'
-                                  ? 'bg-amber-500'
-                                  : 'bg-red-500'
-                              )}>
-                                {evaluator.recommendation.replace('_', ' ')}
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Criteria Scores */}
-                        <div className="bg-muted/50 rounded-lg p-3 sm:p-4 mb-4">
-                          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                            {evaluator.criteria.map((criterion, cIdx) => (
-                              <div key={cIdx} className="text-center">
-                                <div className="text-[10px] sm:text-xs text-muted-foreground mb-2">{criterion.name}</div>
-                                <div className="flex justify-center gap-0.5 mb-1">
-                                  {[1, 2, 3, 4, 5].map((dot) => (
-                                    <div
-                                      key={dot}
-                                      className={cn(
-                                        'w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full',
-                                        dot <= criterion.score
-                                          ? criterion.score >= 4
-                                            ? 'bg-success'
-                                            : criterion.score >= 3
-                                            ? 'bg-amber-500'
-                                            : 'bg-red-500'
-                                          : 'bg-muted'
-                                      )}
-                                    />
-                                  ))}
-                                </div>
-                                <div className="text-xs font-semibold">
-                                  {criterion.score}/{criterion.maxScore}
-                                </div>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-
-                        {/* Notes */}
-                        {evaluator.notes && (
-                          <div className="flex items-start gap-2 text-sm text-foreground/80">
-                            <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                            <span>{evaluator.notes}</span>
+                        {typeof evaluation.overallScore === 'number' && (
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground">Overall Score:</span>
+                            <Badge className={cn(
+                              'text-lg px-3 py-1',
+                              evaluation.overallScore >= 85 ? 'bg-success' :
+                                evaluation.overallScore >= 70 ? 'bg-amber-500' : 'bg-red-500'
+                            )}>
+                              {evaluation.overallScore}
+                            </Badge>
                           </div>
                         )}
                       </div>
-                      )
-                    })}
-                  </div>
-                  ) : (
-                    <div className="text-center py-8 text-muted-foreground">
-                      <div className="flex flex-col items-center gap-2">
-                        <Clock className="h-8 w-8 text-muted-foreground/60" />
-                        <p className="text-sm">Interview scheduled - awaiting evaluation</p>
+                    </CardHeader>
+                  </Link>
+                  <CardContent>
+                    {evaluation.evaluators.length > 0 ? (
+                      <div className="space-y-6">
+                        {evaluation.evaluators.map((evaluator, evIdx) => {
+                          const rating = typeof evaluator.overallRating === 'number' ? evaluator.overallRating : null
+
+                          return (
+                            <div key={evIdx} className={cn(evIdx > 0 && 'pt-6 border-t')}>
+                              {/* Evaluator Header */}
+                              <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center gap-3">
+                                  <Avatar className="h-10 w-10">
+                                    <AvatarFallback className="bg-indigo-100 text-indigo-700 font-medium">
+                                      {getInitials(evaluator.name)}
+                                    </AvatarFallback>
+                                  </Avatar>
+                                  <div>
+                                    <div className="font-semibold">{evaluator.name}</div>
+                                    <div className="text-sm text-muted-foreground">{evaluator.role}</div>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                  <div className="text-right">
+                                    <div className="text-sm text-muted-foreground">Rating</div>
+                                    {rating !== null ? (
+                                      <div className="flex items-center gap-1">
+                                        {[1, 2, 3, 4, 5].map((star) => (
+                                          <Star
+                                            key={star}
+                                            className={cn(
+                                              'h-4 w-4',
+                                              star <= rating
+                                                ? 'fill-amber-400 text-amber-400'
+                                                : 'text-muted-foreground/40'
+                                            )}
+                                          />
+                                        ))}
+                                      </div>
+                                    ) : (
+                                      <div className="text-xs text-muted-foreground">No rating yet</div>
+                                    )}
+                                  </div>
+                                  {evaluator.recommendation && (
+                                    <Badge className={cn(
+                                      evaluator.recommendation === 'STRONG_HIRE' || evaluator.recommendation === 'STRONG_ADVANCE'
+                                        ? 'bg-success'
+                                        : evaluator.recommendation === 'HIRE' || evaluator.recommendation === 'ADVANCE'
+                                          ? 'bg-success'
+                                          : evaluator.recommendation === 'HOLD'
+                                            ? 'bg-amber-500'
+                                            : 'bg-red-500'
+                                    )}>
+                                      {evaluator.recommendation.replace('_', ' ')}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Criteria Scores */}
+                              <div className="bg-muted/50 rounded-lg p-3 sm:p-4 mb-4">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
+                                  {evaluator.criteria.map((criterion, cIdx) => (
+                                    <div key={cIdx} className="text-center">
+                                      <div className="text-[10px] sm:text-xs text-muted-foreground mb-2">{criterion.name}</div>
+                                      <div className="flex justify-center gap-0.5 mb-1">
+                                        {[1, 2, 3, 4, 5].map((dot) => (
+                                          <div
+                                            key={dot}
+                                            className={cn(
+                                              'w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full',
+                                              dot <= criterion.score
+                                                ? criterion.score >= 4
+                                                  ? 'bg-success'
+                                                  : criterion.score >= 3
+                                                    ? 'bg-amber-500'
+                                                    : 'bg-red-500'
+                                                : 'bg-muted'
+                                            )}
+                                          />
+                                        ))}
+                                      </div>
+                                      <div className="text-xs font-semibold">
+                                        {criterion.score}/{criterion.maxScore}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+
+                              {/* Notes */}
+                              {evaluator.notes && (
+                                <div className="flex items-start gap-2 text-sm text-foreground/80">
+                                  <FileText className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                                  <span>{evaluator.notes}</span>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-muted-foreground">
+                        <div className="flex flex-col items-center gap-2">
+                          <Clock className="h-8 w-8 text-muted-foreground/60" />
+                          <p className="text-sm">Interview scheduled - awaiting evaluation</p>
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+
+              {/* Summary Card */}
+              <Card className="bg-indigo-50 border-indigo-200">
+                <CardContent className="p-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
+                        <CheckCircle className="h-6 w-6 text-indigo-600" />
+                      </div>
+                      <div>
+                        <div className="text-sm text-indigo-600 font-medium">Interview Summary</div>
+                        <div className="text-lg font-semibold">
+                          {candidate.interviewEvaluations.length} stages completed with {
+                            candidate.interviewEvaluations.reduce((acc, e) => acc + e.evaluators.length, 0)
+                          } evaluator assessments
+                        </div>
                       </div>
                     </div>
-                  )}
+                    <Link href={`/recruiting/candidates/${candidateId}/stages/panel`}>
+                      <Button variant="outline">
+                        View Full Details
+                        <ChevronRight className="h-4 w-4 ml-2" />
+                      </Button>
+                    </Link>
+                  </div>
                 </CardContent>
               </Card>
-            ))}
-
-            {/* Summary Card */}
-            <Card className="bg-indigo-50 border-indigo-200">
-              <CardContent className="p-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-indigo-100 flex items-center justify-center">
-                      <CheckCircle className="h-6 w-6 text-indigo-600" />
-                    </div>
-                    <div>
-                      <div className="text-sm text-indigo-600 font-medium">Interview Summary</div>
-                      <div className="text-lg font-semibold">
-                        {candidate.interviewEvaluations.length} stages completed with {
-                          candidate.interviewEvaluations.reduce((acc, e) => acc + e.evaluators.length, 0)
-                        } evaluator assessments
-                      </div>
-                    </div>
-                  </div>
-                  <Link href={`/recruiting/candidates/${candidateId}/stages/panel`}>
-                    <Button variant="outline">
-                      View Full Details
-                      <ChevronRight className="h-4 w-4 ml-2" />
-                    </Button>
-                  </Link>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            </div>
           ) : (
             <div className="text-center py-12 text-muted-foreground">
               <BarChart3 className="h-12 w-12 mx-auto mb-4 text-muted-foreground/60" />
