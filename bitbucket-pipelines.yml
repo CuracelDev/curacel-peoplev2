@@ -36,7 +36,7 @@ pipelines:
                   # Create .env file
                   cat > .env << ENVEOF
                   NODE_ENV=production
-                  PORT=3500
+                  PORT=3800
                   NEXTAUTH_SECRET=$NEXTAUTH_SECRET
                   NEXTAUTH_URL=$NEXTAUTH_URL
                   GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
