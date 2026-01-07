@@ -62,6 +62,7 @@ pipelines:
             - echo "Deploying application to EC2..."
             - |
               ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST bash << 'EOF'
+                set -e
                 cd /home/ubuntu/peopleos
 
                 # Check/Install Docker

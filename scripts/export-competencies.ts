@@ -55,7 +55,7 @@ async function exportCompetencies() {
       markdown += `**Department:** ${source.department}\n\n`
     }
     markdown += `**Format:** ${source.formatType}\n\n`
-    markdown += `**Levels:** ${source.levelNames.join(', ')}\n\n`
+    markdown += `**Levels:** ${(source.levelNames as string[])?.join(', ') || 'N/A'}\n\n`
     markdown += `**Sheet:** [View Source](${source.sheetUrl})\n\n`
     markdown += `**Last Synced:** ${source.lastSyncedAt ? new Date(source.lastSyncedAt).toLocaleDateString() : 'Never'}\n\n`
 
@@ -91,7 +91,7 @@ async function exportCompetencies() {
         if (levelDescriptions && Object.keys(levelDescriptions).length > 0) {
           markdown += `**Level Definitions:**\n\n`
 
-          const levelNames = source.levelNames as string[]
+          const levelNames = (source.levelNames as string[]) || []
           const sortedLevels = Object.entries(levelDescriptions).sort((a, b) => parseInt(a[0]) - parseInt(b[0]))
 
           for (const [levelNum, description] of sortedLevels) {
@@ -150,11 +150,10 @@ async function exportCompetencies() {
     markdown += `- **${dept}:** ${stats.coreComp} core competencies, ${stats.subComp} sub-competencies\n`
   }
 
-  // Write to desktop
-  const desktopPath = join('/Users/henrymascot/Desktop', 'curacel competencies.md')
-  writeFileSync(desktopPath, markdown, 'utf-8')
+  const outputPath = join(process.cwd(), 'curacel-competencies.md')
+  writeFileSync(outputPath, markdown, 'utf-8')
 
-  console.log(`✅ Exported to: ${desktopPath}`)
+  console.log(`✅ Exported to: ${outputPath}`)
   console.log(`📊 Total: ${sources.length} frameworks, ${totalCoreComp} core competencies, ${totalSubComp} sub-competencies`)
 }
 
