@@ -89,7 +89,7 @@ pipelines:
                 # Wait for DB
                 echo "Waiting for database..."
                 sleep 10
-                docker exec curacel-people-db pg_isready -U curacel -d curacel_people
+                docker exec curacel-people-db-v2 pg_isready -U curacel -d curacel_people
 
                 # Migrate
                 echo "Running migrations..."
@@ -104,7 +104,7 @@ pipelines:
                 echo "=== Container Status ==="
                 docker compose -f docker-compose.deploy.yml ps
                 echo "=== App Logs ==="
-                docker logs curacel-people-app --tail 30
+                docker logs curacel-people-app-v2 --tail 30
                 echo "=== Health Check ==="
                 curl -s -o /dev/null -w "%{http_code}" http://localhost:3800 || echo "App might be starting..."
                 echo ""
