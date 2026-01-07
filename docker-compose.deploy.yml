@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   app:
-    container_name: curacel-people-app
+    container_name: curacel-people-app-v2
     build:
       context: .
       dockerfile: Dockerfile
@@ -22,7 +22,7 @@ services:
 
   postgres:
     image: postgres:15-alpine
-    container_name: curacel-people-db
+    container_name: curacel-people-db-v2
     environment:
       - POSTGRES_USER=curacel
       - POSTGRES_PASSWORD=curacel_password
@@ -40,7 +40,7 @@ services:
 
   redis:
     image: redis:7-alpine
-    container_name: curacel-people-redis
+    container_name: curacel-people-redis-v2
     networks:
       - app-network
     restart: always
