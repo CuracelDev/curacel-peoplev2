@@ -33,30 +33,28 @@ pipelines:
                 COMMAND: |
                   cd /home/ubuntu/peopleos
                   
-                  # Create .env file
-                  cat > .env << ENVEOF
-                  NODE_ENV=production
-                  PORT=3800
-                  NEXTAUTH_SECRET=$NEXTAUTH_SECRET
-                  NEXTAUTH_URL=$NEXTAUTH_URL
-                  GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
-                  GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
-                  EMAIL_SERVER_HOST=$EMAIL_SERVER_HOST
-                  EMAIL_SERVER_PORT=$EMAIL_SERVER_PORT
-                  EMAIL_SERVER_USER=$EMAIL_SERVER_USER
-                  EMAIL_SERVER_PASSWORD=$EMAIL_SERVER_PASSWORD
-                  EMAIL_FROM=$EMAIL_FROM
-                  POSTMARK_SERVER_TOKEN=$POSTMARK_SERVER_TOKEN
-                  POSTMARK_FROM=$POSTMARK_FROM
-                  DOCUSIGN_CLIENT_ID=$DOCUSIGN_CLIENT_ID
-                  DOCUSIGN_CLIENT_SECRET=$DOCUSIGN_CLIENT_SECRET
-                  DOCUSIGN_REDIRECT_URI=$DOCUSIGN_REDIRECT_URI
-                  UPLOADTHING_SECRET=$UPLOADTHING_SECRET
-                  UPLOADTHING_APP_ID=$UPLOADTHING_APP_ID
-                  ENCRYPTION_KEY=$ENCRYPTION_KEY
-                  DEV_PASSWORDLESS_LOGIN=$DEV_PASSWORDLESS_LOGIN
-                  DEV_AUTO_CREATE_SUPER_ADMIN=$DEV_AUTO_CREATE_SUPER_ADMIN
-                  ENVEOF
+                  # Create .env file with actual values
+                  echo "NODE_ENV=production" > .env
+                  echo "PORT=3800" >> .env
+                  echo "NEXTAUTH_SECRET=$NEXTAUTH_SECRET" >> .env
+                  echo "NEXTAUTH_URL=$NEXTAUTH_URL" >> .env
+                  echo "GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID" >> .env
+                  echo "GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET" >> .env
+                  echo "EMAIL_SERVER_HOST=$EMAIL_SERVER_HOST" >> .env
+                  echo "EMAIL_SERVER_PORT=$EMAIL_SERVER_PORT" >> .env
+                  echo "EMAIL_SERVER_USER=$EMAIL_SERVER_USER" >> .env
+                  echo "EMAIL_SERVER_PASSWORD=$EMAIL_SERVER_PASSWORD" >> .env
+                  echo "EMAIL_FROM=$EMAIL_FROM" >> .env
+                  echo "POSTMARK_SERVER_TOKEN=$POSTMARK_SERVER_TOKEN" >> .env
+                  echo "POSTMARK_FROM=$POSTMARK_FROM" >> .env
+                  echo "DOCUSIGN_CLIENT_ID=$DOCUSIGN_CLIENT_ID" >> .env
+                  echo "DOCUSIGN_CLIENT_SECRET=$DOCUSIGN_CLIENT_SECRET" >> .env
+                  echo "DOCUSIGN_REDIRECT_URI=$DOCUSIGN_REDIRECT_URI" >> .env
+                  echo "UPLOADTHING_SECRET=$UPLOADTHING_SECRET" >> .env
+                  echo "UPLOADTHING_APP_ID=$UPLOADTHING_APP_ID" >> .env
+                  echo "ENCRYPTION_KEY=$ENCRYPTION_KEY" >> .env
+                  echo "DEV_PASSWORDLESS_LOGIN=$DEV_PASSWORDLESS_LOGIN" >> .env
+                  echo "DEV_AUTO_CREATE_SUPER_ADMIN=$DEV_AUTO_CREATE_SUPER_ADMIN" >> .env
                   
                   echo "Checking environment variables..." && cat .env | head -5
 
