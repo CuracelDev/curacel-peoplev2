@@ -189,7 +189,7 @@ export default function InterviewsPage() {
                 ? 'bg-card/20'
                 : 'bg-muted'
             )}>
-              {counts?.all || 0}
+              {(counts as { all?: number })?.all || 0}
             </span>
           </button>
           {featuredTypes.map((type) => (

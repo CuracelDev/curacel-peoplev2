@@ -145,13 +145,13 @@ export function InterestFormSelector({
                         </span>
                         <div className="flex-1">
                           <div className="text-sm font-medium text-foreground">
-                            {question.questionText}
-                            {question.isRequired && (
+                            {question.question}
+                            {question.required && (
                               <span className="text-red-500 ml-1">*</span>
                             )}
                           </div>
                           <div className="text-xs text-muted-foreground mt-1">
-                            Type: {question.questionType}
+                            Type: {question.type}
                           </div>
                         </div>
                       </div>

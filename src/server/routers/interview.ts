@@ -116,7 +116,7 @@ export const interviewRouter = router({
       const employeeIds = new Set<string>()
       interviews.forEach((interview) => {
         if (interview.interviewers && Array.isArray(interview.interviewers)) {
-          ;(interview.interviewers as Array<{ employeeId?: string }>).forEach((interviewer) => {
+          ; (interview.interviewers as Array<{ employeeId?: string }>).forEach((interviewer) => {
             if (interviewer.employeeId) {
               employeeIds.add(interviewer.employeeId)
             }
@@ -145,9 +145,9 @@ export const interviewRouter = router({
         // Enrich interviewers with profile images
         const enrichedInterviewers = interview.interviewers && Array.isArray(interview.interviewers)
           ? (interview.interviewers as Array<{ employeeId?: string; name: string; email?: string }>).map((interviewer) => ({
-              ...interviewer,
-              profileImageUrl: interviewer.employeeId ? employeeImageMap.get(interviewer.employeeId) : null,
-            }))
+            ...interviewer,
+            profileImageUrl: interviewer.employeeId ? employeeImageMap.get(interviewer.employeeId) : null,
+          }))
           : interview.interviewers
 
         return {
@@ -236,24 +236,24 @@ export const interviewRouter = router({
       }
 
       // Find next interview for the same candidate
-      const nextInterview = await ctx.prisma.candidateInterview.findFirst({
+      const nextInterview = interview.scheduledAt ? await ctx.prisma.candidateInterview.findFirst({
         where: {
           candidateId: interview.candidateId,
           scheduledAt: { gt: interview.scheduledAt },
         },
         orderBy: { scheduledAt: 'asc' },
         select: { id: true },
-      })
+      }) : null
 
       // Find previous interview for the same candidate
-      const previousInterview = await ctx.prisma.candidateInterview.findFirst({
+      const previousInterview = interview.scheduledAt ? await ctx.prisma.candidateInterview.findFirst({
         where: {
           candidateId: interview.candidateId,
           scheduledAt: { lt: interview.scheduledAt },
         },
         orderBy: { scheduledAt: 'desc' },
         select: { id: true },
-      })
+      }) : null
 
       return {
         ...interview,
@@ -1275,7 +1275,7 @@ export const interviewRouter = router({
         assignedToInterviewerName: aq.assignedToInterviewerName,
         // Check if this question is assigned to the current interviewer
         isAssignedToMe: aq.assignedToInterviewerId === tokenRecord.interviewerId ||
-                        aq.assignedToInterviewerName === tokenRecord.interviewerName,
+          aq.assignedToInterviewerName === tokenRecord.interviewerName,
       }))
 
       // Calculate lockout date (3 days after interview)
@@ -1291,21 +1291,21 @@ export const interviewRouter = router({
       // For People Team, group questions by interviewer with their responses
       const interviewerQuestionResponses = isPeopleTeam
         ? allTokens.map(t => ({
-            interviewerId: t.interviewerId,
-            interviewerName: t.interviewerName,
-            interviewerEmail: t.interviewerEmail,
-            evaluationStatus: t.evaluationStatus,
-            overallRating: t.overallRating,
-            recommendation: t.recommendation,
-            evaluationNotes: t.evaluationNotes,
-            submittedAt: t.submittedAt,
-            questionResponses: t.questionResponses as Record<string, { score: number | null; notes: string }> | null,
-            // Questions assigned to this interviewer
-            assignedQuestions: interviewQuestions.filter(
-              q => q.assignedToInterviewerId === t.interviewerId ||
-                   q.assignedToInterviewerName === t.interviewerName
-            ),
-          }))
+          interviewerId: t.interviewerId,
+          interviewerName: t.interviewerName,
+          interviewerEmail: t.interviewerEmail,
+          evaluationStatus: t.evaluationStatus,
+          overallRating: t.overallRating,
+          recommendation: t.recommendation,
+          evaluationNotes: t.evaluationNotes,
+          submittedAt: t.submittedAt,
+          questionResponses: t.questionResponses as Record<string, { score: number | null; notes: string }> | null,
+          // Questions assigned to this interviewer
+          assignedQuestions: interviewQuestions.filter(
+            q => q.assignedToInterviewerId === t.interviewerId ||
+              q.assignedToInterviewerName === t.interviewerName
+          ),
+        }))
         : null
 
       return {
@@ -1795,7 +1795,7 @@ export const interviewRouter = router({
 
       // Only allow removing if assigned to this interviewer
       if (assignedQuestion.assignedToInterviewerId !== tokenRecord.interviewerId &&
-          assignedQuestion.assignedToInterviewerName !== tokenRecord.interviewerName) {
+        assignedQuestion.assignedToInterviewerName !== tokenRecord.interviewerName) {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'You can only remove questions assigned to you',
@@ -2322,10 +2322,10 @@ export const interviewRouter = router({
 
       return interview.meetingLink
         ? {
-            eventId: null,
-            meetLink: interview.meetingLink,
-            htmlLink: null,
-          }
+          eventId: null,
+          meetLink: interview.meetingLink,
+          htmlLink: null,
+        }
         : null
     }),
 
@@ -2791,9 +2791,9 @@ Respond ONLY with valid JSON, no additional text.`
       const maxSortOrder = input.replaceExisting
         ? -1
         : (await ctx.prisma.interviewAssignedQuestion.aggregate({
-            where: { interviewId: input.interviewId },
-            _max: { sortOrder: true },
-          }))._max.sortOrder ?? -1
+          where: { interviewId: input.interviewId },
+          _max: { sortOrder: true },
+        }))._max.sortOrder ?? -1
 
       const assignedQuestions = []
       let currentOrder = maxSortOrder + 1

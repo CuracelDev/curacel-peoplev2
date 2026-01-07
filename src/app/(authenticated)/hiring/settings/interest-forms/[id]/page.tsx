@@ -71,7 +71,7 @@ export default function EditInterestFormPage() {
       if (!formName.trim()) setFormName(data.name || '')
       if (!formDescription.trim() && data.description) setFormDescription(data.description)
       setFormQuestions(
-        (data.questions || []).map((q) => ({
+        (data.questions || []).map((q: { label: string; type: string; placeholder?: string; helpText?: string; isRequired: boolean; options?: string }) => ({
           label: q.label,
           type: q.type,
           placeholder: q.placeholder,

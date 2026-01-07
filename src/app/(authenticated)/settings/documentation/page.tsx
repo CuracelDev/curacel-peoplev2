@@ -1851,7 +1851,7 @@ export default function DocumentationPage() {
                             <span className="rounded-full border bg-background px-2 py-1 text-xs font-medium text-foreground">
                               {step}
                             </span>
-                            {stepIndex < block.diagram.steps.length - 1 ? (
+                            {stepIndex < block.diagram!.steps.length - 1 ? (
                               <span className="mx-2 text-xs text-muted-foreground">-&gt;</span>
                             ) : null}
                           </span>

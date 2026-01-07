@@ -197,7 +197,7 @@ async function main() {
       seeingPossibilities: 86,
     },
     pressValuesAvg: 82,
-    competencyScores: {
+    legacyCompetencyScores: {
       userResearch: 88,
       visualDesign: 90,
       productThinking: 86,

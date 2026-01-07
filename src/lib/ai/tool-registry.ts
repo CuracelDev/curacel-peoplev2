@@ -36,7 +36,7 @@ export interface ToolExecutionResult {
 // ============================================
 
 export class CustomToolExecutor {
-  constructor(private prisma: PrismaClient) {}
+  constructor(private prisma: PrismaClient) { }
 
   /**
    * Execute a custom tool based on its configuration
@@ -86,13 +86,13 @@ export class CustomToolExecutor {
       switch (tool.executionType) {
         case 'trpc_mutation':
         case 'trpc_query':
-          return await this.executeTRPC(tool, args, executionConfig, context)
+          return await this.executeTRPC(tool, args, executionConfig as any, context)
 
         case 'webhook':
-          return await this.executeWebhook(tool, args, executionConfig)
+          return await this.executeWebhook(tool, args, executionConfig as any)
 
         case 'custom_code':
-          return await this.executeCustomCode(tool, args, executionConfig, context)
+          return await this.executeCustomCode(tool, args, executionConfig as any, context)
 
         default:
           throw new Error(`Unknown execution type: ${tool.executionType}`)
@@ -175,7 +175,7 @@ export class CustomToolExecutor {
   ): Promise<ToolExecutionResult> {
     // Create a sandboxed function
     // WARNING: This is a simplified example. In production, use proper sandboxing
-    const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor
+    const AsyncFunction = Object.getPrototypeOf(async function () { }).constructor
     const fn = new AsyncFunction('args', 'context', 'prisma', config.code)
 
     const result = await fn(args, context, this.prisma)
@@ -244,7 +244,7 @@ export class ToolRegistry {
     displayName: string
     description: string
     category: string
-    parameters: Record<string, any>
+    parameters: { type: 'object'; properties: Record<string, any>; required?: string[] }
     executionType: string
     executionConfig: Record<string, any>
     requiresConfirmation?: boolean

@@ -93,7 +93,7 @@ const jamesOkaforFullProfile = {
     seeingPossibilities: 80,
   },
   pressValuesAvg: 82,
-  competencyScores: {
+  legacyCompetencyScores: {
     systemDesign: 90,
     technicalLeadership: 85,
     problemSolving: 88,

@@ -69,7 +69,7 @@ export default function ScorecardPage() {
   useState(() => {
     if (scorecard) {
       setMission(scorecard.mission)
-      setOutcomes(scorecard.outcomes as Outcome[])
+      setOutcomes(scorecard.outcomes as unknown as Outcome[])
     }
   })
 
@@ -145,7 +145,7 @@ export default function ScorecardPage() {
   const handleEdit = () => {
     if (scorecard) {
       setMission(scorecard.mission)
-      setOutcomes(scorecard.outcomes as Outcome[])
+      setOutcomes(scorecard.outcomes as unknown as Outcome[])
     }
     setIsEditing(true)
   }
@@ -153,7 +153,7 @@ export default function ScorecardPage() {
   const handleCancel = () => {
     if (scorecard) {
       setMission(scorecard.mission)
-      setOutcomes(scorecard.outcomes as Outcome[])
+      setOutcomes(scorecard.outcomes as unknown as Outcome[])
     }
     setIsEditing(false)
   }
@@ -393,7 +393,7 @@ export default function ScorecardPage() {
               <CardTitle>Outcomes</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {(scorecard.outcomes as Outcome[]).map((outcome, index) => (
+              {(scorecard.outcomes as unknown as Outcome[]).map((outcome, index) => (
                 <div key={index} className="border-l-4 border-blue-500 pl-4 space-y-2">
                   <h4 className="font-medium">{outcome.name}</h4>
                   <p className="text-sm text-foreground/70">{outcome.description}</p>

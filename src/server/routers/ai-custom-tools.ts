@@ -98,6 +98,8 @@ export const aiCustomToolsRouter = router({
       const registry = new ToolRegistry(ctx.prisma)
       return registry.createTool({
         ...input,
+        parameters: input.parameters as { type: 'object'; properties: Record<string, any>; required?: string[] },
+        executionConfig: (input.executionConfig || {}) as Record<string, any>,
         createdBy: ctx.user!.id,
       })
     }),
