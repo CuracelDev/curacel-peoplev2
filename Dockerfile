@@ -31,7 +31,7 @@ RUN rm -rf node_modules
 COPY --from=deps /app/node_modules ./node_modules
 
 # Generate Prisma Client
-RUN npx prisma generate
+RUN npx prisma@5.10.2 generate
 
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
