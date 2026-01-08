@@ -93,7 +93,10 @@ pipelines:
 
                 # Migrate
                 echo "Running migrations..."
-                docker compose -f docker-compose.deploy.yml run --rm app sh -c "npx -y prisma@5.10.2 db push --skip-generate && npx -y tsx prisma/seed.ts"
+                docker compose -f docker-compose.deploy.yml run --rm app npx -y prisma@5.10.2 db push --skip-generate
+                
+                echo "Seeding database..."
+                docker compose -f docker-compose.deploy.yml run --rm app npx -y tsx prisma/seed.ts
 
                 # Start App
                 echo "Starting app..."
