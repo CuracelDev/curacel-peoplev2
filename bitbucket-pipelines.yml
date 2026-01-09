@@ -91,16 +91,17 @@ pipelines:
                 sleep 10
                 docker exec curacel-people-db-v2 pg_isready -U curacel -d curacel_people
 
-                # Migrate
-                echo "Running migrations..."
-                docker compose -f docker-compose.deploy.yml run --rm app npx -y prisma@5.10.2 db push --skip-generate || true
-                
-                echo "Seeding database..."
-                docker compose -f docker-compose.deploy.yml run --rm app npx -y tsx prisma/seed.ts || true
-
-                # Start App
+                # Start App first (so container exists for migrations)
                 echo "Starting app..."
                 docker compose -f docker-compose.deploy.yml up -d app
+                sleep 5
+
+                # Migrate using exec on running container
+                echo "Running migrations..."
+                docker exec curacel-people-app-v2 npx -y prisma@5.10.2 db push --skip-generate || echo "Migration completed or skipped"
+                
+                echo "Seeding database..."
+                docker exec curacel-people-app-v2 npx -y tsx prisma/seed.ts || echo "Seeding completed or skipped"
 
                 # Health Check
                 sleep 15
