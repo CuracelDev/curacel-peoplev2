@@ -17,13 +17,9 @@ export const authOptions: NextAuthOptions = {
         if (!credentials?.email) return null
         const email = credentials.email.trim().toLowerCase()
         const password = credentials.password || ''
-        
-        const devPasswordless =
-          process.env.NODE_ENV !== 'production' &&
-          process.env.DEV_PASSWORDLESS_LOGIN !== 'false'
-        const devAutoCreateSuperAdmin =
-          process.env.NODE_ENV !== 'production' &&
-          process.env.DEV_AUTO_CREATE_SUPER_ADMIN !== 'false'
+
+        const devPasswordless = process.env.DEV_PASSWORDLESS_LOGIN === 'true'
+        const devAutoCreateSuperAdmin = process.env.DEV_AUTO_CREATE_SUPER_ADMIN === 'true'
 
         // Find user in database
         let user = await prisma.user.findUnique({ where: { email } })
