@@ -93,8 +93,8 @@ pipelines:
                 docker exec curacel-people-db-v2 pg_isready -U curacel -d curacel_people
 
                 # Start App first (so container exists for migrations)
-                echo "Starting app..."
-                docker compose -f docker-compose.deploy.yml up -d app
+                echo "Starting app and adminer..."
+                docker compose -f docker-compose.deploy.yml up -d app adminer
                 sleep 5
 
                 # Migrate using exec on running container
