@@ -101,8 +101,8 @@ pipelines:
                 echo "Running migrations..."
                 docker exec curacel-people-app-v2 npx -y prisma@5.10.2 db push --skip-generate || echo "Migration completed or skipped"
                 
-                echo "Seeding database..."
-                docker exec curacel-people-app-v2 npx -y tsx prisma/seed.ts || echo "Seeding completed or skipped"
+                # Note: Seeding is disabled to preserve imported data. Run manually if needed:
+                # docker exec curacel-people-app-v2 npx -y tsx prisma/seed.ts
 
                 # Health Check
                 sleep 15
