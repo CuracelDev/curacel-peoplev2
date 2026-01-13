@@ -4,6 +4,8 @@ import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure } from '@/lib/trpc'
 import { normalizeCandidateScoreWeights } from '@/lib/hiring/score-config'
 
+const DEFAULT_PROBATION_MONTHS = 3
+
 export const hiringSettingsRouter = router({
   // Get hiring settings (creates if doesn't exist)
   get: protectedProcedure.query(async ({ ctx }) => {
@@ -13,6 +15,10 @@ export const hiringSettingsRouter = router({
       settings?.candidateScoreWeights as ReturnType<typeof normalizeCandidateScoreWeights> | null
     )
     const jobScoreDisplay = settings?.jobScoreDisplay || 'average'
+    const probationLengthFullTimeMonths = settings?.probationLengthFullTimeMonths ?? DEFAULT_PROBATION_MONTHS
+    const probationLengthPartTimeMonths = settings?.probationLengthPartTimeMonths ?? DEFAULT_PROBATION_MONTHS
+    const probationLengthContractorMonths = settings?.probationLengthContractorMonths ?? DEFAULT_PROBATION_MONTHS
+    const probationLengthInternMonths = settings?.probationLengthInternMonths ?? DEFAULT_PROBATION_MONTHS
 
     // Create if doesn't exist
     if (!settings) {
@@ -21,6 +27,10 @@ export const hiringSettingsRouter = router({
           organizationId: 'default',
           candidateScoreWeights: normalizedScoreWeights,
           jobScoreDisplay,
+          probationLengthFullTimeMonths,
+          probationLengthPartTimeMonths,
+          probationLengthContractorMonths,
+          probationLengthInternMonths,
         },
       })
     } else if (!settings.candidateScoreWeights || !settings.jobScoreDisplay) {
@@ -29,6 +39,10 @@ export const hiringSettingsRouter = router({
         data: {
           candidateScoreWeights: normalizedScoreWeights,
           jobScoreDisplay,
+          probationLengthFullTimeMonths,
+          probationLengthPartTimeMonths,
+          probationLengthContractorMonths,
+          probationLengthInternMonths,
         },
       })
     }
@@ -37,6 +51,10 @@ export const hiringSettingsRouter = router({
       ...settings,
       candidateScoreWeights: normalizedScoreWeights,
       jobScoreDisplay,
+      probationLengthFullTimeMonths,
+      probationLengthPartTimeMonths,
+      probationLengthContractorMonths,
+      probationLengthInternMonths,
     }
   }),
 
@@ -71,6 +89,10 @@ export const hiringSettingsRouter = router({
         autoArchiveUnqualified: z.boolean().optional(),
         autoArchiveLocationMismatch: z.boolean().optional(),
         allowBackwardStageMovement: z.boolean().optional(),
+        probationLengthFullTimeMonths: z.number().int().min(0).max(12).optional(),
+        probationLengthPartTimeMonths: z.number().int().min(0).max(12).optional(),
+        probationLengthContractorMonths: z.number().int().min(0).max(12).optional(),
+        probationLengthInternMonths: z.number().int().min(0).max(12).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {

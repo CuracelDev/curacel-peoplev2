@@ -79,6 +79,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Missing profile data is excluded from the weighted calculation
 - **Job List Score Display**
   - Toggle between average and max score for the jobs list donut in Hiring General Settings
+- **Probation Defaults**
+  - Added probation length defaults by employment type in Hiring General Settings
+  - Auto-calculate probation end dates from the start date on new contracts
 - **Hiring General Settings**
   - New Hiring settings page for shared defaults like jobs list score display
 - **Interview Settings**

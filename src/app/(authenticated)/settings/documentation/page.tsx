@@ -1531,6 +1531,37 @@ const docSectionsV1: DocSection[] = [
     ],
   },
   {
+    id: 'probation-defaults',
+    title: 'Probation length defaults',
+    description: 'Set probation length rules used when creating contracts.',
+    blocks: [
+      {
+        title: 'Where to configure',
+        items: [
+          'Go to Settings > Hiring > General Settings.',
+          'Find Probation length defaults.',
+        ],
+      },
+      {
+        title: 'Step-by-step',
+        ordered: true,
+        items: [
+          'Choose the default number of months for each employment type.',
+          'Select No probation if a type should not have a default.',
+          'When creating a contract, the probation end date auto-fills from the start date.',
+          'Override the auto-filled date if a specific contract needs a different timeline.',
+        ],
+      },
+      {
+        title: 'Notes',
+        items: [
+          'Defaults apply to new contracts only; existing contracts are unchanged.',
+          'Probation dates are calculated from the start date you enter.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'decision-support-settings',
     title: 'AuntyPelz Decision Support',
     description: 'Manage personality templates, team profile guidance, and toggle them by job.',

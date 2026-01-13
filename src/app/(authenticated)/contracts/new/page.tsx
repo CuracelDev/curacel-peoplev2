@@ -61,6 +61,7 @@ export default function NewContractPage() {
   const [showAddSignatureBlock, setShowAddSignatureBlock] = useState(false)
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null)
   const [selectedSource, setSelectedSource] = useState<'candidates' | 'employees'>('candidates')
+  const { data: hiringSettings } = trpc.hiringSettings.get.useQuery()
 
   // Get candidates in OFFER stage
   const { data: offerCandidates } = trpc.offer.getCandidatesInOfferStage.useQuery()
@@ -82,7 +83,7 @@ export default function NewContractPage() {
     },
   })
 
-  const { register, handleSubmit, control, watch, setValue, getValues, formState: { errors } } = useForm<OfferFormData>({
+  const { register, handleSubmit, control, watch, setValue, getValues, formState: { errors, dirtyFields } } = useForm<OfferFormData>({
     defaultValues: {
       offerDate: new Date().toISOString().split('T')[0],
       offerExpirationDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
@@ -99,6 +100,8 @@ export default function NewContractPage() {
   const watchedSignatureBlock = watch('signatureBlock')
   const watchedOfferDate = watch('offerDate')
   const watchedOfferExpirationDate = watch('offerExpirationDate')
+  const watchedStartDate = watch('anticipatedStartDate')
+  const watchedEmploymentType = watch('employmentType')
 
   // Get templates filtered by employment type
   const employmentType = watch('employmentType')
@@ -143,6 +146,21 @@ export default function NewContractPage() {
       setValue('offerExpirationDate', expirationDate.toISOString().split('T')[0])
     }
   }, [setValue, watchedOfferDate, watchedOfferExpirationDate])
+
+  useEffect(() => {
+    if (!watchedStartDate || dirtyFields.probationEndDate) return
+    const monthsByType = {
+      FULL_TIME: hiringSettings?.probationLengthFullTimeMonths ?? 3,
+      PART_TIME: hiringSettings?.probationLengthPartTimeMonths ?? 3,
+      CONTRACTOR: hiringSettings?.probationLengthContractorMonths ?? 3,
+      INTERN: hiringSettings?.probationLengthInternMonths ?? 3,
+    }
+    const months = monthsByType[watchedEmploymentType || 'FULL_TIME']
+    const startDate = new Date(`${watchedStartDate}T00:00:00`)
+    const probationDate = new Date(startDate)
+    probationDate.setMonth(probationDate.getMonth() + months)
+    setValue('probationEndDate', probationDate.toISOString().split('T')[0], { shouldDirty: false })
+  }, [dirtyFields.probationEndDate, hiringSettings, setValue, watchedEmploymentType, watchedStartDate])
 
   // Pre-fill form when candidate is selected
   useEffect(() => {
@@ -211,6 +229,7 @@ export default function NewContractPage() {
       employee_name: candidateName,
       employment_start_date: data.anticipatedStartDate,
       start_date: data.anticipatedStartDate, // alias for detail view
+      probation_end_date: data.probationEndDate,
       job_title: data.jobTitle,
       supervisor_title: data.supervisorJobTitle,
       duties: data.primaryDuties || DEFAULT_PRIMARY_DUTIES,
