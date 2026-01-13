@@ -399,7 +399,7 @@ export default function ApiDocsPage() {
                 </div>
                 <div className="rounded border border-border/60 bg-muted/40 p-3 text-xs text-foreground/80">
                   <div className="font-semibold text-foreground">Update stage</div>
-                  <div>PATCH `/api/v1/candidates/:id/stage` with `{ "stage": "HR_SCREEN" }`.</div>
+                  <div>{'PATCH `/api/v1/candidates/:id/stage` with `{ "stage": "HR_SCREEN" }`.'}</div>
                   <div>Use this to advance candidates to the next stage in your flow.</div>
                   <div>Errors: 400 invalid stage, 404 candidate not found.</div>
                 </div>
