@@ -2086,6 +2086,10 @@ model HiringSettings {
 
   // Stage movement restrictions
   allowBackwardStageMovement Boolean @default(false) // Allow moving candidates to earlier stages
+  probationLengthFullTimeMonths Int @default(3)
+  probationLengthPartTimeMonths Int @default(3)
+  probationLengthContractorMonths Int @default(3)
+  probationLengthInternMonths Int @default(3)
 
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
