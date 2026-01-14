@@ -36,7 +36,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
-import { Search, ChevronDown, Trash2, UserCog, Users, RefreshCw } from 'lucide-react'
+import { Search, ChevronDown, Trash2, UserCog, Users, RefreshCw, Calendar } from 'lucide-react'
+import { Label } from '@/components/ui/label'
 import { employeeStatusLabels, employeeStatusColors, getInitials } from '@/lib/utils'
 
 type EmployeeStatus = 'CANDIDATE' | 'OFFER_SENT' | 'OFFER_SIGNED' | 'HIRED_PENDING_START' | 'ACTIVE' | 'OFFBOARDING' | 'EXITED'
@@ -46,6 +47,8 @@ export default function BulkActionsPage() {
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('')
   const [departmentFilter, setDepartmentFilter] = useState<string>('')
+  const [startDateFrom, setStartDateFrom] = useState<string>('')
+  const [startDateTo, setStartDateTo] = useState<string>('')
   const [page, setPage] = useState(1)
   const [pageSize] = useState(50)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
@@ -61,6 +64,8 @@ export default function BulkActionsPage() {
     search: search || undefined,
     status: statusFilter || undefined,
     department: departmentFilter || undefined,
+    startDateFrom: startDateFrom || undefined,
+    startDateTo: startDateTo || undefined,
     page,
     limit: pageSize,
   })
@@ -205,6 +210,35 @@ export default function BulkActionsPage() {
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex flex-wrap items-end gap-4 mt-4">
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Start Date From</Label>
+              <Input
+                type="date"
+                value={startDateFrom}
+                onChange={(e) => setStartDateFrom(e.target.value)}
+                className="w-[160px]"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Start Date To</Label>
+              <Input
+                type="date"
+                value={startDateTo}
+                onChange={(e) => setStartDateTo(e.target.value)}
+                className="w-[160px]"
+              />
+            </div>
+            {(startDateFrom || startDateTo) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => { setStartDateFrom(''); setStartDateTo('') }}
+              >
+                Clear dates
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

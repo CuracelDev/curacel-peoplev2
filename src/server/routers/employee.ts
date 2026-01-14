@@ -71,12 +71,14 @@ export const employeeRouter = router({
       department: z.string().optional(),
       managerId: z.string().optional(),
       search: z.string().optional(),
+      startDateFrom: z.string().optional(),
+      startDateTo: z.string().optional(),
       page: z.number().default(1),
       limit: z.number().default(20),
     }).optional())
     .query(async ({ ctx, input }) => {
       await autoActivateEmployees(ctx.prisma)
-      const { status, department, managerId, search, page = 1, limit = 20 } = input || {}
+      const { status, department, managerId, search, startDateFrom, startDateTo, page = 1, limit = 20 } = input || {}
 
       const where: any = {}
 
@@ -90,6 +92,11 @@ export const employeeRouter = router({
           { workEmail: { contains: search.trim(), mode: 'insensitive' } },
           { jobTitle: { contains: search.trim(), mode: 'insensitive' } },
         ]
+      }
+      if (startDateFrom || startDateTo) {
+        where.startDate = {}
+        if (startDateFrom) where.startDate.gte = new Date(startDateFrom)
+        if (startDateTo) where.startDate.lte = new Date(startDateTo)
       }
 
       const [employees, total] = await Promise.all([
