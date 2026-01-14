@@ -19,6 +19,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - AE candidate import script to ingest the Hiring spreadsheet (Dashboard/Others) with links and assessment attachments.
+- AE interview backfill script to create completed stage dates from the hiring spreadsheet.
 - Documentation v2 guide with tabbed layout, visual maps, and simplified onboarding flow.
 - **Dynamic AI Tools System for AuntyPelz**
   - OpenAI SDK integration with custom function calling capabilities

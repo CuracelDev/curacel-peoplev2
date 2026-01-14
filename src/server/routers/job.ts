@@ -822,92 +822,56 @@ export const jobRouter = router({
         stageCountMap[s.stage] = s._count
       })
 
-      // Build stage info using actual hiring flow stage names
+      // Build stage info directly from database stage counts
       const stageInfo: Array<{ stage: string; displayName: string; count: number }> = []
 
-      if (hiringFlowStages.length > 0) {
-        // Standard stage enum order that maps to hiring flow positions
-        const stageEnumOrder = [
-          'APPLIED',
-          'SHORTLISTED',
-          'HR_SCREEN',
-          'TECHNICAL',
-          'TEAM_CHAT',
-          'ADVISOR_CHAT',
-          'PANEL',
-          'TRIAL',
-          'CEO_CHAT',
-          'OFFER',
-        ]
-
-        // Map hiring flow stages to stage counts
-        hiringFlowStages.forEach((stageName, index) => {
-          const stageEnum = stageEnumOrder[index]
-          if (stageEnum) {
-            stageInfo.push({
-              stage: stageEnum,
-              displayName: stageName, // Use actual hiring flow stage name
-              count: stageCountMap[stageEnum] || 0,
-            })
-          }
-        })
-
-        // Add terminal stages if they have candidates
-        if (stageCountMap['HIRED']) {
-          stageInfo.push({
-            stage: 'HIRED',
-            displayName: 'Hired',
-            count: stageCountMap['HIRED'],
-          })
-        }
-        if (stageCountMap['REJECTED']) {
-          stageInfo.push({
-            stage: 'REJECTED',
-            displayName: 'Rejected',
-            count: stageCountMap['REJECTED'],
-          })
-        }
-        if (stageCountMap['WITHDRAWN']) {
-          stageInfo.push({
-            stage: 'WITHDRAWN',
-            displayName: 'Withdrawn',
-            count: stageCountMap['WITHDRAWN'],
-          })
-        }
-        if (stageCountMap['ARCHIVED']) {
-          stageInfo.push({
-            stage: 'ARCHIVED',
-            displayName: 'Archived',
-            count: stageCountMap['ARCHIVED'],
-          })
-        }
-      } else {
-        // Fallback: use default names if no hiring flow
-        const defaultStageNames: Record<string, string> = {
-          APPLIED: 'Applied',
-          SHORTLISTED: 'Short Listed',
-          HR_SCREEN: 'People Chat',
-          TECHNICAL: 'Coding Test',
-          TEAM_CHAT: 'Team Chat',
-          ADVISOR_CHAT: 'Advisor Chat',
-          PANEL: 'Panel',
-          TRIAL: 'Trial',
-          CEO_CHAT: 'CEO Chat',
-          OFFER: 'Offer',
-          HIRED: 'Hired',
-          REJECTED: 'Rejected',
-          WITHDRAWN: 'Withdrawn',
-          ARCHIVED: 'Archived',
-        }
-
-        stageCounts.forEach((s) => {
-          stageInfo.push({
-            stage: s.stage,
-            displayName: defaultStageNames[s.stage] || s.stage.replace(/_/g, ' '),
-            count: s._count,
-          })
-        })
+      // Default display names for stage enums
+      const defaultStageNames: Record<string, string> = {
+        APPLIED: 'Apply',
+        SHORTLISTED: 'Short Listed',
+        HR_SCREEN: 'People Chat',
+        TECHNICAL: 'Coding Test',
+        TEAM_CHAT: 'Team Chat',
+        ADVISOR_CHAT: 'Advisor Chat',
+        PANEL: 'Panel',
+        TRIAL: 'Trial',
+        CEO_CHAT: 'CEO Chat',
+        OFFER: 'Offer',
+        HIRED: 'Hired',
+        REJECTED: 'Rejected',
+        WITHDRAWN: 'Withdrawn',
+        ARCHIVED: 'Archived',
       }
+
+      // Stage display order
+      const stageOrder = [
+        'APPLIED',
+        'SHORTLISTED',
+        'HR_SCREEN',
+        'TECHNICAL',
+        'TEAM_CHAT',
+        'ADVISOR_CHAT',
+        'PANEL',
+        'TRIAL',
+        'CEO_CHAT',
+        'OFFER',
+        'HIRED',
+        'REJECTED',
+        'WITHDRAWN',
+        'ARCHIVED',
+      ]
+
+      // Build stageInfo from actual database counts, sorted by stage order
+      stageOrder.forEach((stageEnum) => {
+        const count = stageCountMap[stageEnum]
+        if (count && count > 0) {
+          stageInfo.push({
+            stage: stageEnum,
+            displayName: defaultStageNames[stageEnum] || stageEnum.replace(/_/g, ' '),
+            count,
+          })
+        }
+      })
 
       const counts = {
         all: candidates.length,

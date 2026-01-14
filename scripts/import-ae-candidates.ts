@@ -46,16 +46,20 @@ if (!fs.existsSync(filePath)) {
 
 const workbook = xlsx.readFile(filePath, { cellDates: true })
 
+const usedEmails = new Set<string>()
+
 const dashboardResult = parseDashboardSheet(workbook, {
   activeQuarterTokens,
   allowMissingEmail,
   missingEmailDomain,
+  usedEmails,
 })
 
 const othersResult = includeOthers
   ? parseOthersSheet(workbook, {
       allowMissingEmail,
       missingEmailDomain,
+      usedEmails,
     })
   : { candidates: [], missingEmails: [], skipped: 0 }
 
@@ -169,7 +173,12 @@ async function getOrCreateJob(params: { jobTitle: string; jobDepartment: string;
 
 function parseDashboardSheet(
   workbook: xlsx.WorkBook,
-  options: { activeQuarterTokens: string[]; allowMissingEmail: boolean; missingEmailDomain: string }
+  options: {
+    activeQuarterTokens: string[]
+    allowMissingEmail: boolean
+    missingEmailDomain: string
+    usedEmails: Set<string>
+  }
 ) {
   const sheet = workbook.Sheets['Dashboard']
   if (!sheet) {
@@ -219,7 +228,8 @@ function parseDashboardSheet(
     }
 
     const nameCell = getCell(sheet, r, nameCol)
-    const emailValue = cleanString(getCellValue(sheet, r, emailCol))
+    const emailValueRaw = cleanString(getCellValue(sheet, r, emailCol))
+    const emailValue = emailValueRaw ? emailValueRaw.toLowerCase() : ''
     const nameValue = cleanString(nameCell?.value)
 
     if (!nameValue && !emailValue) continue
@@ -310,17 +320,26 @@ function parseDashboardSheet(
       stage = 'ARCHIVED'
     }
 
-    if (!emailValue) {
+    let email = emailValue
+
+    if (!email) {
       if (options.allowMissingEmail) {
-        const fallbackEmail = buildFallbackEmail(nameValue, r + 1, options.missingEmailDomain)
+        const fallbackEmail = allocatePlaceholderEmail(
+          nameValue,
+          r + 1,
+          options.missingEmailDomain,
+          options.usedEmails
+        )
         missingEmails.push({ name: nameValue, row: r + 1, fallbackEmail })
+        notesParts.push('Email missing in source.')
+        email = fallbackEmail.toLowerCase()
       } else {
         missingEmails.push({ name: nameValue, row: r + 1 })
         continue
       }
     }
 
-    const email = emailValue || buildFallbackEmail(nameValue, r + 1, options.missingEmailDomain)
+    options.usedEmails.add(email.toLowerCase())
     const source = inferSource(sourceCols.map((col) => getCellValue(sheet, r, col)))
 
     candidates.push({
@@ -342,7 +361,7 @@ function parseDashboardSheet(
 
 function parseOthersSheet(
   workbook: xlsx.WorkBook,
-  options: { allowMissingEmail: boolean; missingEmailDomain: string }
+  options: { allowMissingEmail: boolean; missingEmailDomain: string; usedEmails: Set<string> }
 ) {
   const sheet = workbook.Sheets['Others']
   if (!sheet) {
@@ -404,8 +423,15 @@ function parseOthersSheet(
       continue
     }
 
-    const email = buildFallbackEmail(nameValue, r + 1, options.missingEmailDomain)
+    const email = allocatePlaceholderEmail(
+      nameValue,
+      r + 1,
+      options.missingEmailDomain,
+      options.usedEmails
+    )
     missingEmails.push({ name: nameValue, row: r + 1, fallbackEmail: email })
+    notesParts.push('Email missing in source.')
+    options.usedEmails.add(email.toLowerCase())
 
     candidates.push({
       name: nameValue,
@@ -452,10 +478,14 @@ function deriveStage(params: {
 
   if (normalizedStatus.includes('ceo')) return 'CEO_CHAT'
   if (normalizedStatus.includes('advisor')) return 'ADVISOR_CHAT'
+  if (normalizedStatus.includes('management')) return 'CEO_CHAT'
   if (normalizedStatus.includes('team chat')) return 'TEAM_CHAT'
   if (normalizedStatus.includes('panel')) return 'PANEL'
   if (normalizedStatus.includes('trial')) return 'TRIAL'
   if (normalizedStatus.includes('people chat') || normalizedStatus.includes('quick chat')) return 'HR_SCREEN'
+  if (normalizedStatus.includes('1st stage') || normalizedStatus.includes('first stage')) return 'HR_SCREEN'
+  if (normalizedStatus.includes('2nd stage') || normalizedStatus.includes('second stage')) return 'TEAM_CHAT'
+  if (normalizedStatus.includes('3rd stage') || normalizedStatus.includes('third stage')) return 'ADVISOR_CHAT'
   if (normalizedStatus.includes('shortlist')) return 'SHORTLISTED'
 
   const orderedStages: Array<{ stage: CandidateStage; active?: boolean }> = [
@@ -506,13 +536,26 @@ function hasValue(value: unknown) {
   return Boolean(text)
 }
 
-function buildFallbackEmail(name: string, row: number, domain: string) {
-  const slugBase = name
+function allocatePlaceholderEmail(name: string, row: number, domain: string, usedEmails: Set<string>) {
+  const tokens = name
     .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '.')
-    .replace(/^\.+|\.+$/g, '')
-  const slug = slugBase || 'candidate'
-  return `${slug}+row${row}@${domain}`
+    .replace(/[^a-z0-9\\s]+/g, ' ')
+    .trim()
+    .split(/\\s+/)
+    .filter(Boolean)
+
+  let local = 'candidate'
+  if (tokens.length >= 2) {
+    local = `${tokens[0]}+${tokens[tokens.length - 1]}`
+  } else if (tokens.length === 1) {
+    local = tokens[0]
+  }
+
+  let email = `${local}@${domain}`
+  if (usedEmails.has(email.toLowerCase())) {
+    email = `${local}+row${row}@${domain}`
+  }
+  return email
 }
 
 function buildHeaderIndex(headers: string[]) {
