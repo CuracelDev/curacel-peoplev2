@@ -14,11 +14,30 @@ import {
   Loader2,
   AlertTriangle,
   RefreshCw,
+  Upload,
+  FileSpreadsheet,
+  CheckCircle2,
+  AlertCircle,
+  Sparkles,
+  Paperclip,
+  X,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { CandidatesTable } from '@/components/hiring/candidates-table'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -27,8 +46,11 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Progress } from '@/components/ui/progress'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
+import { useUploadThing } from '@/lib/uploadthing'
 import { toast } from 'sonner'
 
 function getRelativeTime(date: Date | string) {
@@ -106,6 +128,14 @@ type CandidateStage =
   | 'WITHDRAWN'
   | 'ARCHIVED'
 
+type CandidateDocument = {
+  id: string
+  name: string
+  type: 'resume' | 'cover_letter' | 'portfolio' | 'certificate' | 'other'
+  url: string
+  uploadedAt: string
+}
+
 const stageOrder: CandidateStage[] = [
   'APPLIED',
   'SHORTLISTED',
@@ -136,6 +166,17 @@ export default function CandidatesListPage() {
   const searchParams = useSearchParams()
   const { data: job, isLoading: jobLoading } = trpc.job.get.useQuery({ id: jobId })
   const { data: candidatesData, isLoading: candidatesLoading } = trpc.job.listCandidates.useQuery({ jobId })
+  const addCandidateMutation = trpc.job.addCandidate.useMutation({
+    onSuccess: () => {
+      utils.job.listCandidates.invalidate({ jobId })
+    },
+  })
+  const parseUpload = trpc.job.parseUploadForBulkImport.useMutation()
+  const bulkImport = trpc.job.bulkImportCandidates.useMutation({
+    onSuccess: () => {
+      utils.job.listCandidates.invalidate({ jobId })
+    },
+  })
   const updateCandidateStage = trpc.job.updateCandidate.useMutation({
     onSuccess: () => {
       utils.job.listCandidates.invalidate({ jobId })
@@ -169,6 +210,67 @@ export default function CandidatesListPage() {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
+  const [addMode, setAddMode] = useState<'single' | 'bulk'>('single')
+  const [newCandidate, setNewCandidate] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    linkedinUrl: '',
+    resumeUrl: '',
+    source: 'EXCELLER',
+    notes: '',
+  })
+  const [candidateDocuments, setCandidateDocuments] = useState<CandidateDocument[]>([])
+  const [docType, setDocType] = useState<CandidateDocument['type']>('other')
+  const [docName, setDocName] = useState('')
+  const [docUrl, setDocUrl] = useState('')
+  const [docUploading, setDocUploading] = useState(false)
+
+  const [bulkUploadStep, setBulkUploadStep] = useState<'upload' | 'mapping' | 'importing' | 'complete'>('upload')
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [parsedData, setParsedData] = useState<{
+    headers: string[]
+    sampleRows: string[][]
+    totalRows: number
+    expectedFields: { key: string; label: string; required: boolean }[]
+    aiMapping: Record<string, string>
+    confidenceScores: Record<string, number>
+    needsManualMapping: boolean
+    parsedData: string[][]
+  } | null>(null)
+  const [fieldMapping, setFieldMapping] = useState<Record<string, string>>({})
+  const [importResult, setImportResult] = useState<{
+    success: boolean
+    totalRows: number
+    importedCount: number
+    skippedCount: number
+    errorCount: number
+    errors: { row: number; error: string }[]
+  } | null>(null)
+
+  const { startUpload } = useUploadThing('employeeDocuments', {
+    onClientUploadComplete: (files) => {
+      const file = files?.[0]
+      if (!file) return
+      const document: CandidateDocument = {
+        id: `doc_${Date.now()}`,
+        name: docName || file.name,
+        type: docType,
+        url: file.url,
+        uploadedAt: new Date().toISOString(),
+      }
+      setCandidateDocuments((prev) => [...prev, document])
+      setDocName('')
+      setDocUploading(false)
+      toast.success('Document uploaded')
+    },
+    onUploadError: (error) => {
+      console.error('Upload error:', error)
+      setDocUploading(false)
+      toast.error(error.message || 'Document upload failed')
+    },
+  })
 
   const isLoading = jobLoading || candidatesLoading
 
@@ -287,29 +389,191 @@ export default function CandidatesListPage() {
     setCurrentPage(1)
   }
 
+  const stageParam = searchParams.get('stage')
+
   useEffect(() => {
-    const stageParam = searchParams.get('stage')
     if (!stageParam) return
     const normalized = stageParam.toLowerCase()
     const stageMap: Record<string, string> = {
       all: 'all',
-      applicants: 'all',
-      applied: 'applied',
-      'in-review': 'applied',
-      interviewing: 'interviewing',
-      offer: 'offer',
-      'offer-stage': 'offer',
+      applicants: 'APPLIED',
+      applied: 'APPLIED',
+      'in-review': 'HR_SCREEN',
+      interviewing: 'TEAM_CHAT',
+      offer: 'OFFER',
+      'offer-stage': 'OFFER',
+      rejected: 'REJECTED',
+      archived: 'ARCHIVED',
     }
-    const nextStage = stageMap[normalized]
-    if (nextStage && nextStage !== selectedStage) {
-      setSelectedStage(nextStage)
-      setCurrentPage(1)
-    }
-  }, [searchParams, selectedStage])
+    const fallbackStage = normalized.replace(/-/g, '_').toUpperCase()
+    const nextStage = stageMap[normalized] ?? fallbackStage
+    if (!nextStage) return
+    setSelectedStage(nextStage)
+    setCurrentPage(1)
+  }, [stageParam])
 
   const handlePageSizeChange = (size: string) => {
     setPageSize(Number(size))
     setCurrentPage(1)
+  }
+
+  const handleDialogClose = (open: boolean) => {
+    setIsAddDialogOpen(open)
+    if (open) return
+    setAddMode('single')
+    setNewCandidate({
+      name: '',
+      email: '',
+      phone: '',
+      linkedinUrl: '',
+      resumeUrl: '',
+      source: 'EXCELLER',
+      notes: '',
+    })
+    setCandidateDocuments([])
+    setDocType('other')
+    setDocName('')
+    setDocUrl('')
+    setBulkUploadStep('upload')
+    setUploadedFile(null)
+    setParsedData(null)
+    setFieldMapping({})
+    setImportResult(null)
+  }
+
+  const handleAddCandidate = async () => {
+    if (!newCandidate.name || !newCandidate.email) {
+      toast.error('Name and email are required.')
+      return
+    }
+
+    const resumeFromDocs = candidateDocuments.find((doc) => doc.type === 'resume')?.url
+
+    try {
+      await addCandidateMutation.mutateAsync({
+        jobId,
+        name: newCandidate.name,
+        email: newCandidate.email,
+        phone: newCandidate.phone || undefined,
+        linkedinUrl: newCandidate.linkedinUrl || undefined,
+        resumeUrl: newCandidate.resumeUrl || resumeFromDocs || undefined,
+        notes: newCandidate.notes || undefined,
+        source: (newCandidate.source || 'EXCELLER') as 'EXCELLER' | 'INBOUND' | 'OUTBOUND' | 'RECRUITER',
+        documents: candidateDocuments.length > 0 ? candidateDocuments : undefined,
+      })
+      toast.success('Candidate added')
+      handleDialogClose(false)
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to add candidate'
+      toast.error(message)
+    }
+  }
+
+  const handleDocFileChange = async (file: File | null) => {
+    if (!file) return
+    setDocUploading(true)
+    try {
+      await startUpload([file])
+    } catch (error) {
+      console.error('Upload error:', error)
+      setDocUploading(false)
+      toast.error('Document upload failed')
+    }
+  }
+
+  const handleAddDocUrl = () => {
+    if (!docUrl) return
+    const document: CandidateDocument = {
+      id: `doc_${Date.now()}`,
+      name: docName || docUrl,
+      type: docType,
+      url: docUrl,
+      uploadedAt: new Date().toISOString(),
+    }
+    setCandidateDocuments((prev) => [...prev, document])
+    setDocUrl('')
+    setDocName('')
+  }
+
+  const handleRemoveDocument = (id: string) => {
+    setCandidateDocuments((prev) => prev.filter((doc) => doc.id !== id))
+  }
+
+  const resetBulkUpload = () => {
+    setBulkUploadStep('upload')
+    setUploadedFile(null)
+    setParsedData(null)
+    setFieldMapping({})
+    setImportResult(null)
+  }
+
+  const fileToBase64 = async (file: File) => {
+    const buffer = await file.arrayBuffer()
+    let binary = ''
+    const bytes = new Uint8Array(buffer)
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i])
+    }
+    return btoa(binary)
+  }
+
+  const handleFileUpload = async (file: File) => {
+    setUploadedFile(file)
+
+    const fileType = file.name.endsWith('.csv')
+      ? 'csv'
+      : file.name.endsWith('.xlsx')
+        ? 'xlsx'
+        : file.name.endsWith('.xls')
+          ? 'xls'
+          : null
+
+    if (!fileType) {
+      toast.error('Please upload a CSV or Excel file')
+      return
+    }
+
+    const content = fileType === 'csv'
+      ? await file.text()
+      : await fileToBase64(file)
+
+    try {
+      const result = await parseUpload.mutateAsync({
+        fileContent: content,
+        fileName: file.name,
+        fileType: fileType as 'csv' | 'xlsx' | 'xls',
+      })
+
+      setParsedData(result)
+      setFieldMapping(result.aiMapping)
+      setBulkUploadStep('mapping')
+    } catch (error) {
+      console.error('Failed to parse file:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to parse file')
+    }
+  }
+
+  const handleBulkImport = async () => {
+    if (!parsedData) return
+
+    setBulkUploadStep('importing')
+
+    try {
+      const result = await bulkImport.mutateAsync({
+        jobId,
+        fieldMapping,
+        data: parsedData.parsedData,
+        headers: parsedData.headers,
+        source: 'EXCELLER',
+      })
+
+      setImportResult(result)
+      setBulkUploadStep('complete')
+    } catch (error) {
+      console.error('Failed to import candidates:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to import candidates')
+      setBulkUploadStep('mapping')
+    }
   }
 
   const handlePublicToggle = (value: boolean) => {
@@ -507,10 +771,456 @@ export default function CandidatesListPage() {
             Edit Job
           </Button>
         </Link>
-        <Button size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Candidate
-        </Button>
+        <Dialog open={isAddDialogOpen} onOpenChange={handleDialogClose}>
+          <DialogTrigger asChild>
+            <Button size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Candidate
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[720px] max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add Candidates</DialogTitle>
+              <DialogDescription>
+                Add a single candidate with documents or bulk upload via spreadsheet.
+              </DialogDescription>
+            </DialogHeader>
+
+            <Tabs value={addMode} onValueChange={(v) => setAddMode(v as 'single' | 'bulk')} className="w-full">
+              <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0 mb-4">
+                <TabsTrigger value="single" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+                  Single Candidate
+                </TabsTrigger>
+                <TabsTrigger value="bulk" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+                  Bulk Upload
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="single" className="space-y-6">
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="candidate-name">Full Name *</Label>
+                    <Input
+                      id="candidate-name"
+                      placeholder="e.g. James Okafor"
+                      value={newCandidate.name}
+                      onChange={(e) => setNewCandidate((prev) => ({ ...prev, name: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="candidate-email">Email Address *</Label>
+                    <Input
+                      id="candidate-email"
+                      type="email"
+                      placeholder="e.g. james@example.com"
+                      value={newCandidate.email}
+                      onChange={(e) => setNewCandidate((prev) => ({ ...prev, email: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="candidate-phone">Phone</Label>
+                      <Input
+                        id="candidate-phone"
+                        placeholder="e.g. +234 800 123 4567"
+                        value={newCandidate.phone}
+                        onChange={(e) => setNewCandidate((prev) => ({ ...prev, phone: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="candidate-source">Source</Label>
+                      <Select
+                        value={newCandidate.source}
+                        onValueChange={(value) => setNewCandidate((prev) => ({ ...prev, source: value }))}
+                      >
+                        <SelectTrigger id="candidate-source">
+                          <SelectValue placeholder="Select source" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="EXCELLER">Internal</SelectItem>
+                          <SelectItem value="INBOUND">Inbound</SelectItem>
+                          <SelectItem value="OUTBOUND">Outbound</SelectItem>
+                          <SelectItem value="RECRUITER">Recruiter</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="candidate-linkedin">LinkedIn URL</Label>
+                    <Input
+                      id="candidate-linkedin"
+                      placeholder="https://linkedin.com/in/..."
+                      value={newCandidate.linkedinUrl}
+                      onChange={(e) => setNewCandidate((prev) => ({ ...prev, linkedinUrl: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="candidate-resume">Resume URL (optional)</Label>
+                    <Input
+                      id="candidate-resume"
+                      placeholder="https://drive.google.com/..."
+                      value={newCandidate.resumeUrl}
+                      onChange={(e) => setNewCandidate((prev) => ({ ...prev, resumeUrl: e.target.value }))}
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="candidate-notes">Notes</Label>
+                    <Textarea
+                      id="candidate-notes"
+                      placeholder="Any additional notes..."
+                      value={newCandidate.notes}
+                      onChange={(e) => setNewCandidate((prev) => ({ ...prev, notes: e.target.value }))}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3 border-t border-border pt-4">
+                  <div className="flex items-center gap-2 text-sm font-medium text-foreground">
+                    <Paperclip className="h-4 w-4" />
+                    Documents
+                  </div>
+                  <div className="grid gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-[140px_1fr] gap-3">
+                      <Select value={docType} onValueChange={(value) => setDocType(value as CandidateDocument['type'])}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="resume">Resume</SelectItem>
+                          <SelectItem value="cover_letter">Cover Letter</SelectItem>
+                          <SelectItem value="portfolio">Portfolio</SelectItem>
+                          <SelectItem value="certificate">Certificate</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Input
+                        placeholder="Document name (optional)"
+                        value={docName}
+                        onChange={(e) => setDocName(e.target.value)}
+                      />
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-3">
+                      <Input
+                        type="file"
+                        accept=".pdf,.doc,.docx,image/*"
+                        onChange={(e) => handleDocFileChange(e.target.files?.[0] ?? null)}
+                        disabled={docUploading}
+                      />
+                      <div className="flex gap-2 flex-1">
+                        <Input
+                          placeholder="Paste document URL"
+                          value={docUrl}
+                          onChange={(e) => setDocUrl(e.target.value)}
+                        />
+                        <Button type="button" variant="outline" onClick={handleAddDocUrl} disabled={!docUrl}>
+                          Add
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {candidateDocuments.length > 0 && (
+                    <div className="space-y-2">
+                      {candidateDocuments.map((doc) => (
+                        <div key={doc.id} className="flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm">
+                          <span className="text-muted-foreground">{doc.type.replace('_', ' ')}</span>
+                          <span className="flex-1 truncate">{doc.name}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7"
+                            onClick={() => handleRemoveDocument(doc.id)}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => handleDialogClose(false)}>
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleAddCandidate}
+                    disabled={!newCandidate.name || !newCandidate.email || addCandidateMutation.isPending}
+                  >
+                    {addCandidateMutation.isPending ? 'Adding...' : 'Add Candidate'}
+                  </Button>
+                </DialogFooter>
+              </TabsContent>
+
+              <TabsContent value="bulk" className="space-y-4">
+                {bulkUploadStep === 'upload' && (
+                  <div className="space-y-4">
+                    <div
+                      className={cn(
+                        'border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors',
+                        'hover:border-primary hover:bg-muted/50',
+                        parseUpload.isPending && 'pointer-events-none opacity-50'
+                      )}
+                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
+                      onDrop={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        const file = e.dataTransfer.files[0]
+                        if (file) handleFileUpload(file)
+                      }}
+                      onClick={() => document.getElementById('bulk-file-input')?.click()}
+                    >
+                      <input
+                        id="bulk-file-input"
+                        type="file"
+                        accept=".csv,.xlsx,.xls"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) handleFileUpload(file)
+                        }}
+                      />
+                      {parseUpload.isPending ? (
+                        <div className="flex flex-col items-center gap-3">
+                          <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                          <div>
+                            <p className="font-medium">Processing file...</p>
+                            <p className="text-sm text-muted-foreground flex items-center justify-center gap-1">
+                              <Sparkles className="h-4 w-4" />
+                              AuntyPelz is matching fields automatically
+                            </p>
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
+                          <p className="font-medium">Drop your file here or click to browse</p>
+                          <p className="text-sm text-muted-foreground">
+                            Supports CSV and Excel files (.csv, .xlsx, .xls)
+                          </p>
+                        </>
+                      )}
+                    </div>
+
+                    {uploadedFile && !parseUpload.isPending && (
+                      <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
+                        <FileSpreadsheet className="h-5 w-5 text-success" />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{uploadedFile.name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(uploadedFile.size / 1024).toFixed(1)} KB
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setUploadedFile(null)
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+
+                    <div className="text-xs text-muted-foreground">
+                      <p className="font-medium mb-1">Expected columns:</p>
+                      <p>Name*, Email*, Phone, LinkedIn URL, Current Role, Current Company, Location, Notes, Resume URL</p>
+                      <p className="mt-2 flex items-center gap-1">
+                        <Sparkles className="h-3 w-3" />
+                        AuntyPelz will automatically match your columns to the expected fields
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {bulkUploadStep === 'mapping' && parsedData && (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-lg">
+                      <FileSpreadsheet className="h-5 w-5 text-blue-600" />
+                      <div>
+                        <p className="font-medium">Found {parsedData.totalRows} candidates</p>
+                        <p className="text-sm text-muted-foreground">
+                          {parsedData.needsManualMapping
+                            ? 'Some fields need manual mapping'
+                            : 'All fields matched automatically'}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      <Label className="text-sm font-medium">Field Mapping</Label>
+                      <div className="border rounded-lg divide-y max-h-[300px] overflow-y-auto">
+                        {parsedData.headers.map((header) => {
+                          const confidence = parsedData.confidenceScores[header] || 0
+                          const isLowConfidence = confidence > 0 && confidence < 70
+
+                          return (
+                            <div key={header} className="flex items-center gap-3 p-3">
+                              <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-2">
+                                  <span className="font-medium truncate">{header}</span>
+                                  {confidence > 0 && (
+                                    <span
+                                      className={cn(
+                                        'text-xs px-1.5 py-0.5 rounded',
+                                        confidence >= 80
+                                          ? 'bg-success/10 text-success'
+                                          : confidence >= 50
+                                            ? 'bg-warning/10 text-warning'
+                                            : 'bg-destructive/10 text-destructive'
+                                      )}
+                                    >
+                                      {confidence}%
+                                    </span>
+                                  )}
+                                </div>
+                                {parsedData.sampleRows[0] && (
+                                  <p className="text-xs text-muted-foreground truncate">
+                                    e.g. {parsedData.sampleRows[0][parsedData.headers.indexOf(header)] || '-'}
+                                  </p>
+                                )}
+                              </div>
+                              <Select
+                                value={fieldMapping[header] || '_skip'}
+                                onValueChange={(value) => {
+                                  setFieldMapping((prev) => ({
+                                    ...prev,
+                                    [header]: value === '_skip' ? '' : value,
+                                  }))
+                                }}
+                              >
+                                <SelectTrigger className={cn('w-[180px]', isLowConfidence && 'border-warning')}>
+                                  <SelectValue placeholder="Map to field..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="_skip">
+                                    <span className="text-muted-foreground">Skip this column</span>
+                                  </SelectItem>
+                                  {parsedData.expectedFields.map((field) => (
+                                    <SelectItem key={field.key} value={field.key}>
+                                      {field.label} {field.required && '*'}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+
+                    {parsedData.sampleRows.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Preview (first 3 rows)</Label>
+                        <div className="border rounded-lg overflow-x-auto">
+                          <table className="w-full text-xs">
+                            <thead>
+                              <tr className="bg-muted">
+                                {parsedData.headers.map((h) => (
+                                  <th key={h} className="px-2 py-1.5 text-left font-medium truncate max-w-[120px]">
+                                    {fieldMapping[h] || <span className="text-muted-foreground">skipped</span>}
+                                  </th>
+                                ))}
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {parsedData.sampleRows.slice(0, 3).map((row, i) => (
+                                <tr key={i} className="border-t">
+                                  {row.map((cell, j) => (
+                                    <td key={j} className="px-2 py-1.5 truncate max-w-[120px]">
+                                      {cell || '-'}
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </div>
+                    )}
+
+                    <DialogFooter>
+                      <Button variant="outline" onClick={resetBulkUpload}>
+                        Back
+                      </Button>
+                      <Button
+                        onClick={handleBulkImport}
+                        disabled={
+                          !Object.values(fieldMapping).includes('name') ||
+                          !Object.values(fieldMapping).includes('email')
+                        }
+                      >
+                        Import {parsedData.totalRows} Candidates
+                      </Button>
+                    </DialogFooter>
+                  </div>
+                )}
+
+                {bulkUploadStep === 'importing' && (
+                  <div className="flex flex-col items-center gap-4 py-8">
+                    <Loader2 className="h-10 w-10 text-primary animate-spin" />
+                    <div className="text-center">
+                      <p className="font-medium">Importing candidates...</p>
+                      <p className="text-sm text-muted-foreground">This may take a moment</p>
+                    </div>
+                    <Progress value={50} className="w-full max-w-xs" />
+                  </div>
+                )}
+
+                {bulkUploadStep === 'complete' && importResult && (
+                  <div className="space-y-4">
+                    <div className={cn(
+                      'flex items-center gap-3 p-4 rounded-lg',
+                      importResult.importedCount > 0 ? 'bg-success/10' : 'bg-warning/10'
+                    )}>
+                      {importResult.importedCount > 0 ? (
+                        <CheckCircle2 className="h-6 w-6 text-success" />
+                      ) : (
+                        <AlertCircle className="h-6 w-6 text-warning" />
+                      )}
+                      <div>
+                        <p className="font-medium">
+                          {importResult.importedCount > 0
+                            ? `Successfully imported ${importResult.importedCount} candidates`
+                            : 'No new candidates imported'}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {importResult.skippedCount > 0 && `${importResult.skippedCount} duplicates skipped. `}
+                          {importResult.errorCount > 0 && `${importResult.errorCount} errors.`}
+                        </p>
+                      </div>
+                    </div>
+
+                    {importResult.errors.length > 0 && (
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium text-destructive">Errors</Label>
+                        <div className="border border-destructive/20 rounded-lg divide-y max-h-[150px] overflow-y-auto">
+                          {importResult.errors.map((err, i) => (
+                            <div key={i} className="px-3 py-2 text-sm">
+                              <span className="text-muted-foreground">Row {err.row}:</span> {err.error}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => handleDialogClose(false)}>
+                        Close
+                      </Button>
+                      <Button onClick={resetBulkUpload}>
+                        Upload Another File
+                      </Button>
+                    </DialogFooter>
+                  </div>
+                )}
+              </TabsContent>
+            </Tabs>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <CandidatesTable

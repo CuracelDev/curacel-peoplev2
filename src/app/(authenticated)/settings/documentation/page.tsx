@@ -185,6 +185,34 @@ const docSectionsV2: DocSection[] = [
     ],
   },
   {
+    id: 'v2-hiring-candidates',
+    title: 'Adding candidates',
+    description: 'Add candidates manually, attach documents, or import in bulk.',
+    blocks: [
+      {
+        title: 'Add a single candidate',
+        ordered: true,
+        items: [
+          'Open Hiring > Positions and select the job.',
+          'Click Add Candidate.',
+          'Enter name, email, LinkedIn, and notes.',
+          'Upload documents (resume, portfolio, certificates) or paste document URLs.',
+          'Save to add the candidate to the pipeline.',
+        ],
+      },
+      {
+        title: 'Bulk import via spreadsheet',
+        ordered: true,
+        items: [
+          'Click Add Candidate and switch to Bulk Upload.',
+          'Upload a CSV or Excel file with Name and Email columns.',
+          'Review field mapping and adjust if needed.',
+          'Import the file and review any errors or duplicates.',
+        ],
+      },
+    ],
+  },
+  {
     id: 'v2-positions',
     title: 'Positions and job setup',
     description: 'Define the role clearly so the pipeline runs smoothly.',

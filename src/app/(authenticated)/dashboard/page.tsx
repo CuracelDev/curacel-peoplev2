@@ -260,9 +260,9 @@ export default function DashboardPage() {
         <Card className="border-0 shadow-sm">
           <CardContent className="pt-6">
             <div className="flex flex-col">
-              <span className="text-sm text-muted-foreground">Total Employees</span>
-              <span className="text-3xl font-bold mt-1">{employees.total}</span>
-              <span className="text-xs text-muted-foreground mt-1">{employees.active} active</span>
+              <span className="text-sm text-muted-foreground">Active Employees</span>
+              <span className="text-3xl font-bold mt-1">{employees.active}</span>
+              <span className="text-xs text-muted-foreground mt-1">{employees.total} total</span>
             </div>
           </CardContent>
         </Card>
