@@ -177,10 +177,12 @@ model Employee {
   employmentType  EmploymentType  @default(FULL_TIME)
 
   // Dates
-  startDate       DateTime?
-  endDate         DateTime?
+  startDate        DateTime?
+  endDate          DateTime?
   probationEndDate DateTime?
-  
+  onboardedAt      DateTime?
+  offboardedAt     DateTime?
+
   // HR/PII fields (encrypted at rest)
   salaryAmount    Decimal?        @db.Decimal(12, 2)
   salaryCurrency  String?         @default("USD")
@@ -257,7 +259,8 @@ model Employee {
   competencyAssessments EmployeeCompetencyScore[]
 
   // Role history tracking
-  roleHistory     EmployeeRoleHistory[]
+  roleHistory       EmployeeRoleHistory[]
+  emergencyContacts EmergencyContact[]
 
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
@@ -293,6 +296,21 @@ model EmployeeRoleHistory {
   createdBy       String?   // User/Employee ID who made the change
 
   @@index([employeeId, effectiveDate])
+}
+
+model EmergencyContact {
+  id           String   @id @default(uuid())
+  employeeId   String
+  employee     Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  name         String
+  phone        String?
+  email        String?
+  relationship String?
+  isPrimary    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([employeeId])
 }
 
 // ============================================
@@ -874,6 +892,8 @@ model LegalEntity {
   organizationId String
   organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   name           String
+  address        String?
+  country        String?
   isActive       Boolean      @default(true)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
@@ -1716,6 +1736,7 @@ model JobCandidate {
   phone       String?
   resumeUrl   String?
   linkedinUrl String?
+  otherContactInfo String?
   avatarUrl   String?
 
   // Professional info
