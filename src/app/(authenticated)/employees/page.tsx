@@ -34,7 +34,7 @@ import { PageActions } from '@/components/layout/page-actions'
 export default function EmployeesPage() {
   const router = useRouter()
   const [search, setSearch] = useState('')
-  const [statusFilter, setStatusFilter] = useState<string>('')
+  const [statusFilter, setStatusFilter] = useState<string>('ACTIVE')
   const [departmentFilter, setDepartmentFilter] = useState<string>('')
   const [page, setPage] = useState(1)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
