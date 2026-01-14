@@ -37,6 +37,7 @@ export default function EmployeesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('ACTIVE')
   const [departmentFilter, setDepartmentFilter] = useState<string>('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
 
   const { data, isLoading, refetch } = trpc.employee.list.useQuery({
@@ -44,7 +45,7 @@ export default function EmployeesPage() {
     status: statusFilter || undefined,
     department: departmentFilter || undefined,
     page,
-    limit: 20,
+    limit: pageSize,
   })
 
   const { data: teams } = trpc.team.listForSelect.useQuery()
@@ -271,11 +272,26 @@ export default function EmployeesPage() {
           )}
 
           {/* Pagination */}
-          {data && data.pages > 1 && (
+          {data && (
             <div className="flex items-center justify-between mt-4 pt-4 border-t">
-              <p className="text-sm text-muted-foreground">
-                Showing {(page - 1) * 20 + 1} to {Math.min(page * 20, data.total)} of {data.total}
-              </p>
+              <div className="flex items-center gap-4">
+                <p className="text-sm text-muted-foreground">
+                  Showing {(page - 1) * pageSize + 1} to {Math.min(page * pageSize, data.total)} of {data.total}
+                </p>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">per page:</span>
+                  <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); setPage(1); }}>
+                    <SelectTrigger className="w-[80px] h-8">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="25">25</SelectItem>
+                      <SelectItem value="50">50</SelectItem>
+                      <SelectItem value="100">100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
               <div className="flex gap-2">
                 <Button
                   variant="outline"
