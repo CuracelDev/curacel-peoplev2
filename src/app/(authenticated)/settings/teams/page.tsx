@@ -43,7 +43,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { Plus, MoreHorizontal, Pencil, Trash2, Users, ChevronRight, FolderPlus, Brain } from 'lucide-react'
+import { Plus, MoreHorizontal, Pencil, Trash2, Users, ChevronRight, FolderPlus, Brain, ListChecks } from 'lucide-react'
 
 const TEAM_COLORS = [
   { name: 'Blue', value: '#3B82F6' },
@@ -315,6 +315,21 @@ export default function TeamsPage() {
                 <h3 className="text-base font-semibold text-foreground mb-1">Team Profiles</h3>
                 <p className="text-sm text-foreground/80">
                   Configure team-specific preferences and guidance.
+                </p>
+              </div>
+              <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
+            </Link>
+            <Link
+              href="/settings/teams/bulk-actions"
+              className="flex items-center gap-4 p-6 hover:bg-muted transition-colors"
+            >
+              <div className="bg-amber-100 p-3 rounded-lg flex-shrink-0">
+                <ListChecks className="h-6 w-6 text-amber-600" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="text-base font-semibold text-foreground mb-1">Bulk Actions</h3>
+                <p className="text-sm text-foreground/80">
+                  Perform bulk operations on employees like status changes, team assignments, and more.
                 </p>
               </div>
               <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0" />
