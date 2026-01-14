@@ -8,8 +8,12 @@ import './globals.css'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Curacel PeopleOS',
+  title: 'Curacel People OS',
   description: 'Internal HR and People Operations Platform',
+  icons: {
+    icon: '/favicon.png',
+    apple: '/apple-touch-icon.png',
+  },
 }
 
 export default async function RootLayout({

@@ -50,9 +50,9 @@ export default function SignInPage() {
               <Logo className="h-10 w-10" />
               <div className="flex items-center gap-2 whitespace-nowrap">
                 <span className="text-xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">
-                  Curacel People
+                  PeopleOps
                 </span>
-                <span className="text-[9px] font-semibold text-slate-400">v0.1</span>
+                <span className="text-[9px] font-semibold text-slate-400">v2</span>
               </div>
             </div>
           </div>
