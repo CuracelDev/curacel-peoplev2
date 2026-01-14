@@ -246,12 +246,18 @@ async function main() {
 
   // Filter employees: only non-discarded, deduplicate by person_id (take most recent)
   const employeesByPersonId = new Map<string, Employee>();
+  const allEmployeeIdsByPersonId = new Map<string, string[]>();
   const sortedEmployees = [...employees]
     .filter(e => !e.discarded_at || e.discarded_at.trim() === '')
     .sort((a, b) => new Date(b.onboarded_at || b.created_at || '1970-01-01').getTime() -
                     new Date(a.onboarded_at || a.created_at || '1970-01-01').getTime());
 
   for (const emp of sortedEmployees) {
+    // Track ALL employee IDs for each person (for manager mapping)
+    const existingIds = allEmployeeIdsByPersonId.get(emp.person_id) || [];
+    existingIds.push(emp.id);
+    allEmployeeIdsByPersonId.set(emp.person_id, existingIds);
+
     if (!employeesByPersonId.has(emp.person_id)) {
       employeesByPersonId.set(emp.person_id, emp);
     }
@@ -290,7 +296,11 @@ async function main() {
     });
 
     if (existingEmployee) {
-      oldToNewEmployeeId.set(emp.id, existingEmployee.id);
+      // Map ALL old employee IDs for this person to the existing employee ID
+      const allOldIds = allEmployeeIdsByPersonId.get(personId) || [emp.id];
+      for (const oldId of allOldIds) {
+        oldToNewEmployeeId.set(oldId, existingEmployee.id);
+      }
       personIdToNewEmployeeId.set(personId, existingEmployee.id);
       skippedCount++;
       continue;
@@ -326,7 +336,11 @@ async function main() {
         }
       });
 
-      oldToNewEmployeeId.set(emp.id, newEmployee.id);
+      // Map ALL old employee IDs for this person to the new employee ID
+      const allOldIds = allEmployeeIdsByPersonId.get(personId) || [emp.id];
+      for (const oldId of allOldIds) {
+        oldToNewEmployeeId.set(oldId, newEmployee.id);
+      }
       personIdToNewEmployeeId.set(personId, newEmployee.id);
       createdCount++;
 
@@ -341,14 +355,23 @@ async function main() {
 
   console.log(`  Total created: ${createdCount}, skipped: ${skippedCount}`);
 
-  // Update manager relationships
+  // Update manager relationships - manager_id is actually person_id, not employee_id
   console.log('\nUpdating manager relationships...');
   let managerUpdates = 0;
-  for (const [personId, emp] of employeesByPersonId) {
-    if (!emp.manager_id || emp.manager_id.trim() === '') continue;
+  let withManagerId = 0;
+  let managerNotFound = 0;
 
-    const newEmployeeId = personIdToNewEmployeeId.get(personId);
-    const newManagerId = oldToNewEmployeeId.get(emp.manager_id);
+  for (const emp of sortedEmployees) {
+    if (!emp.manager_id || emp.manager_id.trim() === '') continue;
+    withManagerId++;
+
+    const newEmployeeId = personIdToNewEmployeeId.get(emp.person_id);
+    // manager_id is actually person_id in the source data
+    const newManagerId = personIdToNewEmployeeId.get(emp.manager_id);
+
+    if (!newManagerId) {
+      managerNotFound++;
+    }
 
     if (newEmployeeId && newManagerId && newEmployeeId !== newManagerId) {
       try {
@@ -358,10 +381,11 @@ async function main() {
         });
         managerUpdates++;
       } catch (error) {
-        // Ignore errors - manager might not exist
+        // Ignore errors
       }
     }
   }
+  console.log(`  Employees with manager: ${withManagerId}, not found: ${managerNotFound}`);
   console.log(`  Updated ${managerUpdates} manager relationships`);
 
   // Create emergency contacts
