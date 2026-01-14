@@ -570,8 +570,53 @@ export const employeeRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { employeeIds } = input
 
-      const result = await ctx.prisma.employee.deleteMany({
-        where: { id: { in: employeeIds } },
+      // Use transaction to ensure all deletes succeed or none do
+      const result = await ctx.prisma.$transaction(async (tx) => {
+        // Delete related records first (foreign key constraints)
+        await tx.offer.deleteMany({
+          where: { employeeId: { in: employeeIds } },
+        })
+
+        await tx.appAccount.deleteMany({
+          where: { employeeId: { in: employeeIds } },
+        })
+
+        await tx.onboardingWorkflow.deleteMany({
+          where: { employeeId: { in: employeeIds } },
+        })
+
+        await tx.offboardingWorkflow.deleteMany({
+          where: { employeeId: { in: employeeIds } },
+        })
+
+        // Clear manager references from other employees
+        await tx.employee.updateMany({
+          where: { managerId: { in: employeeIds } },
+          data: { managerId: null },
+        })
+
+        // Clear user links
+        await tx.user.updateMany({
+          where: { employeeId: { in: employeeIds } },
+          data: { employeeId: null },
+        })
+
+        // Clear hiring manager references from jobs
+        await tx.job.updateMany({
+          where: { hiringManagerId: { in: employeeIds } },
+          data: { hiringManagerId: null },
+        })
+
+        // Clear addedBy references from candidates
+        await tx.jobCandidate.updateMany({
+          where: { addedById: { in: employeeIds } },
+          data: { addedById: null },
+        })
+
+        // Finally delete the employees
+        return tx.employee.deleteMany({
+          where: { id: { in: employeeIds } },
+        })
       })
 
       await logEmployeeEvent({

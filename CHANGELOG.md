@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Legacy Role Competencies settings page and old job competency selection UI (superseded by the competency framework).
 
 ### Added
+- AE candidate import script to ingest the Hiring spreadsheet (Dashboard/Others) with links and assessment attachments.
 - Documentation v2 guide with tabbed layout, visual maps, and simplified onboarding flow.
 - **Dynamic AI Tools System for AuntyPelz**
   - OpenAI SDK integration with custom function calling capabilities
