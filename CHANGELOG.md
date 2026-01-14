@@ -13,6 +13,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Docker PostgreSQL port mapping: Changed from 5432 to 5433 to avoid conflicts with existing database services
 - Application port: Changed from 3000 to 3800 to avoid port conflicts
 - Bitbucket pipeline: Use local Prisma version instead of npx to prevent version conflicts
+- Job candidates stage cards now filter correctly without being reset by URL stage params.
+- Bulk candidate upload now supports Excel files.
 
 ### Removed
 - Legacy Role Competencies settings page and old job competency selection UI (superseded by the competency framework).
@@ -20,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Added
 - AE candidate import script to ingest the Hiring spreadsheet (Dashboard/Others) with links and assessment attachments.
 - AE interview backfill script to create completed stage dates from the hiring spreadsheet.
+- Job candidates add dialog with document uploads and bulk spreadsheet import.
 - Documentation v2 guide with tabbed layout, visual maps, and simplified onboarding flow.
 - **Dynamic AI Tools System for AuntyPelz**
   - OpenAI SDK integration with custom function calling capabilities

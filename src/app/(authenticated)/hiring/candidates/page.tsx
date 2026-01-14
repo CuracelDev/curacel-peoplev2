@@ -380,8 +380,9 @@ export default function CandidatesPage() {
       return
     }
 
-    // Read file content
-    const content = await file.text()
+    const content = fileType === 'csv'
+      ? await file.text()
+      : await fileToBase64(file)
 
     try {
       const result = await parseUpload.mutateAsync({
@@ -403,6 +404,16 @@ export default function CandidatesPage() {
       console.error('Failed to parse file:', error)
       alert(error instanceof Error ? error.message : 'Failed to parse file')
     }
+  }
+
+  const fileToBase64 = async (file: File) => {
+    const buffer = await file.arrayBuffer()
+    let binary = ''
+    const bytes = new Uint8Array(buffer)
+    for (let i = 0; i < bytes.length; i++) {
+      binary += String.fromCharCode(bytes[i])
+    }
+    return btoa(binary)
   }
 
   const handleBulkImport = async () => {

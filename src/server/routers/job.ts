@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import xlsx from 'xlsx'
 import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure, publicProcedure } from '@/lib/trpc'
 import { onJobStatusChange, syncJobToWebflow, unpublishJobFromWebflow } from '@/lib/integrations/webflow-sync'
@@ -934,6 +935,15 @@ export const jobRouter = router({
         phone: z.string().optional(),
         resumeUrl: z.string().optional(),
         linkedinUrl: z.string().optional(),
+        documents: z.array(
+          z.object({
+            id: z.string(),
+            name: z.string(),
+            type: z.enum(['resume', 'cover_letter', 'portfolio', 'certificate', 'other']).default('other'),
+            url: z.string().url(),
+            uploadedAt: z.string(),
+          })
+        ).optional(),
         // Enhanced source tracking
         source: CandidateSourceEnum.default('EXCELLER'),
         inboundChannel: InboundChannelEnum.optional(),
@@ -1687,12 +1697,20 @@ export const jobRouter = router({
           allRows = lines.slice(1).map(parseLine)
           sampleRows = allRows.slice(0, 5) // First 5 rows as sample
         } else {
-          // For Excel files, we'd need xlsx library on the server
-          // For now, return an error asking for CSV
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Excel files are not yet supported. Please convert to CSV.',
-          })
+          const workbook = xlsx.read(fileContent, { type: 'base64' })
+          const sheetName = workbook.SheetNames[0]
+          if (!sheetName) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'No sheets found in Excel file.' })
+          }
+          const sheet = workbook.Sheets[sheetName]
+          const rows = xlsx.utils.sheet_to_json(sheet, { header: 1, defval: '' }) as Array<Array<unknown>>
+          if (rows.length === 0) {
+            throw new TRPCError({ code: 'BAD_REQUEST', message: 'Empty file' })
+          }
+
+          headers = (rows[0] || []).map((cell) => String(cell ?? '').trim())
+          allRows = rows.slice(1).map((row) => row.map((cell) => String(cell ?? '').trim()))
+          sampleRows = allRows.slice(0, 5)
         }
       } catch (error) {
         if (error instanceof TRPCError) throw error

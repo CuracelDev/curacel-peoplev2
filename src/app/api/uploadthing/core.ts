@@ -6,8 +6,10 @@ const f = createUploadthing()
 export const ourFileRouter = {
   // Endpoint for employee document uploads (PDFs, images)
   employeeDocuments: f({
-    pdf: { maxFileSize: '4MB', maxFileCount: 1 },
-    image: { maxFileSize: '4MB', maxFileCount: 1 },
+    pdf: { maxFileSize: '8MB', maxFileCount: 1 },
+    image: { maxFileSize: '8MB', maxFileCount: 1 },
+    'application/msword': { maxFileSize: '8MB', maxFileCount: 1 },
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { maxFileSize: '8MB', maxFileCount: 1 },
   })
     .onUploadComplete(async ({ file }) => {
       // This code runs on your server after upload
