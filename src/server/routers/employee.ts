@@ -521,4 +521,58 @@ export const employeeRouter = router({
         orderBy: { fullName: 'asc' },
       })
     }),
+
+  bulkUpdate: hrAdminProcedure
+    .input(z.object({
+      employeeIds: z.array(z.string()).min(1),
+      updates: z.object({
+        status: z.enum(['CANDIDATE', 'OFFER_SENT', 'OFFER_SIGNED', 'HIRED_PENDING_START', 'ACTIVE', 'OFFBOARDING', 'EXITED']).optional(),
+        department: z.string().nullable().optional(),
+        managerId: z.string().nullable().optional(),
+      }),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { employeeIds, updates } = input
+
+      const updateData: Record<string, unknown> = {}
+      if (updates.status !== undefined) updateData.status = updates.status
+      if (updates.department !== undefined) updateData.department = updates.department
+      if (updates.managerId !== undefined) updateData.managerId = updates.managerId
+
+      const result = await ctx.prisma.employee.updateMany({
+        where: { id: { in: employeeIds } },
+        data: updateData,
+      })
+
+      await logEmployeeEvent({
+        actorId: (ctx.user as { id: string }).id,
+        action: 'BULK_UPDATE',
+        metadata: {
+          employeeCount: result.count,
+          updates: Object.keys(updates),
+        },
+      })
+
+      return { updated: result.count }
+    }),
+
+  bulkDelete: hrAdminProcedure
+    .input(z.object({
+      employeeIds: z.array(z.string()).min(1),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const { employeeIds } = input
+
+      const result = await ctx.prisma.employee.deleteMany({
+        where: { id: { in: employeeIds } },
+      })
+
+      await logEmployeeEvent({
+        actorId: (ctx.user as { id: string }).id,
+        action: 'BULK_DELETE',
+        metadata: { deletedCount: result.count },
+      })
+
+      return { deleted: result.count }
+    }),
 })
