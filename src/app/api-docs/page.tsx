@@ -406,14 +406,14 @@ export default function ApiDocsPage() {
                 <div className="rounded border border-border/60 bg-muted/40 p-3 text-xs text-foreground/80">
                   <div className="font-semibold text-foreground">Create candidate with documents</div>
                   <div>POST `/api/v1/candidates` supports `documents` and `resumeUrl` fields.</div>
-                  <div>Documents are arrays of `{ id, name, type, url, uploadedAt }`.</div>
+                  <div>{'Documents are arrays of `{ id, name, type, url, uploadedAt }`.'}</div>
                   <div>Types: resume, cover_letter, portfolio, certificate, other.</div>
                   <div>Errors: 400 validation error, 409 duplicate candidate.</div>
                 </div>
                 <div className="rounded border border-border/60 bg-muted/40 p-3 text-xs text-foreground/80">
                   <div className="font-semibold text-foreground">Bulk import (internal)</div>
                   <div>Use `job.bulkImportCandidates` via tRPC to import CSV/Excel files.</div>
-                  <div>Payload: `{ jobId, fieldMapping, headers, data, source }`.</div>
+                  <div>{'Payload: `{jobId, fieldMapping, headers, data, source}`.'}</div>
                   <div>Errors: 400 invalid mapping, 409 duplicates.</div>
                 </div>
               </div>
