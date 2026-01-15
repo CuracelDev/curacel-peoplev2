@@ -90,7 +90,7 @@ export default function SignInPage() {
               onClick={handleSignIn}
               disabled={isLoading || !email || (!allowPasswordless && !password)}
             >
-              {isLoading ? 'Signing in...' : 'Sign in as Admin'}
+              {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
             {allowPasswordless ? (
               <p className="text-center text-xs text-muted-foreground">
