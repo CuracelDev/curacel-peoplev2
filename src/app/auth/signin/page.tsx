@@ -19,7 +19,7 @@ export default function SignInPage() {
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const allowPasswordless =
-    process.env.NEXT_PUBLIC_DEV_PASSWORDLESS_LOGIN !== 'false'
+    process.env.NEXT_PUBLIC_DEV_PASSWORDLESS_LOGIN === 'true'
 
   useEffect(() => {
     if (session) {
@@ -64,11 +64,11 @@ export default function SignInPage() {
         <CardContent className="space-y-4">
           {error && (
             <div className="p-3 bg-destructive/10 border border-destructive/30 text-destructive rounded-lg text-sm">
-              {error === 'AccessDenied' 
+              {error === 'AccessDenied'
                 ? 'Access denied. Please use your company email to sign in.'
                 : error === 'CredentialsSignin'
-                ? 'Invalid credentials. Please check your email and password.'
-                : 'An error occurred during sign in. Please try again.'}
+                  ? 'Invalid credentials. Please check your email and password.'
+                  : 'An error occurred during sign in. Please try again.'}
             </div>
           )}
 
