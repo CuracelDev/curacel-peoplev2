@@ -1,5 +1,5 @@
 import { z } from 'zod'
-import xlsx from 'xlsx'
+import * as xlsx from 'xlsx'
 import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure, publicProcedure } from '@/lib/trpc'
 import { onJobStatusChange, syncJobToWebflow, unpublishJobFromWebflow } from '@/lib/integrations/webflow-sync'
@@ -141,21 +141,21 @@ export const jobRouter = router({
         const stages = Array.isArray(stagesData) ? (stagesData as string[]) : []
         const stageBreakdown = stages.length > 0
           ? stages
-              .map((stageName, index) => {
-                const stageEnum = stageEnumOrder[index]
-                if (!stageEnum) return null
-                return {
-                  stage: stageEnum,
-                  label: stageName,
-                  count: stageCounts[stageEnum] || 0,
-                }
-              })
-              .filter((item): item is { stage: string; label: string; count: number } => item !== null)
+            .map((stageName, index) => {
+              const stageEnum = stageEnumOrder[index]
+              if (!stageEnum) return null
+              return {
+                stage: stageEnum,
+                label: stageName,
+                count: stageCounts[stageEnum] || 0,
+              }
+            })
+            .filter((item): item is { stage: string; label: string; count: number } => item !== null)
           : stageEnumOrder.map((stage) => ({
-              stage,
-              label: stageDisplayNames[stage] || stage,
-              count: stageCounts[stage] || 0,
-            }))
+            stage,
+            label: stageDisplayNames[stage] || stage,
+            count: stageCounts[stage] || 0,
+          }))
 
         const stats = {
           applicants: job._count.candidates,
@@ -539,8 +539,8 @@ export const jobRouter = router({
           // Create scorecard if provided
           scorecard: scorecardData
             ? {
-                create: scorecardData,
-              }
+              create: scorecardData,
+            }
             : undefined,
           // Create competency requirements (NEW v2)
           competencyRequirements: {
@@ -1740,9 +1740,9 @@ CSV Headers: ${JSON.stringify(headers)}
 
 Sample Data (first 3 rows):
 ${sampleRows
-  .slice(0, 3)
-  .map((row, i) => `Row ${i + 1}: ${JSON.stringify(row)}`)
-  .join('\n')}
+              .slice(0, 3)
+              .map((row, i) => `Row ${i + 1}: ${JSON.stringify(row)}`)
+              .join('\n')}
 
 Expected Candidate Fields:
 ${expectedFields.map((f) => `- ${f.key}: ${f.label}${f.required ? ' (required)' : ''}`).join('\n')}

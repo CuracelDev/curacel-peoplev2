@@ -1,4 +1,4 @@
-import xlsx from 'xlsx'
+import * as xlsx from 'xlsx'
 import fs from 'fs'
 import { PrismaClient } from '@prisma/client'
 
@@ -9,9 +9,9 @@ const DEFAULT_JOB_TITLE = 'Account Executive (AE)'
 const DEFAULT_DOMAIN = 'placeholder.com'
 
 const args = parseArgs(process.argv.slice(2))
-const filePath = args.file ?? DEFAULT_FILE
-const jobTitle = args.jobTitle ?? DEFAULT_JOB_TITLE
-const missingEmailDomain = args.missingEmailDomain ?? DEFAULT_DOMAIN
+const filePath = (args.file as string) ?? DEFAULT_FILE
+const jobTitle = (args.jobTitle as string) ?? DEFAULT_JOB_TITLE
+const missingEmailDomain = (args.missingEmailDomain as string) ?? DEFAULT_DOMAIN
 
 if (!fs.existsSync(filePath)) {
   console.error(`File not found: ${filePath}`)
