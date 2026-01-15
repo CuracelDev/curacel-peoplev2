@@ -94,7 +94,7 @@ export async function logEmployeeEvent(params: {
   actorEmail?: string
   actorType?: 'user' | 'system' | 'webhook'
   action: AuditAction
-  employeeId: string
+  employeeId?: string
   metadata?: Record<string, unknown>
 }): Promise<void> {
   await createAuditLog({
