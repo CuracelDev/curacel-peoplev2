@@ -1,5 +1,5 @@
 import fs from 'fs'
-import xlsx from 'xlsx'
+import * as xlsx from 'xlsx'
 import { PrismaClient } from '@prisma/client'
 
 const prisma = new PrismaClient()
@@ -26,16 +26,16 @@ const DEFAULT_FILE = '/Users/henrymascot/Downloads/Hiring - AE.xlsx'
 const DEFAULT_ACTIVE_QUARTER = 'Q4 2025'
 
 const args = parseArgs(process.argv.slice(2))
-const filePath = args.file ?? DEFAULT_FILE
-const jobTitle = args.jobTitle ?? 'Account Executive (AE)'
-const jobDepartment = args.jobDepartment ?? 'Sales'
-const jdPath = args.jd
-const activeQuarterTokens = (args.activeQuarter ?? DEFAULT_ACTIVE_QUARTER)
+const filePath = (args.file as string) ?? DEFAULT_FILE
+const jobTitle = (args.jobTitle as string) ?? 'Account Executive (AE)'
+const jobDepartment = (args.jobDepartment as string) ?? 'Sales'
+const jdPath = args.jd as string
+const activeQuarterTokens = ((args.activeQuarter as string) ?? DEFAULT_ACTIVE_QUARTER)
   .split(',')
   .map((token) => token.trim().toLowerCase())
   .filter(Boolean)
 const allowMissingEmail = Boolean(args.allowMissingEmail)
-const missingEmailDomain = args.missingEmailDomain ?? 'curacel.local'
+const missingEmailDomain = (args.missingEmailDomain as string) ?? 'curacel.local'
 const includeOthers = args.includeOthers !== 'false'
 const doImport = Boolean(args.import)
 
@@ -57,10 +57,10 @@ const dashboardResult = parseDashboardSheet(workbook, {
 
 const othersResult = includeOthers
   ? parseOthersSheet(workbook, {
-      allowMissingEmail,
-      missingEmailDomain,
-      usedEmails,
-    })
+    allowMissingEmail,
+    missingEmailDomain,
+    usedEmails,
+  })
   : { candidates: [], missingEmails: [], skipped: 0 }
 
 const allCandidates = [...dashboardResult.candidates, ...othersResult.candidates]
