@@ -29,6 +29,8 @@ function appTypeToAutomationType(appType: string) {
       return 'provision_google'
     case 'SLACK':
       return 'provision_slack'
+    case 'STANDUPNINJA':
+      return 'provision_standupninja'
     default:
       return GENERIC_PROVISION_AUTOMATION
   }
@@ -795,6 +797,16 @@ export const onboardingRouter = router({
               result = await provisionEmployeeInApp(employee, 'SLACK', (ctx.user as { id: string }).id)
             }
             break
+          case 'provision_standupninja': {
+            const email = employee.workEmail || employee.personalEmail
+            if (!email) {
+              result = { success: false, error: 'Employee has no email' }
+              break
+            }
+            const sync = await addEmployeeToStandup(email, employee.department, (ctx.user as { id: string }).id)
+            result = { success: sync.success, error: sync.error }
+            break
+          }
           case GENERIC_PROVISION_AUTOMATION: {
             const config = (task.automationConfig as any) ?? {}
             if (typeof config.appId === 'string' && config.appId) {
@@ -1699,15 +1711,6 @@ async function checkAndCompleteWorkflow(prisma: typeof import('@/lib/prisma').de
         department: true,
       },
     })
-
-    // Sync employee to standup_mate
-    const email = employee.workEmail || employee.personalEmail
-    if (email) {
-      await addEmployeeToStandup(email, employee.department).catch((error) => {
-        console.error('Failed to sync employee to standup:', error)
-        // Don't fail onboarding if standup sync fails
-      })
-    }
 
     await createAuditLog({
       actorType: 'system',
