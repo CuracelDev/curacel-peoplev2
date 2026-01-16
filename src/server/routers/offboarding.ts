@@ -14,6 +14,7 @@ const DEFAULT_OFFBOARDING_TASK_TEMPLATES = [
   { name: 'Exit interview', type: 'MANUAL' as const, sortOrder: 4 },
   { name: 'Deprovision Google Workspace account', type: 'AUTOMATED' as const, appType: 'GOOGLE_WORKSPACE' as const, sortOrder: 10 },
   { name: 'Deprovision Slack account', type: 'AUTOMATED' as const, appType: 'SLACK' as const, sortOrder: 11 },
+  { name: 'Remove from StandupNinja teams', type: 'AUTOMATED' as const, appType: 'STANDUPNINJA' as const, sortOrder: 12 },
 ]
 
 const DEFAULT_OFFBOARDING_EMPLOYEE_TASKS = [
@@ -122,7 +123,10 @@ async function buildOffboardingTasksFromTemplates(prisma: any, templates: any[])
     tasks.push({
       name: template.name,
       type: 'AUTOMATED',
-      automationType: template.automationType || 'deprovision_app',
+      automationType:
+        app.type === 'STANDUPNINJA'
+          ? 'deprovision_standupninja'
+          : template.automationType || 'deprovision_app',
       appId: app.id,
       sortOrder: i++,
     })
@@ -176,7 +180,12 @@ export const offboardingRouter = router({
           type: input.kind === 'MANUAL' ? 'MANUAL' : 'AUTOMATED',
           appId: input.kind === 'INTEGRATION' ? app!.id : null,
           appType: input.kind === 'INTEGRATION' ? app!.type : null,
-          automationType: input.kind === 'INTEGRATION' ? 'deprovision_app' : null,
+          automationType:
+            input.kind === 'INTEGRATION'
+              ? app!.type === 'STANDUPNINJA'
+                ? 'deprovision_standupninja'
+                : 'deprovision_app'
+              : null,
           sortOrder: nextSort,
           isActive: true,
         },
@@ -218,7 +227,7 @@ export const offboardingRouter = router({
           kindUpdates.type = 'AUTOMATED'
           kindUpdates.appId = app.id
           kindUpdates.appType = app.type
-          kindUpdates.automationType = 'deprovision_app'
+          kindUpdates.automationType = app.type === 'STANDUPNINJA' ? 'deprovision_standupninja' : 'deprovision_app'
         }
       }
 
@@ -843,6 +852,16 @@ async function runOffboardingTask(
       case 'deprovision_slack':
         result = await deprovisionEmployeeInApp(fullEmployee, 'SLACK', actorId)
         break
+      case 'deprovision_standupninja': {
+        const email = fullEmployee.workEmail || fullEmployee.personalEmail
+        if (!email) {
+          result = { success: false, error: 'Employee has no email' }
+          break
+        }
+        const sync = await removeEmployeeFromStandup(email, actorId)
+        result = { success: sync.success, error: sync.error }
+        break
+      }
       default:
         if (typeof task.automationType === 'string' && task.automationType.startsWith('deprovision_')) {
           const raw = task.automationType.slice('deprovision_'.length)
@@ -924,15 +943,6 @@ async function checkAndCompleteOffboarding(prisma: typeof import('@/lib/prisma')
         personalEmail: true,
       },
     })
-
-    // Remove employee from standup_mate
-    const email = employee.workEmail || employee.personalEmail
-    if (email) {
-      await removeEmployeeFromStandup(email).catch((error) => {
-        console.error('Failed to remove employee from standup:', error)
-        // Don't fail offboarding if standup sync fails
-      })
-    }
 
     await createAuditLog({
       actorType: 'system',
