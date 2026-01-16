@@ -10,6 +10,7 @@ import { HubSpotConnector } from './hubspot'
 import { PassboltConnector, createPassboltConnector } from './passbolt'
 import { FirefliesConnector } from './fireflies'
 import { WebhookConnector, hasWebhookConfig } from './webhook'
+import { StandupNinjaConnector } from './standupninja'
 import type { IntegrationConnector, ProvisionResult, DeprovisionResult, DeprovisionOptions } from './types'
 
 export * from './types'
@@ -21,6 +22,7 @@ export { HubSpotConnector } from './hubspot'
 export { PassboltConnector, createPassboltConnector } from './passbolt'
 export { FirefliesConnector, getFirefliesConnector, isFirefliesConfigured } from './fireflies'
 export { WebflowConnector, createWebflowConnector } from './webflow'
+export { StandupNinjaConnector } from './standupninja'
 
 export async function getConnector(app: App): Promise<IntegrationConnector | null> {
   const connection = await prisma.appConnection.findFirst({
@@ -117,6 +119,14 @@ export async function getConnector(app: App): Promise<IntegrationConnector | nul
         autoPublish: config.autoPublish as boolean | undefined,
         autoSync: config.autoSync as boolean | undefined,
       })
+    }
+
+    case 'STANDUPNINJA': {
+      const apiUrl = typeof config.apiUrl === 'string' ? config.apiUrl : ''
+      const apiKey = typeof config.apiKey === 'string' ? config.apiKey : ''
+      if (!apiUrl || !apiKey) return null
+
+      return new StandupNinjaConnector({ apiUrl, apiKey })
     }
 
     default:
