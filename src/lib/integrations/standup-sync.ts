@@ -141,7 +141,7 @@ export async function addEmployeeToStandup(
     }
 
     // Call standup_mate API
-    const response = await fetch(`${config.apiUrl}/api/sync/add-employee`, {
+    const response = await fetch(`${config.apiUrl}/api/teams/members`, {
       method: 'POST',
       headers: {
         'X-API-Key': config.apiKey,
@@ -201,8 +201,8 @@ export async function removeEmployeeFromStandup(
     }
 
     // Call standup_mate API
-    const response = await fetch(`${config.apiUrl}/api/sync/remove-employee`, {
-      method: 'POST',
+    const response = await fetch(`${config.apiUrl}/api/teams/members`, {
+      method: 'DELETE',
       headers: {
         'X-API-Key': config.apiKey,
         'Content-Type': 'application/json',
