@@ -28,6 +28,8 @@ interface OnboardingFormData {
   emailProvider: 'PERSONAL' | 'GOOGLE_WORKSPACE' | 'CUSTOM'
   workEmail: string
   department?: string
+  bonus?: string
+  probationPeriod?: string
   jiraBoardId?: string
   jiraManager?: boolean
 }
@@ -38,8 +40,7 @@ export default function NewOnboardingPage() {
   const [departmentTouched, setDepartmentTouched] = useState(false)
 
   const { data: candidates } = trpc.employee.list.useQuery({
-    status: 'OFFER_SIGNED',
-    limit: 100,
+    limit: 500,
   })
 
   const { data: employees } = trpc.employee.list.useQuery({
@@ -267,6 +268,8 @@ export default function NewOnboardingPage() {
         startDate: data.startDate,
         managerId: data.managerId || undefined,
         department: data.department || undefined,
+        bonus: data.bonus || undefined,
+        probationPeriod: data.probationPeriod || undefined,
         workEmail: data.workEmail || undefined,
         emailProvider: data.emailProvider,
         jiraBoardId: data.jiraBoardId || undefined,
@@ -387,6 +390,32 @@ export default function NewOnboardingPage() {
                 Auto-suggested from job title. You can adjust this if needed.
               </p>
             </div>
+
+            {/* Contract Variables */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="bonus" className="text-sm font-medium">
+                  Bonus details
+                </Label>
+                <Input
+                  id="bonus"
+                  {...register('bonus')}
+                  className="mt-1"
+                  placeholder="e.g. Performance-based up to NGN 120,000"
+                />
+              </div>
+              <div>
+                <Label htmlFor="probationPeriod" className="text-sm font-medium">
+                  Probation period
+                </Label>
+                <Input
+                  id="probationPeriod"
+                  {...register('probationPeriod')}
+                  className="mt-1"
+                  placeholder="e.g. 6 months"
+                />
+              </div>
+            </div>
           </CardContent>
         </Card>
 
@@ -406,8 +435,8 @@ export default function NewOnboardingPage() {
                 control={control}
                 rules={{ required: 'Email provider is required' }}
                 render={({ field }) => (
-                  <Select 
-                    value={field.value} 
+                  <Select
+                    value={field.value}
                     onValueChange={(value) => {
                       field.onChange(value)
                       handleProviderChange(value as OnboardingFormData['emailProvider'])
