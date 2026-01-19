@@ -617,6 +617,6 @@ export default function NewOnboardingPage() {
           </Button>
         </div>
       </form>
-    </div>
+    </div >
   )
 }

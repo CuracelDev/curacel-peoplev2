@@ -43,6 +43,8 @@ interface OfferFormData {
   salaryAmount: string
   salaryCurrency: string
   paymentFrequency: 'MONTHLY' | 'WEEKLY' | 'BIWEEKLY' | 'ANNUAL'
+  bonus?: string
+  probationPeriod?: string
 }
 
 const DEFAULT_PRIMARY_DUTIES = `- Perform assigned tasks and responsibilities
@@ -94,6 +96,8 @@ export default function NewContractPage() {
       paymentFrequency: 'MONTHLY',
       legalEntity: '',
       signatureBlock: '',
+      bonus: '',
+      probationPeriod: '',
     },
   })
 
@@ -206,7 +210,7 @@ export default function NewContractPage() {
 
     // Find the appropriate template based on employment type
     const selectedTemplate = templates?.find(t => t.employmentType === data.employmentType) || templates?.[0]
-    
+
     if (!selectedTemplate) {
       alert('No template found for this employment type. Please create a template first.')
       return
@@ -240,7 +244,8 @@ export default function NewContractPage() {
       salary_currency: data.salaryCurrency,
       employment_type: data.employmentType,
       benefits: data.additionalBenefits || DEFAULT_ADDITIONAL_BENEFITS,
-      bonus: data.salaryAmount ? `Performance-based bonus up to ${data.salaryCurrency} ${(parseFloat(data.salaryAmount) * 0.2).toFixed(0)}` : '',
+      bonus: data.bonus || (data.salaryAmount ? `Performance-based bonus up to ${data.salaryCurrency} ${(parseFloat(data.salaryAmount) * 0.2).toFixed(0)}` : ''),
+      probation_period: data.probationPeriod || '',
       offer_expiration_date: data.offerExpirationDate,
       signature_block_id: selectedSignatureBlock?.id || '',
       signature_block_name: selectedSignatureBlock?.signatoryName || '',
@@ -292,22 +297,20 @@ export default function NewContractPage() {
                 <button
                   type="button"
                   onClick={() => setSelectedSource('candidates')}
-                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                    selectedSource === 'candidates'
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${selectedSource === 'candidates'
                       ? 'border-indigo-600 text-indigo-600'
                       : 'border-transparent text-muted-foreground hover:text-foreground'
-                  }`}
+                    }`}
                 >
                   Candidates in Offer Stage {offerCandidates?.length ? `(${offerCandidates.length})` : ''}
                 </button>
                 <button
                   type="button"
                   onClick={() => setSelectedSource('employees')}
-                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${
-                    selectedSource === 'employees'
+                  className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${selectedSource === 'employees'
                       ? 'border-indigo-600 text-indigo-600'
                       : 'border-transparent text-muted-foreground hover:text-foreground'
-                  }`}
+                    }`}
                 >
                   Existing Employees
                 </button>
@@ -322,11 +325,10 @@ export default function NewContractPage() {
                         <div
                           key={candidate.id}
                           onClick={() => setSelectedCandidateId(candidate.id)}
-                          className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                            selectedCandidateId === candidate.id
+                          className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedCandidateId === candidate.id
                               ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950'
                               : 'border-border hover:border-indigo-300 hover:bg-accent'
-                          }`}
+                            }`}
                         >
                           <div className="flex justify-between items-start">
                             <div className="space-y-1">
@@ -786,6 +788,36 @@ export default function NewContractPage() {
               {errors.paymentFrequency && (
                 <p className="text-sm text-destructive mt-1">{errors.paymentFrequency.message}</p>
               )}
+            </div>
+          </div>
+
+          <div className="grid gap-6 sm:grid-cols-1 md:grid-cols-2 pt-6 border-t border-border">
+            {/* Bonus Details */}
+            <div>
+              <Label htmlFor="bonus" className="text-sm font-medium">
+                Bonus details
+              </Label>
+              <Input
+                id="bonus"
+                {...register('bonus')}
+                className="ring-border focus:ring-indigo-600 mt-1"
+                placeholder="e.g. Performance-based up to NGN 120,000"
+              />
+              <p className="text-xs text-muted-foreground italic mt-1">Leaves blank to use auto-generated calculated bonus</p>
+            </div>
+
+            {/* Probation Period */}
+            <div>
+              <Label htmlFor="probationPeriod" className="text-sm font-medium">
+                Probation period
+              </Label>
+              <Input
+                id="probationPeriod"
+                {...register('probationPeriod')}
+                className="ring-border focus:ring-indigo-600 mt-1"
+                placeholder="e.g. 6 months"
+              />
+              <p className="text-xs text-muted-foreground italic mt-1">Textual description for the contract</p>
             </div>
           </div>
         </div>

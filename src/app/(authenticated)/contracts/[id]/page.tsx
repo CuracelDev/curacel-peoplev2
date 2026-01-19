@@ -44,6 +44,8 @@ export default function ContractDetailPage() {
     salaryAmount: string
     salaryCurrency: string
     offerExpirationDate: string
+    bonus: string
+    probationPeriod: string
   }>({
     defaultValues: {
       candidateName: '',
@@ -54,6 +56,8 @@ export default function ContractDetailPage() {
       salaryAmount: '',
       salaryCurrency: 'USD',
       offerExpirationDate: '',
+      bonus: '',
+      probationPeriod: '',
     },
   })
 
@@ -113,6 +117,8 @@ export default function ContractDetailPage() {
       salaryAmount: variables.salary || variables.salary_amount || '',
       salaryCurrency: variables.currency || variables.salary_currency || 'USD',
       offerExpirationDate: variables.offer_expiration_date || '',
+      bonus: variables.bonus || '',
+      probationPeriod: variables.probation_period || '',
     })
   }, [contract, reset, variables])
 
@@ -165,6 +171,8 @@ export default function ContractDetailPage() {
     { label: 'Employment type', value: getVariable(['employment_type', 'employmentType'], 'Full time') },
     { label: 'Start date', value: formatVariableDate(['employment_start_date', 'start_date', 'startDate']) },
     { label: 'Compensation', value: compensationValue },
+    { label: 'Bonus', value: getVariable(['bonus']) },
+    { label: 'Probation period', value: getVariable(['probation_period', 'probationPeriod']) },
   ]
 
   const contractMetadata = [
@@ -192,6 +200,8 @@ export default function ContractDetailPage() {
     salaryAmount: string
     salaryCurrency: string
     offerExpirationDate: string
+    bonus: string
+    probationPeriod: string
   }) => {
     const salaryText = data.salaryAmount ? `${data.salaryCurrency} ${data.salaryAmount}` : ''
     const updatedVariables: Record<string, string> = {
@@ -208,6 +218,8 @@ export default function ContractDetailPage() {
       salary_currency: data.salaryCurrency,
       gross_salary: salaryText,
       offer_expiration_date: data.offerExpirationDate,
+      bonus: data.bonus,
+      probation_period: data.probationPeriod,
     }
 
     updateContract.mutate({
@@ -386,6 +398,14 @@ export default function ContractDetailPage() {
                       render={({ field }) => <DatePicker {...field} />}
                     />
                   </div>
+                  <div>
+                    <Label htmlFor="bonus">Bonus details</Label>
+                    <Input id="bonus" {...register('bonus')} />
+                  </div>
+                  <div>
+                    <Label htmlFor="probationPeriod">Probation period</Label>
+                    <Input id="probationPeriod" {...register('probationPeriod')} />
+                  </div>
                   <div className="md:col-span-2 flex gap-3 justify-end pt-2">
                     <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
                       Cancel
@@ -510,9 +530,8 @@ export default function ContractDetailPage() {
                     <div key={event.id} className="flex gap-3">
                       <div className="flex flex-col items-center">
                         <div
-                          className={`w-3 h-3 rounded-full ${
-                            index === 0 ? 'bg-blue-500' : 'bg-gray-300'
-                          }`}
+                          className={`w-3 h-3 rounded-full ${index === 0 ? 'bg-blue-500' : 'bg-gray-300'
+                            }`}
                         />
                         {index < contract.events.length - 1 && (
                           <div className="w-0.5 flex-1 bg-muted my-1" />
