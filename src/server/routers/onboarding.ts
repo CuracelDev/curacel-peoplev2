@@ -462,7 +462,7 @@ export const onboardingRouter = router({
     }).optional())
     .query(async ({ ctx, input }) => {
       const { status, page = 1, limit = 20 } = input || {}
-      
+
       const where: Record<string, unknown> = {}
       if (status) where.status = status
 
@@ -533,6 +533,8 @@ export const onboardingRouter = router({
       emailProvider: z.enum(['PERSONAL', 'GOOGLE_WORKSPACE', 'CUSTOM']),
       jiraBoardId: z.string().optional(),
       jiraManager: z.boolean().optional(),
+      bonus: z.string().optional(),
+      probationPeriod: z.string().optional(),
       customTasks: z.array(z.object({
         name: z.string(),
         type: z.enum(['AUTOMATED', 'MANUAL']),
@@ -569,7 +571,7 @@ export const onboardingRouter = router({
         updateData.workEmail = input.workEmail
       }
 
-      if (input.jiraBoardId !== undefined || input.jiraManager !== undefined) {
+      if (input.jiraBoardId !== undefined || input.jiraManager !== undefined || input.bonus !== undefined || input.probationPeriod !== undefined) {
         const meta = (employee.meta ?? {}) as Record<string, unknown>
         if (input.jiraBoardId) {
           meta.jiraBoardId = input.jiraBoardId
@@ -580,6 +582,16 @@ export const onboardingRouter = router({
           meta.jiraManager = true
         } else if (input.jiraManager === false) {
           delete meta.jiraManager
+        }
+
+        if (input.bonus !== undefined) {
+          if (input.bonus) meta.bonus = input.bonus
+          else delete meta.bonus
+        }
+
+        if (input.probationPeriod !== undefined) {
+          if (input.probationPeriod) meta.probationPeriod = input.probationPeriod
+          else delete meta.probationPeriod
         }
         updateData.meta = meta
       }
@@ -597,7 +609,7 @@ export const onboardingRouter = router({
 
       // Check for existing active workflow
       const existingWorkflow = await ctx.prisma.onboardingWorkflow.findFirst({
-        where: { 
+        where: {
           employeeId: input.employeeId,
           status: { in: ['PENDING', 'IN_PROGRESS'] },
         },
@@ -633,7 +645,7 @@ export const onboardingRouter = router({
       // Send onboarding email to employee
       const onboardingLink = `${process.env.NEXTAUTH_URL}/welcome/${workflow.accessToken}`
       const onboardingRecipient = updatedEmployee?.workEmail || updatedEmployee!.personalEmail
-      
+
       await sendOnboardingEmail({
         employeeEmail: onboardingRecipient,
         employeeName: updatedEmployee!.fullName,
@@ -676,15 +688,15 @@ export const onboardingRouter = router({
       }
 
       if (!['OFFER_SIGNED', 'HIRED_PENDING_START'].includes(employee.status)) {
-        throw new TRPCError({ 
-          code: 'BAD_REQUEST', 
-          message: 'Employee must be in OFFER_SIGNED or HIRED_PENDING_START status' 
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Employee must be in OFFER_SIGNED or HIRED_PENDING_START status'
         })
       }
 
       // Check for existing active workflow
       const existingWorkflow = await ctx.prisma.onboardingWorkflow.findFirst({
-        where: { 
+        where: {
           employeeId: input.employeeId,
           status: { in: ['PENDING', 'IN_PROGRESS'] },
         },
@@ -726,7 +738,7 @@ export const onboardingRouter = router({
       // Send onboarding email to employee
       const onboardingLink = `${process.env.NEXTAUTH_URL}/welcome/${workflow.accessToken}`
       const onboardingRecipient = employee.workEmail || employee.personalEmail
-      
+
       await sendOnboardingEmail({
         employeeEmail: onboardingRecipient,
         employeeName: employee.fullName,
@@ -770,7 +782,7 @@ export const onboardingRouter = router({
       // Mark as in progress
       await ctx.prisma.onboardingTask.update({
         where: { id: task.id },
-        data: { 
+        data: {
           status: 'IN_PROGRESS',
           attempts: task.attempts + 1,
           lastAttemptAt: new Date(),
@@ -848,7 +860,7 @@ export const onboardingRouter = router({
           action: 'ONBOARDING_TASK_COMPLETED',
           resourceType: 'onboarding_task',
           resourceId: task.id,
-          metadata: { 
+          metadata: {
             taskName: task.name,
             automationType: task.automationType,
             success: result.success,
