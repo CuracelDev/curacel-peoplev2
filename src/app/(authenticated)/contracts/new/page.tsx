@@ -419,13 +419,15 @@ export default function NewContractPage() {
                                 {employees?.employees.map((employee) => (
                                   <CommandItem
                                     key={employee.id}
-                                    value={`${employee.fullName} ${employee.personalEmail}`}
+                                    value={employee.id}
+                                    keywords={[employee.fullName, employee.personalEmail]}
                                     onSelect={() => {
                                       console.log("Selected:", employee.id)
                                       field.onChange(employee.id)
                                       setSelectedCandidateId(null)
                                       setEmployeeOpen(false)
                                     }}
+                                    className="cursor-pointer"
                                   >
                                     <Check
                                       className={cn(
