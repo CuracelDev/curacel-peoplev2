@@ -19,8 +19,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, Send, X, ExternalLink, FileText, Clock, Pencil } from 'lucide-react'
+import { ArrowLeft, Send, X, ExternalLink, FileText, Clock, Pencil, RotateCcw } from 'lucide-react'
 import { contractStatusLabels, contractStatusColors, formatDate, formatDateTime } from '@/lib/utils'
+import { RichTextEditor } from '@/components/ui/rich-text-editor'
 
 export default function ContractDetailPage() {
   const params = useParams()
@@ -48,6 +49,7 @@ export default function ContractDetailPage() {
     probationPeriod: string
     probationGoals: string
     probationGoalsUrl: string
+    renderedHtml: string
   }>({
     defaultValues: {
       candidateName: '',
@@ -62,6 +64,7 @@ export default function ContractDetailPage() {
       probationPeriod: '',
       probationGoals: '',
       probationGoalsUrl: '',
+      renderedHtml: '',
     },
   })
 
@@ -86,6 +89,14 @@ export default function ContractDetailPage() {
     onError: (err) => {
       console.error('Failed to cancel contract', err)
       alert(err.message || 'Failed to cancel contract')
+    },
+  })
+
+  const restoreContract = trpc.offer.restore.useMutation({
+    onSuccess: () => refetch(),
+    onError: (err) => {
+      console.error('Failed to restore contract', err)
+      alert(err.message || 'Failed to restore contract')
     },
   })
 
@@ -125,6 +136,7 @@ export default function ContractDetailPage() {
       probationPeriod: variables.probation_period || '',
       probationGoals: variables.probation_goals || '',
       probationGoalsUrl: variables.probation_goals_url || '',
+      renderedHtml: contract.renderedHtml || '',
     })
   }, [contract, reset, variables])
 
@@ -212,6 +224,7 @@ export default function ContractDetailPage() {
     probationPeriod: string
     probationGoals: string
     probationGoalsUrl: string
+    renderedHtml: string
   }) => {
     const salaryText = data.salaryAmount ? `${data.salaryCurrency} ${data.salaryAmount}` : ''
     const updatedVariables: Record<string, string> = {
@@ -240,6 +253,7 @@ export default function ContractDetailPage() {
       candidateEmail: data.candidateEmail,
       templateId: contract.template.id,
       variables: updatedVariables,
+      renderedHtml: data.renderedHtml,
     })
   }
 
@@ -276,6 +290,17 @@ export default function ContractDetailPage() {
             >
               <X className="mr-2 h-4 w-4" />
               {cancelContract.isPending ? 'Cancelling...' : 'Cancel'}
+            </Button>
+          )}
+          {contract.status === 'CANCELLED' && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => restoreContract.mutate(contract.id)}
+              disabled={restoreContract.isPending}
+            >
+              <RotateCcw className="mr-2 h-4 w-4" />
+              {restoreContract.isPending ? 'Restoring...' : 'Restore (to Draft)'}
             </Button>
           )}
           {canSend && (
@@ -425,6 +450,23 @@ export default function ContractDetailPage() {
                   <div className="md:col-span-2">
                     <Label htmlFor="probationGoalsUrl">Link to goals document / template</Label>
                     <Input id="probationGoalsUrl" {...register('probationGoalsUrl')} placeholder="https://docs.google.com/..." />
+                  </div>
+                  <div className="md:col-span-2 space-y-2">
+                    <Label htmlFor="renderedHtml">Contract letter content</Label>
+                    <p className="text-xs text-muted-foreground mb-2">
+                      Heads up: Editing this directly will override changes to variables above for the contract letter.
+                    </p>
+                    <Controller
+                      name="renderedHtml"
+                      control={control}
+                      render={({ field }) => (
+                        <RichTextEditor
+                          value={field.value}
+                          onChange={field.onChange}
+                          className="min-h-[400px]"
+                        />
+                      )}
+                    />
                   </div>
                   <div className="md:col-span-2 flex gap-3 justify-end pt-2">
                     <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>

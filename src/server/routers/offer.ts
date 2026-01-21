@@ -28,6 +28,7 @@ const offerUpdateSchema = z.object({
   candidateName: z.string().optional(),
   templateId: z.string().optional(),
   variables: z.record(z.string()).optional(),
+  renderedHtml: z.string().optional(),
 })
 
 const ALLOWED_RESEND_STATUSES = ['DRAFT', 'SENT', 'VIEWED']
@@ -55,9 +56,9 @@ export const offerRouter = router({
     }).optional())
     .query(async ({ ctx, input }) => {
       const { status, candidateEmail, search, page = 1, limit = 20 } = input || {}
-      
+
       const where: Record<string, unknown> = {}
-      
+
       if (status) where.status = status
       if (candidateEmail) where.candidateEmail = candidateEmail
       if (search) {
@@ -319,7 +320,10 @@ export const offerRouter = router({
       if (input.candidateName) data.candidateName = input.candidateName
       if (input.candidateEmail) data.candidateEmail = input.candidateEmail
       if (input.templateId) data.templateId = input.templateId
-      if (input.variables) {
+
+      if (input.renderedHtml) {
+        data.renderedHtml = input.renderedHtml
+      } else if (input.variables) {
         data.variables = input.variables
         data.renderedHtml =
           template?.bodyHtml && input.variables
@@ -387,7 +391,7 @@ export const offerRouter = router({
       ensureSendableStatus(offer.status, false)
 
       const docusign = createDocuSignConnector()
-      
+
       if (docusign) {
         // Send via DocuSign
         try {
@@ -424,7 +428,7 @@ export const offerRouter = router({
       } else {
         // Fallback: Send link via email
         const offerLink = `${process.env.NEXTAUTH_URL}/offer/${offer.id}/sign`
-        
+
         await sendOfferEmail({
           candidateEmail: offer.candidateEmail,
           candidateName: offer.candidateName,
@@ -485,7 +489,7 @@ export const offerRouter = router({
 
       const docusign = createDocuSignConnector()
       const organization = await getOrganization()
-      
+
       if (docusign) {
         try {
           const documentHtml = wrapAgreementHtmlWithLetterhead(offer.renderedHtml || '', organization, {
@@ -519,7 +523,7 @@ export const offerRouter = router({
         }
       } else {
         const offerLink = `${process.env.NEXTAUTH_URL}/offer/${offer.id}/sign`
-        
+
         await sendOfferEmail({
           candidateEmail: offer.candidateEmail,
           candidateName: offer.candidateName,
@@ -582,7 +586,7 @@ export const offerRouter = router({
       }
 
       const returnUrl = `${process.env.NEXTAUTH_URL}/offers/${offerId}?signed=complete`
-      
+
       const signingUrl = await docusign.getSigningUrl(
         offer.esignEnvelopeId,
         offer.candidateEmail,
@@ -642,6 +646,44 @@ export const offerRouter = router({
       return { success: true }
     }),
 
+  restore: hrAdminProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input: offerId }) => {
+      const offer = await ctx.prisma.offer.findUnique({
+        where: { id: offerId },
+      })
+
+      if (!offer) {
+        throw new TRPCError({ code: 'NOT_FOUND' })
+      }
+
+      if (offer.status !== 'CANCELLED') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Only cancelled offers can be restored' })
+      }
+
+      const updated = await ctx.prisma.offer.update({
+        where: { id: offerId },
+        data: { status: 'DRAFT' },
+      })
+
+      await ctx.prisma.offerEvent.create({
+        data: {
+          offerId,
+          type: 'restored',
+          description: 'Offer restored from cancelled status',
+        },
+      })
+
+      await logOfferEvent({
+        actorId: (ctx.user as { id: string }).id,
+        action: 'OFFER_UPDATED',
+        offerId,
+        metadata: { action: 'restored' },
+      })
+
+      return updated
+    }),
+
   // Public endpoint for candidates to view their offer
   getPublicOffer: publicProcedure
     .input(z.object({
@@ -679,7 +721,7 @@ export const offerRouter = router({
       if (offer.status === 'SENT') {
         await ctx.prisma.offer.update({
           where: { id: input.offerId },
-          data: { 
+          data: {
             status: 'VIEWED',
             esignViewedAt: new Date(),
           },
@@ -745,13 +787,12 @@ export const offerRouter = router({
       const signatureBlockHtml = `
         <div style="margin-top:32px;">
           <div style="display:flex; flex-direction:column; gap:8px;">
-            ${
-              signatureBlock?.signatureImageUrl
-                ? `<div style="${signatureBoxStyle}"><img src="${signatureBlock.signatureImageUrl}" alt="Company signature" style="${signatureImgStyle}" /></div>`
-                : signatureBlock?.signatureText
-                  ? `<div style="${signatureBoxStyle}"><p style="margin:0; color:#111827; font-size:16px;">${signatureBlock.signatureText}</p></div>`
-                  : ''
-            }
+            ${signatureBlock?.signatureImageUrl
+          ? `<div style="${signatureBoxStyle}"><img src="${signatureBlock.signatureImageUrl}" alt="Company signature" style="${signatureImgStyle}" /></div>`
+          : signatureBlock?.signatureText
+            ? `<div style="${signatureBoxStyle}"><p style="margin:0; color:#111827; font-size:16px;">${signatureBlock.signatureText}</p></div>`
+            : ''
+        }
             <div>
               <p style="margin:0; font-weight:700; color:#111827;">${signatureBlock?.signatoryName || organization.name}</p>
               <p style="margin:0; color:#4b5563;">${signatureBlock?.signatoryTitle || ''}</p>
@@ -770,11 +811,10 @@ export const offerRouter = router({
           <div>
             <p style="margin:0; font-weight:600; color:#111827;">Candidate signature</p>
             <p style="margin:4px 0; color:#111827;">${input.signature}</p>
-            ${
-              input.signatureImage
-                ? `<div style="${signatureBoxStyle}"><img src="${input.signatureImage}" alt="Signature" style="${signatureImgStyle}" /></div>`
-                : ''
-            }
+            ${input.signatureImage
+          ? `<div style="${signatureBoxStyle}"><img src="${input.signatureImage}" alt="Signature" style="${signatureImgStyle}" /></div>`
+          : ''
+        }
             <p style="margin:8px 0 0; color:#4b5563; font-size:12px;">Signed at: ${signedAt.toISOString()}</p>
           </div>
           <div>
