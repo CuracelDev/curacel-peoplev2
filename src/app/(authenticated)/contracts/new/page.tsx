@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { DatePicker } from '@/components/ui/date-picker'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
@@ -45,6 +46,8 @@ interface OfferFormData {
   paymentFrequency: 'MONTHLY' | 'WEEKLY' | 'BIWEEKLY' | 'ANNUAL'
   bonus?: string
   probationPeriod?: string
+  probationGoals?: string
+  probationGoalsUrl?: string
 }
 
 const DEFAULT_PRIMARY_DUTIES = `- Perform assigned tasks and responsibilities
@@ -98,6 +101,8 @@ export default function NewContractPage() {
       signatureBlock: '',
       bonus: '',
       probationPeriod: '',
+      probationGoals: '',
+      probationGoalsUrl: '',
     },
   })
 
@@ -246,6 +251,8 @@ export default function NewContractPage() {
       benefits: data.additionalBenefits || DEFAULT_ADDITIONAL_BENEFITS,
       bonus: data.bonus || (data.salaryAmount ? `Performance-based bonus up to ${data.salaryCurrency} ${(parseFloat(data.salaryAmount) * 0.2).toFixed(0)}` : ''),
       probation_period: data.probationPeriod || '',
+      probation_goals: data.probationGoals || '',
+      probation_goals_url: data.probationGoalsUrl || '',
       offer_expiration_date: data.offerExpirationDate,
       signature_block_id: selectedSignatureBlock?.id || '',
       signature_block_name: selectedSignatureBlock?.signatoryName || '',
@@ -298,8 +305,8 @@ export default function NewContractPage() {
                   type="button"
                   onClick={() => setSelectedSource('candidates')}
                   className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${selectedSource === 'candidates'
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
                     }`}
                 >
                   Candidates in Offer Stage {offerCandidates?.length ? `(${offerCandidates.length})` : ''}
@@ -308,8 +315,8 @@ export default function NewContractPage() {
                   type="button"
                   onClick={() => setSelectedSource('employees')}
                   className={`px-4 py-2 text-sm font-medium border-b-2 transition-colors ${selectedSource === 'employees'
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-muted-foreground hover:text-foreground'
+                    ? 'border-indigo-600 text-indigo-600'
+                    : 'border-transparent text-muted-foreground hover:text-foreground'
                     }`}
                 >
                   Existing Employees
@@ -326,8 +333,8 @@ export default function NewContractPage() {
                           key={candidate.id}
                           onClick={() => setSelectedCandidateId(candidate.id)}
                           className={`p-4 border rounded-lg cursor-pointer transition-all ${selectedCandidateId === candidate.id
-                              ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950'
-                              : 'border-border hover:border-indigo-300 hover:bg-accent'
+                            ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-950'
+                            : 'border-border hover:border-indigo-300 hover:bg-accent'
                             }`}
                         >
                           <div className="flex justify-between items-start">
@@ -377,7 +384,7 @@ export default function NewContractPage() {
                         <SelectTrigger className="ring-border focus:ring-indigo-600">
                           <SelectValue placeholder="Select an employee" />
                         </SelectTrigger>
-                        <SelectContent>
+                        <SelectContent side="bottom" sideOffset={4}>
                           {employees?.employees.map((employee) => (
                             <SelectItem key={employee.id} value={employee.id}>
                               {employee.fullName} ({employee.personalEmail})
@@ -818,7 +825,33 @@ export default function NewContractPage() {
                 placeholder="e.g. 6 months"
               />
               <p className="text-xs text-muted-foreground italic mt-1">Textual description for the contract</p>
+              <div className="md:col-span-2">
+                <Label htmlFor="probationGoals" className="text-sm font-medium">
+                  Probation Goals / Template
+                </Label>
+                <Textarea
+                  id="probationGoals"
+                  {...register('probationGoals')}
+                  className="mt-1"
+                  placeholder="e.g., Complete onboarding, deliver first project, etc."
+                  rows={3}
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <Label htmlFor="probationGoalsUrl" className="text-sm font-medium">
+                  Link to Goals Document / Template
+                </Label>
+                <Input
+                  id="probationGoalsUrl"
+                  {...register('probationGoalsUrl')}
+                  className="mt-1"
+                  placeholder="e.g., https://docs.google.com/document/d/..."
+                />
+                <p className="text-xs text-muted-foreground italic mt-1">URL to a Google Doc or other shared resource</p>
+              </div>
             </div>
+
           </div>
         </div>
 

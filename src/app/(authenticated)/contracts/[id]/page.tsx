@@ -46,6 +46,8 @@ export default function ContractDetailPage() {
     offerExpirationDate: string
     bonus: string
     probationPeriod: string
+    probationGoals: string
+    probationGoalsUrl: string
   }>({
     defaultValues: {
       candidateName: '',
@@ -58,6 +60,8 @@ export default function ContractDetailPage() {
       offerExpirationDate: '',
       bonus: '',
       probationPeriod: '',
+      probationGoals: '',
+      probationGoalsUrl: '',
     },
   })
 
@@ -119,6 +123,8 @@ export default function ContractDetailPage() {
       offerExpirationDate: variables.offer_expiration_date || '',
       bonus: variables.bonus || '',
       probationPeriod: variables.probation_period || '',
+      probationGoals: variables.probation_goals || '',
+      probationGoalsUrl: variables.probation_goals_url || '',
     })
   }, [contract, reset, variables])
 
@@ -173,6 +179,8 @@ export default function ContractDetailPage() {
     { label: 'Compensation', value: compensationValue },
     { label: 'Bonus', value: getVariable(['bonus']) },
     { label: 'Probation period', value: getVariable(['probation_period', 'probationPeriod']) },
+    { label: 'Probation goals', value: getVariable(['probation_goals', 'probationGoals']) },
+    { label: 'Goals document', value: getVariable(['probation_goals_url', 'probationGoalsUrl']) },
   ]
 
   const contractMetadata = [
@@ -202,6 +210,8 @@ export default function ContractDetailPage() {
     offerExpirationDate: string
     bonus: string
     probationPeriod: string
+    probationGoals: string
+    probationGoalsUrl: string
   }) => {
     const salaryText = data.salaryAmount ? `${data.salaryCurrency} ${data.salaryAmount}` : ''
     const updatedVariables: Record<string, string> = {
@@ -220,6 +230,8 @@ export default function ContractDetailPage() {
       offer_expiration_date: data.offerExpirationDate,
       bonus: data.bonus,
       probation_period: data.probationPeriod,
+      probation_goals: data.probationGoals,
+      probation_goals_url: data.probationGoalsUrl,
     }
 
     updateContract.mutate({
@@ -406,6 +418,14 @@ export default function ContractDetailPage() {
                     <Label htmlFor="probationPeriod">Probation period</Label>
                     <Input id="probationPeriod" {...register('probationPeriod')} />
                   </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="probationGoals">Probation goals</Label>
+                    <Input id="probationGoals" {...register('probationGoals')} placeholder="e.g. Complete core training" />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Label htmlFor="probationGoalsUrl">Link to goals document / template</Label>
+                    <Input id="probationGoalsUrl" {...register('probationGoalsUrl')} placeholder="https://docs.google.com/..." />
+                  </div>
                   <div className="md:col-span-2 flex gap-3 justify-end pt-2">
                     <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
                       Cancel
@@ -427,7 +447,18 @@ export default function ContractDetailPage() {
                 {employmentDetails.map((item) => (
                   <div key={item.label} className="space-y-1">
                     <p className="text-sm text-muted-foreground">{item.label}</p>
-                    <p className="font-medium">{item.value}</p>
+                    {item.label === 'Goals document' && item.value.startsWith('http') ? (
+                      <a
+                        href={item.value}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="font-medium text-blue-600 hover:underline flex items-center gap-1"
+                      >
+                        {item.value} <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <p className="font-medium">{item.value}</p>
+                    )}
                   </div>
                 ))}
               </CardContent>

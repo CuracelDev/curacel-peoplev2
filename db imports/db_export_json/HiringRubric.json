@@ -1,0 +1,3 @@
+[{"id":"rubric-engineering","name":"Engineering Technical Assessment","description":"Comprehensive rubric for evaluating engineering candidates","version":1,"isActive":true,"createdAt":"2025-12-29T02:23:42.05","updatedAt":"2025-12-29T02:23:42.05"}, 
+ {"id":"rubric-product","name":"Product Manager Assessment","description":"Rubric for evaluating product management candidates","version":1,"isActive":true,"createdAt":"2025-12-29T02:23:42.067","updatedAt":"2025-12-29T02:23:42.067"}, 
+ {"id":"rubric-general","name":"General Interview Rubric","description":"Standard rubric for general candidate evaluation","version":1,"isActive":true,"createdAt":"2025-12-29T02:23:42.071","updatedAt":"2025-12-29T02:23:42.071"}]

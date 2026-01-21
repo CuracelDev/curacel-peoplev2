@@ -86,6 +86,8 @@ type EditEmployeeFormData = {
   emergencyContactPhone: string
   emergencyContactEmail: string
   profileImageUrl: string
+  probationGoals: string
+  probationGoalsUrl: string
 }
 
 export default function EmployeeDetailPage() {
@@ -172,6 +174,8 @@ export default function EmployeeDetailPage() {
       emergencyContactPhone: '',
       emergencyContactEmail: '',
       profileImageUrl: '',
+      probationGoals: '',
+      probationGoalsUrl: '',
     },
   })
 
@@ -233,6 +237,8 @@ export default function EmployeeDetailPage() {
       emergencyContactPhone: employee.emergencyContactPhone || '',
       emergencyContactEmail: employee.emergencyContactEmail || '',
       profileImageUrl: employee.profileImageUrl || '',
+      probationGoals: (employee.meta as any)?.probationGoals || '',
+      probationGoalsUrl: (employee.meta as any)?.probationGoalsUrl || '',
     })
     setProfileUploadError(null)
   }, [editDialogOpen, employee, reset])
@@ -330,6 +336,11 @@ export default function EmployeeDetailPage() {
       emergencyContactPhone: emptyToNull(values.emergencyContactPhone),
       emergencyContactEmail: emptyToNull(values.emergencyContactEmail),
       profileImageUrl: profileImageValue || null,
+      meta: {
+        ...((employee.meta as Record<string, unknown>) || {}),
+        probationGoals: values.probationGoals.trim() || null,
+        probationGoalsUrl: values.probationGoalsUrl.trim() || null,
+      }
     })
   }
 
@@ -586,18 +597,16 @@ export default function EmployeeDetailPage() {
 
                             {/* Circle with checkmark */}
                             <div
-                              className={`relative z-10 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${
-                                isCurrent
+                              className={`relative z-10 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${isCurrent
                                   ? 'bg-indigo-600 shadow-lg shadow-indigo-200'
                                   : isCompleted
-                                  ? 'bg-muted'
-                                  : 'bg-muted'
-                              }`}
+                                    ? 'bg-muted'
+                                    : 'bg-muted'
+                                }`}
                             >
                               <Check
-                                className={`h-5 w-5 ${
-                                  isCurrent ? 'text-white' : 'text-foreground'
-                                }`}
+                                className={`h-5 w-5 ${isCurrent ? 'text-white' : 'text-foreground'
+                                  }`}
                               />
                             </div>
 
@@ -642,238 +651,268 @@ export default function EmployeeDetailPage() {
         {/* Personal Tab */}
         <TabsContent value="personal" className="mt-6">
           <div className="space-y-4">
-              {/* Personal Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Personal Details</CardTitle>
-                  <CardDescription>Employee&apos;s personal details and information</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Full Name</p>
-                      <p className="text-sm font-medium">{employee.fullName}</p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Gender</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.gender || 'Gender not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Marital Status</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.maritalStatus || 'Marital status not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Date of Birth</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.dateOfBirth ? formatDate(employee.dateOfBirth) : 'Date of birth not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Nationality</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.nationality || 'Nationality not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Tax ID</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.taxId || 'Tax ID not specified'}
-                      </p>
-                    </div>
+            {/* Personal Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Personal Details</CardTitle>
+                <CardDescription>Employee&apos;s personal details and information</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Full Name</p>
+                    <p className="text-sm font-medium">{employee.fullName}</p>
                   </div>
-                </CardContent>
-              </Card>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Gender</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.gender || 'Gender not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Marital Status</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.maritalStatus || 'Marital status not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Date of Birth</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.dateOfBirth ? formatDate(employee.dateOfBirth) : 'Date of birth not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Nationality</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.nationality || 'Nationality not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Tax ID</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.taxId || 'Tax ID not specified'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Contact Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Contact Details</CardTitle>
-                  <CardDescription>Address and emergency contact information</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Home Address</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {[
-                          employee.addressStreet,
-                          employee.addressCity,
-                          employee.addressState,
-                          employee.addressPostal,
-                          employee.addressCountry,
-                        ]
-                          .filter(Boolean)
-                          .join(', ') || 'home address not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Personal Email</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.personalEmail || 'personal email not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Mobile Phone</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.phone || 'phone number not specified'}
-                      </p>
-                    </div>
-                    <div className="md:col-span-2">
-                      <p className="text-sm font-semibold mb-2">Emergency Contact</p>
-                      <div className="grid gap-4 md:grid-cols-2">
-                        <div>
-                          <p className="text-sm text-muted-foreground">Name</p>
-                          <p className="text-sm font-medium text-muted-foreground">
-                            {employee.emergencyContactName || 'contact name not specified'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Phone</p>
-                          <p className="text-sm font-medium text-muted-foreground">
-                            {employee.emergencyContactPhone || 'contact phone number not specified'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Relationship</p>
-                          <p className="text-sm font-medium text-muted-foreground">
-                            {employee.emergencyContactRelation || 'relationship not specified'}
-                          </p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-muted-foreground">Email</p>
-                          <p className="text-sm font-medium text-muted-foreground">
-                            {employee.emergencyContactEmail || 'contact email not specified'}
-                          </p>
-                        </div>
+            {/* Contact Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contact Details</CardTitle>
+                <CardDescription>Address and emergency contact information</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Home Address</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {[
+                        employee.addressStreet,
+                        employee.addressCity,
+                        employee.addressState,
+                        employee.addressPostal,
+                        employee.addressCountry,
+                      ]
+                        .filter(Boolean)
+                        .join(', ') || 'home address not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Personal Email</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.personalEmail || 'personal email not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Mobile Phone</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.phone || 'phone number not specified'}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm font-semibold mb-2">Emergency Contact</p>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <p className="text-sm text-muted-foreground">Name</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {employee.emergencyContactName || 'contact name not specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Phone</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {employee.emergencyContactPhone || 'contact phone number not specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Relationship</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {employee.emergencyContactRelation || 'relationship not specified'}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">Email</p>
+                        <p className="text-sm font-medium text-muted-foreground">
+                          {employee.emergencyContactEmail || 'contact email not specified'}
+                        </p>
                       </div>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Bank Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Bank Details</CardTitle>
-                  <CardDescription>Employee&apos;s banks details and information</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Bank Name</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.bankName || 'Bank name not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Account name</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.accountName || 'Account name not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Account number</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.accountNumber || 'Account number not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Account sort code</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.accountSortCode || 'Sort code not specified'}
-                      </p>
-                    </div>
+            {/* Bank Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Bank Details</CardTitle>
+                <CardDescription>Employee&apos;s banks details and information</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Bank Name</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.bankName || 'Bank name not specified'}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Account name</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.accountName || 'Account name not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Account number</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.accountNumber || 'Account number not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Account sort code</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.accountSortCode || 'Sort code not specified'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
         {/* Employment Tab */}
         <TabsContent value="employment" className="mt-6">
           <div className="space-y-4">
-              {/* Employment Details */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Employment Details</CardTitle>
-                  <CardDescription>Employment details and terms</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Job Title</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.jobTitle || 'job title not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Manager</p>
-                      <p className="text-sm font-medium">
-                        {employee.manager?.fullName || 'Manager not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Start date</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.startDate ? formatDate(employee.startDate) : 'start date not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Contract end date</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.endDate ? formatDate(employee.endDate) : 'end date not specified'}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Probation end</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        probation date not specified
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Employment Type</p>
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {employee.employmentType || 'employment type not specified'}
-                      </p>
-                    </div>
-                    <div className="md:col-span-2">
-                      <p className="text-sm text-muted-foreground">Status</p>
-                      <Badge className={getStatusColor(employee.status)}>
-                        {employeeStatusLabels[employee.status] || employee.status}
-                      </Badge>
-                    </div>
+            {/* Employment Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Employment Details</CardTitle>
+                <CardDescription>Employment details and terms</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <p className="text-sm text-muted-foreground">Job Title</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.jobTitle || 'job title not specified'}
+                    </p>
                   </div>
-                </CardContent>
-              </Card>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Manager</p>
+                    <p className="text-sm font-medium">
+                      {employee.manager?.fullName || 'Manager not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Start date</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.startDate ? formatDate(employee.startDate) : 'start date not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Contract end date</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.endDate ? formatDate(employee.endDate) : 'end date not specified'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Probation end</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {(() => {
+                        if (!employee.startDate) return 'start date not specified'
+                        const date = new Date(employee.startDate)
+                        const meta = employee.meta as any
+                        const period = meta?.probationPeriod || '3 months'
+                        const months = parseInt(period) || 3
+                        date.setMonth(date.getMonth() + months)
+                        return formatDate(date)
+                      })()}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-muted-foreground">Probation goals</p>
+                    <p className="text-sm font-medium text-muted-foreground whitespace-pre-wrap">
+                      {(employee.meta as any)?.probationGoals || 'None'}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-muted-foreground">Goals document</p>
+                    {(employee.meta as any)?.probationGoalsUrl ? (
+                      <a
+                        href={(employee.meta as any).probationGoalsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-sm font-medium text-blue-600 hover:underline flex items-center gap-1"
+                      >
+                        {(employee.meta as any).probationGoalsUrl}
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : (
+                      <p className="text-sm font-medium text-muted-foreground">None</p>
+                    )}
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Employment Type</p>
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {employee.employmentType || 'employment type not specified'}
+                    </p>
+                  </div>
+                  <div className="md:col-span-2">
+                    <p className="text-sm text-muted-foreground">Status</p>
+                    <Badge className={getStatusColor(employee.status)}>
+                      {employeeStatusLabels[employee.status] || employee.status}
+                    </Badge>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-              {/* Contract Details */}
+            {/* Contract Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Contract Details</CardTitle>
+                <CardDescription>Employment contract details and terms</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-center text-muted-foreground py-4">No contract offer found</p>
+              </CardContent>
+            </Card>
+
+            {/* Former Employment (for full-time employees) */}
+            {employee.employmentType === 'FULL_TIME' && (
               <Card>
                 <CardHeader>
-                  <CardTitle>Contract Details</CardTitle>
-                  <CardDescription>Employment contract details and terms</CardDescription>
+                  <CardTitle>Former Employment</CardTitle>
+                  <CardDescription>Previous employment documentation and references</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <p className="text-center text-muted-foreground py-4">No contract offer found</p>
-                </CardContent>
-              </Card>
-
-              {/* Former Employment (for full-time employees) */}
-              {employee.employmentType === 'FULL_TIME' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Former Employment</CardTitle>
-                    <CardDescription>Previous employment documentation and references</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {employee.formerEmploymentSubmittedAt ? (
-                      <>
-                        {/* Documents */}
-                        {(employee.formerOfferLetterUrl || employee.formerLastPayslipUrl ||
-                          employee.formerResignationLetterUrl || employee.formerResignationConfirmUrl) && (
+                <CardContent className="space-y-6">
+                  {employee.formerEmploymentSubmittedAt ? (
+                    <>
+                      {/* Documents */}
+                      {(employee.formerOfferLetterUrl || employee.formerLastPayslipUrl ||
+                        employee.formerResignationLetterUrl || employee.formerResignationConfirmUrl) && (
                           <div>
                             <h4 className="font-semibold text-sm mb-3">Employment Documents</h4>
                             <div className="grid gap-3 md:grid-cols-2">
@@ -929,9 +968,9 @@ export default function EmployeeDetailPage() {
                           </div>
                         )}
 
-                        {/* HR Contact Details */}
-                        {(employee.formerHrContactName || employee.formerHrContactPhone ||
-                          employee.formerHrContactEmail || employee.formerCompanyAddress) && (
+                      {/* HR Contact Details */}
+                      {(employee.formerHrContactName || employee.formerHrContactPhone ||
+                        employee.formerHrContactEmail || employee.formerCompanyAddress) && (
                           <div>
                             <h4 className="font-semibold text-sm mb-3">HR Contact for Employment Verification</h4>
                             <div className="grid gap-3 md:grid-cols-2">
@@ -963,180 +1002,180 @@ export default function EmployeeDetailPage() {
                           </div>
                         )}
 
-                        {/* Show message if no documents or contacts were provided */}
-                        {!employee.formerOfferLetterUrl && !employee.formerLastPayslipUrl &&
-                          !employee.formerResignationLetterUrl && !employee.formerResignationConfirmUrl &&
-                          !employee.formerHrContactName && !employee.formerHrContactPhone &&
-                          !employee.formerHrContactEmail && !employee.formerCompanyAddress && (
+                      {/* Show message if no documents or contacts were provided */}
+                      {!employee.formerOfferLetterUrl && !employee.formerLastPayslipUrl &&
+                        !employee.formerResignationLetterUrl && !employee.formerResignationConfirmUrl &&
+                        !employee.formerHrContactName && !employee.formerHrContactPhone &&
+                        !employee.formerHrContactEmail && !employee.formerCompanyAddress && (
                           <p className="text-center text-muted-foreground py-4">No former employment documents or contacts provided</p>
                         )}
-                      </>
-                    ) : (
-                      <p className="text-center text-muted-foreground py-4">No former employment data submitted yet</p>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
+                    </>
+                  ) : (
+                    <p className="text-center text-muted-foreground py-4">No former employment data submitted yet</p>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
         </TabsContent>
 
         {/* Personality Tab */}
         <TabsContent value="personality" className="mt-6">
           <div className="space-y-4">
-              {/* MBTI */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Myers-Briggs Type Indicator (MBTI)</CardTitle>
-                  <CardDescription>Personality type and test results</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {employee.mbtiType || employee.mbtiImageUrl ? (
-                    <div className="space-y-4">
-                      {employee.mbtiType && (
-                        <div>
-                          <p className="text-sm text-muted-foreground">MBTI Type</p>
-                          <p className="text-2xl font-bold text-primary">{employee.mbtiType}</p>
-                        </div>
-                      )}
-                      {employee.mbtiImageUrl && (
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-2">Test Result</p>
-                          <a
-                            href={employee.mbtiImageUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block"
-                          >
-                            <img
-                              src={employee.mbtiImageUrl}
-                              alt="MBTI Test Result"
-                              className="max-w-sm rounded border shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                            />
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-4">No MBTI data recorded yet</p>
-                  )}
-                </CardContent>
-              </Card>
+            {/* MBTI */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Myers-Briggs Type Indicator (MBTI)</CardTitle>
+                <CardDescription>Personality type and test results</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {employee.mbtiType || employee.mbtiImageUrl ? (
+                  <div className="space-y-4">
+                    {employee.mbtiType && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">MBTI Type</p>
+                        <p className="text-2xl font-bold text-primary">{employee.mbtiType}</p>
+                      </div>
+                    )}
+                    {employee.mbtiImageUrl && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-2">Test Result</p>
+                        <a
+                          href={employee.mbtiImageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block"
+                        >
+                          <img
+                            src={employee.mbtiImageUrl}
+                            alt="MBTI Test Result"
+                            className="max-w-sm rounded border shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                          />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">No MBTI data recorded yet</p>
+                )}
+              </CardContent>
+            </Card>
 
-              {/* Big Five */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Big Five Personality Test</CardTitle>
-                  <CardDescription>Big Five test results and analysis</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {employee.bigFiveUrl || employee.bigFiveImageUrl ? (
-                    <div className="space-y-4">
-                      {employee.bigFiveUrl && (
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-2">Test Results</p>
-                          <a
-                            href={employee.bigFiveUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
-                          >
-                            View Full Results
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        </div>
-                      )}
-                      {employee.bigFiveImageUrl && (
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-2">Result Screenshot</p>
-                          <a
-                            href={employee.bigFiveImageUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block"
-                          >
-                            <img
-                              src={employee.bigFiveImageUrl}
-                              alt="Big Five Test Result"
-                              className="max-w-sm rounded border shadow-sm hover:shadow-md transition-shadow cursor-pointer"
-                            />
-                          </a>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-4">No Big Five data recorded yet</p>
-                  )}
-                </CardContent>
-              </Card>
+            {/* Big Five */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Big Five Personality Test</CardTitle>
+                <CardDescription>Big Five test results and analysis</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {employee.bigFiveUrl || employee.bigFiveImageUrl ? (
+                  <div className="space-y-4">
+                    {employee.bigFiveUrl && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-2">Test Results</p>
+                        <a
+                          href={employee.bigFiveUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-800 hover:underline"
+                        >
+                          View Full Results
+                          <ExternalLink className="h-4 w-4" />
+                        </a>
+                      </div>
+                    )}
+                    {employee.bigFiveImageUrl && (
+                      <div>
+                        <p className="text-sm text-muted-foreground mb-2">Result Screenshot</p>
+                        <a
+                          href={employee.bigFiveImageUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block"
+                        >
+                          <img
+                            src={employee.bigFiveImageUrl}
+                            alt="Big Five Test Result"
+                            className="max-w-sm rounded border shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                          />
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">No Big Five data recorded yet</p>
+                )}
+              </CardContent>
+            </Card>
 
-              {/* Priority Hierarchy */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Priority Hierarchy</CardTitle>
-                  <CardDescription>Life values organized by priority</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {employee.lifeValues && typeof (employee.lifeValues as any).mostImportant === 'string' ? (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      {/* Most Important */}
-                      {((employee.lifeValues as any).mostImportant || '').trim() && (
-                        <div className="border-2 border-primary rounded-lg p-4 bg-primary/5">
-                          <h4 className="font-semibold text-sm mb-2 text-primary">Most important (non-negotiable)</h4>
-                          <p className="text-sm whitespace-pre-wrap">{(employee.lifeValues as any).mostImportant}</p>
-                        </div>
-                      )}
+            {/* Priority Hierarchy */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Priority Hierarchy</CardTitle>
+                <CardDescription>Life values organized by priority</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {employee.lifeValues && typeof (employee.lifeValues as any).mostImportant === 'string' ? (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {/* Most Important */}
+                    {((employee.lifeValues as any).mostImportant || '').trim() && (
+                      <div className="border-2 border-primary rounded-lg p-4 bg-primary/5">
+                        <h4 className="font-semibold text-sm mb-2 text-primary">Most important (non-negotiable)</h4>
+                        <p className="text-sm whitespace-pre-wrap">{(employee.lifeValues as any).mostImportant}</p>
+                      </div>
+                    )}
 
-                      {/* Important */}
-                      {((employee.lifeValues as any).important || '').trim() && (
-                        <div className="border-2 border-blue-400 rounded-lg p-4 bg-blue-50">
-                          <h4 className="font-semibold text-sm mb-2 text-blue-700">Important (slightly negotiable)</h4>
-                          <p className="text-sm whitespace-pre-wrap">{(employee.lifeValues as any).important}</p>
-                        </div>
-                      )}
+                    {/* Important */}
+                    {((employee.lifeValues as any).important || '').trim() && (
+                      <div className="border-2 border-blue-400 rounded-lg p-4 bg-blue-50">
+                        <h4 className="font-semibold text-sm mb-2 text-blue-700">Important (slightly negotiable)</h4>
+                        <p className="text-sm whitespace-pre-wrap">{(employee.lifeValues as any).important}</p>
+                      </div>
+                    )}
 
-                      {/* Somewhat Important */}
-                      {((employee.lifeValues as any).somewhatImportant || '').trim() && (
-                        <div className="border-2 border-warning/30 rounded-lg p-4 bg-warning/10">
-                          <h4 className="font-semibold text-sm mb-2 text-warning">Somewhat important (negotiable)</h4>
-                          <p className="text-sm whitespace-pre-wrap">{(employee.lifeValues as any).somewhatImportant}</p>
-                        </div>
-                      )}
+                    {/* Somewhat Important */}
+                    {((employee.lifeValues as any).somewhatImportant || '').trim() && (
+                      <div className="border-2 border-warning/30 rounded-lg p-4 bg-warning/10">
+                        <h4 className="font-semibold text-sm mb-2 text-warning">Somewhat important (negotiable)</h4>
+                        <p className="text-sm whitespace-pre-wrap">{(employee.lifeValues as any).somewhatImportant}</p>
+                      </div>
+                    )}
 
-                      {/* Not Important */}
-                      {((employee.lifeValues as any).notImportant || '').trim() && (
-                        <div className="border-2 border-border rounded-lg p-4 bg-muted/50">
-                          <h4 className="font-semibold text-sm mb-2 text-foreground/80">Not Important (highly negotiable/doesn't matter)</h4>
-                          <p className="text-sm whitespace-pre-wrap">{(employee.lifeValues as any).notImportant}</p>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-4">No priority hierarchy recorded yet</p>
-                  )}
-                </CardContent>
-              </Card>
+                    {/* Not Important */}
+                    {((employee.lifeValues as any).notImportant || '').trim() && (
+                      <div className="border-2 border-border rounded-lg p-4 bg-muted/50">
+                        <h4 className="font-semibold text-sm mb-2 text-foreground/80">Not Important (highly negotiable/doesn't matter)</h4>
+                        <p className="text-sm whitespace-pre-wrap">{(employee.lifeValues as any).notImportant}</p>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">No priority hierarchy recorded yet</p>
+                )}
+              </CardContent>
+            </Card>
 
-              {/* What You Should Know About Me */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>What You Should Know About Me</CardTitle>
-                  <CardDescription>Work style preferences and communication tips</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {employee.knowAboutMe && (employee.knowAboutMe as Array<{ question: string; answer: string }>).length > 0 ? (
-                    <div className="space-y-4">
-                      {(employee.knowAboutMe as Array<{ question: string; answer: string }>).map((item, index) => (
-                        <div key={index} className="border-b last:border-0 pb-4 last:pb-0">
-                          <p className="text-sm font-medium text-foreground">{item.question}</p>
-                          <p className="text-sm text-foreground/80 mt-1">{item.answer}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-4">No work style preferences recorded yet</p>
-                  )}
-                </CardContent>
-              </Card>
+            {/* What You Should Know About Me */}
+            <Card>
+              <CardHeader>
+                <CardTitle>What You Should Know About Me</CardTitle>
+                <CardDescription>Work style preferences and communication tips</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {employee.knowAboutMe && (employee.knowAboutMe as Array<{ question: string; answer: string }>).length > 0 ? (
+                  <div className="space-y-4">
+                    {(employee.knowAboutMe as Array<{ question: string; answer: string }>).map((item, index) => (
+                      <div key={index} className="border-b last:border-0 pb-4 last:pb-0">
+                        <p className="text-sm font-medium text-foreground">{item.question}</p>
+                        <p className="text-sm text-foreground/80 mt-1">{item.answer}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">No work style preferences recorded yet</p>
+                )}
+              </CardContent>
+            </Card>
 
             {!employee.personalityCompleted && (
               <div className="text-center text-sm text-muted-foreground py-4">
@@ -1149,353 +1188,353 @@ export default function EmployeeDetailPage() {
         {/* AuntyPelz Analysis Tab */}
         <TabsContent value="auntypelz" className="mt-6">
           <div className="space-y-4">
-              {/* Overall Assessment */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Star className="h-4 w-4 text-indigo-600" />
-                    Overall Assessment
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-foreground/80 leading-relaxed">
-                    {employee.fullName} is a {employee.jobTitle?.toLowerCase() || 'team member'} in the {employee.department || 'organization'} who has been with the company since {employee.startDate ? formatDate(employee.startDate) : 'their start date'}.
-                    {employee.mbtiType && ` With an ${employee.mbtiType} personality type, they bring unique strengths to their role.`}
-                    {' '}AI-powered comprehensive analysis will provide deeper insights into their career trajectory, performance, and team dynamics.
-                  </p>
-                </CardContent>
-              </Card>
+            {/* Overall Assessment */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Star className="h-4 w-4 text-indigo-600" />
+                  Overall Assessment
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-foreground/80 leading-relaxed">
+                  {employee.fullName} is a {employee.jobTitle?.toLowerCase() || 'team member'} in the {employee.department || 'organization'} who has been with the company since {employee.startDate ? formatDate(employee.startDate) : 'their start date'}.
+                  {employee.mbtiType && ` With an ${employee.mbtiType} personality type, they bring unique strengths to their role.`}
+                  {' '}AI-powered comprehensive analysis will provide deeper insights into their career trajectory, performance, and team dynamics.
+                </p>
+              </CardContent>
+            </Card>
 
-              {/* Career Trajectory & Growth */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-success" />
-                    Career Trajectory & Growth
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-sm mb-2">Progression Path</h4>
-                      <div className="space-y-3">
-                        {employee.startDate && (
-                          <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
-                            <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
-                              <Check className="h-4 w-4 text-indigo-600" />
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">Joined as {employee.jobTitle || 'Team Member'}</p>
-                              <p className="text-xs text-muted-foreground">{formatDate(employee.startDate)}</p>
-                            </div>
-                          </div>
-                        )}
-                        <div className="text-sm text-muted-foreground">
-                          <p>Career progression data and promotion history will be tracked here. Analysis includes:</p>
-                          <ul className="list-disc list-inside mt-2 space-y-1 ml-2">
-                            <li>Time to promotion relative to peers</li>
-                            <li>Skills acquisition rate</li>
-                            <li>Leadership development trajectory</li>
-                            <li>Cross-functional experience</li>
-                          </ul>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold text-sm mb-2">Growth Indicators</h4>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                        <div className="p-3 border rounded-lg">
-                          <p className="text-xs text-muted-foreground">Tenure</p>
-                          <p className="text-lg font-bold text-foreground">
-                            {employee.startDate ? Math.floor((new Date().getTime() - new Date(employee.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)) : 0} months
-                          </p>
-                        </div>
-                        <div className="p-3 border rounded-lg">
-                          <p className="text-xs text-muted-foreground">Team Size</p>
-                          <p className="text-lg font-bold text-foreground">
-                            {employee._count?.directReports || 0} {employee._count?.directReports === 1 ? 'report' : 'reports'}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Strengths & Achievements */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Award className="h-4 w-4 text-amber-500" />
-                    Strengths & Key Contributions
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    {employee.mbtiType && (
-                      <div className="flex items-start gap-2">
-                        <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium">Personality Type: {employee.mbtiType}</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Brings structured thinking and strategic perspective to problem-solving
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {employee.department && (
-                      <div className="flex items-start gap-2">
-                        <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium">Department Expertise</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Deep knowledge in {employee.department} domain
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {employee.employmentType === 'FULL_TIME' && (
-                      <div className="flex items-start gap-2">
-                        <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium">Commitment & Dedication</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Full-time contributor with strong organizational alignment
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
-                      <p className="text-xs text-muted-foreground mb-2">Future AI Analysis Will Include:</p>
-                      <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
-                        <li>Specific achievements and delivered projects</li>
-                        <li>Performance review highlights</li>
-                        <li>Peer feedback and 360 review insights</li>
-                        <li>Technical or domain expertise demonstrated</li>
-                        <li>Leadership and mentorship contributions</li>
-                      </ul>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Skills Development */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Brain className="h-4 w-4 text-purple-600" />
-                    Skills & Development
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    <div>
-                      <h4 className="font-semibold text-sm mb-3">Current Skill Profile</h4>
-                      <p className="text-sm text-muted-foreground mb-3">
-                        Skills will be tracked from application, training completions, and performance assessments.
-                      </p>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold text-sm mb-3">Skill Gaps & Development Needs</h4>
-                      <div className="space-y-2">
-                        <div className="p-3 border border-amber-200 bg-amber-50 rounded-lg">
-                          <p className="text-xs font-medium text-amber-900 mb-1">Recommended Focus Areas</p>
-                          <p className="text-xs text-amber-800">
-                            AI will analyze role requirements vs current skills to identify development opportunities
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="font-semibold text-sm mb-3">Learning & Development</h4>
-                      <div className="p-4 bg-muted/50 rounded-lg border">
-                        <p className="text-xs text-muted-foreground mb-2">Integration with Learning Platforms:</p>
-                        <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
-                          <li>Courses completed and certifications earned</li>
-                          <li>Training hours and learning velocity</li>
-                          <li>Skill acquisition timeline</li>
-                          <li>Recommended learning paths</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Areas for Development */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Target className="h-4 w-4 text-orange-600" />
-                    Areas for Development
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <p className="text-sm text-foreground/80">
-                      AuntyPelz will identify growth opportunities based on:
-                    </p>
-
-                    <div className="space-y-3">
-                      <div className="flex items-start gap-2">
-                        <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium">Performance Feedback</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Recurring themes from 1-on-1s and performance reviews
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-2">
-                        <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium">Skill Gaps</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Comparison with role requirements and career goals
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-start gap-2">
-                        <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
-                        <div>
-                          <p className="text-sm font-medium">Growth Opportunities</p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Leadership, technical depth, or cross-functional experience
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                      <p className="text-xs font-medium text-blue-900 mb-1">Personalized Development Plan</p>
-                      <p className="text-xs text-blue-800">
-                        AI-generated recommendations for courses, projects, and experiences to accelerate growth
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Team Fit & Collaboration */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <Users className="h-4 w-4 text-blue-600" />
-                    Team Fit & Collaboration
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {employee.lifeValues && (
-                      <div>
-                        <h4 className="font-semibold text-sm mb-2">Values Alignment</h4>
-                        <p className="text-sm text-muted-foreground">
-                          Analysis of life values and company culture fit based on onboarding survey responses.
-                        </p>
-                      </div>
-                    )}
-
-                    {employee.knowAboutMe && (employee.knowAboutMe as any[]).length > 0 && (
-                      <div>
-                        <h4 className="font-semibold text-sm mb-2">Work Style Preferences</h4>
-                        <p className="text-sm text-muted-foreground mb-3">
-                          Insights from "What You Should Know About Me" responses help team members collaborate effectively.
-                        </p>
-                      </div>
-                    )}
-
-                    <div>
-                      <h4 className="font-semibold text-sm mb-3">Collaboration Metrics</h4>
-                      <div className="p-4 bg-muted/50 rounded-lg border">
-                        <p className="text-xs text-muted-foreground mb-2">Integration with Slack & Communication Tools:</p>
-                        <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
-                          <li>Cross-team collaboration patterns</li>
-                          <li>Communication frequency and channels</li>
-                          <li>Response times and engagement levels</li>
-                          <li>Network centrality and influence</li>
-                        </ul>
-                      </div>
-                    </div>
-
-                    {employee.manager && (
-                      <div>
-                        <h4 className="font-semibold text-sm mb-2">Reporting Structure</h4>
-                        <div className="p-3 border rounded-lg">
-                          <p className="text-xs text-muted-foreground">Reports to</p>
-                          <p className="text-sm font-medium">{employee.manager.fullName}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Performance Insights (Placeholder) */}
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-base flex items-center gap-2">
-                    <TrendingUp className="h-4 w-4 text-success" />
-                    Performance Insights
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <p className="text-sm text-foreground/80">
-                      Comprehensive performance analysis will be available upon integration with performance management systems.
-                    </p>
-
-                    <div className="grid grid-cols-1 gap-3">
-                      <div className="p-4 bg-muted/50 rounded-lg border">
-                        <h5 className="text-xs font-semibold mb-2">Performance Review Integration</h5>
-                        <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
-                          <li>Goal achievement rates and progress</li>
-                          <li>Performance rating trends over time</li>
-                          <li>Manager and peer feedback themes</li>
-                          <li>Improvement areas and action plans</li>
-                        </ul>
-                      </div>
-
-                      <div className="p-4 bg-muted/50 rounded-lg border">
-                        <h5 className="text-xs font-semibold mb-2">Productivity Metrics</h5>
-                        <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
-                          <li>Project delivery timeline accuracy</li>
-                          <li>Code quality and review metrics (for engineers)</li>
-                          <li>Customer satisfaction scores (for customer-facing roles)</li>
-                          <li>Innovation and initiative contributions</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Analysis Status */}
-              <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
-                <div className="flex items-start gap-3">
-                  <Sparkles className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+            {/* Career Trajectory & Growth */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-success" />
+                  Career Trajectory & Growth
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
                   <div>
-                    <h4 className="font-semibold text-sm text-indigo-900 mb-1">Comprehensive AI Analysis Coming Soon</h4>
-                    <p className="text-xs text-indigo-800">
-                      AuntyPelz will automatically analyze {employee.fullName}'s complete employee profile, including:
-                    </p>
-                    <ul className="text-xs text-indigo-800 mt-2 space-y-1 ml-4 list-disc">
-                      <li>Career progression from candidacy to current role</li>
-                      <li>Skills development and training history</li>
-                      <li>Performance trends and feedback analysis</li>
-                      <li>Team collaboration and communication patterns</li>
-                      <li>Personalized growth recommendations</li>
+                    <h4 className="font-semibold text-sm mb-2">Progression Path</h4>
+                    <div className="space-y-3">
+                      {employee.startDate && (
+                        <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
+                          <div className="h-8 w-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                            <Check className="h-4 w-4 text-indigo-600" />
+                          </div>
+                          <div>
+                            <p className="font-medium text-sm">Joined as {employee.jobTitle || 'Team Member'}</p>
+                            <p className="text-xs text-muted-foreground">{formatDate(employee.startDate)}</p>
+                          </div>
+                        </div>
+                      )}
+                      <div className="text-sm text-muted-foreground">
+                        <p>Career progression data and promotion history will be tracked here. Analysis includes:</p>
+                        <ul className="list-disc list-inside mt-2 space-y-1 ml-2">
+                          <li>Time to promotion relative to peers</li>
+                          <li>Skills acquisition rate</li>
+                          <li>Leadership development trajectory</li>
+                          <li>Cross-functional experience</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-sm mb-2">Growth Indicators</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <div className="p-3 border rounded-lg">
+                        <p className="text-xs text-muted-foreground">Tenure</p>
+                        <p className="text-lg font-bold text-foreground">
+                          {employee.startDate ? Math.floor((new Date().getTime() - new Date(employee.startDate).getTime()) / (1000 * 60 * 60 * 24 * 30)) : 0} months
+                        </p>
+                      </div>
+                      <div className="p-3 border rounded-lg">
+                        <p className="text-xs text-muted-foreground">Team Size</p>
+                        <p className="text-lg font-bold text-foreground">
+                          {employee._count?.directReports || 0} {employee._count?.directReports === 1 ? 'report' : 'reports'}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Strengths & Achievements */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Award className="h-4 w-4 text-amber-500" />
+                  Strengths & Key Contributions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {employee.mbtiType && (
+                    <div className="flex items-start gap-2">
+                      <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Personality Type: {employee.mbtiType}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Brings structured thinking and strategic perspective to problem-solving
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {employee.department && (
+                    <div className="flex items-start gap-2">
+                      <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Department Expertise</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Deep knowledge in {employee.department} domain
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {employee.employmentType === 'FULL_TIME' && (
+                    <div className="flex items-start gap-2">
+                      <Check className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Commitment & Dedication</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Full-time contributor with strong organizational alignment
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
+                    <p className="text-xs text-muted-foreground mb-2">Future AI Analysis Will Include:</p>
+                    <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                      <li>Specific achievements and delivered projects</li>
+                      <li>Performance review highlights</li>
+                      <li>Peer feedback and 360 review insights</li>
+                      <li>Technical or domain expertise demonstrated</li>
+                      <li>Leadership and mentorship contributions</li>
                     </ul>
                   </div>
                 </div>
+              </CardContent>
+            </Card>
+
+            {/* Skills Development */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-purple-600" />
+                  Skills & Development
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-sm mb-3">Current Skill Profile</h4>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Skills will be tracked from application, training completions, and performance assessments.
+                    </p>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-sm mb-3">Skill Gaps & Development Needs</h4>
+                    <div className="space-y-2">
+                      <div className="p-3 border border-amber-200 bg-amber-50 rounded-lg">
+                        <p className="text-xs font-medium text-amber-900 mb-1">Recommended Focus Areas</p>
+                        <p className="text-xs text-amber-800">
+                          AI will analyze role requirements vs current skills to identify development opportunities
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h4 className="font-semibold text-sm mb-3">Learning & Development</h4>
+                    <div className="p-4 bg-muted/50 rounded-lg border">
+                      <p className="text-xs text-muted-foreground mb-2">Integration with Learning Platforms:</p>
+                      <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                        <li>Courses completed and certifications earned</li>
+                        <li>Training hours and learning velocity</li>
+                        <li>Skill acquisition timeline</li>
+                        <li>Recommended learning paths</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Areas for Development */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Target className="h-4 w-4 text-orange-600" />
+                  Areas for Development
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <p className="text-sm text-foreground/80">
+                    AuntyPelz will identify growth opportunities based on:
+                  </p>
+
+                  <div className="space-y-3">
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Performance Feedback</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Recurring themes from 1-on-1s and performance reviews
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Skill Gaps</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Comparison with role requirements and career goals
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-start gap-2">
+                      <AlertCircle className="h-5 w-5 text-orange-500 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-medium">Growth Opportunities</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Leadership, technical depth, or cross-functional experience
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <p className="text-xs font-medium text-blue-900 mb-1">Personalized Development Plan</p>
+                    <p className="text-xs text-blue-800">
+                      AI-generated recommendations for courses, projects, and experiences to accelerate growth
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Team Fit & Collaboration */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="h-4 w-4 text-blue-600" />
+                  Team Fit & Collaboration
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {employee.lifeValues && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Values Alignment</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Analysis of life values and company culture fit based on onboarding survey responses.
+                      </p>
+                    </div>
+                  )}
+
+                  {employee.knowAboutMe && (employee.knowAboutMe as any[]).length > 0 && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Work Style Preferences</h4>
+                      <p className="text-sm text-muted-foreground mb-3">
+                        Insights from "What You Should Know About Me" responses help team members collaborate effectively.
+                      </p>
+                    </div>
+                  )}
+
+                  <div>
+                    <h4 className="font-semibold text-sm mb-3">Collaboration Metrics</h4>
+                    <div className="p-4 bg-muted/50 rounded-lg border">
+                      <p className="text-xs text-muted-foreground mb-2">Integration with Slack & Communication Tools:</p>
+                      <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                        <li>Cross-team collaboration patterns</li>
+                        <li>Communication frequency and channels</li>
+                        <li>Response times and engagement levels</li>
+                        <li>Network centrality and influence</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  {employee.manager && (
+                    <div>
+                      <h4 className="font-semibold text-sm mb-2">Reporting Structure</h4>
+                      <div className="p-3 border rounded-lg">
+                        <p className="text-xs text-muted-foreground">Reports to</p>
+                        <p className="text-sm font-medium">{employee.manager.fullName}</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Performance Insights (Placeholder) */}
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <TrendingUp className="h-4 w-4 text-success" />
+                  Performance Insights
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  <p className="text-sm text-foreground/80">
+                    Comprehensive performance analysis will be available upon integration with performance management systems.
+                  </p>
+
+                  <div className="grid grid-cols-1 gap-3">
+                    <div className="p-4 bg-muted/50 rounded-lg border">
+                      <h5 className="text-xs font-semibold mb-2">Performance Review Integration</h5>
+                      <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                        <li>Goal achievement rates and progress</li>
+                        <li>Performance rating trends over time</li>
+                        <li>Manager and peer feedback themes</li>
+                        <li>Improvement areas and action plans</li>
+                      </ul>
+                    </div>
+
+                    <div className="p-4 bg-muted/50 rounded-lg border">
+                      <h5 className="text-xs font-semibold mb-2">Productivity Metrics</h5>
+                      <ul className="text-xs text-muted-foreground space-y-1 ml-4 list-disc">
+                        <li>Project delivery timeline accuracy</li>
+                        <li>Code quality and review metrics (for engineers)</li>
+                        <li>Customer satisfaction scores (for customer-facing roles)</li>
+                        <li>Innovation and initiative contributions</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Analysis Status */}
+            <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Sparkles className="h-5 w-5 text-indigo-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <h4 className="font-semibold text-sm text-indigo-900 mb-1">Comprehensive AI Analysis Coming Soon</h4>
+                  <p className="text-xs text-indigo-800">
+                    AuntyPelz will automatically analyze {employee.fullName}'s complete employee profile, including:
+                  </p>
+                  <ul className="text-xs text-indigo-800 mt-2 space-y-1 ml-4 list-disc">
+                    <li>Career progression from candidacy to current role</li>
+                    <li>Skills development and training history</li>
+                    <li>Performance trends and feedback analysis</li>
+                    <li>Team collaboration and communication patterns</li>
+                    <li>Personalized growth recommendations</li>
+                  </ul>
+                </div>
               </div>
+            </div>
           </div>
         </TabsContent>
 
@@ -1515,51 +1554,51 @@ export default function EmployeeDetailPage() {
         {/* Applications Tab */}
         <TabsContent value="applications" className="mt-6">
           <div className="space-y-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Provisioned applications</CardTitle>
-                  <CardDescription>Provisioned accounts and status</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  {employee.appAccounts && employee.appAccounts.length > 0 ? (
-                    <div className="space-y-4">
-                      {employee.appAccounts.map((account) => (
-                        <div key={account.id} className="flex items-center justify-between p-4 border rounded-lg">
-                          <div className="flex items-center gap-4 flex-1">
-                            {account.app.type === 'GOOGLE_WORKSPACE' ? (
-                              <Cloud className="h-8 w-8 text-blue-500" />
-                            ) : account.app.type === 'SLACK' ? (
-                              <MessageSquare className="h-8 w-8 text-purple-500" />
-                            ) : (
-                              <Cloud className="h-8 w-8 text-muted-foreground" />
-                            )}
-                            <div className="flex-1">
-                              <p className="font-medium">{account.app.name}</p>
-                              <div className="flex gap-4 text-sm text-muted-foreground mt-1">
-                                {account.provisionedAt && (
-                                  <span>Created: {formatDate(account.provisionedAt)}</span>
-                                )}
-                                {account.deprovisionedAt && (
-                                  <span className="text-destructive">
-                                    Deprovisioned: {formatDate(account.deprovisionedAt)}
-                                  </span>
-                                )}
-                              </div>
+            <Card>
+              <CardHeader>
+                <CardTitle>Provisioned applications</CardTitle>
+                <CardDescription>Provisioned accounts and status</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {employee.appAccounts && employee.appAccounts.length > 0 ? (
+                  <div className="space-y-4">
+                    {employee.appAccounts.map((account) => (
+                      <div key={account.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center gap-4 flex-1">
+                          {account.app.type === 'GOOGLE_WORKSPACE' ? (
+                            <Cloud className="h-8 w-8 text-blue-500" />
+                          ) : account.app.type === 'SLACK' ? (
+                            <MessageSquare className="h-8 w-8 text-purple-500" />
+                          ) : (
+                            <Cloud className="h-8 w-8 text-muted-foreground" />
+                          )}
+                          <div className="flex-1">
+                            <p className="font-medium">{account.app.name}</p>
+                            <div className="flex gap-4 text-sm text-muted-foreground mt-1">
+                              {account.provisionedAt && (
+                                <span>Created: {formatDate(account.provisionedAt)}</span>
+                              )}
+                              {account.deprovisionedAt && (
+                                <span className="text-destructive">
+                                  Deprovisioned: {formatDate(account.deprovisionedAt)}
+                                </span>
+                              )}
                             </div>
                           </div>
-                          {account.deprovisionedAt && (
-                            <Button variant="ghost" size="icon">
-                              <Trash2 className="h-4 w-4 text-muted-foreground" />
-                            </Button>
-                          )}
                         </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p className="text-center text-muted-foreground py-4">No provisioned applications</p>
-                  )}
-                </CardContent>
-              </Card>
+                        {account.deprovisionedAt && (
+                          <Button variant="ghost" size="icon">
+                            <Trash2 className="h-4 w-4 text-muted-foreground" />
+                          </Button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-4">No provisioned applications</p>
+                )}
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
       </Tabs>
@@ -1723,8 +1762,27 @@ export default function EmployeeDetailPage() {
                     <Input id="startDate" type="date" {...register('startDate')} />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="endDate">End date</Label>
+                    <Label htmlFor="endDate" className="flex items-center gap-2">
+                      End date
+                      <Badge variant="outline" className="text-[10px] font-normal py-0">Contract</Badge>
+                    </Label>
                     <Input id="endDate" type="date" {...register('endDate')} />
+                  </div>
+                  <div className="grid gap-2 md:col-span-2">
+                    <Label htmlFor="probationGoals">Probation goals</Label>
+                    <Textarea
+                      id="probationGoals"
+                      placeholder="Enter success criteria for the probation period"
+                      {...register('probationGoals')}
+                    />
+                  </div>
+                  <div className="grid gap-2 md:col-span-2">
+                    <Label htmlFor="probationGoalsUrl">Goals document URL</Label>
+                    <Input
+                      id="probationGoalsUrl"
+                      placeholder="https://docs.google.com/..."
+                      {...register('probationGoalsUrl')}
+                    />
                   </div>
                 </div>
               </div>

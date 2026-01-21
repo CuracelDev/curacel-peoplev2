@@ -1,0 +1,6 @@
+[{"id":"86e42810-3234-44b4-8570-e46ef8f45c70","department":"DataOps","standupTeamName":"MedOps","isActive":true,"createdAt":"2026-01-04T18:08:26.725","updatedAt":"2026-01-04T18:08:26.725"}, 
+ {"id":"673812e7-5fa4-426a-ad5d-1c1914dd1fd0","department":"Engineering","standupTeamName":"Avengers","isActive":true,"createdAt":"2026-01-04T18:08:49.989","updatedAt":"2026-01-04T18:08:49.989"}, 
+ {"id":"d0df0d89-c2e1-471f-8bfd-7bffb40f2bf4","department":"Success","standupTeamName":"Success","isActive":true,"createdAt":"2026-01-04T18:09:56.007","updatedAt":"2026-01-04T18:09:56.007"}, 
+ {"id":"16804336-4a4b-4619-864b-b44c474057b1","department":"Commercial","standupTeamName":"Commercial","isActive":true,"createdAt":"2026-01-04T18:10:01.172","updatedAt":"2026-01-04T18:10:01.172"}, 
+ {"id":"382210dd-8005-4770-b17d-47a4aedf6da9","department":"Finance","standupTeamName":"Finance","isActive":true,"createdAt":"2026-01-04T18:10:11.341","updatedAt":"2026-01-04T18:10:11.341"}, 
+ {"id":"b97dae2d-f32b-4e29-8a7e-7d49bf7fa06a","department":"People","standupTeamName":"People","isActive":true,"createdAt":"2026-01-04T18:10:33.32","updatedAt":"2026-01-04T18:10:33.32"}]

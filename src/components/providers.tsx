@@ -8,6 +8,7 @@ import { ThemeProvider as NextThemesProvider } from 'next-themes'
 import type { Session } from 'next-auth'
 import superjson from 'superjson'
 import { trpc } from '@/lib/trpc-client'
+import { Toaster } from 'sonner'
 
 function getBaseUrl() {
   if (typeof window !== 'undefined') return ''
@@ -60,6 +61,7 @@ export function Providers({
             disableTransitionOnChange
           >
             {children}
+            <Toaster richColors position="top-right" />
           </NextThemesProvider>
         </QueryClientProvider>
       </trpc.Provider>
