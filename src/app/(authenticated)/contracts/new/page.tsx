@@ -32,7 +32,7 @@ import {
 import { useForm, Controller } from 'react-hook-form'
 import { Check, ChevronRight, Loader2, Plus, ArrowLeft, ChevronsUpDown } from 'lucide-react'
 import { toast } from 'sonner'
-import { cn } from '@/lib/utils'
+import { cn, formatDate } from '@/lib/utils'
 import Link from 'next/link'
 
 interface OfferFormData {
@@ -253,9 +253,9 @@ export default function NewContractPage() {
 
     const variables: Record<string, string> = {
       employee_name: candidateName,
-      employment_start_date: data.anticipatedStartDate,
-      start_date: data.anticipatedStartDate, // alias for detail view
-      probation_end_date: data.probationEndDate,
+      employment_start_date: data.anticipatedStartDate ? formatDate(data.anticipatedStartDate) : '',
+      start_date: data.anticipatedStartDate ? formatDate(data.anticipatedStartDate) : '', // alias for detail view
+      probation_end_date: data.probationEndDate ? formatDate(data.probationEndDate) : '',
       job_title: data.jobTitle,
       supervisor_title: data.supervisorJobTitle,
       duties: data.primaryDuties || DEFAULT_PRIMARY_DUTIES,
@@ -270,7 +270,7 @@ export default function NewContractPage() {
       probation_period: data.probationPeriod || '',
       probation_goals: data.probationGoals || '',
       probation_goals_url: data.probationGoalsUrl || '',
-      offer_expiration_date: data.offerExpirationDate,
+      offer_expiration_date: data.offerExpirationDate ? formatDate(data.offerExpirationDate) : '',
       signature_block_id: selectedSignatureBlock?.id || '',
       signature_block_name: selectedSignatureBlock?.signatoryName || '',
       signature_block_title: selectedSignatureBlock?.signatoryTitle || '',
