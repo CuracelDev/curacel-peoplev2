@@ -362,40 +362,50 @@ export const employeeRouter = router({
   create: hrAdminProcedure
     .input(employeeCreateSchema)
     .mutation(async ({ ctx, input }) => {
-      const employee = await ctx.prisma.employee.create({
-        data: {
-          fullName: input.fullName,
-          personalEmail: input.personalEmail,
-          status: 'CANDIDATE',
-          jobTitle: input.jobTitle,
-          department: input.department,
-          managerId: input.managerId,
-          location: input.location,
-          employmentType: input.employmentType,
-          startDate: input.startDate ? new Date(input.startDate) : undefined,
-          salaryAmount: input.salaryAmount,
-          salaryCurrency: input.salaryCurrency,
-          contractType: input.contractType,
-        },
-      })
-
-      // Log event (non-blocking)
       try {
-        const userId = (ctx.user as { id?: string })?.id
-        if (userId) {
-          await logEmployeeEvent({
-            actorId: userId,
-            action: 'EMPLOYEE_CREATED',
-            employeeId: employee.id,
-            metadata: { fullName: employee.fullName },
+        const employee = await ctx.prisma.employee.create({
+          data: {
+            fullName: input.fullName,
+            personalEmail: input.personalEmail,
+            status: 'CANDIDATE',
+            jobTitle: input.jobTitle,
+            department: input.department,
+            managerId: input.managerId,
+            location: input.location,
+            employmentType: input.employmentType,
+            startDate: input.startDate ? new Date(input.startDate) : undefined,
+            salaryAmount: input.salaryAmount,
+            salaryCurrency: input.salaryCurrency,
+            contractType: input.contractType,
+          },
+        })
+
+        // Log event (non-blocking)
+        try {
+          const userId = (ctx.user as { id?: string })?.id
+          if (userId) {
+            await logEmployeeEvent({
+              actorId: userId,
+              action: 'EMPLOYEE_CREATED',
+              employeeId: employee.id,
+              metadata: { fullName: employee.fullName },
+            })
+          }
+        } catch (error) {
+          console.error('Failed to log employee creation event:', error)
+          // Don't fail the mutation if audit logging fails
+        }
+
+        return employee
+      } catch (error: any) {
+        if (error.code === 'P2002') {
+          throw new TRPCError({
+            code: 'CONFLICT',
+            message: 'An employee with this email address already exists.',
           })
         }
-      } catch (error) {
-        console.error('Failed to log employee creation event:', error)
-        // Don't fail the mutation if audit logging fails
+        throw error
       }
-
-      return employee
     }),
 
   update: hrAdminProcedure
