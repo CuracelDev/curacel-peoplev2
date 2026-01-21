@@ -428,7 +428,7 @@ export default function NewContractPage() {
                     <SelectTrigger className="ring-border focus:ring-indigo-600 mt-1">
                       <SelectValue placeholder="Select employment type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent side="bottom" sideOffset={4}>
                       <SelectItem value="FULL_TIME">Full time</SelectItem>
                       <SelectItem value="PART_TIME">Part time</SelectItem>
                       <SelectItem value="CONTRACTOR">Contractor</SelectItem>
@@ -613,7 +613,7 @@ export default function NewContractPage() {
                       <SelectTrigger className="ring-border focus:ring-indigo-600">
                         <SelectValue placeholder="Select legal entity" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent side="bottom" sideOffset={4}>
                         {legalEntities?.map((entity) => (
                           <SelectItem key={entity.id} value={entity.name}>
                             {entity.name}
@@ -653,7 +653,7 @@ export default function NewContractPage() {
                       <SelectTrigger className="ring-border focus:ring-indigo-600">
                         <SelectValue placeholder="Select signature block" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent side="bottom" sideOffset={4}>
                         {signatureBlocks?.map((block) => (
                           <SelectItem key={block.id} value={block.id}>
                             {block.signatoryName} - {block.signatoryTitle}
@@ -752,7 +752,7 @@ export default function NewContractPage() {
                     <SelectTrigger className="ring-border focus:ring-indigo-600 mt-1">
                       <SelectValue placeholder="Select currency" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent side="bottom" sideOffset={4}>
                       <SelectItem value="USD">USD</SelectItem>
                       <SelectItem value="NGN">NGN</SelectItem>
                       <SelectItem value="GBP">GBP</SelectItem>
@@ -783,7 +783,7 @@ export default function NewContractPage() {
                     <SelectTrigger className="ring-border focus:ring-indigo-600 mt-1">
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent side="bottom" sideOffset={4}>
                       <SelectItem value="MONTHLY">Monthly</SelectItem>
                       <SelectItem value="WEEKLY">Weekly</SelectItem>
                       <SelectItem value="BIWEEKLY">Bi-weekly</SelectItem>
