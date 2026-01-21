@@ -82,6 +82,7 @@ export default function NewContractPage() {
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null)
   const [selectedSource, setSelectedSource] = useState<'candidates' | 'employees'>('candidates')
   const [employeeOpen, setEmployeeOpen] = useState(false)
+  const [employeeSearch, setEmployeeSearch] = useState('')
   const { data: hiringSettings } = trpc.hiringSettings.get.useQuery()
 
   // Get candidates in OFFER stage
@@ -393,9 +394,13 @@ export default function NewContractPage() {
                     control={control}
                     rules={{ required: selectedSource === 'employees' ? 'Candidate is required' : false }}
                     render={({ field }) => (
-                      <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
+                      <Popover open={employeeOpen} onOpenChange={(open) => {
+                        setEmployeeOpen(open)
+                        if (!open) setEmployeeSearch('')
+                      }}>
                         <PopoverTrigger asChild>
                           <Button
+                            type="button"
                             variant="outline"
                             role="combobox"
                             aria-expanded={employeeOpen}
@@ -410,40 +415,64 @@ export default function NewContractPage() {
                             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                          <Command>
-                            <CommandInput placeholder="Search employee..." />
-                            <CommandList>
-                              <CommandEmpty>No employee found.</CommandEmpty>
-                              <CommandGroup>
-                                {employees?.employees.map((employee) => (
-                                  <CommandItem
-                                    key={employee.id}
-                                    value={employee.id}
-                                    keywords={[employee.fullName, employee.personalEmail]}
-                                    onSelect={() => {
-                                      console.log("Selected:", employee.id)
-                                      field.onChange(employee.id)
-                                      setSelectedCandidateId(null)
-                                      setEmployeeOpen(false)
-                                    }}
-                                    className="cursor-pointer"
-                                  >
-                                    <Check
-                                      className={cn(
-                                        "mr-2 h-4 w-4",
-                                        field.value === employee.id ? "opacity-100" : "opacity-0"
-                                      )}
-                                    />
-                                    <div className="flex flex-col">
-                                      <span>{employee.fullName}</span>
-                                      <span className="text-xs text-muted-foreground">{employee.personalEmail}</span>
-                                    </div>
-                                  </CommandItem>
-                                ))}
-                              </CommandGroup>
-                            </CommandList>
-                          </Command>
+                        <PopoverContent className="w-[400px] p-0" align="start">
+                          <div className="p-2 border-b">
+                            <Input
+                              placeholder="Search employees..."
+                              value={employeeSearch}
+                              onChange={(e) => setEmployeeSearch(e.target.value)}
+                              className="h-9"
+                            />
+                          </div>
+                          <div className="max-h-[300px] overflow-y-auto">
+                            {employees?.employees
+                              .filter((emp) => {
+                                if (!employeeSearch) return true
+                                const search = employeeSearch.toLowerCase()
+                                return (
+                                  emp.fullName.toLowerCase().includes(search) ||
+                                  emp.personalEmail.toLowerCase().includes(search)
+                                )
+                              })
+                              .map((employee) => (
+                                <div
+                                  key={employee.id}
+                                  className={cn(
+                                    "flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-accent",
+                                    field.value === employee.id && "bg-accent"
+                                  )}
+                                  onClick={() => {
+                                    field.onChange(employee.id)
+                                    setSelectedCandidateId(null)
+                                    setEmployeeOpen(false)
+                                    setEmployeeSearch('')
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "h-4 w-4",
+                                      field.value === employee.id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span className="text-sm font-medium">{employee.fullName}</span>
+                                    <span className="text-xs text-muted-foreground">{employee.personalEmail}</span>
+                                  </div>
+                                </div>
+                              ))}
+                            {employees?.employees.filter((emp) => {
+                              if (!employeeSearch) return true
+                              const search = employeeSearch.toLowerCase()
+                              return (
+                                emp.fullName.toLowerCase().includes(search) ||
+                                emp.personalEmail.toLowerCase().includes(search)
+                              )
+                            }).length === 0 && (
+                                <div className="p-4 text-center text-sm text-muted-foreground">
+                                  No employee found.
+                                </div>
+                              )}
+                          </div>
                         </PopoverContent>
                       </Popover>
                     )}
