@@ -321,14 +321,21 @@ export const offerRouter = router({
       if (input.candidateEmail) data.candidateEmail = input.candidateEmail
       if (input.templateId) data.templateId = input.templateId
 
-      if (input.renderedHtml) {
-        data.renderedHtml = input.renderedHtml
-      } else if (input.variables) {
+      if (input.variables) {
         data.variables = input.variables
-        data.renderedHtml =
-          template?.bodyHtml && input.variables
-            ? renderTemplate(template.bodyHtml, input.variables)
-            : offer.renderedHtml
+      }
+
+      // Logic for renderedHtml:
+      // If the user provided a NEW renderedHtml (different from the current one), they manually edited it.
+      // Otherwise, if they changed variables, we should re-render the template.
+      if (input.renderedHtml && input.renderedHtml !== offer.renderedHtml) {
+        data.renderedHtml = input.renderedHtml
+      } else if (input.variables || (input.templateId && input.templateId !== offer.templateId)) {
+        // Re-render because variables changed or template changed, and the user didn't manually edit the text
+        const finalVariables = input.variables || (offer.variables as Record<string, string>) || {}
+        data.renderedHtml = template?.bodyHtml
+          ? renderTemplate(template.bodyHtml, finalVariables)
+          : offer.renderedHtml
       }
 
       const updated = await ctx.prisma.offer.update({
