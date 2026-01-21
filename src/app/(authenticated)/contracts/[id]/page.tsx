@@ -457,7 +457,10 @@ export default function ContractDetailPage() {
                         {item.value} <ExternalLink className="h-3 w-3" />
                       </a>
                     ) : (
-                      <p className="font-medium">{item.value}</p>
+                      <div
+                        className="font-medium prose prose-sm max-w-none prose-p:my-0 prose-ul:my-1 prose-li:my-0"
+                        dangerouslySetInnerHTML={{ __html: item.value }}
+                      />
                     )}
                   </div>
                 ))}
@@ -493,9 +496,10 @@ export default function ContractDetailPage() {
                       <span className="text-sm font-medium text-foreground/80 capitalize">
                         {key.replace(/_/g, ' ')}
                       </span>
-                      <span className="min-w-0 text-sm text-foreground leading-6 whitespace-pre-wrap break-words">
-                        {value}
-                      </span>
+                      <div
+                        className="min-w-0 text-sm text-foreground leading-6 whitespace-pre-wrap break-words prose prose-sm max-w-none prose-p:my-0 prose-ul:my-1 prose-li:my-0 prose-strong:text-foreground"
+                        dangerouslySetInnerHTML={{ __html: value }}
+                      />
                     </div>
                   ))}
                   {hasHiddenSignatureImageUrl && (
