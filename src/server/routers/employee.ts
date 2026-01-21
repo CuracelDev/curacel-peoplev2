@@ -396,6 +396,54 @@ export const employeeRouter = router({
           // Don't fail the mutation if audit logging fails
         }
 
+        // Create matching JobCandidate if status is CANDIDATE
+        if (employee.status === 'CANDIDATE') {
+          try {
+            // Find an active job or create a "General Application" job
+            let job = await ctx.prisma.job.findFirst({
+              where: {
+                OR: [
+                  { title: input.jobTitle || 'General Application' },
+                  { status: 'ACTIVE' }
+                ]
+              },
+              orderBy: { createdAt: 'desc' },
+            })
+
+            if (!job) {
+              job = await ctx.prisma.job.create({
+                data: {
+                  title: input.jobTitle || 'General Application',
+                  department: input.department || 'General',
+                  status: 'ACTIVE',
+                  employmentType: 'full-time',
+                },
+              })
+            }
+
+            const candidate = await ctx.prisma.jobCandidate.create({
+              data: {
+                jobId: job.id,
+                name: employee.fullName,
+                email: employee.personalEmail.toLowerCase(),
+                stage: 'APPLIED',
+                source: 'INBOUND',
+                currentRole: input.jobTitle,
+                location: input.location,
+              },
+            })
+
+            // Link employee to candidate
+            await ctx.prisma.employee.update({
+              where: { id: employee.id },
+              data: { candidateId: candidate.id },
+            })
+          } catch (error) {
+            console.error('Failed to create JobCandidate for new employee:', error)
+            // Still return the employee if candidate creation fails
+          }
+        }
+
         return employee
       } catch (error: any) {
         if (error.code === 'P2002') {

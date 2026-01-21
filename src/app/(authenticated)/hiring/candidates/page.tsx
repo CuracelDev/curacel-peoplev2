@@ -196,6 +196,17 @@ export default function CandidatesPage() {
   const parseUpload = trpc.job.parseUploadForBulkImport.useMutation()
   const bulkImport = trpc.job.bulkImportCandidates.useMutation()
   const utils = trpc.useUtils()
+  const createCandidate = trpc.job.createCandidate.useMutation({
+    onSuccess: () => {
+      toast.success('Candidate added successfully')
+      utils.job.getAllCandidates.invalidate()
+      setIsAddDialogOpen(false)
+      setNewCandidate({ name: '', email: '', phone: '', linkedinUrl: '', source: '', notes: '' })
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to add candidate')
+    },
+  })
   const updateCandidateStage = trpc.job.updateCandidate.useMutation({
     onSuccess: () => {
       utils.job.getAllCandidates.invalidate()
@@ -227,18 +238,18 @@ export default function CandidatesPage() {
 
   // Build query params based on filters
   const sortBy = sortOption.startsWith('score') ? 'score' as const :
-                 sortOption.startsWith('date') ? 'appliedAt' as const :
-                 'name' as const
+    sortOption.startsWith('date') ? 'appliedAt' as const :
+      'name' as const
   const sortOrder = sortOption.endsWith('desc') ? 'desc' as const : 'asc' as const
 
   // Map filter to stage
   const stageFilter = activeFilter === 'all' ? undefined :
-                      activeFilter === 'applied' ? 'APPLIED' as const :
-                      activeFilter === 'shortlisted' ? 'SHORTLISTED' as const :
-                      activeFilter === 'hrScreen' ? 'HR_SCREEN' as const :
-                      activeFilter === 'technical' ? 'TECHNICAL' as const :
-                      activeFilter === 'panel' ? 'TEAM_CHAT' as const :
-                      activeFilter === 'offer' ? 'OFFER' as const : undefined
+    activeFilter === 'applied' ? 'APPLIED' as const :
+      activeFilter === 'shortlisted' ? 'SHORTLISTED' as const :
+        activeFilter === 'hrScreen' ? 'HR_SCREEN' as const :
+          activeFilter === 'technical' ? 'TECHNICAL' as const :
+            activeFilter === 'panel' ? 'TEAM_CHAT' as const :
+              activeFilter === 'offer' ? 'OFFER' as const : undefined
 
   const dateRange = useMemo(() => {
     if (dateFilter === 'all') return null
@@ -350,10 +361,7 @@ export default function CandidatesPage() {
   }
 
   const handleAddCandidate = () => {
-    // For now, just log and close - will integrate with backend later
-    console.log('Adding candidate:', newCandidate)
-    setNewCandidate({ name: '', email: '', phone: '', linkedinUrl: '', source: '', notes: '' })
-    setIsAddDialogOpen(false)
+    createCandidate.mutate(newCandidate)
   }
 
   const resetBulkUpload = () => {
@@ -452,7 +460,7 @@ export default function CandidatesPage() {
     }
   }, [addParam])
 
-  if (isLoading) {
+  if (isLoading && !candidatesData) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -521,8 +529,8 @@ export default function CandidatesPage() {
             onClick={() => setActiveFilter(card.key)}
           >
             <CardContent className="py-4 px-3 flex flex-col items-center justify-center text-center">
-                        <div className="text-xs text-muted-foreground truncate">{card.label}</div>
-                        <div className="mt-2 text-xl font-bold">{stageCounts[card.key] || 0}</div>
+              <div className="text-xs text-muted-foreground truncate">{card.label}</div>
+              <div className="mt-2 text-xl font-bold">{stageCounts[card.key] || 0}</div>
             </CardContent>
           </Card>
         ))}
