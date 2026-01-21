@@ -60,6 +60,7 @@ export default function EmployeesPage() {
   const createEmployee = trpc.employee.create.useMutation({
     onSuccess: () => {
       setCreateDialogOpen(false)
+      setStatusFilter('CANDIDATE')
       refetch()
       reset()
       toast.success('Employee created successfully')
