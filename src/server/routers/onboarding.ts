@@ -535,6 +535,8 @@ export const onboardingRouter = router({
       jiraManager: z.boolean().optional(),
       bonus: z.string().optional(),
       probationPeriod: z.string().optional(),
+      probationGoals: z.string().optional(),
+      probationGoalsUrl: z.string().optional(),
       customTasks: z.array(z.object({
         name: z.string(),
         type: z.enum(['AUTOMATED', 'MANUAL']),
@@ -571,7 +573,7 @@ export const onboardingRouter = router({
         updateData.workEmail = input.workEmail
       }
 
-      if (input.jiraBoardId !== undefined || input.jiraManager !== undefined || input.bonus !== undefined || input.probationPeriod !== undefined) {
+      if (input.jiraBoardId !== undefined || input.jiraManager !== undefined || input.bonus !== undefined || input.probationPeriod !== undefined || input.probationGoals !== undefined || input.probationGoalsUrl !== undefined) {
         const meta = (employee.meta ?? {}) as Record<string, unknown>
         if (input.jiraBoardId) {
           meta.jiraBoardId = input.jiraBoardId
@@ -592,6 +594,16 @@ export const onboardingRouter = router({
         if (input.probationPeriod !== undefined) {
           if (input.probationPeriod) meta.probationPeriod = input.probationPeriod
           else delete meta.probationPeriod
+        }
+
+        if (input.probationGoals !== undefined) {
+          if (input.probationGoals) meta.probationGoals = input.probationGoals
+          else delete meta.probationGoals
+        }
+
+        if (input.probationGoalsUrl !== undefined) {
+          if (input.probationGoalsUrl) meta.probationGoalsUrl = input.probationGoalsUrl
+          else delete meta.probationGoalsUrl
         }
         updateData.meta = meta
       }

@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -33,12 +34,19 @@ import { PageActions } from '@/components/layout/page-actions'
 
 export default function EmployeesPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('ACTIVE')
   const [departmentFilter, setDepartmentFilter] = useState<string>('')
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   const [createDialogOpen, setCreateDialogOpen] = useState(false)
+
+  useEffect(() => {
+    if (searchParams.get('action') === 'create') {
+      setCreateDialogOpen(true)
+    }
+  }, [searchParams])
 
   const { data, isLoading, refetch } = trpc.employee.list.useQuery({
     search: search || undefined,
@@ -54,7 +62,11 @@ export default function EmployeesPage() {
       setCreateDialogOpen(false)
       refetch()
       reset()
+      toast.success('Employee created successfully')
     },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to create employee')
+    }
   })
 
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm({
@@ -73,10 +85,19 @@ export default function EmployeesPage() {
     createEmployee.mutate(data)
   }
 
+  const handleOpenChange = (open: boolean) => {
+    setCreateDialogOpen(open)
+    if (!open && searchParams.get('action') === 'create') {
+      const params = new URLSearchParams(searchParams.toString())
+      params.delete('action')
+      router.push(`/employees${params.toString() ? `?${params.toString()}` : ''}`)
+    }
+  }
+
   return (
     <div className="space-y-4">
       <PageActions>
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+        <Dialog open={createDialogOpen} onOpenChange={handleOpenChange}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="mr-2 h-4 w-4" />
@@ -139,7 +160,7 @@ export default function EmployeesPage() {
                 </div>
               </div>
               <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setCreateDialogOpen(false)}>
+                <Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
                   Cancel
                 </Button>
                 <Button type="submit" disabled={createEmployee.isPending}>

@@ -30,6 +30,8 @@ interface OnboardingFormData {
   department?: string
   bonus?: string
   probationPeriod?: string
+  probationGoals?: string
+  probationGoalsUrl?: string
   jiraBoardId?: string
   jiraManager?: boolean
 }
@@ -74,6 +76,8 @@ export default function NewOnboardingPage() {
       department: '',
       jiraBoardId: '',
       jiraManager: false,
+      probationGoals: '',
+      probationGoalsUrl: '',
     },
   })
 
@@ -274,6 +278,8 @@ export default function NewOnboardingPage() {
         emailProvider: data.emailProvider,
         jiraBoardId: data.jiraBoardId || undefined,
         jiraManager: Boolean(data.jiraManager),
+        probationGoals: data.probationGoals || undefined,
+        probationGoalsUrl: data.probationGoalsUrl || undefined,
       })
     } catch (error) {
       console.error('Failed to start onboarding:', error)
@@ -414,6 +420,36 @@ export default function NewOnboardingPage() {
                   className="mt-1"
                   placeholder="e.g. 6 months"
                 />
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t">
+              <div className="grid grid-cols-1 gap-4">
+                <div>
+                  <Label htmlFor="probationGoals" className="text-sm font-medium">
+                    Probation goals
+                  </Label>
+                  <Input
+                    id="probationGoals"
+                    {...register('probationGoals')}
+                    className="mt-1"
+                    placeholder="e.g. Complete core training, deliver first project"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="probationGoalsUrl" className="text-sm font-medium">
+                    Link to goals document / template
+                  </Label>
+                  <Input
+                    id="probationGoalsUrl"
+                    {...register('probationGoalsUrl')}
+                    className="mt-1"
+                    placeholder="e.g. https://docs.google.com/..."
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Link to a shared doc or team template for this candidate.
+                  </p>
+                </div>
               </div>
             </div>
           </CardContent>
