@@ -16,8 +16,23 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, Plus } from 'lucide-react'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { useForm, Controller } from 'react-hook-form'
+import { Check, ChevronRight, Loader2, Plus, ArrowLeft, ChevronsUpDown } from 'lucide-react'
+import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
 interface OfferFormData {
@@ -66,6 +81,7 @@ export default function NewContractPage() {
   const [showAddSignatureBlock, setShowAddSignatureBlock] = useState(false)
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null)
   const [selectedSource, setSelectedSource] = useState<'candidates' | 'employees'>('candidates')
+  const [employeeOpen, setEmployeeOpen] = useState(false)
   const { data: hiringSettings } = trpc.hiringSettings.get.useQuery()
 
   // Get candidates in OFFER stage
@@ -73,7 +89,7 @@ export default function NewContractPage() {
 
   // Get existing employees
   const { data: employees } = trpc.employee.list.useQuery({
-    limit: 100,
+    limit: 1000,
   })
 
   const { data: legalEntities } = trpc.legalEntity.list.useQuery()
@@ -377,21 +393,56 @@ export default function NewContractPage() {
                     control={control}
                     rules={{ required: selectedSource === 'employees' ? 'Candidate is required' : false }}
                     render={({ field }) => (
-                      <Select value={field.value} onValueChange={(value) => {
-                        field.onChange(value)
-                        setSelectedCandidateId(null)
-                      }}>
-                        <SelectTrigger className="ring-border focus:ring-indigo-600">
-                          <SelectValue placeholder="Select an employee" />
-                        </SelectTrigger>
-                        <SelectContent side="bottom" sideOffset={4} avoidCollisions={false}>
-                          {employees?.employees.map((employee) => (
-                            <SelectItem key={employee.id} value={employee.id}>
-                              {employee.fullName} ({employee.personalEmail})
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <Popover open={employeeOpen} onOpenChange={setEmployeeOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            role="combobox"
+                            aria-expanded={employeeOpen}
+                            className={cn(
+                              "w-full justify-between font-normal",
+                              !field.value && "text-muted-foreground"
+                            )}
+                          >
+                            {field.value
+                              ? employees?.employees.find((employee) => employee.id === field.value)?.fullName
+                              : "Select an employee..."}
+                            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                          <Command>
+                            <CommandInput placeholder="Search employee..." />
+                            <CommandList>
+                              <CommandEmpty>No employee found.</CommandEmpty>
+                              <CommandGroup>
+                                {employees?.employees.map((employee) => (
+                                  <CommandItem
+                                    key={employee.id}
+                                    value={employee.fullName}
+                                    onSelect={() => {
+                                      field.onChange(employee.id)
+                                      setSelectedCandidateId(null)
+                                      setEmployeeOpen(false)
+                                    }}
+                                  >
+                                    <Check
+                                      className={cn(
+                                        "mr-2 h-4 w-4",
+                                        field.value === employee.id ? "opacity-100" : "opacity-0"
+                                      )}
+                                    />
+                                    <div className="flex flex-col">
+                                      <span>{employee.fullName}</span>
+                                      <span className="text-xs text-muted-foreground">{employee.personalEmail}</span>
+                                    </div>
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
                     )}
                   />
                   <Button
