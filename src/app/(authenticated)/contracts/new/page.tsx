@@ -419,8 +419,9 @@ export default function NewContractPage() {
                                 {employees?.employees.map((employee) => (
                                   <CommandItem
                                     key={employee.id}
-                                    value={employee.fullName}
+                                    value={`${employee.fullName} ${employee.personalEmail}`}
                                     onSelect={() => {
+                                      console.log("Selected:", employee.id)
                                       field.onChange(employee.id)
                                       setSelectedCandidateId(null)
                                       setEmployeeOpen(false)
