@@ -9,12 +9,12 @@ function textToHtml(text: string): string {
     .map((paragraph) => {
       const trimmed = paragraph.trim()
       if (!trimmed) return ''
-      
+
       // Check if it's a heading (all caps or starts with specific patterns)
       if (trimmed.match(/^[A-Z][A-Z\s:]+$/)) {
         return `<h3 style="color: #2d3748; font-weight: bold; margin-top: 20px; margin-bottom: 10px;">${trimmed}</h3>`
       }
-      
+
       // Check if it's a list item
       if (trimmed.startsWith('- ') || trimmed.match(/^\d+\.\s/)) {
         const items = trimmed.split('\n').filter(line => line.trim())
@@ -24,7 +24,7 @@ function textToHtml(text: string): string {
         }).join('\n')
         return `<ul style="margin-left: 20px; margin-bottom: 15px;">${listItems}</ul>`
       }
-      
+
       return `<p style="margin-bottom: 15px; line-height: 1.6;">${trimmed}</p>`
     })
     .filter(Boolean)
@@ -67,7 +67,7 @@ Bonus: %{bonus}
 
 To Pass Probation
 
-Your performance during the probationary period will be assessed against the objectives outlined in Appendix A
+Your performance during the probationary period will be assessed against the objectives outlined in <a href="%{probation_goals_url}" target="_blank" style="text-decoration: underline; color: inherit;">This Document</a>
 
 Taxes & Statutory Deductions: The Company will deduct and remit statutory taxes on your behalf in accordance with applicable laws. You agree that the Company does not have a duty to design its compensation to minimise your tax liabilities and you will not make any claim against the Company or its Board of Directors related to tax liabilities arising from your compensation.
 
@@ -136,32 +136,32 @@ function convertTemplateToHtml(template: string): string {
   const html = `
     <div style="font-family: Georgia, serif; max-width: 800px; margin: 0 auto; padding: 40px; line-height: 1.8; color: #1a1a1a;">
       ${template
-        .split('\n\n')
-        .map((paragraph) => {
-          const trimmed = paragraph.trim()
-          if (!trimmed) return ''
-          
-          // Headings (all caps or specific patterns)
-          if (trimmed.match(/^[A-Z][A-Z\s:&]+$/) && trimmed.length < 100) {
-            return `<h3 style="color: #2d3748; font-weight: bold; margin-top: 24px; margin-bottom: 12px; font-size: 1.1em;">${trimmed}</h3>`
-          }
-          
-          // List items
-          if (trimmed.includes('\n') && (trimmed.includes('- ') || trimmed.match(/\d+\.\s/))) {
-            const items = trimmed.split('\n').filter(line => line.trim())
-            const listItems = items.map(item => {
-              const clean = item.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '').trim()
-              if (!clean) return ''
-              return `<li style="margin-bottom: 10px; margin-left: 20px;">${clean}</li>`
-            }).filter(Boolean).join('\n')
-            return `<ul style="margin-left: 20px; margin-bottom: 15px; padding-left: 20px;">${listItems}</ul>`
-          }
-          
-          // Regular paragraphs
-          return `<p style="margin-bottom: 15px; text-align: left;">${trimmed}</p>`
-        })
-        .filter(Boolean)
-        .join('\n')}
+      .split('\n\n')
+      .map((paragraph) => {
+        const trimmed = paragraph.trim()
+        if (!trimmed) return ''
+
+        // Headings (all caps or specific patterns)
+        if (trimmed.match(/^[A-Z][A-Z\s:&]+$/) && trimmed.length < 100) {
+          return `<h3 style="color: #2d3748; font-weight: bold; margin-top: 24px; margin-bottom: 12px; font-size: 1.1em;">${trimmed}</h3>`
+        }
+
+        // List items
+        if (trimmed.includes('\n') && (trimmed.includes('- ') || trimmed.match(/\d+\.\s/))) {
+          const items = trimmed.split('\n').filter(line => line.trim())
+          const listItems = items.map(item => {
+            const clean = item.replace(/^[-•]\s*/, '').replace(/^\d+\.\s*/, '').trim()
+            if (!clean) return ''
+            return `<li style="margin-bottom: 10px; margin-left: 20px;">${clean}</li>`
+          }).filter(Boolean).join('\n')
+          return `<ul style="margin-left: 20px; margin-bottom: 15px; padding-left: 20px;">${listItems}</ul>`
+        }
+
+        // Regular paragraphs
+        return `<p style="margin-bottom: 15px; text-align: left;">${trimmed}</p>`
+      })
+      .filter(Boolean)
+      .join('\n')}
     </div>
   `
   return html
