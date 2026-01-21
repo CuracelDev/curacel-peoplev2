@@ -1348,6 +1348,112 @@ export const jobRouter = router({
       }
     }),
 
+  // Create a new candidate
+  createCandidate: protectedProcedure
+    .input(z.object({
+      name: z.string().min(2),
+      email: z.string().email(),
+      phone: z.string().optional(),
+      linkedinUrl: z.string().optional(),
+      source: z.string().optional(),
+      notes: z.string().optional(),
+      jobId: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      let targetJobId = input.jobId
+
+      if (!targetJobId) {
+        // Look for an active job or create a generic talent pool
+        const activeJob = await ctx.prisma.job.findFirst({
+          where: { status: 'ACTIVE' },
+          orderBy: { createdAt: 'desc' },
+        })
+
+        if (activeJob) {
+          targetJobId = activeJob.id
+        } else {
+          // Create "General Application" job
+          const generalJob = await ctx.prisma.job.create({
+            data: {
+              title: 'General Application',
+              department: 'General',
+              status: 'ACTIVE',
+              employmentType: 'full-time',
+            }
+          })
+          targetJobId = generalJob.id
+        }
+      }
+
+      // Check if candidate already exists by email
+      const existingCandidate = await ctx.prisma.jobCandidate.findFirst({
+        where: { email: input.email.toLowerCase() }
+      })
+
+      if (existingCandidate) {
+        throw new TRPCError({
+          code: 'CONFLICT',
+          message: 'A candidate with this email address already exists.'
+        })
+      }
+
+      // Map source to enum
+      let source: 'INBOUND' | 'OUTBOUND' | 'RECRUITER' | 'EXCELLER' = 'INBOUND'
+      let inboundChannel: any = null
+      let outboundChannel: any = null
+
+      if (input.source === 'linkedin') {
+        source = 'OUTBOUND'
+        outboundChannel = 'LINKEDIN'
+      } else if (input.source === 'job-board') {
+        source = 'OUTBOUND'
+        outboundChannel = 'JOB_BOARDS'
+      } else if (input.source === 'recruiter') {
+        source = 'RECRUITER'
+      } else if (input.source === 'referral') {
+        source = 'EXCELLER'
+      } else if (input.source === 'careers-page') {
+        source = 'INBOUND'
+        inboundChannel = 'PEOPLEOS'
+      }
+
+      // Create candidate
+      const candidate = await ctx.prisma.jobCandidate.create({
+        data: {
+          jobId: targetJobId,
+          name: input.name,
+          email: input.email.toLowerCase(),
+          phone: input.phone,
+          linkedinUrl: input.linkedinUrl,
+          source,
+          inboundChannel,
+          outboundChannel,
+          notes: input.notes,
+          stage: 'APPLIED',
+        }
+      })
+
+      // Create employee record with status CANDIDATE
+      try {
+        const employee = await ctx.prisma.employee.create({
+          data: {
+            fullName: input.name,
+            personalEmail: input.email.toLowerCase(),
+            status: 'CANDIDATE',
+            phone: input.phone,
+            candidateId: candidate.id,
+            jobTitle: 'Candidate', // Placeholder
+          }
+        })
+
+        // Link candidate back to employee (if needed, though already linked via candidateId on Employee)
+      } catch (error) {
+        console.error('Failed to create employee for new candidate:', error)
+      }
+
+      return candidate
+    }),
+
   // Get full candidate profile with all related data
   getCandidateProfile: protectedProcedure
     .input(z.object({ candidateId: z.string() }))
