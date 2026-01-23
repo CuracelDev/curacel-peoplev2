@@ -1,6 +1,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { trpc } from '@/lib/trpc-client'
 import { ArrowLeft, Briefcase, Calendar, DollarSign, MapPin, Users, Target, Award, Network, ChevronDown, Clipboard, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns'
@@ -491,9 +492,9 @@ export default function JobDetailsPage() {
                                 {req.requiredLevelName}
                               </span>
                               <span className={`px-2 py-0.5 text-xs font-medium rounded ${req.priority === 'CRITICAL' ? 'bg-red-100 text-red-700' :
-                                  req.priority === 'HIGH' ? 'bg-orange-100 text-orange-700' :
-                                    req.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
-                                      'bg-gray-100 text-gray-700'
+                                req.priority === 'HIGH' ? 'bg-orange-100 text-orange-700' :
+                                  req.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                                    'bg-gray-100 text-gray-700'
                                 }`}>
                                 {req.priority}
                               </span>
