@@ -91,6 +91,16 @@ pipelines:
               echo "Updating containers..."
               docker compose -f docker-compose.deploy.yml up -d app adminer
 
+              # Health Check
+              echo "Waiting for app to start..."
+              sleep 20
+              echo "=== Container Status ==="
+              docker compose -f docker-compose.deploy.yml ps
+              echo "=== App Logs (Last 50 lines) ==="
+              docker logs curacel-people-app-v2 --tail 50
+              echo "=== Local Health Check ==="
+              curl -s -I http://localhost:3800 | grep "HTTP/" || echo "App not responding on localhost:3800"
+
               # Cleanup
               echo "Cleaning up artifacts..."
               rm -f app_image.tar.gz
