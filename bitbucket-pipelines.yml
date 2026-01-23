@@ -89,30 +89,29 @@ pipelines:
               # 3. DB Migrations & Seeding
               echo "[3/4] Synchronizing database schema and seeding..."
               # Running push then seed to ensure both schema and data are ready
-              docker compose -f docker-compose.deploy.yml run --rm app npm run db:push -- --skip-generate || echo "Warning: Push failed"
+              docker compose -f docker-compose.deploy.yml run --rm app npx prisma@5.10.2 db push --accept-data-loss || echo "Warning: Push failed"
               docker compose -f docker-compose.deploy.yml run --rm app npm run db:seed || echo "Warning: Seed failed"
 
               # 4. App Swap
               echo "[4/4] Swapping application container..."
-              # Stop and remove old one to ensure clean port binding
-              docker rm -f curacel-people-app-v2 || true
-              docker compose -f docker-compose.deploy.yml up -d app adminer
+              # force-recreate is a cleaner way to handle the swap than manual rm
+              docker compose -f docker-compose.deploy.yml up -d --force-recreate app adminer
 
               echo "--- Post-Deployment Summary ---"
-              sleep 10
+              sleep 15
               echo "Container Status:"
               docker compose -f docker-compose.deploy.yml ps
               
-              echo "App Logs (Last 40 lines):"
-              docker logs curacel-people-app-v2 --tail 40
+              echo "App Logs (Last 60 lines):"
+              docker logs curacel-people-app-v2 --tail 60
               
-              echo "Reachable on Localhost?"
-              curl -v http://localhost:3800 2>&1 | head -n 10 || echo "App not responding on port 3800"
+              echo "Local Health Check:"
+              curl -s -I http://localhost:3800 | grep "HTTP/" || echo "❌ App not responding on port 3800"
 
               # Cleanup
               rm -f app_image.tar.gz
               docker image prune -f
-              echo "✅ Deployment finished. Check logs above for details."
+              echo "✅ Deployment finished."
             EOF
 
   default:
