@@ -58,7 +58,7 @@
     "@trpc/server": "^11.0.0-rc.297",
     "@uploadthing/react": "^7.3.3",
     "bcryptjs": "^2.4.3",
-    "cheerio": "^1.1.0",
+    "cheerio": "1.0.0-rc.12",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^1.1.1",
