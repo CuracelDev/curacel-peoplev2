@@ -1,0 +1,103 @@
+name: Build and Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build production image
+        run: |
+          echo "Building production image..."
+          docker build --target runner -t curacel-people-app:latest .
+
+      - name: Save image for transfer
+        run: |
+          echo "Saving image..."
+          docker save curacel-people-app:latest | gzip > app_image.tar.gz
+
+      - name: Prepare .env file
+        run: |
+          cat << EOF > .env
+          NODE_ENV=production
+          PORT=3800
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          EMAIL_SERVER_HOST=${{ secrets.EMAIL_SERVER_HOST }}
+          EMAIL_SERVER_PORT=${{ secrets.EMAIL_SERVER_PORT }}
+          EMAIL_SERVER_USER=${{ secrets.EMAIL_SERVER_USER }}
+          EMAIL_SERVER_PASSWORD=${{ secrets.EMAIL_SERVER_PASSWORD }}
+          EMAIL_FROM=${{ secrets.EMAIL_FROM }}
+          POSTMARK_SERVER_TOKEN=${{ secrets.POSTMARK_SERVER_TOKEN }}
+          POSTMARK_FROM=${{ secrets.POSTMARK_FROM }}
+          DOCUSIGN_CLIENT_ID=${{ secrets.DOCUSIGN_CLIENT_ID }}
+          DOCUSIGN_CLIENT_SECRET=${{ secrets.DOCUSIGN_CLIENT_SECRET }}
+          DOCUSIGN_REDIRECT_URI=${{ secrets.DOCUSIGN_REDIRECT_URI }}
+          UPLOADTHING_SECRET=${{ secrets.UPLOADTHING_SECRET }}
+          UPLOADTHING_APP_ID=${{ secrets.UPLOADTHING_APP_ID }}
+          ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
+          DEV_PASSWORDLESS_LOGIN=${{ secrets.DEV_PASSWORDLESS_LOGIN }}
+          DEV_AUTO_CREATE_SUPER_ADMIN=${{ secrets.DEV_AUTO_CREATE_SUPER_ADMIN }}
+          NEXT_PUBLIC_DEV_PASSWORDLESS_LOGIN=${{ secrets.DEV_PASSWORDLESS_LOGIN }}
+          EOF
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Transfer files to server
+        run: |
+          echo "Transferring artifacts..."
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p ~/peopleos"
+          scp -i ~/.ssh/deploy_key .env docker-compose.deploy.yml app_image.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/peopleos/
+
+      - name: Deploy on server
+        run: |
+          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            cd ~/peopleos
+            echo "--- Starting Deployment ---"
+            
+            # Load new image
+            echo "[1/3] Loading image..."
+            gunzip -c app_image.tar.gz | docker load
+            
+            # Start infra
+            echo "[2/3] Starting infrastructure..."
+            docker compose -f docker-compose.deploy.yml up -d postgres redis
+            sleep 10
+            
+            # Swap app
+            echo "[3/3] Swapping application..."
+            docker compose -f docker-compose.deploy.yml up -d --force-recreate app adminer
+            
+            # Diagnostics
+            sleep 15
+            echo "=== Container Status ==="
+            docker compose -f docker-compose.deploy.yml ps
+            echo "=== App Logs ==="
+            docker logs curacel-people-app-v2 --tail 30
+            
+            # Cleanup
+            rm -f app_image.tar.gz
+            docker image prune -f
+            echo "✅ Deployment complete!"
+          EOF

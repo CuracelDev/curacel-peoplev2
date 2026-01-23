@@ -416,12 +416,16 @@ export default function ContractDetailPage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="USD">USD</SelectItem>
-                            <SelectItem value="NGN">NGN</SelectItem>
-                            <SelectItem value="GBP">GBP</SelectItem>
                             <SelectItem value="EUR">EUR</SelectItem>
-                            <SelectItem value="KSH">KSH</SelectItem>
-                            <SelectItem value="ZAR">ZAR</SelectItem>
+                            <SelectItem value="GBP">GBP</SelectItem>
+                            <SelectItem value="NGN">NGN</SelectItem>
                             <SelectItem value="GHS">GHS</SelectItem>
+                            <SelectItem value="KES">KES</SelectItem>
+                            <SelectItem value="ZAR">ZAR</SelectItem>
+                            <SelectItem value="UGX">UGX</SelectItem>
+                            <SelectItem value="EGP">EGP</SelectItem>
+                            <SelectItem value="CAD">CAD</SelectItem>
+                            <SelectItem value="AUD">AUD</SelectItem>
                           </SelectContent>
                         </Select>
                       )}

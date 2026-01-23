@@ -160,7 +160,9 @@ export default function QuestionsPage() {
   const {
     data: questionsData,
     isLoading: questionsLoading,
+    isFetching: questionsFetching,
     refetch: refetchQuestions,
+    error: questionsError,
   } = trpc.question.list.useQuery({
     category: categoryFilter,
     jobId: selectedJob || undefined,
@@ -169,6 +171,13 @@ export default function QuestionsPage() {
     onlyFavorites: showFavoritesOnly || undefined,
     limit: 100,
   })
+
+  // Toast query errors
+  useEffect(() => {
+    if (questionsError) {
+      toast.error('Failed to load questions', { description: questionsError.message })
+    }
+  }, [questionsError])
 
   // Mutations
   const utils = trpc.useUtils()
@@ -417,292 +426,292 @@ export default function QuestionsPage() {
           </div>
 
           <div className="grid grid-cols-[320px_1fr] gap-6">
-        {/* Sidebar - Filters */}
-        <div className="space-y-5">
-          <Card className="sticky top-20">
-            <CardContent className="p-5">
-              <h3 className="font-semibold mb-4">Filters</h3>
+            {/* Sidebar - Filters */}
+            <div className="space-y-5">
+              <Card className="sticky top-20">
+                <CardContent className="p-5">
+                  <h3 className="font-semibold mb-4">Filters</h3>
 
-              {/* Job Selection */}
-              <div className="mb-4">
-                <Label className="mb-2 block">Job Position</Label>
-                <Select value={selectedJob || 'all'} onValueChange={(v) => setSelectedJob(v === 'all' ? '' : v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All jobs" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All jobs</SelectItem>
-                    {jobs?.map((job) => (
-                      <SelectItem key={job.id} value={job.id}>
-                        {job.title}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Interview Type */}
-              <div className="mb-4">
-                <Label className="mb-2 block">Interview Type</Label>
-                <Select value={selectedInterviewType || 'all'} onValueChange={(v) => setSelectedInterviewType(v === 'all' ? '' : v)}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="All types" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All types</SelectItem>
-                    {interviewTypes?.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
-                        {type.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Categories */}
-              <div className="mb-5">
-                <Label className="mb-2 block">Question Categories</Label>
-                <div className="space-y-2">
-                  {categoryOrder.map((catId) => {
-                    const category = categoryConfig[catId]
-                    const count = categoriesData?.find((c) => c.value === catId)?.count ?? 0
-                    const Icon = category.icon
-                    return (
-                      <button
-                        key={catId}
-                        onClick={() => toggleCategory(catId)}
-                        className={cn(
-                          'w-full flex items-center gap-3 p-3 border rounded-lg transition-all text-left',
-                          selectedCategories.includes(catId)
-                            ? 'border-indigo-500 bg-indigo-50/50'
-                            : 'border-border hover:border-border'
-                        )}
-                      >
-                        <div
-                          className={cn(
-                            'w-5 h-5 rounded flex items-center justify-center flex-shrink-0',
-                            selectedCategories.includes(catId)
-                              ? 'bg-indigo-600 text-white'
-                              : 'border-2 border-border'
-                          )}
-                        >
-                          {selectedCategories.includes(catId) && <Check className="h-3 w-3" />}
-                        </div>
-                        <div className={cn('w-8 h-8 rounded flex items-center justify-center', category.color)}>
-                          <Icon className="h-4 w-4" />
-                        </div>
-                        <div className="flex-1">
-                          <div className="font-medium text-sm">{category.name}</div>
-                          <div className="text-xs text-muted-foreground">{category.description}</div>
-                        </div>
-                        <Badge variant="secondary" className="text-xs">
-                          {count}
-                        </Badge>
-                      </button>
-                    )
-                  })}
-                </div>
-              </div>
-
-              <Button
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
-                onClick={() => refetchQuestions()}
-                disabled={questionsLoading}
-              >
-                {questionsLoading ? (
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                ) : (
-                  <Zap className="h-4 w-4 mr-2" />
-                )}
-                {questionsLoading ? 'Loading...' : 'Refresh Questions'}
-              </Button>
-
-              {/* Stats */}
-              <div className="mt-4 p-3 bg-muted/50 rounded-lg">
-                <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
-                  Question Bank Stats
-                </div>
-                <div className="space-y-1 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Total Questions</span>
-                    <span className="font-medium">{totalQuestions}</span>
+                  {/* Job Selection */}
+                  <div className="mb-4">
+                    <Label className="mb-2 block">Job Position</Label>
+                    <Select value={selectedJob || 'all'} onValueChange={(v) => setSelectedJob(v === 'all' ? '' : v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All jobs" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All jobs</SelectItem>
+                        {jobs?.map((job) => (
+                          <SelectItem key={job.id} value={job.id}>
+                            {job.title}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Showing</span>
-                    <span className="font-medium">{questionsData?.questions.length ?? 0}</span>
+
+                  {/* Interview Type */}
+                  <div className="mb-4">
+                    <Label className="mb-2 block">Interview Type</Label>
+                    <Select value={selectedInterviewType || 'all'} onValueChange={(v) => setSelectedInterviewType(v === 'all' ? '' : v)}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="All types" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All types</SelectItem>
+                        {interviewTypes?.map((type) => (
+                          <SelectItem key={type.id} value={type.id}>
+                            {type.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </div>
-              </div>
 
-              {isEmpty && (
-                <Button
-                  variant="outline"
-                  className="w-full mt-3"
-                  onClick={() => seedDefaultsMutation.mutate()}
-                  disabled={seedDefaultsMutation.isPending}
-                >
-                  {seedDefaultsMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Plus className="h-4 w-4 mr-2" />
-                  )}
-                  Seed Default Questions
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content - Questions */}
-        <div className="space-y-5">
-          {questionsLoading && (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-            </div>
-          )}
-
-          {!questionsLoading && isEmpty && (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <div className="text-muted-foreground mb-4">No questions in the bank yet.</div>
-                <div className="flex justify-center gap-3">
-                  <Button onClick={() => setCreateDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add First Question
-                  </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => seedDefaultsMutation.mutate()}
-                    disabled={seedDefaultsMutation.isPending}
-                  >
-                    Seed Defaults
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {!questionsLoading &&
-            categoryOrder.map((catId) => {
-              const questions = questionsByCategory[catId]
-              if (!questions?.length) return null
-              const category = categoryConfig[catId]
-              const Icon = category.icon
-
-              return (
-                <Card key={catId}>
-                  <CardHeader className="flex flex-row items-center justify-between py-4 px-5">
-                    <div className="flex items-center gap-2">
-                      <Badge className={category.badgeColor}>
-                        <Icon className="h-3 w-3 mr-1" />
-                        {category.name}
-                      </Badge>
-                      <span className="font-semibold text-sm">{questions.length} questions</span>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setNewQuestion((prev) => ({ ...prev, category: catId as CategoryKey }))
-                        setCreateDialogOpen(true)
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add
-                    </Button>
-                  </CardHeader>
-                  <CardContent className="px-5 pb-5 space-y-3">
-                    {questions.map((question, index) => (
-                      <div
-                        key={question.id}
-                        className="flex gap-4 p-4 border border-border rounded-xl hover:border-border hover:shadow-sm transition-all"
-                      >
-                        <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center font-semibold text-sm text-foreground/80 flex-shrink-0">
-                          {index + 1}
-                        </div>
-                        <div className="flex-1">
-                          <p className="text-[15px] text-foreground mb-2 leading-relaxed">
-                            {question.text}
-                          </p>
-                          {question.followUp && (
-                            <p className="text-sm text-muted-foreground italic mb-2">
-                              {question.followUp}
-                            </p>
-                          )}
-                          <div className="flex flex-wrap gap-2">
-                            {question.tags.map((tag, i) => (
-                              <Badge key={i} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            ))}
-                            {question.job && (
-                              <Badge variant="outline" className="text-xs">
-                                {question.job.title}
-                              </Badge>
-                            )}
-                            {question.interviewType && (
-                              <Badge variant="outline" className="text-xs">
-                                {question.interviewType.name}
-                              </Badge>
-                            )}
-                            {question.usageCount > 0 && (
-                              <Badge variant="secondary" className="text-xs text-muted-foreground">
-                                Used {question.usageCount}x
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        <div className="flex flex-col gap-2">
+                  {/* Categories */}
+                  <div className="mb-5">
+                    <Label className="mb-2 block">Question Categories</Label>
+                    <div className="space-y-2">
+                      {categoryOrder.map((catId) => {
+                        const category = categoryConfig[catId]
+                        const count = categoriesData?.find((c) => c.value === catId)?.count ?? 0
+                        const Icon = category.icon
+                        return (
                           <button
-                            onClick={() => toggleFavoriteMutation.mutate({ id: question.id })}
+                            key={catId}
+                            onClick={() => toggleCategory(catId)}
                             className={cn(
-                              'w-8 h-8 rounded border flex items-center justify-center transition-all',
-                              question.isFavorite
-                                ? 'bg-amber-50 border-amber-300 text-amber-500'
-                                : 'border-border text-muted-foreground hover:bg-muted'
+                              'w-full flex items-center gap-3 p-3 border rounded-lg transition-all text-left',
+                              selectedCategories.includes(catId)
+                                ? 'border-indigo-500 bg-indigo-50/50'
+                                : 'border-border hover:border-border'
                             )}
                           >
-                            <Star className={cn('h-4 w-4', question.isFavorite && 'fill-current')} />
+                            <div
+                              className={cn(
+                                'w-5 h-5 rounded flex items-center justify-center flex-shrink-0',
+                                selectedCategories.includes(catId)
+                                  ? 'bg-indigo-600 text-white'
+                                  : 'border-2 border-border'
+                              )}
+                            >
+                              {selectedCategories.includes(catId) && <Check className="h-3 w-3" />}
+                            </div>
+                            <div className={cn('w-8 h-8 rounded flex items-center justify-center', category.color)}>
+                              <Icon className="h-4 w-4" />
+                            </div>
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">{category.name}</div>
+                              <div className="text-xs text-muted-foreground">{category.description}</div>
+                            </div>
+                            <Badge variant="secondary" className="text-xs">
+                              {count}
+                            </Badge>
                           </button>
-                          <button
-                            onClick={() => copyToClipboard(question.text)}
-                            className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted"
-                          >
-                            <Copy className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() =>
-                              setEditingQuestion({
-                                id: question.id,
-                                text: question.text,
-                                followUp: question.followUp ?? '',
-                                category: question.category,
-                                tags: question.tags,
-                              })
-                            }
-                            className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted"
-                          >
-                            <Edit2 className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              if (confirm('Delete this question?')) {
-                                deleteMutation.mutate({ id: question.id })
-                              }
-                            }}
-                            className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-red-50 hover:text-red-500 hover:border-red-300"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <Button
+                    className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700"
+                    onClick={() => refetchQuestions()}
+                    disabled={questionsFetching}
+                  >
+                    {questionsFetching ? (
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                      <Zap className="h-4 w-4 mr-2" />
+                    )}
+                    {questionsFetching ? 'Loading...' : 'Refresh Questions'}
+                  </Button>
+
+                  {/* Stats */}
+                  <div className="mt-4 p-3 bg-muted/50 rounded-lg">
+                    <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-2">
+                      Question Bank Stats
+                    </div>
+                    <div className="space-y-1 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Total Questions</span>
+                        <span className="font-medium">{totalQuestions}</span>
                       </div>
-                    ))}
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Showing</span>
+                        <span className="font-medium">{questionsData?.questions.length ?? 0}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {isEmpty && (
+                    <Button
+                      variant="outline"
+                      className="w-full mt-3"
+                      onClick={() => seedDefaultsMutation.mutate()}
+                      disabled={seedDefaultsMutation.isPending}
+                    >
+                      {seedDefaultsMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      ) : (
+                        <Plus className="h-4 w-4 mr-2" />
+                      )}
+                      Seed Default Questions
+                    </Button>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Main Content - Questions */}
+            <div className="space-y-5">
+              {questionsLoading && (
+                <div className="flex items-center justify-center py-12">
+                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+              )}
+
+              {!questionsLoading && isEmpty && (
+                <Card>
+                  <CardContent className="py-12 text-center">
+                    <div className="text-muted-foreground mb-4">No questions in the bank yet.</div>
+                    <div className="flex justify-center gap-3">
+                      <Button onClick={() => setCreateDialogOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add First Question
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={() => seedDefaultsMutation.mutate()}
+                        disabled={seedDefaultsMutation.isPending}
+                      >
+                        Seed Defaults
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
-              )
-            })}
+              )}
+
+              {!questionsLoading &&
+                categoryOrder.map((catId) => {
+                  const questions = questionsByCategory[catId]
+                  if (!questions?.length) return null
+                  const category = categoryConfig[catId]
+                  const Icon = category.icon
+
+                  return (
+                    <Card key={catId}>
+                      <CardHeader className="flex flex-row items-center justify-between py-4 px-5">
+                        <div className="flex items-center gap-2">
+                          <Badge className={category.badgeColor}>
+                            <Icon className="h-3 w-3 mr-1" />
+                            {category.name}
+                          </Badge>
+                          <span className="font-semibold text-sm">{questions.length} questions</span>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setNewQuestion((prev) => ({ ...prev, category: catId as CategoryKey }))
+                            setCreateDialogOpen(true)
+                          }}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add
+                        </Button>
+                      </CardHeader>
+                      <CardContent className="px-5 pb-5 space-y-3">
+                        {questions.map((question, index) => (
+                          <div
+                            key={question.id}
+                            className="flex gap-4 p-4 border border-border rounded-xl hover:border-border hover:shadow-sm transition-all"
+                          >
+                            <div className="w-7 h-7 bg-muted rounded-full flex items-center justify-center font-semibold text-sm text-foreground/80 flex-shrink-0">
+                              {index + 1}
+                            </div>
+                            <div className="flex-1">
+                              <p className="text-[15px] text-foreground mb-2 leading-relaxed">
+                                {question.text}
+                              </p>
+                              {question.followUp && (
+                                <p className="text-sm text-muted-foreground italic mb-2">
+                                  {question.followUp}
+                                </p>
+                              )}
+                              <div className="flex flex-wrap gap-2">
+                                {question.tags.map((tag, i) => (
+                                  <Badge key={i} variant="secondary" className="text-xs">
+                                    {tag}
+                                  </Badge>
+                                ))}
+                                {question.job && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {question.job.title}
+                                  </Badge>
+                                )}
+                                {question.interviewType && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {question.interviewType.name}
+                                  </Badge>
+                                )}
+                                {question.usageCount > 0 && (
+                                  <Badge variant="secondary" className="text-xs text-muted-foreground">
+                                    Used {question.usageCount}x
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <button
+                                onClick={() => toggleFavoriteMutation.mutate({ id: question.id })}
+                                className={cn(
+                                  'w-8 h-8 rounded border flex items-center justify-center transition-all',
+                                  question.isFavorite
+                                    ? 'bg-amber-50 border-amber-300 text-amber-500'
+                                    : 'border-border text-muted-foreground hover:bg-muted'
+                                )}
+                              >
+                                <Star className={cn('h-4 w-4', question.isFavorite && 'fill-current')} />
+                              </button>
+                              <button
+                                onClick={() => copyToClipboard(question.text)}
+                                className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted"
+                              >
+                                <Copy className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() =>
+                                  setEditingQuestion({
+                                    id: question.id,
+                                    text: question.text,
+                                    followUp: question.followUp ?? '',
+                                    category: question.category,
+                                    tags: question.tags,
+                                  })
+                                }
+                                className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-muted"
+                              >
+                                <Edit2 className="h-4 w-4" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  if (confirm('Delete this question?')) {
+                                    deleteMutation.mutate({ id: question.id })
+                                  }
+                                }}
+                                className="w-8 h-8 rounded border border-border flex items-center justify-center text-muted-foreground hover:bg-red-50 hover:text-red-500 hover:border-red-300"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+            </div>
           </div>
-        </div>
         </TabsContent>
 
         {/* AuntyPelz AI Tab */}
@@ -1123,7 +1132,7 @@ export default function QuestionsPage() {
                           setEditingQuestion((prev) =>
                             prev && { ...prev, tags: [...prev.tags, value] }
                           )
-                          ;(e.target as HTMLInputElement).value = ''
+                            ; (e.target as HTMLInputElement).value = ''
                         }
                       }
                     }}

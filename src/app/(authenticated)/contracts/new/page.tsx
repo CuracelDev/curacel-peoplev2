@@ -837,12 +837,16 @@ export default function NewContractPage() {
                     </SelectTrigger>
                     <SelectContent side="bottom" sideOffset={4} avoidCollisions={false}>
                       <SelectItem value="USD">USD</SelectItem>
-                      <SelectItem value="NGN">NGN</SelectItem>
-                      <SelectItem value="GBP">GBP</SelectItem>
-                      <SelectItem value="KSH">KSH</SelectItem>
-                      <SelectItem value="ZAR">ZAR</SelectItem>
-                      <SelectItem value="GHS">GHS</SelectItem>
                       <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
+                      <SelectItem value="NGN">NGN</SelectItem>
+                      <SelectItem value="GHS">GHS</SelectItem>
+                      <SelectItem value="KES">KES</SelectItem>
+                      <SelectItem value="ZAR">ZAR</SelectItem>
+                      <SelectItem value="UGX">UGX</SelectItem>
+                      <SelectItem value="EGP">EGP</SelectItem>
+                      <SelectItem value="CAD">CAD</SelectItem>
+                      <SelectItem value="AUD">AUD</SelectItem>
                     </SelectContent>
                   </Select>
                 )}
