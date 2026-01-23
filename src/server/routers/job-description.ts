@@ -74,12 +74,14 @@ async function extractTextFromFile(url: string): Promise<string> {
     let text = ''
 
     if (contentType.includes('pdf')) {
-      const pdf = await import('pdf-parse')
-      const data = await pdf.default(buffer)
+      const pdfModule = await import('pdf-parse')
+      const pdfParser = (pdfModule as any).default || pdfModule
+      const data = await pdfParser(buffer)
       text = data.text
     } else if (contentType.includes('word') || contentType.includes('officedocument.wordprocessingml.document')) {
-      const mammoth = await import('mammoth')
-      const result = await mammoth.default.extractRawText({ buffer })
+      const mammothModule = await import('mammoth')
+      const mammoth = (mammothModule as any).default || mammothModule
+      const result = await mammoth.extractRawText({ buffer })
       text = result.value
     } else {
       // Assume text/plain or similar
