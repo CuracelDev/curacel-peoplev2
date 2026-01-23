@@ -2,8 +2,9 @@
 
 import { useParams, useRouter } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
-import { ArrowLeft, Briefcase, Calendar, DollarSign, MapPin, Users, Target, Award, Network, ChevronDown } from 'lucide-react'
+import { ArrowLeft, Briefcase, Calendar, DollarSign, MapPin, Users, Target, Award, Network, ChevronDown, Clipboard, ExternalLink } from 'lucide-react'
 import { format } from 'date-fns'
+import { toast } from 'sonner'
 import {
   Collapsible,
   CollapsibleContent,
@@ -127,6 +128,13 @@ export default function JobDetailsPage() {
     5: 'bg-red-100 text-red-700',
   }
 
+  const copyPublicLink = () => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    const url = `${origin}/careers/${jobId}`
+    navigator.clipboard.writeText(url)
+    toast.success('Public application link copied to clipboard!')
+  }
+
   return (
     <div className="space-y-6 py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       <div className="flex items-center">
@@ -184,6 +192,29 @@ export default function JobDetailsPage() {
                 <Badge className={`${priorityColors[job.priority as keyof typeof priorityColors]} text-xs`}>
                   {priorityLabels[job.priority as keyof typeof priorityLabels]} Priority
                 </Badge>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-wrap gap-3 mt-4">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="bg-indigo-50 text-indigo-600 border-indigo-200 hover:bg-indigo-100 h-9 px-4 gap-2 font-medium transition-all"
+                  onClick={copyPublicLink}
+                >
+                  <Clipboard className="h-4 w-4" />
+                  Copy Public Link
+                </Button>
+                <Link href={`/careers/${jobId}`} target="_blank">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="text-muted-foreground hover:text-indigo-600 h-9 px-4 gap-2 transition-all"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    View Public Page
+                  </Button>
+                </Link>
               </div>
             </div>
           </div>
@@ -459,12 +490,11 @@ export default function JobDetailsPage() {
                               <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-medium rounded whitespace-nowrap">
                                 {req.requiredLevelName}
                               </span>
-                              <span className={`px-2 py-0.5 text-xs font-medium rounded ${
-                                req.priority === 'CRITICAL' ? 'bg-red-100 text-red-700' :
-                                req.priority === 'HIGH' ? 'bg-orange-100 text-orange-700' :
-                                req.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
-                                'bg-gray-100 text-gray-700'
-                              }`}>
+                              <span className={`px-2 py-0.5 text-xs font-medium rounded ${req.priority === 'CRITICAL' ? 'bg-red-100 text-red-700' :
+                                  req.priority === 'HIGH' ? 'bg-orange-100 text-orange-700' :
+                                    req.priority === 'MEDIUM' ? 'bg-yellow-100 text-yellow-700' :
+                                      'bg-gray-100 text-gray-700'
+                                }`}>
                                 {req.priority}
                               </span>
                             </div>

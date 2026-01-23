@@ -13,7 +13,11 @@ import {
   TrendingUp,
   Loader2,
   Users,
+  Link as LinkIcon,
+  Clipboard,
+  ExternalLink,
 } from 'lucide-react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -129,6 +133,13 @@ export default function PositionsPage() {
     return `${locs.length} locations`
   }
 
+  const copyPublicLink = (jobId: string) => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : ''
+    const url = `${origin}/careers/${jobId}`
+    navigator.clipboard.writeText(url)
+    toast.success('Public application link copied to clipboard!')
+  }
+
   return (
     <div className="py-3 sm:py-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
       <PageActions>
@@ -196,11 +207,11 @@ export default function PositionsPage() {
             const summaryStages = stageBreakdown.length > 0
               ? stageBreakdown.slice(0, 4)
               : [
-                  { label: 'Applicants', count: stats.applicants },
-                  { label: 'In Review', count: stats.inReview },
-                  { label: 'Interviewing', count: stats.interviewing },
-                  { label: 'Offer Stage', count: stats.offerStage },
-                ]
+                { label: 'Applicants', count: stats.applicants },
+                { label: 'In Review', count: stats.inReview },
+                { label: 'Interviewing', count: stats.interviewing },
+                { label: 'Offer Stage', count: stats.offerStage },
+              ]
             const scoreValue = scoreDisplay === 'max' ? stats.maxScore : stats.avgScore
             const scoreLabel = scoreDisplay === 'max' ? 'max score' : 'avg score'
 
@@ -229,6 +240,31 @@ export default function PositionsPage() {
                         {PRIORITY_BADGES[job.priority]?.label || 'Medium'}
                       </Badge>
                     )}
+                  </div>
+
+                  {/* Copy Link Component */}
+                  <div className="flex items-center gap-4 mt-1">
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        copyPublicLink(job.id)
+                      }}
+                      className="text-xs text-indigo-600 hover:text-indigo-800 flex items-center gap-1.5 font-medium bg-indigo-50 px-2 py-0.5 rounded transition-colors group"
+                    >
+                      <Clipboard className="h-3 w-3 group-hover:scale-110 transition-transform" />
+                      Copy Public Link
+                    </button>
+                    <a
+                      href={`/careers/${job.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className="text-xs text-muted-foreground hover:text-indigo-600 flex items-center gap-1.5 transition-colors"
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                      View Public Page
+                    </a>
                   </div>
 
                   {/* Location under title */}
@@ -313,7 +349,8 @@ export default function PositionsPage() {
             </Link>
           )}
         </div>
-      )}
-    </div>
+      )
+      }
+    </div >
   )
 }
