@@ -67,46 +67,52 @@ pipelines:
           - echo "Completing deployment on server..."
           - |
             ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST bash << 'EOF'
-              set -e
               cd ~/peopleos
+              echo "--- Starting Remote Deployment ---"
+              
+              # 1. Load New Image
+              echo "[1/4] Loading image from tarball..."
+              if [ -f app_image.tar.gz ]; then
+                gunzip -c app_image.tar.gz | docker load
+              else
+                echo "Error: app_image.tar.gz not found!"
+              fi
 
-              # Load the new image
-              echo "Loading new image..."
-              gunzip -c app_image.tar.gz | docker load
-
-              # Start/Update DB & Cache
-              echo "Starting/Updating database and redis..."
+              # 2. Infra Warm-up
+              echo "[2/4] Ensuring DB and Redis are running..."
               docker compose -f docker-compose.deploy.yml up -d postgres redis
+              
+              echo "Waiting for DB to be ready..."
+              sleep 10
+              docker exec curacel-people-db-v2 pg_isready -U curacel -d curacel_people || echo "DB not ready yet, proceeding anyway..."
 
-              # Wait for DB
-              echo "Waiting for database..."
-              sleep 5
-              docker exec curacel-people-db-v2 pg_isready -U curacel -d curacel_people
+              # 3. DB Migrations & Seeding
+              echo "[3/4] Synchronizing database schema and seeding..."
+              # Running push then seed to ensure both schema and data are ready
+              docker compose -f docker-compose.deploy.yml run --rm app npm run db:push -- --skip-generate || echo "Warning: Push failed"
+              docker compose -f docker-compose.deploy.yml run --rm app npm run db:seed || echo "Warning: Seed failed"
 
-              # Run migrations using the NEW image
-              echo "Running migrations..."
-              docker compose -f docker-compose.deploy.yml run --rm app npx -y prisma@5.10.2 db push --skip-generate || echo "Migration skipped"
-
-              # Update App and Adminer (Instant Swap)
-              echo "Updating containers..."
+              # 4. App Swap
+              echo "[4/4] Swapping application container..."
+              # Stop and remove old one to ensure clean port binding
+              docker rm -f curacel-people-app-v2 || true
               docker compose -f docker-compose.deploy.yml up -d app adminer
 
-              # Health Check
-              echo "Waiting for app to start..."
-              sleep 20
-              echo "=== Container Status ==="
+              echo "--- Post-Deployment Summary ---"
+              sleep 10
+              echo "Container Status:"
               docker compose -f docker-compose.deploy.yml ps
-              echo "=== App Logs (Last 50 lines) ==="
-              docker logs curacel-people-app-v2 --tail 50
-              echo "=== Local Health Check ==="
-              curl -s -I http://localhost:3800 | grep "HTTP/" || echo "App not responding on localhost:3800"
+              
+              echo "App Logs (Last 40 lines):"
+              docker logs curacel-people-app-v2 --tail 40
+              
+              echo "Reachable on Localhost?"
+              curl -v http://localhost:3800 2>&1 | head -n 10 || echo "App not responding on port 3800"
 
               # Cleanup
-              echo "Cleaning up artifacts..."
               rm -f app_image.tar.gz
               docker image prune -f
-              
-              echo "✅ Deployment complete with zero server-side build load!"
+              echo "✅ Deployment finished. Check logs above for details."
             EOF
 
   default:

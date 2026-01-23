@@ -4,10 +4,6 @@ services:
   app:
     container_name: curacel-people-app-v2
     image: curacel-people-app:latest
-    build:
-      context: .
-      dockerfile: Dockerfile
-      target: runner
     ports:
       - "3800:3800"
     env_file:
