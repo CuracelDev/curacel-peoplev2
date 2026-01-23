@@ -8,109 +8,95 @@ definitions:
 pipelines:
   branches:
     main:
-      - step:
-          name: Deploy to EC2
-          deployment: production
-          script:
-            # Deploy code to server using rsync pipe
-            - pipe: atlassian/rsync-deploy:0.12.0
-              variables:
-                USER: $SSH_USER
-                SERVER: $SSH_HOST
-                REMOTE_PATH: /home/ubuntu/peopleos/
-                LOCAL_PATH: $BITBUCKET_CLONE_DIR/
-                EXTRA_ARGS: '-avz --exclude=.git --exclude=node_modules --exclude=.next --exclude=*.log --exclude=.env --exclude=dist --exclude=.local --exclude=prisma/*.db --exclude=coverage'
-                DELETE_FLAG: 'false'
-                SUDO: 'false'
-            
-            
-            # Setup SSH
-            - mkdir -p ~/.ssh
-            - (umask 077 && echo "$SSH_PRIVATE_KEY" > ~/.ssh/pipelines_id)
-            - chmod 600 ~/.ssh/pipelines_id
-            
-            # Create .env file on server        
-            - echo "Creating .env file on server..."
-            - |
-              ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST "cd /home/ubuntu/peopleos && cat > .env" << ENVEOF
-              NODE_ENV=production
-              PORT=3800
-              DATABASE_URL=$DATABASE_URL
-              NEXTAUTH_SECRET=$NEXTAUTH_SECRET
-              NEXTAUTH_URL=$NEXTAUTH_URL
-              GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
-              GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
-              EMAIL_SERVER_HOST=$EMAIL_SERVER_HOST
-              EMAIL_SERVER_PORT=$EMAIL_SERVER_PORT
-              EMAIL_SERVER_USER=$EMAIL_SERVER_USER
-              EMAIL_SERVER_PASSWORD=$EMAIL_SERVER_PASSWORD
-              EMAIL_FROM=$EMAIL_FROM
-              POSTMARK_SERVER_TOKEN=$POSTMARK_SERVER_TOKEN
-              POSTMARK_FROM=$POSTMARK_FROM
-              DOCUSIGN_CLIENT_ID=$DOCUSIGN_CLIENT_ID
-              DOCUSIGN_CLIENT_SECRET=$DOCUSIGN_CLIENT_SECRET
-              DOCUSIGN_REDIRECT_URI=$DOCUSIGN_REDIRECT_URI
-              UPLOADTHING_SECRET=$UPLOADTHING_SECRET
-              UPLOADTHING_APP_ID=$UPLOADTHING_APP_ID
-              ENCRYPTION_KEY=$ENCRYPTION_KEY
-              DEV_PASSWORDLESS_LOGIN=$DEV_PASSWORDLESS_LOGIN
-              DEV_AUTO_CREATE_SUPER_ADMIN=$DEV_AUTO_CREATE_SUPER_ADMIN
-              NEXT_PUBLIC_DEV_PASSWORDLESS_LOGIN=$DEV_PASSWORDLESS_LOGIN
-              ENVEOF
-            - ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST "cd /home/ubuntu/peopleos && echo 'Environment file created' && head -6 .env"
+          - step:
+              name: Build and Deploy to EC2
+              services:
+                - docker
+              script:
+                # 1. Setup SSH
+                - mkdir -p ~/.ssh
+                - (umask 077 && echo "$SSH_PRIVATE_KEY" > ~/.ssh/pipelines_id)
+                - chmod 600 ~/.ssh/pipelines_id
 
-            # Deploy application (Integrated Step)
-            - echo "Deploying application to EC2..."
-            - |
-              ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST bash << 'EOF'
-                set -e
-                cd /home/ubuntu/peopleos
+                # 2. Build Image on Pipeline Runner (Isolates heavy load from Prod)
+                - echo "Building production image on runner..."
+                - docker build --target runner -t curacel-people-app:latest .
+                
+                # 3. Save Image for Transfer
+                - echo "Saving image for transfer..."
+                - docker save curacel-people-app:latest | gzip > app_image.tar.gz
+                
+                # 4. Prepare Environment File (Local expansion)
+                - echo "Preparing .env file..."
+                - |
+                  cat << ENVEOF > .env
+                  NODE_ENV=production
+                  PORT=3800
+                  DATABASE_URL=$DATABASE_URL
+                  NEXTAUTH_SECRET=$NEXTAUTH_SECRET
+                  NEXTAUTH_URL=$NEXTAUTH_URL
+                  GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+                  GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+                  EMAIL_SERVER_HOST=$EMAIL_SERVER_HOST
+                  EMAIL_SERVER_PORT=$EMAIL_SERVER_PORT
+                  EMAIL_SERVER_USER=$EMAIL_SERVER_USER
+                  EMAIL_SERVER_PASSWORD=$EMAIL_SERVER_PASSWORD
+                  EMAIL_FROM=$EMAIL_FROM
+                  POSTMARK_SERVER_TOKEN=$POSTMARK_SERVER_TOKEN
+                  POSTMARK_FROM=$POSTMARK_FROM
+                  DOCUSIGN_CLIENT_ID=$DOCUSIGN_CLIENT_ID
+                  DOCUSIGN_CLIENT_SECRET=$DOCUSIGN_CLIENT_SECRET
+                  DOCUSIGN_REDIRECT_URI=$DOCUSIGN_REDIRECT_URI
+                  UPLOADTHING_SECRET=$UPLOADTHING_SECRET
+                  UPLOADTHING_APP_ID=$UPLOADTHING_APP_ID
+                  ENCRYPTION_KEY=$ENCRYPTION_KEY
+                  DEV_PASSWORDLESS_LOGIN=$DEV_PASSWORDLESS_LOGIN
+                  DEV_AUTO_CREATE_SUPER_ADMIN=$DEV_AUTO_CREATE_SUPER_ADMIN
+                  NEXT_PUBLIC_DEV_PASSWORDLESS_LOGIN=$DEV_PASSWORDLESS_LOGIN
+                  ENVEOF
 
-                # Check/Install Docker
-                if ! command -v docker &> /dev/null; then
-                  echo "Installing Docker..."
-                  curl -fsSL https://get.docker.com -o get-docker.sh && sudo sh get-docker.sh
-                  sudo usermod -aG docker ubuntu
-                  sudo systemctl enable docker && sudo systemctl start docker
-                fi
-                docker --version && docker compose version
+                # 5. Transfer files to Server
+                - echo "Transferring artifacts to server..."
+                # First ensure directory exists
+                - ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST "mkdir -p /home/$SSH_USER/peopleos"
+                # Transfer compose file and artifacts
+                - scp -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id .env docker-compose.deploy.yml app_image.tar.gz $SSH_USER@$SSH_HOST:/home/$SSH_USER/peopleos/
 
-                # Build with caching enabled (STAY LIVE: This happens while the old version is running)
-                echo "Building images..."
-                docker compose -f docker-compose.deploy.yml build
+                # 6. Remote Deployment (Near-Zero Downtime Swap)
+                - echo "Completing deployment on server..."
+                - |
+                  ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST bash << 'EOF'
+                    set -e
+                    cd /home/$SSH_USER/peopleos
 
-                # Start/Update DB & Cache
-                echo "Starting/Updating database and redis..."
-                docker compose -f docker-compose.deploy.yml up -d postgres redis
+                    # Load the new image
+                    echo "Loading new image..."
+                    gunzip -c app_image.tar.gz | docker load
 
-                # Wait for DB
-                echo "Waiting for database..."
-                sleep 10
-                docker exec curacel-people-db-v2 pg_isready -U curacel -d curacel_people
+                    # Start/Update DB & Cache
+                    echo "Starting/Updating database and redis..."
+                    docker compose -f docker-compose.deploy.yml up -d postgres redis
 
-                # Run migrations using the NEW image (before swapping)
-                echo "Running migrations..."
-                docker compose -f docker-compose.deploy.yml run --rm app npx -y prisma@5.10.2 db push --skip-generate || echo "Migration completed or skipped"
+                    # Wait for DB
+                    echo "Waiting for database..."
+                    sleep 5
+                    docker exec curacel-people-db-v2 pg_isready -U curacel -d curacel_people
 
-                # Update App and Adminer (Near zero-downtime swap)
-                echo "Updating app and adminer..."
-                docker compose -f docker-compose.deploy.yml up -d app adminer
+                    # Run migrations using the NEW image
+                    echo "Running migrations..."
+                    docker compose -f docker-compose.deploy.yml run --rm app npx -y prisma@5.10.2 db push --skip-generate || echo "Migration skipped"
 
-                # Cleanup old unused images to save disk space
-                echo "Cleaning up old images..."
-                docker image prune -f
+                    # Update App and Adminer (Instant Swap)
+                    echo "Updating containers..."
+                    docker compose -f docker-compose.deploy.yml up -d app adminer
 
-                # Health Check
-                sleep 15
-                echo "=== Container Status ==="
-                docker compose -f docker-compose.deploy.yml ps
-                echo "=== App Logs ==="
-                docker logs curacel-people-app-v2 --tail 30
-                echo "=== Health Check ==="
-                curl -s -o /dev/null -w "%{http_code}" http://localhost:3800 || echo "App might be starting..."
-                echo ""
-                echo "✅ Deployment complete with near-zero downtime!"
-              EOF
+                    # Cleanup
+                    echo "Cleaning up artifacts..."
+                    rm -f app_image.tar.gz
+                    docker image prune -f
+                    
+                    echo "✅ Deployment complete with zero server-side build load!"
+                  EOF
 
   default:
     - step:
