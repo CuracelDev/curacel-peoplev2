@@ -59,16 +59,16 @@ pipelines:
           # 5. Transfer files to Server
           - echo "Transferring artifacts to server..."
           # First ensure directory exists
-          - ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST "mkdir -p /home/$SSH_USER/peopleos"
+          - ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST "mkdir -p ~/peopleos"
           # Transfer compose file and artifacts
-          - scp -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id .env docker-compose.deploy.yml app_image.tar.gz $SSH_USER@$SSH_HOST:/home/$SSH_USER/peopleos/
+          - scp -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id .env docker-compose.deploy.yml app_image.tar.gz $SSH_USER@$SSH_HOST:~/peopleos/
 
           # 6. Remote Deployment (Near-Zero Downtime Swap)
           - echo "Completing deployment on server..."
           - |
             ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST bash << 'EOF'
               set -e
-              cd /home/$SSH_USER/peopleos
+              cd ~/peopleos
 
               # Load the new image
               echo "Loading new image..."
