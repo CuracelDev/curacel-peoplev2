@@ -18,9 +18,9 @@ async function scrapeJobPostingUrl(url: string): Promise<string> {
 
     const html = await response.text()
 
-    // Parse with cheerio (available via html-pdf-node dependency)
-    const cheerio = await import('cheerio')
-    const $ = cheerio.load(html)
+    // Parse with cheerio
+    const cheerioModule = await import('cheerio')
+    const $ = (cheerioModule.load || (cheerioModule as any).default?.load)(html)
 
     // Remove unwanted elements
     $('script, style, nav, header, footer').remove()
@@ -56,6 +56,40 @@ async function scrapeJobPostingUrl(url: string): Promise<string> {
       code: 'BAD_REQUEST',
       message: `Failed to import from URL: ${error.message}`,
     })
+  }
+}
+
+// Helper function to extract text from files (PDF, DOCX, TXT)
+async function extractTextFromFile(url: string): Promise<string> {
+  try {
+    const response = await fetch(url)
+    if (!response.ok) {
+      throw new Error(`Failed to fetch file: ${response.statusText}`)
+    }
+
+    const arrayBuffer = await response.arrayBuffer()
+    const buffer = Buffer.from(arrayBuffer)
+    const contentType = response.headers.get('content-type') || ''
+
+    let text = ''
+
+    if (contentType.includes('pdf')) {
+      const pdf = await import('pdf-parse')
+      const data = await pdf.default(buffer)
+      text = data.text
+    } else if (contentType.includes('word') || contentType.includes('officedocument.wordprocessingml.document')) {
+      const mammoth = await import('mammoth')
+      const result = await mammoth.default.extractRawText({ buffer })
+      text = result.value
+    } else {
+      // Assume text/plain or similar
+      text = buffer.toString('utf-8')
+    }
+
+    return text.replace(/\s+/g, ' ').replace(/\n+/g, '\n').trim()
+  } catch (error: any) {
+    console.error('Text extraction error:', error)
+    throw new Error(`Failed to extract text from file: ${error.message}`)
   }
 }
 
@@ -549,6 +583,99 @@ Format as JSON:
       return {
         name: response.jobTitle || 'Imported Job Description',
         department: response.department || '',
+        content: contentHtml,
+      }
+    }),
+
+  // Import JD from File (extract text and structure with AI)
+  importFromFile: adminProcedure
+    .input(z.object({ url: z.string().url() }))
+    .mutation(async ({ ctx, input }) => {
+      // 1. Extract text from file
+      const extractedText = await extractTextFromFile(input.url)
+
+      // 2. Get AI settings
+      const aiSettings = await ctx.prisma.aISettings.findFirst()
+
+      if (!aiSettings || !aiSettings.isEnabled) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'AI is required to parse uploaded files. Please enable AI in Admin > AI Settings.',
+        })
+      }
+
+      // 3. Build prompt for extraction
+      const prompt = `You are a JD extraction expert. I've extracted text from an uploaded file. Structure this into a professional job description.
+
+## Extracted Content
+${extractedText}
+
+## Requirements
+Extract and organize into these sections:
+1. Job Title
+2. Department/Team (if mentioned)
+3. Overview (company intro + role summary)
+4. Responsibilities
+5. Required Qualifications
+6. Preferred Qualifications
+7. Benefits (if mentioned)
+
+If a section is missing, use empty string or empty array.
+
+Format as JSON:
+{
+  "jobTitle": "...",
+  "department": "...",
+  "overview": "...",
+  "responsibilities": ["...", "..."],
+  "requiredQualifications": ["...", "..."],
+  "preferredQualifications": ["...", "..."],
+  "benefits": ["...", "..."]
+}`
+
+      // 4. Call AI provider
+      let responseDetail: any
+
+      if (aiSettings.provider === 'ANTHROPIC') {
+        const Anthropic = (await import('@anthropic-ai/sdk')).default
+        const apiKey = decrypt(aiSettings.anthropicKeyEncrypted!)
+        const anthropic = new Anthropic({ apiKey })
+        const message = await anthropic.messages.create({
+          model: aiSettings.anthropicModel,
+          max_tokens: 4000,
+          messages: [{ role: 'user', content: prompt }],
+        })
+        const content = message.content[0]
+        if (content.type === 'text') {
+          responseDetail = JSON.parse(content.text)
+        }
+      } else if (aiSettings.provider === 'OPENAI') {
+        const OpenAI = (await import('openai')).default
+        const apiKey = decrypt(aiSettings.openaiKeyEncrypted!)
+        const openai = new OpenAI({ apiKey })
+        const completion = await openai.chat.completions.create({
+          model: aiSettings.openaiModel,
+          messages: [{ role: 'user', content: prompt }],
+          response_format: { type: 'json_object' },
+        })
+        responseDetail = JSON.parse(completion.choices[0].message.content || '{}')
+      } else if (aiSettings.provider === 'GEMINI') {
+        const { GoogleGenerativeAI } = await import('@google/generative-ai')
+        const apiKey = decrypt(aiSettings.geminiKeyEncrypted!)
+        const genAI = new GoogleGenerativeAI(apiKey)
+        const model = genAI.getGenerativeModel({ model: aiSettings.geminiModel })
+        const result = await model.generateContent(prompt)
+        const text = result.response.text()
+        const jsonMatch = text.match(/\{[\s\S]*\}/)
+        responseDetail = JSON.parse(jsonMatch ? jsonMatch[0] : text)
+      }
+
+      // 5. Format and return
+      const contentHtml = formatJDContent(responseDetail)
+
+      return {
+        name: responseDetail.jobTitle || 'Imported Job Description',
+        department: responseDetail.department || '',
         content: contentHtml,
       }
     }),

@@ -58,6 +58,7 @@ import {
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
+import { UploadButton, UploadDropzone } from '@/components/ui/uploadthing'
 
 // Mock existing JDs for duplicate detection
 const existingJDs = [
@@ -82,10 +83,9 @@ export default function NewJDPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const fromId = searchParams.get('from') // If creating new version from existing JD
-  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Fetch teams from database
-  const { data: teams, isLoading: teamsLoading} = trpc.team.listForSelect.useQuery()
+  const { data: teams, isLoading: teamsLoading } = trpc.team.listForSelect.useQuery()
 
   // Create mutation
   const createMutation = trpc.jobDescription.create.useMutation({
@@ -110,7 +110,6 @@ export default function NewJDPage() {
   })
 
   // Upload state
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle')
 
   // Import from URL state
@@ -166,6 +165,27 @@ export default function NewJDPage() {
     onError: (error) => {
       setImportError(error.message)
       setImportStatus('error')
+    },
+  })
+
+  // Import from File mutation
+  const importFromFileMutation = trpc.jobDescription.importFromFile.useMutation({
+    onSuccess: (data) => {
+      setFormData({
+        name: data.name,
+        department: data.department || formData.department,
+        content: data.content,
+      })
+      setUploadStatus('success')
+
+      setTimeout(() => {
+        setActiveTab('manual')
+        setUploadStatus('idle')
+      }, 1500)
+    },
+    onError: (error) => {
+      setUploadStatus('error')
+      alert(`Failed to parse file: ${error.message}`)
     },
   })
 
@@ -228,37 +248,6 @@ export default function NewJDPage() {
 
     setIsSaving(false)
     router.push('/hiring/settings/jd-templates')
-  }
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
-    const validFiles = files.filter(file =>
-      file.type === 'application/pdf' ||
-      file.type === 'application/msword' ||
-      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
-      file.type === 'text/plain'
-    )
-    setUploadedFiles(prev => [...prev, ...validFiles])
-  }
-
-  const removeFile = (index: number) => {
-    setUploadedFiles(prev => prev.filter((_, i) => i !== index))
-  }
-
-  const handleBulkUpload = async () => {
-    if (uploadedFiles.length === 0) return
-
-    setUploadStatus('uploading')
-
-    // Simulate upload
-    await new Promise(resolve => setTimeout(resolve, 2000))
-
-    setUploadStatus('success')
-
-    // Redirect after success
-    setTimeout(() => {
-      router.push('/hiring/settings/jd-templates')
-    }, 1500)
   }
 
   const handleImportFromUrl = () => {
@@ -422,74 +411,42 @@ export default function NewJDPage() {
         <TabsContent value="upload" className="mt-6">
           <Card>
             <CardHeader>
-              <CardTitle>Bulk Upload</CardTitle>
+              <CardTitle>Upload Job Description</CardTitle>
               <CardDescription>
-                Upload one or more JD files. Supported formats: PDF, DOC, DOCX, TXT
+                Upload a JD file (PDF, Word, or Text) and we&apos;ll extract the details for you.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
-              <div
-                className={cn(
-                  "border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors",
-                  uploadedFiles.length > 0 ? "border-primary bg-primary/5" : "border-border hover:border-gray-400"
-                )}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  className="hidden"
-                  multiple
-                  accept=".pdf,.doc,.docx,.txt"
-                  onChange={handleFileChange}
-                />
-                <Upload className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-lg font-medium text-foreground">Click to upload or drag and drop</p>
-                <p className="text-sm text-muted-foreground mt-2">PDF, DOC, DOCX, TXT up to 10MB each</p>
-              </div>
+              <UploadDropzone
+                endpoint="jdTemplateUpload"
+                onClientUploadComplete={(res) => {
+                  if (res && res[0]) {
+                    setUploadStatus('uploading')
+                    importFromFileMutation.mutate({ url: res[0].url })
+                  }
+                }}
+                onUploadError={(error: Error) => {
+                  setUploadStatus('error')
+                  alert(`Upload failed: ${error.message}`)
+                }}
+                className="ut-label:text-primary ut-button:bg-primary ut-button:ut-readying:bg-primary/50 border-2 border-dashed border-border p-8"
+              />
 
-              {/* Uploaded files list */}
-              {uploadedFiles.length > 0 && (
-                <div className="space-y-3">
-                  <Label>Files to upload ({uploadedFiles.length})</Label>
-                  <div className="space-y-2">
-                    {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                        <div className="flex items-center gap-3 min-w-0">
-                          <FileText className="h-5 w-5 text-muted-foreground flex-shrink-0" />
-                          <div className="min-w-0">
-                            <span className="text-sm font-medium truncate block">{file.name}</span>
-                            <span className="text-xs text-muted-foreground">({(file.size / 1024).toFixed(1)} KB)</span>
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="h-8 w-8 p-0"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            removeFile(index)
-                          }}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    ))}
+              {/* Upload status */}
+              {uploadStatus === 'uploading' && (
+                <div className="flex items-center justify-center gap-3 p-8 bg-muted/50 rounded-lg">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                  <div>
+                    <p className="font-medium">Extracting details from file...</p>
+                    <p className="text-sm text-muted-foreground">AuntyPelz is parsing your document</p>
                   </div>
                 </div>
               )}
 
-              {/* Upload status */}
               {uploadStatus === 'success' && (
                 <div className="flex items-center gap-2 p-4 bg-success/10 text-success rounded-lg">
                   <CheckCircle className="h-5 w-5" />
-                  <span className="font-medium">Successfully uploaded {uploadedFiles.length} JD(s)!</span>
-                </div>
-              )}
-              {uploadStatus === 'error' && (
-                <div className="flex items-center gap-2 p-4 bg-destructive/10 text-destructive rounded-lg">
-                  <AlertCircle className="h-5 w-5" />
-                  <span className="font-medium">Upload failed. Please try again.</span>
+                  <span className="font-medium">JD extracted! Review in the Manual tab.</span>
                 </div>
               )}
 
@@ -497,19 +454,6 @@ export default function NewJDPage() {
               <div className="flex items-center justify-end gap-4 pt-4 border-t">
                 <Button variant="outline" asChild>
                   <Link href="/hiring/settings/jd-templates">Cancel</Link>
-                </Button>
-                <Button
-                  onClick={handleBulkUpload}
-                  disabled={uploadedFiles.length === 0 || uploadStatus === 'uploading'}
-                >
-                  {uploadStatus === 'uploading' ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Uploading...
-                    </>
-                  ) : (
-                    <>Upload {uploadedFiles.length || ''} File{uploadedFiles.length !== 1 ? 's' : ''}</>
-                  )}
                 </Button>
               </div>
             </CardContent>

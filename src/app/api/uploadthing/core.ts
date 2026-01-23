@@ -27,6 +27,18 @@ export const ourFileRouter = {
       console.log('Candidate resume uploaded:', file.url)
       return { url: file.url }
     }),
+
+  // Endpoint for JD template uploads
+  jdTemplateUpload: f({
+    pdf: { maxFileSize: '8MB', maxFileCount: 10 },
+    text: { maxFileSize: '4MB', maxFileCount: 10 },
+    'application/msword': { maxFileSize: '8MB', maxFileCount: 10 },
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': { maxFileSize: '8MB', maxFileCount: 10 },
+  })
+    .onUploadComplete(async ({ file }) => {
+      console.log('JD template file uploaded:', file.url)
+      return { url: file.url }
+    }),
 } satisfies FileRouter
 
 export type OurFileRouter = typeof ourFileRouter
