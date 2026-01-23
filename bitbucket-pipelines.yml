@@ -86,11 +86,8 @@ pipelines:
               sleep 10
               docker exec curacel-people-db-v2 pg_isready -U curacel -d curacel_people || echo "DB not ready yet, proceeding anyway..."
 
-              # 3. DB Migrations & Seeding
-              echo "[3/4] Synchronizing database schema and seeding..."
-              # Running push then seed to ensure both schema and data are ready
-              docker compose -f docker-compose.deploy.yml run --rm app npx prisma@5.10.2 db push --accept-data-loss || echo "Warning: Push failed"
-              docker compose -f docker-compose.deploy.yml run --rm app npm run db:seed || echo "Warning: Seed failed"
+              # 3. Skip migrations - DB is already in sync
+              echo "[3/4] Skipping migrations (database already synced)"
 
               # 4. App Swap
               echo "[4/4] Swapping application container..."
