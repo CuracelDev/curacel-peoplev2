@@ -3,100 +3,101 @@ image: atlassian/default-image:3
 definitions:
   services:
     docker:
-      memory: 3072
+      memory: 7168
 
 pipelines:
   branches:
     main:
-          - step:
-              name: Build and Deploy to EC2
-              services:
-                - docker
-              script:
-                # 1. Setup SSH
-                - mkdir -p ~/.ssh
-                - (umask 077 && echo "$SSH_PRIVATE_KEY" > ~/.ssh/pipelines_id)
-                - chmod 600 ~/.ssh/pipelines_id
+      - step:
+          name: Build and Deploy to EC2
+          size: 2x
+          services:
+            - docker
+          script:
+          # 1. Setup SSH
+          - mkdir -p ~/.ssh
+          - (umask 077 && echo "$SSH_PRIVATE_KEY" > ~/.ssh/pipelines_id)
+          - chmod 600 ~/.ssh/pipelines_id
 
-                # 2. Build Image on Pipeline Runner (Isolates heavy load from Prod)
-                - echo "Building production image on runner..."
-                - docker build --target runner -t curacel-people-app:latest .
-                
-                # 3. Save Image for Transfer
-                - echo "Saving image for transfer..."
-                - docker save curacel-people-app:latest | gzip > app_image.tar.gz
-                
-                # 4. Prepare Environment File (Local expansion)
-                - echo "Preparing .env file..."
-                - |
-                  cat << ENVEOF > .env
-                  NODE_ENV=production
-                  PORT=3800
-                  DATABASE_URL=$DATABASE_URL
-                  NEXTAUTH_SECRET=$NEXTAUTH_SECRET
-                  NEXTAUTH_URL=$NEXTAUTH_URL
-                  GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
-                  GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
-                  EMAIL_SERVER_HOST=$EMAIL_SERVER_HOST
-                  EMAIL_SERVER_PORT=$EMAIL_SERVER_PORT
-                  EMAIL_SERVER_USER=$EMAIL_SERVER_USER
-                  EMAIL_SERVER_PASSWORD=$EMAIL_SERVER_PASSWORD
-                  EMAIL_FROM=$EMAIL_FROM
-                  POSTMARK_SERVER_TOKEN=$POSTMARK_SERVER_TOKEN
-                  POSTMARK_FROM=$POSTMARK_FROM
-                  DOCUSIGN_CLIENT_ID=$DOCUSIGN_CLIENT_ID
-                  DOCUSIGN_CLIENT_SECRET=$DOCUSIGN_CLIENT_SECRET
-                  DOCUSIGN_REDIRECT_URI=$DOCUSIGN_REDIRECT_URI
-                  UPLOADTHING_SECRET=$UPLOADTHING_SECRET
-                  UPLOADTHING_APP_ID=$UPLOADTHING_APP_ID
-                  ENCRYPTION_KEY=$ENCRYPTION_KEY
-                  DEV_PASSWORDLESS_LOGIN=$DEV_PASSWORDLESS_LOGIN
-                  DEV_AUTO_CREATE_SUPER_ADMIN=$DEV_AUTO_CREATE_SUPER_ADMIN
-                  NEXT_PUBLIC_DEV_PASSWORDLESS_LOGIN=$DEV_PASSWORDLESS_LOGIN
-                  ENVEOF
+          # 2. Build Image on Pipeline Runner (Isolates heavy load from Prod)
+          - echo "Building production image on runner..."
+          - docker build --target runner -t curacel-people-app:latest .
+          
+          # 3. Save Image for Transfer
+          - echo "Saving image for transfer..."
+          - docker save curacel-people-app:latest | gzip > app_image.tar.gz
+          
+          # 4. Prepare Environment File (Local expansion)
+          - echo "Preparing .env file..."
+          - |
+            cat << ENVEOF > .env
+            NODE_ENV=production
+            PORT=3800
+            DATABASE_URL=$DATABASE_URL
+            NEXTAUTH_SECRET=$NEXTAUTH_SECRET
+            NEXTAUTH_URL=$NEXTAUTH_URL
+            GOOGLE_CLIENT_ID=$GOOGLE_CLIENT_ID
+            GOOGLE_CLIENT_SECRET=$GOOGLE_CLIENT_SECRET
+            EMAIL_SERVER_HOST=$EMAIL_SERVER_HOST
+            EMAIL_SERVER_PORT=$EMAIL_SERVER_PORT
+            EMAIL_SERVER_USER=$EMAIL_SERVER_USER
+            EMAIL_SERVER_PASSWORD=$EMAIL_SERVER_PASSWORD
+            EMAIL_FROM=$EMAIL_FROM
+            POSTMARK_SERVER_TOKEN=$POSTMARK_SERVER_TOKEN
+            POSTMARK_FROM=$POSTMARK_FROM
+            DOCUSIGN_CLIENT_ID=$DOCUSIGN_CLIENT_ID
+            DOCUSIGN_CLIENT_SECRET=$DOCUSIGN_CLIENT_SECRET
+            DOCUSIGN_REDIRECT_URI=$DOCUSIGN_REDIRECT_URI
+            UPLOADTHING_SECRET=$UPLOADTHING_SECRET
+            UPLOADTHING_APP_ID=$UPLOADTHING_APP_ID
+            ENCRYPTION_KEY=$ENCRYPTION_KEY
+            DEV_PASSWORDLESS_LOGIN=$DEV_PASSWORDLESS_LOGIN
+            DEV_AUTO_CREATE_SUPER_ADMIN=$DEV_AUTO_CREATE_SUPER_ADMIN
+            NEXT_PUBLIC_DEV_PASSWORDLESS_LOGIN=$DEV_PASSWORDLESS_LOGIN
+            ENVEOF
 
-                # 5. Transfer files to Server
-                - echo "Transferring artifacts to server..."
-                # First ensure directory exists
-                - ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST "mkdir -p /home/$SSH_USER/peopleos"
-                # Transfer compose file and artifacts
-                - scp -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id .env docker-compose.deploy.yml app_image.tar.gz $SSH_USER@$SSH_HOST:/home/$SSH_USER/peopleos/
+          # 5. Transfer files to Server
+          - echo "Transferring artifacts to server..."
+          # First ensure directory exists
+          - ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST "mkdir -p /home/$SSH_USER/peopleos"
+          # Transfer compose file and artifacts
+          - scp -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id .env docker-compose.deploy.yml app_image.tar.gz $SSH_USER@$SSH_HOST:/home/$SSH_USER/peopleos/
 
-                # 6. Remote Deployment (Near-Zero Downtime Swap)
-                - echo "Completing deployment on server..."
-                - |
-                  ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST bash << 'EOF'
-                    set -e
-                    cd /home/$SSH_USER/peopleos
+          # 6. Remote Deployment (Near-Zero Downtime Swap)
+          - echo "Completing deployment on server..."
+          - |
+            ssh -o StrictHostKeyChecking=no -i ~/.ssh/pipelines_id $SSH_USER@$SSH_HOST bash << 'EOF'
+              set -e
+              cd /home/$SSH_USER/peopleos
 
-                    # Load the new image
-                    echo "Loading new image..."
-                    gunzip -c app_image.tar.gz | docker load
+              # Load the new image
+              echo "Loading new image..."
+              gunzip -c app_image.tar.gz | docker load
 
-                    # Start/Update DB & Cache
-                    echo "Starting/Updating database and redis..."
-                    docker compose -f docker-compose.deploy.yml up -d postgres redis
+              # Start/Update DB & Cache
+              echo "Starting/Updating database and redis..."
+              docker compose -f docker-compose.deploy.yml up -d postgres redis
 
-                    # Wait for DB
-                    echo "Waiting for database..."
-                    sleep 5
-                    docker exec curacel-people-db-v2 pg_isready -U curacel -d curacel_people
+              # Wait for DB
+              echo "Waiting for database..."
+              sleep 5
+              docker exec curacel-people-db-v2 pg_isready -U curacel -d curacel_people
 
-                    # Run migrations using the NEW image
-                    echo "Running migrations..."
-                    docker compose -f docker-compose.deploy.yml run --rm app npx -y prisma@5.10.2 db push --skip-generate || echo "Migration skipped"
+              # Run migrations using the NEW image
+              echo "Running migrations..."
+              docker compose -f docker-compose.deploy.yml run --rm app npx -y prisma@5.10.2 db push --skip-generate || echo "Migration skipped"
 
-                    # Update App and Adminer (Instant Swap)
-                    echo "Updating containers..."
-                    docker compose -f docker-compose.deploy.yml up -d app adminer
+              # Update App and Adminer (Instant Swap)
+              echo "Updating containers..."
+              docker compose -f docker-compose.deploy.yml up -d app adminer
 
-                    # Cleanup
-                    echo "Cleaning up artifacts..."
-                    rm -f app_image.tar.gz
-                    docker image prune -f
-                    
-                    echo "✅ Deployment complete with zero server-side build load!"
-                  EOF
+              # Cleanup
+              echo "Cleaning up artifacts..."
+              rm -f app_image.tar.gz
+              docker image prune -f
+              
+              echo "✅ Deployment complete with zero server-side build load!"
+            EOF
 
   default:
     - step:
