@@ -53,7 +53,7 @@ const PRIORITIES = [
   { value: '1', label: 'Not Urgent', color: 'bg-muted text-foreground' },
 ]
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'AUD']
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'AUD', 'GHS', 'KES', 'ZAR', 'UGX', 'EGP']
 const PAY_FREQUENCIES = ['annually', 'monthly', 'hourly']
 
 const SUGGESTED_LOCATIONS = [

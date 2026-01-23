@@ -47,7 +47,7 @@ const PRIORITIES = [
   { value: '1', label: 'Not Urgent', color: 'bg-muted text-foreground' },
 ]
 
-const CURRENCIES = ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'AUD']
+const CURRENCIES = ['USD', 'EUR', 'GBP', 'NGN', 'CAD', 'AUD', 'GHS', 'KES', 'ZAR', 'UGX', 'EGP']
 const PAY_FREQUENCIES = ['annually', 'monthly', 'hourly']
 
 const SUGGESTED_LOCATIONS = [
@@ -620,8 +620,8 @@ export default function EditJobPage() {
                 <div className="text-[11px] uppercase tracking-wide text-muted-foreground mb-1">Status</div>
                 <Badge className={cn(
                   formData.status === 'ACTIVE' ? 'bg-success/10 text-success' :
-                  formData.status === 'PAUSED' ? 'bg-orange-100 text-orange-700' :
-                  formData.status === 'HIRED' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
+                    formData.status === 'PAUSED' ? 'bg-orange-100 text-orange-700' :
+                      formData.status === 'HIRED' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700'
                 )}>{formData.status}</Badge>
               </div>
               <div>
