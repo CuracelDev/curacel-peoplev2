@@ -238,7 +238,7 @@ export function AddInterviewerDialog({
                             {employeesData?.employees?.map((employee) => (
                               <CommandItem
                                 key={employee.id}
-                                value={employee.id}
+                                value={`${employee.fullName} ${employee.workEmail}`}
                                 onSelect={() => {
                                   setSelectedEmployee({
                                     id: employee.id,
