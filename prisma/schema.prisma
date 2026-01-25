@@ -50,7 +50,8 @@ model User {
   
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-}
+
+  candidatesAdded JobCandidate[]}
 
 model UserInvite {
   id          String   @id @default(cuid())
@@ -219,7 +220,8 @@ model Employee {
   emergencyContactEmail    String?
 
   // Personality & Values (collected during onboarding)
-  lifeValues               Json?    // { mostImportant: [], important: [], somewhatImportant: [], notImportant: [] }
+  lifeValues               Json?    // { mostImportant: [], important: [], somewhatImportant: [], notImportant: [] 
+  createdQuestions InterviewQuestion[]}
   knowAboutMe              Json?    // Array of { question, answer } for work style questions
   mbtiType                 String?  // Myers-Briggs Type Indicator (e.g., INTJ, ENFP)
   mbtiImageUrl             String?  // Optional uploaded MBTI result image
