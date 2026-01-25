@@ -1035,9 +1035,9 @@ export const jobRouter = router({
       if (input.stage && currentCandidate && input.stage !== currentCandidate.stage) {
         try {
           const { queueStageEmail } = await import('@/lib/jobs/stage-email')
-          const { getWorker } = await import('@/lib/jobs/worker')
+          const { ensureWorker } = await import('@/lib/jobs/worker')
+          const boss = await ensureWorker()
 
-          const boss = getWorker()
           if (boss && ctx.user) {
             await queueStageEmail(boss, {
               candidateId: id,
@@ -1048,9 +1048,10 @@ export const jobRouter = router({
               recruiterName: ctx.user.name || undefined,
               skipAutoEmail: skipAutoEmail || false,
             })
+          } else {
+            console.warn('[updateCandidate] Email not queued: Worker missing or no user session')
           }
         } catch (error) {
-          // Log error but don't fail the mutation
           console.error('[updateCandidate] Failed to queue stage email:', error)
         }
 
@@ -1058,9 +1059,9 @@ export const jobRouter = router({
         if (input.stage === 'OFFER') {
           try {
             const { queueHireFlow } = await import('@/lib/jobs/hire-flow')
-            const { getWorker } = await import('@/lib/jobs/worker')
+            const { ensureWorker } = await import('@/lib/jobs/worker')
 
-            const boss = getWorker()
+            const boss = await ensureWorker()
             if (boss) {
               await queueHireFlow(boss, {
                 candidateId: id,
@@ -1069,7 +1070,6 @@ export const jobRouter = router({
               console.log('[updateCandidate] Queued hire flow for candidate:', id)
             }
           } catch (error) {
-            // Log error but don't fail the mutation
             console.error('[updateCandidate] Failed to queue hire flow:', error)
           }
         }
@@ -1103,9 +1103,9 @@ export const jobRouter = router({
       // Queue auto-emails for candidates whose stage actually changed
       try {
         const { queueStageEmail } = await import('@/lib/jobs/stage-email')
-        const { getWorker } = await import('@/lib/jobs/worker')
+        const { ensureWorker } = await import('@/lib/jobs/worker')
+        const boss = await ensureWorker()
 
-        const boss = getWorker()
         if (boss && ctx.user) {
           for (const candidate of currentCandidates) {
             if (candidate.stage !== input.stage) {
