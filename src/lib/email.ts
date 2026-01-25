@@ -33,9 +33,9 @@ export function getEmailTransportStatus(): {
     'POSTMARK_KEY'
   )
 
-  const smtpHost = readEnv('SMTP_HOST')
-  const smtpUser = readEnv('SMTP_USER', 'SMTP_USERNAME')
-  const smtpPassword = readEnv('SMTP_PASSWORD', 'SMTP_PASS')
+  const smtpHost = readEnv('SMTP_HOST', 'EMAIL_SERVER_HOST')
+  const smtpUser = readEnv('SMTP_USER', 'SMTP_USERNAME', 'EMAIL_SERVER_USER')
+  const smtpPassword = readEnv('SMTP_PASSWORD', 'SMTP_PASS', 'EMAIL_SERVER_PASSWORD')
 
   const postmarkConfigured = Boolean(postmarkToken)
   const smtpConfigured = Boolean(smtpHost && smtpUser && smtpPassword)
@@ -72,7 +72,7 @@ function getSmtpTransporter() {
   const hasSmtpCreds = Boolean(smtpHost && smtpUser && smtpPassword)
   if (!hasSmtpCreds) return null
 
-  const smtpPort = parseInt(readEnv('SMTP_PORT') || '587', 10)
+  const smtpPort = parseInt(readEnv('SMTP_PORT', 'EMAIL_SERVER_PORT') || '587', 10)
   const secure = readEnv('SMTP_SECURE') === 'true' || smtpPort === 465
 
   return nodemailer.createTransport({
