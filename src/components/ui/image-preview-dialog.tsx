@@ -3,6 +3,7 @@
 import { Dialog, DialogContent } from './dialog'
 import { X } from 'lucide-react'
 import { Button } from './button'
+import Image from 'next/image'
 
 interface ImagePreviewDialogProps {
   open: boolean
@@ -29,9 +30,11 @@ export function ImagePreviewDialog({
           >
             <X className="h-4 w-4" />
           </Button>
-          <img
+          <Image
             src={imageSrc}
             alt={imageAlt}
+            width={1200}
+            height={800}
             className="w-full h-auto max-h-[90vh] object-contain"
           />
         </div>

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -166,10 +167,12 @@ export default function PublicAssessmentPage() {
         {/* Header */}
         <div className="text-center">
           {assessment.template.organization?.logoUrl ? (
-            <img
+            <Image
               src={assessment.template.organization.logoUrl}
               alt={assessment.template.organization.name || 'Company'}
-              className="h-12 mx-auto mb-4"
+              width={200}
+              height={48}
+              className="h-12 w-auto mx-auto mb-4"
             />
           ) : (
             <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">

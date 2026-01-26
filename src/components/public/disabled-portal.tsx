@@ -3,6 +3,8 @@
 import { AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
+import Image from 'next/image'
+
 interface DisabledPortalProps {
   portalName?: string
   companyName?: string
@@ -21,7 +23,7 @@ export function DisabledPortal({
       <div className="max-w-md w-full text-center space-y-6">
         {/* Logo */}
         {logoUrl ? (
-          <img src={logoUrl} alt={companyName} className="h-12 mx-auto" />
+          <Image src={logoUrl} alt={companyName} width={200} height={48} className="h-12 w-auto mx-auto" />
         ) : (
           <div className="h-12 w-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
             <span className="text-primary font-bold text-xl">
