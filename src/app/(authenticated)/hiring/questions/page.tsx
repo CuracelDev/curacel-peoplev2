@@ -145,6 +145,7 @@ export default function QuestionsPage() {
   }>>([])
   const [selectedGeneratedIds, setSelectedGeneratedIds] = useState<Set<string>>(new Set())
   const [expandedReasonings, setExpandedReasonings] = useState<Set<string>>(new Set())
+  const [isExporting, setIsExporting] = useState(false)
 
   // Fetch data
   const { data: jobs } = trpc.job.list.useQuery({ status: 'ACTIVE' })
@@ -367,6 +368,44 @@ export default function QuestionsPage() {
   const selectAllGenerated = () => setSelectedGeneratedIds(new Set(generatedQuestions.map(q => q.id)))
   const deselectAllGenerated = () => setSelectedGeneratedIds(new Set())
 
+  const handleExportPdf = async () => {
+    try {
+      setIsExporting(true)
+
+      const params = new URLSearchParams()
+      if (selectedCategories.length === 1) {
+        params.append('category', selectedCategories[0])
+      }
+      if (selectedJob) params.append('jobId', selectedJob)
+      if (selectedInterviewType) params.append('interviewTypeId', selectedInterviewType)
+      if (searchQuery) params.append('search', searchQuery)
+      if (showFavoritesOnly) params.append('onlyFavorites', 'true')
+
+      const response = await fetch(`/api/hiring/questions/export?${params.toString()}`)
+
+      if (!response.ok) {
+        throw new Error('Failed to export PDF')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `question-bank-${new Date().toISOString().split('T')[0]}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      toast.success('Question bank exported successfully')
+    } catch (error) {
+      console.error('Export failed:', error)
+      toast.error('Failed to export question bank')
+    } finally {
+      setIsExporting(false)
+    }
+  }
+
   // Group questions by category
   const questionsByCategory = questionsData?.questions.reduce((acc, q) => {
     if (!selectedCategories.includes(q.category)) return acc
@@ -398,9 +437,17 @@ export default function QuestionsPage() {
               <Plus className="h-4 w-4 mr-2" />
               Add Question
             </Button>
-            <Button variant="outline">
-              <Download className="h-4 w-4 mr-2" />
-              Export PDF
+            <Button
+              variant="outline"
+              onClick={handleExportPdf}
+              disabled={isExporting}
+            >
+              {isExporting ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Download className="h-4 w-4 mr-2" />
+              )}
+              {isExporting ? 'Exporting...' : 'Export PDF'}
             </Button>
           </div>
         </div>
