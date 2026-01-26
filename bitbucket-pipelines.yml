@@ -97,9 +97,11 @@ pipelines:
               echo "[3/4] Skipping migrations (database already synced)"
 
               # 4. App Swap
-              echo "[4/4] Swapping application container..."
-              # force-recreate is a cleaner way to handle the swap than manual rm
               docker compose -f docker-compose.deploy.yml up -d --force-recreate app adminer
+
+              # Ensure Docker socket is accessible for the system logs feature
+              echo "Ensuring Docker socket accessibility for system logs..."
+              sudo chmod 666 /var/run/docker.sock || echo "Warning: Could not chmod docker.sock. System logs might have permission issues."
 
               echo "--- Post-Deployment Summary ---"
               sleep 15
