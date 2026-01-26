@@ -155,7 +155,10 @@ export default function ScheduleInterviewPage() {
   })
 
   // Find available slots for selected interviewers
-  const interviewerEmails = selectedInterviewers.map(i => i.email).filter(Boolean)
+  const interviewerEmails = useMemo(() =>
+    selectedInterviewers.map(i => i.email).filter(Boolean),
+    [selectedInterviewers])
+
   const {
     data: slotsData,
     isLoading: slotsLoading,
@@ -169,6 +172,7 @@ export default function ScheduleInterviewPage() {
     workingHoursEnd: 19, // 7pm - extended hours for busy periods
   }, {
     enabled: calendarConfig?.configured && interviewerEmails.length > 0 && schedulingMode === 'suggested',
+    staleTime: 0, // Always consider availability fresh or let it refetch
   })
 
   // Extract slots and calendar errors from response
@@ -483,19 +487,7 @@ export default function ScheduleInterviewPage() {
   }
 
   // Effect to refetch slots when interviewers, duration, or date range changes
-  // Using JSON.stringify to create a stable dependency for the emails array
-  const interviewerEmailsKey = JSON.stringify(interviewerEmails.sort())
-  const isCalendarConfigured = calendarConfig?.configured ?? false
-  useEffect(() => {
-    if (isCalendarConfigured && interviewerEmails.length > 0 && schedulingMode === 'suggested') {
-      // Small delay to ensure state is updated before refetching
-      const timer = setTimeout(() => {
-        refetchSlots()
-      }, 100)
-      return () => clearTimeout(timer)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [duration, dateRangeStart, dateRangeEnd, interviewerEmailsKey, schedulingMode, isCalendarConfigured])
+  // Removed manual refetch useEffect to rely on react-query's declarative reactivity
 
   // Group available slots by date
   const slotsByDate = useMemo(() => {
@@ -514,6 +506,31 @@ export default function ScheduleInterviewPage() {
 
   return (
     <div className={cn("px-1 sm:px-2 py-2", (currentStep === 2 || currentStep === 3) ? "max-w-7xl mx-auto" : "")}>
+      {/* Page Header and Progress */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div className="flex items-center gap-3">
+          {currentStep > 1 && (
+            <Button variant="ghost" size="icon" onClick={handleBack} className="h-8 w-8">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          )}
+          <div>
+            <h1 className="text-xl font-bold">Schedule Interview</h1>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant={currentStep === 1 ? "default" : "secondary"} className="h-5 px-1.5 text-[10px]">1. Details</Badge>
+              <ArrowRight className="h-3 w-3 text-muted-foreground" />
+              <Badge variant={currentStep === 2 ? "default" : "secondary"} className="h-5 px-1.5 text-[10px]">2. Questions</Badge>
+              {showStep3 && (
+                <>
+                  <ArrowRight className="h-3 w-3 text-muted-foreground" />
+                  <Badge variant={currentStep === 3 ? "default" : "secondary"} className="h-5 px-1.5 text-[10px]">3. Assignments</Badge>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Step 1: Interview Details */}
       {currentStep === 1 && (
         <Card>
@@ -780,6 +797,20 @@ export default function ScheduleInterviewPage() {
                     </TabsList>
 
                     <TabsContent value="suggested" className="mt-4">
+                      {/* Date Range Selector Header with Refresh */}
+                      <div className="flex items-center justify-between mb-2">
+                        <Label className="text-xs font-semibold">Select Availability Period</Label>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 text-xs gap-1.5 text-muted-foreground hover:text-primary"
+                          onClick={() => refetchSlots()}
+                          disabled={slotsLoading}
+                        >
+                          <Loader2 className={cn("h-3 w-3", slotsLoading && "animate-spin")} />
+                          {slotsLoading ? 'Updating...' : 'Refresh Slots'}
+                        </Button>
+                      </div>
                       {/* Date Range Selector */}
                       <div className="flex gap-4 mb-4">
                         <div className="flex-1">
@@ -1407,9 +1438,20 @@ export default function ScheduleInterviewPage() {
       <div className="flex items-center justify-between mt-3">
         <div>
           {currentStep === 1 && (
-            <Link href="/hiring/interviews">
-              <Button variant="outline">Cancel</Button>
-            </Link>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (selectedCandidateId || interviewTypeId) {
+                  if (confirm('Discard changes and leave?')) {
+                    router.push('/hiring/interviews')
+                  }
+                } else {
+                  router.push('/hiring/interviews')
+                }
+              }}
+            >
+              Cancel
+            </Button>
           )}
           {(currentStep === 2 || currentStep === 3) && (
             <Button variant="outline" onClick={handleBack}>
