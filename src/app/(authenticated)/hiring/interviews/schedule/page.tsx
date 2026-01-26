@@ -309,12 +309,11 @@ export default function ScheduleInterviewPage() {
     setTime(`${hours}:${minutes}`)
   }
 
-  // Add interviewer (handles both employees with workEmail and advisors with email)
-  // Only workEmail is used for calendar availability - personal emails don't have calendar access
-  const addInterviewer = (person: { id: string; fullName: string; workEmail?: string | null; email?: string }) => {
+  // Add interviewer (handles both employees with workEmail/personalEmail and advisors with email)
+  const addInterviewer = (person: { id: string; fullName: string; workEmail?: string | null; personalEmail?: string; email?: string }) => {
     if (!selectedInterviewers.find(i => i.id === person.id)) {
-      // workEmail for employees (Google Workspace calendar access), email for advisors
-      const interviewerEmail = person.workEmail || person.email || ''
+      // workEmail for employees (preferred), then personalEmail, then advisor email
+      const interviewerEmail = person.workEmail || person.personalEmail || person.email || ''
       setSelectedInterviewers([
         ...selectedInterviewers,
         { id: person.id, name: person.fullName, email: interviewerEmail },
@@ -687,8 +686,13 @@ export default function ScheduleInterviewPage() {
                                       onSelect={() => addInterviewer(employee)}
                                       className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
                                     >
-                                      <div className="flex flex-col">
-                                        <span>{employee.fullName}</span>
+                                      <div className="flex flex-col flex-1">
+                                        <div className="flex items-center justify-between gap-1 w-full">
+                                          <span>{employee.fullName}</span>
+                                          {!employee.workEmail && (
+                                            <Badge variant="outline" className="text-[10px] px-1 py-0 text-amber-600 border-amber-200 bg-amber-50">Personal Email</Badge>
+                                          )}
+                                        </div>
                                         <span className="text-xs text-muted-foreground">
                                           {employee.jobTitle || 'Employee'}
                                         </span>
@@ -730,6 +734,14 @@ export default function ScheduleInterviewPage() {
                         )}
                       </CommandList>
                     </Command>
+                    <div className="p-2 border-t bg-muted/20">
+                      <Button variant="ghost" size="sm" className="w-full text-xs h-8 justify-start" asChild>
+                        <Link href="/employees">
+                          <Plus className="mr-2 h-3 w-3" />
+                          Manage Interviewer Profiles
+                        </Link>
+                      </Button>
+                    </div>
                   </PopoverContent>
                 </Popover>
               </div>
