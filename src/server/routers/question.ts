@@ -47,24 +47,30 @@ export const questionRouter = router({
       }
 
       if (jobId) {
-        where.OR = [
-          { jobId: jobId },
-          { jobId: null }, // Also include global questions
+        where.AND = [
+          ...(Array.isArray(where.AND) ? where.AND : []),
+          { OR: [{ jobId: jobId }, { jobId: null }] }
         ]
       }
 
       if (interviewTypeId) {
-        where.OR = [
-          { interviewTypeId: interviewTypeId },
-          { interviewTypeId: null }, // Also include type-agnostic questions
+        where.AND = [
+          ...(Array.isArray(where.AND) ? where.AND : []),
+          { OR: [{ interviewTypeId: interviewTypeId }, { interviewTypeId: null }] }
         ]
       }
 
       if (search) {
-        where.OR = [
-          { text: { contains: search, mode: 'insensitive' } },
-          { followUp: { contains: search, mode: 'insensitive' } },
-          { tags: { hasSome: [search] } },
+        const searchFilter = {
+          OR: [
+            { text: { contains: search, mode: 'insensitive' as const } },
+            { followUp: { contains: search, mode: 'insensitive' as const } },
+            { tags: { hasSome: [search] } },
+          ],
+        }
+        where.AND = [
+          ...(Array.isArray(where.AND) ? where.AND : []),
+          searchFilter
         ]
       }
 
@@ -310,27 +316,27 @@ export const questionRouter = router({
         // Job-specific questions
         jobId
           ? prisma.interviewQuestion.findMany({
-              where: { ...where, jobId },
-              include: {
-                job: { select: { id: true, title: true } },
-                interviewType: { select: { id: true, name: true } },
-              },
-              orderBy: [{ avgRating: 'desc' }, { timesUsed: 'desc' }],
-              take: Math.ceil(count / 3),
-            })
+            where: { ...where, jobId },
+            include: {
+              job: { select: { id: true, title: true } },
+              interviewType: { select: { id: true, name: true } },
+            },
+            orderBy: [{ avgRating: 'desc' }, { timesUsed: 'desc' }],
+            take: Math.ceil(count / 3),
+          })
           : [],
 
         // Interview type-specific questions
         interviewTypeId
           ? prisma.interviewQuestion.findMany({
-              where: { ...where, interviewTypeId, jobId: null },
-              include: {
-                job: { select: { id: true, title: true } },
-                interviewType: { select: { id: true, name: true } },
-              },
-              orderBy: [{ avgRating: 'desc' }, { timesUsed: 'desc' }],
-              take: Math.ceil(count / 3),
-            })
+            where: { ...where, interviewTypeId, jobId: null },
+            include: {
+              job: { select: { id: true, title: true } },
+              interviewType: { select: { id: true, name: true } },
+            },
+            orderBy: [{ avgRating: 'desc' }, { timesUsed: 'desc' }],
+            take: Math.ceil(count / 3),
+          })
           : [],
 
         // Global questions
@@ -778,8 +784,8 @@ export const questionRouter = router({
       } | null = null
 
       if (contextSources?.includeAuntyPelzRecommendations ||
-          contextSources?.includeAuntyPelzMustValidate ||
-          contextSources?.includeAuntyPelzConcerns) {
+        contextSources?.includeAuntyPelzMustValidate ||
+        contextSources?.includeAuntyPelzConcerns) {
         auntyPelzAnalysis = await prisma.candidateAIAnalysis.findFirst({
           where: { candidateId, isLatest: true },
           select: {
@@ -1133,9 +1139,9 @@ Respond ONLY with a valid JSON array, no additional text.`
             const messages = isReasoningModel
               ? [{ role: 'user' as const, content: `${systemMessage}\n\n${prompt}` }]
               : [
-                  { role: 'system' as const, content: systemMessage },
-                  { role: 'user' as const, content: prompt }
-                ]
+                { role: 'system' as const, content: systemMessage },
+                { role: 'user' as const, content: prompt }
+              ]
 
             const response = await client.chat.completions.create({
               model,
@@ -1232,9 +1238,9 @@ Respond ONLY with a valid JSON array, no additional text.`
       const sessionUserId = session?.user?.id
       const user = sessionUserId
         ? await prisma.user.findUnique({
-            where: { id: sessionUserId },
-            select: { employeeId: true },
-          })
+          where: { id: sessionUserId },
+          select: { employeeId: true },
+        })
         : null
 
       const created = await prisma.interviewQuestion.createMany({
@@ -1255,9 +1261,9 @@ Respond ONLY with a valid JSON array, no additional text.`
 
     const user = session?.user?.id
       ? await prisma.user.findUnique({
-          where: { id: session.user.id },
-          select: { employeeId: true },
-        })
+        where: { id: session.user.id },
+        select: { employeeId: true },
+      })
       : null
 
     const defaultQuestions = [
