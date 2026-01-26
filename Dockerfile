@@ -51,6 +51,10 @@ ENV NEXT_TELEMETRY_DISABLED 1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
+RUN addgroup nextjs nodejs
+# Add nextjs to a 'docker' group (creating it if it doesn't exist, GID 999 is common for docker)
+RUN addgroup -g 999 docker || true
+RUN adduser nextjs docker || true
 
 # Copy public folder
 # Note: If your project doesn't have a public folder, you can remove this line
