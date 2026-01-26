@@ -5,6 +5,7 @@
  */
 
 import { prisma } from './prisma'
+import { sendEmail as sendSystemEmail } from './email'
 import { getGmailConnector, type SendEmailParams as GmailSendParams } from './integrations/gmail'
 import { addEmailTracking } from './email-tracking'
 import type { Job, JobCandidate, CandidateEmailThread, CandidateEmail, EmailTemplate, EmailReminder } from '@prisma/client'
@@ -31,6 +32,8 @@ export interface SendEmailResult {
   success: boolean
   emailId?: string
   threadId?: string
+  messageId?: string
+  messageIdHeader?: string
   error?: string
 }
 
@@ -88,12 +91,9 @@ function cleanSubjectForThreading(subject: string): string {
  * Send an email to a candidate
  */
 export async function sendCandidateEmail(options: SendEmailOptions): Promise<SendEmailResult> {
-  const gmail = await getGmailConnector()
-  if (!gmail) {
-    return { success: false, error: 'Gmail not configured. Please configure Google Workspace integration.' }
-  }
-
   try {
+    const gmail = await getGmailConnector()
+
     // Get candidate with job info
     const candidate = await prisma.jobCandidate.findUnique({
       where: { id: options.candidateId },
@@ -142,7 +142,7 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
       }
     }
 
-    // Create email record first (for tracking)
+    // Create email record first (for tracking and history)
     const email = await prisma.candidateEmail.create({
       data: {
         threadId: thread.id,
@@ -171,6 +171,10 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
 
     // If scheduled for later, don't send now
     if (options.scheduledFor && options.scheduledFor > new Date()) {
+      await prisma.candidateEmail.update({
+        where: { id: email.id },
+        data: { status: 'QUEUED' }
+      })
       return {
         success: true,
         emailId: email.id,
@@ -178,74 +182,126 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
       }
     }
 
-    // Send via Gmail
-    const sendParams: GmailSendParams = {
-      senderEmail: options.recruiterEmail,
-      senderName: options.recruiterName,
-      to: [candidate.email],
-      cc: thread.ccEmails.length > 0 ? thread.ccEmails : undefined,
-      subject: options.subject,
-      htmlBody: trackedHtml,
-      textBody: options.textBody,
-      attachments: options.attachments,
-      inReplyTo,
-      references,
-      threadId: gmailThreadId,
+    let result: SendEmailResult = { success: false }
+
+    // Strategy 1: Attempt Gmail sending
+    if (gmail) {
+      const sendParams: GmailSendParams = {
+        senderEmail: options.recruiterEmail,
+        senderName: options.recruiterName,
+        to: [candidate.email],
+        cc: thread.ccEmails.length > 0 ? thread.ccEmails : undefined,
+        subject: options.subject,
+        htmlBody: trackedHtml,
+        textBody: options.textBody,
+        attachments: options.attachments,
+        inReplyTo,
+        references,
+        threadId: gmailThreadId,
+      }
+
+      const gmailResult = await gmail.sendEmail(sendParams)
+
+      if (gmailResult.success) {
+        result = {
+          success: true,
+          emailId: email.id,
+          threadId: thread.id,
+          messageId: gmailResult.messageId,
+          messageIdHeader: gmailResult.messageIdHeader
+        }
+
+        // Update email with Gmail IDs
+        await prisma.candidateEmail.update({
+          where: { id: email.id },
+          data: {
+            gmailMessageId: gmailResult.messageId,
+            messageIdHeader: gmailResult.messageIdHeader,
+            status: 'SENT',
+            sentAt: new Date(),
+          },
+        })
+
+        // Update thread with Gmail thread ID if new
+        if (gmailResult.threadId && !thread.gmailThreadId) {
+          await prisma.candidateEmailThread.update({
+            where: { id: thread.id },
+            data: {
+              gmailThreadId: gmailResult.threadId,
+              lastMessageAt: new Date(),
+              messageCount: { increment: 1 },
+            },
+          })
+        } else {
+          await prisma.candidateEmailThread.update({
+            where: { id: thread.id },
+            data: {
+              lastMessageAt: new Date(),
+              messageCount: { increment: 1 },
+            },
+          })
+        }
+      } else {
+        console.warn('Gmail sending failed, will attempt fallback:', gmailResult.error)
+      }
     }
 
-    const result = await gmail.sendEmail(sendParams)
-
+    // Strategy 2: Fallback to System Transport (Postmark/SMTP)
     if (!result.success) {
-      // Update email with error
-      await prisma.candidateEmail.update({
-        where: { id: email.id },
-        data: {
-          status: 'FAILED',
-          errorMessage: result.error,
-        },
-      })
-      return { success: false, error: result.error, emailId: email.id }
-    }
+      try {
+        await sendSystemEmail({
+          to: candidate.email,
+          subject: options.subject,
+          html: trackedHtml,
+          text: options.textBody,
+        })
 
-    // Update email with Gmail IDs
-    await prisma.candidateEmail.update({
-      where: { id: email.id },
-      data: {
-        gmailMessageId: result.messageId,
-        messageIdHeader: result.messageIdHeader,
-        status: 'SENT',
-        sentAt: new Date(),
-      },
-    })
+        result = {
+          success: true,
+          emailId: email.id,
+          threadId: thread.id,
+        }
 
-    // Update thread with Gmail thread ID if new
-    if (result.threadId && !thread.gmailThreadId) {
-      await prisma.candidateEmailThread.update({
-        where: { id: thread.id },
-        data: {
-          gmailThreadId: result.threadId,
-          lastMessageAt: new Date(),
-          messageCount: { increment: 1 },
-        },
-      })
-    } else {
-      await prisma.candidateEmailThread.update({
-        where: { id: thread.id },
-        data: {
-          lastMessageAt: new Date(),
-          messageCount: { increment: 1 },
-        },
-      })
+        // Update email status
+        await prisma.candidateEmail.update({
+          where: { id: email.id },
+          data: {
+            status: 'SENT',
+            sentAt: new Date(),
+            errorMessage: gmail ? 'Failed via Gmail, sent via fallback system' : 'Sent via system (Gmail not configured)',
+          },
+        })
+
+        // Update thread
+        await prisma.candidateEmailThread.update({
+          where: { id: thread.id },
+          data: {
+            lastMessageAt: new Date(),
+            messageCount: { increment: 1 },
+          },
+        })
+      } catch (systemError) {
+        console.error('System email fallback failed:', systemError)
+        await prisma.candidateEmail.update({
+          where: { id: email.id },
+          data: {
+            status: 'FAILED',
+            errorMessage: systemError instanceof Error ? systemError.message : String(systemError),
+          },
+        })
+        return {
+          success: false,
+          error: systemError instanceof Error ? systemError.message : 'Fallback email failed',
+          emailId: email.id
+        }
+      }
     }
 
     // Create reminder for candidate response
     await createEmailReminder(email.id, 'candidate_no_response', 72) // 3 days
 
-    return {
-      success: true,
-      emailId: email.id,
-      threadId: thread.id,
-    }
+    return result
+
   } catch (error) {
     console.error('Failed to send candidate email:', error)
     return {
