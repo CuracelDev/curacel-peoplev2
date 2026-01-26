@@ -91,6 +91,8 @@ interface SendEmailOptions {
   subject: string
   html: string
   text?: string
+  fromName?: string
+  replyTo?: string
   attachments?: Array<{
     filename: string
     content?: Buffer | string
@@ -165,10 +167,13 @@ export function buildBrandedEmailHtml(params: {
 }
 
 export async function sendEmail(options: SendEmailOptions): Promise<void> {
-  const { to, subject, html, text, attachments } = options
+  const { to, subject, html, text, attachments, fromName, replyTo } = options
   const status = getEmailTransportStatus()
   const postmarkFrom = status.from
   const messageStream = status.messageStream
+
+  // Combine fromName with the system from address if provided
+  const formattedFrom = fromName ? `${fromName} <${postmarkFrom}>` : postmarkFrom
 
   let lastError: unknown = null
 
@@ -209,8 +214,9 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
         : undefined
 
       await postmarkClient.sendEmail({
-        From: postmarkFrom,
+        From: formattedFrom,
         To: to,
+        ReplyTo: replyTo,
         Subject: subject,
         HtmlBody: html,
         TextBody: text || html.replace(/<[^>]*>/g, ''),
@@ -228,8 +234,9 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
 
   if (transporter) {
     await transporter.sendMail({
-      from: postmarkFrom,
+      from: formattedFrom,
       to,
+      replyTo,
       subject,
       html,
       text: text || html.replace(/<[^>]*>/g, ''),

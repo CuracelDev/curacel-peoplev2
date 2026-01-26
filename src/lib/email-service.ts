@@ -254,6 +254,8 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
           subject: options.subject,
           html: trackedHtml,
           text: options.textBody,
+          fromName: options.recruiterName,
+          replyTo: options.recruiterEmail,
         })
 
         result = {
