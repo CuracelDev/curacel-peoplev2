@@ -220,7 +220,7 @@ export function AddInterviewerDialog({
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-[450px] p-0" align="start">
-                  <Command>
+                  <Command shouldFilter={false}>
                     <CommandInput
                       placeholder="Search by name or email..."
                       value={employeeSearch}
