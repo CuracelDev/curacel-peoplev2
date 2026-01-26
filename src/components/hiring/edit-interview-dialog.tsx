@@ -34,6 +34,7 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
+  CommandItem,
   CommandList,
 } from '@/components/ui/command'
 import { Calendar } from '@/components/ui/calendar'
@@ -449,7 +450,7 @@ export function EditInterviewDialog({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-[300px] p-0" align="start">
-                    <Command>
+                    <Command shouldFilter={false}>
                       <CommandInput
                         placeholder="Search employees..."
                         value={interviewerSearch}
@@ -467,10 +468,11 @@ export function EditInterviewDialog({
                               {employeesData?.employees
                                 ?.filter(e => !interviewers.find(i => i.employeeId === e.id))
                                 .map((employee) => (
-                                  <div
+                                  <CommandItem
                                     key={employee.id}
-                                    onClick={() => addInterviewer(employee)}
-                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    value={employee.id}
+                                    onSelect={() => addInterviewer(employee)}
+                                    className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
                                   >
                                     <div className="flex flex-col">
                                       <span>{employee.fullName}</span>
@@ -478,7 +480,7 @@ export function EditInterviewDialog({
                                         {employee.jobTitle || 'Employee'}
                                       </span>
                                     </div>
-                                  </div>
+                                  </CommandItem>
                                 ))}
                             </CommandGroup>
                           </>

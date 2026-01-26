@@ -90,19 +90,6 @@ export function getWorker(): PgBoss | null {
 }
 
 /**
- * Ensure the worker is initialized and return the instance
- */
-export async function ensureWorker(): Promise<PgBoss | null> {
-  if (boss) return boss
-  try {
-    return await initializeWorker()
-  } catch (error) {
-    console.error('[Worker] Failed to auto-initialize worker:', error)
-    return null
-  }
-}
-
-/**
  * Gracefully stop the worker
  */
 export async function stopWorker(): Promise<void> {

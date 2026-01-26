@@ -26,6 +26,7 @@ import {
   CommandEmpty,
   CommandGroup,
   CommandInput,
+  CommandItem,
   CommandList,
 } from '@/components/ui/command'
 import {
@@ -494,7 +495,7 @@ export default function ScheduleInterviewPage() {
       }, 100)
       return () => clearTimeout(timer)
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [duration, dateRangeStart, dateRangeEnd, interviewerEmailsKey, schedulingMode, isCalendarConfigured])
 
   // Group available slots by date
@@ -525,571 +526,574 @@ export default function ScheduleInterviewPage() {
           </CardHeader>
           <CardContent className="px-4 py-3">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-3">
-            {/* Row 1: Candidate & Interview Type */}
-            {/* Candidate Selection */}
-            <div className="grid gap-1">
-              <Label>Candidate *</Label>
-              {selectedCandidate ? (
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="gap-1 py-1.5 px-3">
-                    <span>{selectedCandidate.name}</span>
-                    <span className="text-muted-foreground">-</span>
-                    <span className="text-muted-foreground text-xs">{selectedCandidate.job?.title || 'No position'}</span>
-                    {!preselectedCandidateId && (
+              {/* Row 1: Candidate & Interview Type */}
+              {/* Candidate Selection */}
+              <div className="grid gap-1">
+                <Label>Candidate *</Label>
+                {selectedCandidate ? (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="gap-1 py-1.5 px-3">
+                      <span>{selectedCandidate.name}</span>
+                      <span className="text-muted-foreground">-</span>
+                      <span className="text-muted-foreground text-xs">{selectedCandidate.job?.title || 'No position'}</span>
+                      {!preselectedCandidateId && (
+                        <button
+                          type="button"
+                          onClick={() => setSelectedCandidateId('')}
+                          className="ml-1 hover:text-destructive"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      )}
+                    </Badge>
+                  </div>
+                ) : (
+                  <Popover open={candidateOpen} onOpenChange={setCandidateOpen}>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="justify-start"
+                        disabled={!!preselectedCandidateId}
+                      >
+                        <Search className="mr-2 h-4 w-4" />
+                        {candidatesLoading ? 'Loading...' : 'Select candidate...'}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-[350px] p-0" align="start">
+                      <Command shouldFilter={false}>
+                        <CommandInput
+                          placeholder="Search candidates..."
+                          value={candidateSearch}
+                          onValueChange={setCandidateSearch}
+                        />
+                        <CommandList>
+                          {candidatesLoading ? (
+                            <div className="flex items-center justify-center py-6">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            </div>
+                          ) : (
+                            <>
+                              <CommandEmpty>No candidates found.</CommandEmpty>
+                              <CommandGroup>
+                                {candidatesData?.candidates?.map((candidate) => (
+                                  <CommandItem
+                                    key={candidate.id}
+                                    value={candidate.id}
+                                    onSelect={() => {
+                                      setSelectedCandidateId(candidate.id)
+                                      setCandidateOpen(false)
+                                      setCandidateSearch('')
+                                    }}
+                                    className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                                  >
+                                    <div className="flex flex-col">
+                                      <span>{candidate.name}</span>
+                                      <span className="text-xs text-muted-foreground">
+                                        {candidate.job?.title || 'No position'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ))}
+                              </CommandGroup>
+                            </>
+                          )}
+                        </CommandList>
+                      </Command>
+                    </PopoverContent>
+                  </Popover>
+                )}
+              </div>
+
+              {/* Interview Type (Row 1 - Right) */}
+              <div className="grid gap-1">
+                <Label htmlFor="type">Interview Type *</Label>
+                <Select value={interviewTypeId} onValueChange={handleInterviewTypeChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={typesLoading ? "Loading types..." : "Select interview type..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {interviewTypesData?.map((type) => (
+                      <SelectItem key={type.id} value={type.id}>
+                        {type.name}
+                      </SelectItem>
+                    ))}
+                    {(!interviewTypesData || interviewTypesData.length === 0) && !typesLoading && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        No interview types configured. Add them in Settings.
+                      </div>
+                    )}
+                  </SelectContent>
+                </Select>
+                {selectedType && (
+                  <div className="flex flex-wrap gap-1 mt-1">
+                    {selectedType.questionCategories?.map((cat) => (
+                      <Badge key={cat} variant="secondary" className="text-xs">
+                        {categoryConfig[cat]?.name || cat}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Row 2: Interviewers & Duration */}
+              {/* Interviewers (Row 2 - Left) */}
+              <div className="grid gap-1">
+                <Label>Interviewers *</Label>
+                <div className="flex flex-wrap gap-1 mb-1">
+                  {selectedInterviewers.map((interviewer) => (
+                    <Badge key={interviewer.id} variant="secondary" className="gap-1">
+                      {interviewer.name}
                       <button
                         type="button"
-                        onClick={() => setSelectedCandidateId('')}
+                        onClick={() => removeInterviewer(interviewer.id)}
                         className="ml-1 hover:text-destructive"
                       >
                         <X className="h-3 w-3" />
                       </button>
-                    )}
-                  </Badge>
+                    </Badge>
+                  ))}
                 </div>
-              ) : (
-                <Popover open={candidateOpen} onOpenChange={setCandidateOpen}>
+                <Popover open={interviewerOpen} onOpenChange={setInterviewerOpen}>
                   <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="justify-start"
-                      disabled={!!preselectedCandidateId}
-                    >
-                      <Search className="mr-2 h-4 w-4" />
-                      {candidatesLoading ? 'Loading...' : 'Select candidate...'}
+                    <Button variant="outline" className="justify-start">
+                      <Users className="mr-2 h-4 w-4" />
+                      Add interviewer...
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[350px] p-0" align="start">
-                    <Command>
+                  <PopoverContent className="w-[300px] p-0" align="start">
+                    <Command shouldFilter={false}>
                       <CommandInput
-                        placeholder="Search candidates..."
-                        value={candidateSearch}
-                        onValueChange={setCandidateSearch}
+                        placeholder="Search employees or advisors..."
+                        value={interviewerSearch}
+                        onValueChange={setInterviewerSearch}
                       />
                       <CommandList>
-                        {candidatesLoading ? (
+                        {employeesLoading && advisorsLoading ? (
                           <div className="flex items-center justify-center py-6">
                             <Loader2 className="h-4 w-4 animate-spin" />
                           </div>
                         ) : (
                           <>
-                            <CommandEmpty>No candidates found.</CommandEmpty>
-                            <CommandGroup>
-                              {candidatesData?.candidates?.map((candidate) => (
-                                <div
-                                  key={candidate.id}
-                                  onClick={() => {
-                                    setSelectedCandidateId(candidate.id)
-                                    setCandidateOpen(false)
-                                    setCandidateSearch('')
-                                  }}
-                                  className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                                >
-                                  <div className="flex flex-col">
-                                    <span>{candidate.name}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {candidate.job?.title || 'No position'}
-                                    </span>
-                                  </div>
-                                </div>
-                              ))}
-                            </CommandGroup>
+                            <CommandEmpty>No interviewers found.</CommandEmpty>
+                            {/* Employees Section */}
+                            {employeesData?.employees && employeesData.employees.length > 0 && (
+                              <CommandGroup heading="Employees">
+                                {employeesData.employees
+                                  .filter(e => !selectedInterviewers.find(i => i.id === e.id))
+                                  .map((employee) => (
+                                    <CommandItem
+                                      key={employee.id}
+                                      value={employee.id}
+                                      onSelect={() => addInterviewer(employee)}
+                                      className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    >
+                                      <div className="flex flex-col">
+                                        <span>{employee.fullName}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {employee.jobTitle || 'Employee'}
+                                        </span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                              </CommandGroup>
+                            )}
+                            {/* Advisors Section */}
+                            {advisorsData?.advisors && advisorsData.advisors.length > 0 && (
+                              <CommandGroup heading="Advisors (no calendar access)">
+                                {advisorsData.advisors
+                                  .filter(a => !selectedInterviewers.find(i => i.id === a.id))
+                                  .map((advisor) => (
+                                    <CommandItem
+                                      key={advisor.id}
+                                      value={advisor.id}
+                                      onSelect={() => addInterviewer({
+                                        id: advisor.id,
+                                        fullName: advisor.fullName,
+                                        email: advisor.email,
+                                      })}
+                                      className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                    >
+                                      <div className="flex flex-col">
+                                        <div className="flex items-center gap-1">
+                                          <span>{advisor.fullName}</span>
+                                          <Badge variant="outline" className="text-[10px] px-1 py-0">Advisor</Badge>
+                                        </div>
+                                        <span className="text-xs text-muted-foreground">
+                                          {advisor.title || advisor.company || 'External Advisor'}
+                                        </span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                              </CommandGroup>
+                            )}
                           </>
                         )}
                       </CommandList>
                     </Command>
                   </PopoverContent>
                 </Popover>
-              )}
-            </div>
+              </div>
 
-            {/* Interview Type (Row 1 - Right) */}
-            <div className="grid gap-1">
-              <Label htmlFor="type">Interview Type *</Label>
-              <Select value={interviewTypeId} onValueChange={handleInterviewTypeChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder={typesLoading ? "Loading types..." : "Select interview type..."} />
-                </SelectTrigger>
-                <SelectContent>
-                  {interviewTypesData?.map((type) => (
-                    <SelectItem key={type.id} value={type.id}>
-                      {type.name}
-                    </SelectItem>
-                  ))}
-                  {(!interviewTypesData || interviewTypesData.length === 0) && !typesLoading && (
-                    <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                      No interview types configured. Add them in Settings.
+              {/* Duration (Row 2 - Right) */}
+              <div className="grid gap-1">
+                <Label htmlFor="duration">Duration</Label>
+                <Select value={duration.toString()} onValueChange={(v) => setDuration(Number(v))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="30">30 minutes</SelectItem>
+                    <SelectItem value="45">45 minutes</SelectItem>
+                    <SelectItem value="60">60 minutes</SelectItem>
+                    <SelectItem value="90">90 minutes</SelectItem>
+                    <SelectItem value="120">2 hours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Row 3: Date & Time Selection (Full Width) */}
+              {calendarConfig?.configured && selectedInterviewers.length > 0 ? (
+                <div className="md:col-span-2 grid gap-1">
+                  <Label>Schedule Time *</Label>
+                  <Tabs value={schedulingMode} onValueChange={(v) => setSchedulingMode(v as 'manual' | 'suggested')}>
+                    <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
+                      <TabsTrigger value="suggested" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+                        <Sparkles className="mr-2 h-4 w-4" />
+                        Smart Scheduling
+                      </TabsTrigger>
+                      <TabsTrigger value="manual" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        Manual
+                      </TabsTrigger>
+                    </TabsList>
+
+                    <TabsContent value="suggested" className="mt-4">
+                      {/* Date Range Selector */}
+                      <div className="flex gap-4 mb-4">
+                        <div className="flex-1">
+                          <Label className="text-xs text-muted-foreground mb-1 block">From</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {format(dateRangeStart, "PP")}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={dateRangeStart}
+                                onSelect={(d) => d && setDateRangeStart(startOfDay(d))}
+                                disabled={(d) => d < startOfDay(new Date())}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div className="flex-1">
+                          <Label className="text-xs text-muted-foreground mb-1 block">To</Label>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" className="w-full justify-start text-left font-normal">
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {format(dateRangeEnd, "PP")}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={dateRangeEnd}
+                                onSelect={(d) => d && setDateRangeEnd(endOfDay(d))}
+                                disabled={(d) => d < dateRangeStart}
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      </div>
+
+                      {/* Calendar Access Errors - Block smart scheduling */}
+                      {hasCalendarErrors ? (
+                        <div className="flex flex-col items-center justify-center py-8 border border-warning/20 rounded-lg bg-warning/5">
+                          <AlertCircle className="h-8 w-8 text-warning mb-3" />
+                          <p className="text-sm font-medium text-warning-foreground dark:text-warning">Cannot access all calendars</p>
+                          <div className="text-xs text-warning-foreground/80 dark:text-warning/80 mt-2 text-center max-w-sm">
+                            <p className="mb-2">The following interviewers have inaccessible calendars:</p>
+                            <ul className="space-y-1">
+                              {Object.entries(calendarErrors).map(([email]) => (
+                                <li key={email} className="font-medium">{email}</li>
+                              ))}
+                            </ul>
+                            <p className="mt-3">
+                              Smart scheduling requires calendar access for all interviewers.
+                              Please use <strong>Manual</strong> scheduling instead, or remove interviewers without calendar access.
+                            </p>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="mt-4"
+                            onClick={() => setSchedulingMode('manual')}
+                          >
+                            Switch to Manual Scheduling
+                          </Button>
+                        </div>
+                      ) : slotsLoading ? (
+                        <div className="flex items-center justify-center py-8 border rounded-lg bg-muted/30">
+                          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                          <span className="ml-2 text-muted-foreground">Finding available times...</span>
+                        </div>
+                      ) : availableSlots && availableSlots.length > 0 ? (
+                        <ScrollArea className="h-[200px] border rounded-lg p-3">
+                          <div className="space-y-4">
+                            {Object.entries(slotsByDate).map(([dateKey, slots]) => (
+                              <div key={dateKey}>
+                                <h4 className="font-medium text-sm mb-2">
+                                  {format(new Date(dateKey), 'EEEE, MMMM d')}
+                                </h4>
+                                <div className="flex flex-wrap gap-2">
+                                  {(slots as AvailableSlot[]).map((slot, idx) => {
+                                    const slotStart = new Date(slot.start)
+                                    const isSelected = selectedSlot &&
+                                      new Date(selectedSlot.start).getTime() === slotStart.getTime()
+                                    return (
+                                      <Button
+                                        key={idx}
+                                        variant={isSelected ? "default" : "outline"}
+                                        size="sm"
+                                        className={cn(
+                                          "gap-1",
+                                          !slot.allAvailable && "border-dashed opacity-70"
+                                        )}
+                                        onClick={() => handleSlotSelect(slot)}
+                                      >
+                                        <Clock className="h-3 w-3" />
+                                        {format(slotStart, 'h:mm a')}
+                                        {isSelected && <Check className="h-3 w-3 ml-1" />}
+                                      </Button>
+                                    )
+                                  })}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </ScrollArea>
+                      ) : (
+                        <div className="flex flex-col items-center justify-center py-8 border rounded-lg bg-muted/30">
+                          <AlertCircle className="h-8 w-8 text-muted-foreground mb-2" />
+                          <p className="text-sm text-muted-foreground">No available slots found</p>
+                          <p className="text-xs text-muted-foreground mt-1">Try a different date range or use manual scheduling</p>
+                        </div>
+                      )}
+
+                      {selectedSlot && (
+                        <div className="mt-4 p-3 bg-success/10 border border-success/20 rounded-lg">
+                          <div className="flex items-center gap-2 text-success">
+                            <Check className="h-4 w-4" />
+                            <span className="font-medium">Selected: </span>
+                            <span>{format(new Date(selectedSlot.start), 'EEEE, MMMM d \'at\' h:mm a')}</span>
+                          </div>
+                        </div>
+                      )}
+                    </TabsContent>
+
+                    <TabsContent value="manual" className="mt-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="grid gap-1">
+                          <Label>Date *</Label>
+                          <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                className={cn(
+                                  "justify-start text-left font-normal",
+                                  !date && "text-muted-foreground"
+                                )}
+                              >
+                                <CalendarIcon className="mr-2 h-4 w-4" />
+                                {date ? format(date, "PPP") : "Pick a date"}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-auto p-0" align="start">
+                              <Calendar
+                                mode="single"
+                                selected={date}
+                                onSelect={(d: Date | undefined) => {
+                                  setDate(d)
+                                  setCalendarOpen(false)
+                                }}
+                                disabled={(d: Date) => d < new Date()}
+                                initialFocus
+                              />
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                        <div className="grid gap-1">
+                          <Label htmlFor="time">Time *</Label>
+                          <Input
+                            id="time"
+                            type="time"
+                            value={time}
+                            onChange={(e) => setTime(e.target.value)}
+                          />
+                        </div>
+                      </div>
+                    </TabsContent>
+                  </Tabs>
+                </div>
+              ) : (
+                <div className="md:col-span-2 grid gap-1">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="grid gap-1">
+                      <Label>Date *</Label>
+                      <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={cn(
+                              "justify-start text-left font-normal",
+                              !date && "text-muted-foreground"
+                            )}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {date ? format(date, "PPP") : "Pick a date"}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={date}
+                            onSelect={(d: Date | undefined) => {
+                              setDate(d)
+                              setCalendarOpen(false)
+                            }}
+                            disabled={(d: Date) => d < new Date()}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    <div className="grid gap-1">
+                      <Label htmlFor="time">Time *</Label>
+                      <Input
+                        id="time"
+                        type="time"
+                        value={time}
+                        onChange={(e) => setTime(e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  {selectedInterviewers.length > 0 && !calendarConfig?.configured && (
+                    <div className="flex items-start gap-1 p-2 bg-amber-50 border border-amber-200 rounded-lg text-sm">
+                      <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+                      <div className="text-amber-800">
+                        <p className="font-medium">Smart scheduling unavailable</p>
+                        <p className="text-xs mt-0.5">
+                          Configure Google Workspace integration in Settings to enable automatic availability checking.
+                        </p>
+                      </div>
                     </div>
                   )}
-                </SelectContent>
-              </Select>
-              {selectedType && (
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {selectedType.questionCategories?.map((cat) => (
-                    <Badge key={cat} variant="secondary" className="text-xs">
-                      {categoryConfig[cat]?.name || cat}
-                    </Badge>
-                  ))}
                 </div>
               )}
-            </div>
 
-            {/* Row 2: Interviewers & Duration */}
-            {/* Interviewers (Row 2 - Left) */}
-            <div className="grid gap-1">
-              <Label>Interviewers *</Label>
-              <div className="flex flex-wrap gap-1 mb-1">
-                {selectedInterviewers.map((interviewer) => (
-                  <Badge key={interviewer.id} variant="secondary" className="gap-1">
-                    {interviewer.name}
-                    <button
-                      type="button"
-                      onClick={() => removeInterviewer(interviewer.id)}
-                      className="ml-1 hover:text-destructive"
-                    >
-                      <X className="h-3 w-3" />
-                    </button>
-                  </Badge>
-                ))}
-              </div>
-              <Popover open={interviewerOpen} onOpenChange={setInterviewerOpen}>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="justify-start">
-                    <Users className="mr-2 h-4 w-4" />
-                    Add interviewer...
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-[300px] p-0" align="start">
-                  <Command>
-                    <CommandInput
-                      placeholder="Search employees or advisors..."
-                      value={interviewerSearch}
-                      onValueChange={setInterviewerSearch}
-                    />
-                    <CommandList>
-                      {employeesLoading && advisorsLoading ? (
-                        <div className="flex items-center justify-center py-6">
-                          <Loader2 className="h-4 w-4 animate-spin" />
-                        </div>
-                      ) : (
-                        <>
-                          <CommandEmpty>No interviewers found.</CommandEmpty>
-                          {/* Employees Section */}
-                          {employeesData?.employees && employeesData.employees.length > 0 && (
-                            <CommandGroup heading="Employees">
-                              {employeesData.employees
-                                .filter(e => !selectedInterviewers.find(i => i.id === e.id))
-                                .map((employee) => (
-                                  <div
-                                    key={employee.id}
-                                    onClick={() => addInterviewer(employee)}
-                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                  >
-                                    <div className="flex flex-col">
-                                      <span>{employee.fullName}</span>
-                                      <span className="text-xs text-muted-foreground">
-                                        {employee.jobTitle || 'Employee'}
-                                      </span>
-                                    </div>
-                                  </div>
-                                ))}
-                            </CommandGroup>
-                          )}
-                          {/* Advisors Section */}
-                          {advisorsData?.advisors && advisorsData.advisors.length > 0 && (
-                            <CommandGroup heading="Advisors (no calendar access)">
-                              {advisorsData.advisors
-                                .filter(a => !selectedInterviewers.find(i => i.id === a.id))
-                                .map((advisor) => (
-                                  <div
-                                    key={advisor.id}
-                                    onClick={() => addInterviewer({
-                                      id: advisor.id,
-                                      fullName: advisor.fullName,
-                                      email: advisor.email,
-                                    })}
-                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
-                                  >
-                                    <div className="flex flex-col">
-                                      <div className="flex items-center gap-1">
-                                        <span>{advisor.fullName}</span>
-                                        <Badge variant="outline" className="text-[10px] px-1 py-0">Advisor</Badge>
-                                      </div>
-                                      <span className="text-xs text-muted-foreground">
-                                        {advisor.title || advisor.company || 'External Advisor'}
-                                      </span>
-                                    </div>
-                                  </div>
-                                ))}
-                            </CommandGroup>
-                          )}
-                        </>
-                      )}
-                    </CommandList>
-                  </Command>
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Duration (Row 2 - Right) */}
-            <div className="grid gap-1">
-              <Label htmlFor="duration">Duration</Label>
-              <Select value={duration.toString()} onValueChange={(v) => setDuration(Number(v))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="30">30 minutes</SelectItem>
-                  <SelectItem value="45">45 minutes</SelectItem>
-                  <SelectItem value="60">60 minutes</SelectItem>
-                  <SelectItem value="90">90 minutes</SelectItem>
-                  <SelectItem value="120">2 hours</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Row 3: Date & Time Selection (Full Width) */}
-            {calendarConfig?.configured && selectedInterviewers.length > 0 ? (
-              <div className="md:col-span-2 grid gap-1">
-                <Label>Schedule Time *</Label>
-                <Tabs value={schedulingMode} onValueChange={(v) => setSchedulingMode(v as 'manual' | 'suggested')}>
-                  <TabsList className="flex w-full justify-start gap-6 border-b bg-transparent p-0">
-                    <TabsTrigger value="suggested" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
-                      <Sparkles className="mr-2 h-4 w-4" />
-                      Smart Scheduling
-                    </TabsTrigger>
-                    <TabsTrigger value="manual" className="rounded-none border-b-2 border-transparent px-0 pb-3 data-[state=active]:border-primary data-[state=active]:text-primary">
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      Manual
-                    </TabsTrigger>
-                  </TabsList>
-
-                  <TabsContent value="suggested" className="mt-4">
-                    {/* Date Range Selector */}
-                    <div className="flex gap-4 mb-4">
-                      <div className="flex-1">
-                        <Label className="text-xs text-muted-foreground mb-1 block">From</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full justify-start text-left font-normal">
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {format(dateRangeStart, "PP")}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={dateRangeStart}
-                              onSelect={(d) => d && setDateRangeStart(startOfDay(d))}
-                              disabled={(d) => d < startOfDay(new Date())}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                      <div className="flex-1">
-                        <Label className="text-xs text-muted-foreground mb-1 block">To</Label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button variant="outline" className="w-full justify-start text-left font-normal">
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {format(dateRangeEnd, "PP")}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={dateRangeEnd}
-                              onSelect={(d) => d && setDateRangeEnd(endOfDay(d))}
-                              disabled={(d) => d < dateRangeStart}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    </div>
-
-                    {/* Calendar Access Errors - Block smart scheduling */}
-                    {hasCalendarErrors ? (
-                      <div className="flex flex-col items-center justify-center py-8 border border-warning/20 rounded-lg bg-warning/5">
-                        <AlertCircle className="h-8 w-8 text-warning mb-3" />
-                        <p className="text-sm font-medium text-warning-foreground dark:text-warning">Cannot access all calendars</p>
-                        <div className="text-xs text-warning-foreground/80 dark:text-warning/80 mt-2 text-center max-w-sm">
-                          <p className="mb-2">The following interviewers have inaccessible calendars:</p>
-                          <ul className="space-y-1">
-                            {Object.entries(calendarErrors).map(([email]) => (
-                              <li key={email} className="font-medium">{email}</li>
-                            ))}
-                          </ul>
-                          <p className="mt-3">
-                            Smart scheduling requires calendar access for all interviewers.
-                            Please use <strong>Manual</strong> scheduling instead, or remove interviewers without calendar access.
-                          </p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="mt-4"
-                          onClick={() => setSchedulingMode('manual')}
-                        >
-                          Switch to Manual Scheduling
-                        </Button>
-                      </div>
-                    ) : slotsLoading ? (
-                      <div className="flex items-center justify-center py-8 border rounded-lg bg-muted/30">
-                        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-                        <span className="ml-2 text-muted-foreground">Finding available times...</span>
-                      </div>
-                    ) : availableSlots && availableSlots.length > 0 ? (
-                      <ScrollArea className="h-[200px] border rounded-lg p-3">
-                        <div className="space-y-4">
-                          {Object.entries(slotsByDate).map(([dateKey, slots]) => (
-                            <div key={dateKey}>
-                              <h4 className="font-medium text-sm mb-2">
-                                {format(new Date(dateKey), 'EEEE, MMMM d')}
-                              </h4>
-                              <div className="flex flex-wrap gap-2">
-                                {(slots as AvailableSlot[]).map((slot, idx) => {
-                                  const slotStart = new Date(slot.start)
-                                  const isSelected = selectedSlot &&
-                                    new Date(selectedSlot.start).getTime() === slotStart.getTime()
-                                  return (
-                                    <Button
-                                      key={idx}
-                                      variant={isSelected ? "default" : "outline"}
-                                      size="sm"
-                                      className={cn(
-                                        "gap-1",
-                                        !slot.allAvailable && "border-dashed opacity-70"
-                                      )}
-                                      onClick={() => handleSlotSelect(slot)}
-                                    >
-                                      <Clock className="h-3 w-3" />
-                                      {format(slotStart, 'h:mm a')}
-                                      {isSelected && <Check className="h-3 w-3 ml-1" />}
-                                    </Button>
-                                  )
-                                })}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-8 border rounded-lg bg-muted/30">
-                        <AlertCircle className="h-8 w-8 text-muted-foreground mb-2" />
-                        <p className="text-sm text-muted-foreground">No available slots found</p>
-                        <p className="text-xs text-muted-foreground mt-1">Try a different date range or use manual scheduling</p>
-                      </div>
-                    )}
-
-                    {selectedSlot && (
-                      <div className="mt-4 p-3 bg-success/10 border border-success/20 rounded-lg">
-                        <div className="flex items-center gap-2 text-success">
-                          <Check className="h-4 w-4" />
-                          <span className="font-medium">Selected: </span>
-                          <span>{format(new Date(selectedSlot.start), 'EEEE, MMMM d \'at\' h:mm a')}</span>
-                        </div>
-                      </div>
-                    )}
-                  </TabsContent>
-
-                  <TabsContent value="manual" className="mt-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="grid gap-1">
-                        <Label>Date *</Label>
-                        <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className={cn(
-                                "justify-start text-left font-normal",
-                                !date && "text-muted-foreground"
-                              )}
-                            >
-                              <CalendarIcon className="mr-2 h-4 w-4" />
-                              {date ? format(date, "PPP") : "Pick a date"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <Calendar
-                              mode="single"
-                              selected={date}
-                              onSelect={(d: Date | undefined) => {
-                                setDate(d)
-                                setCalendarOpen(false)
-                              }}
-                              disabled={(d: Date) => d < new Date()}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                      <div className="grid gap-1">
-                        <Label htmlFor="time">Time *</Label>
-                        <Input
-                          id="time"
-                          type="time"
-                          value={time}
-                          onChange={(e) => setTime(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            ) : (
-              <div className="md:col-span-2 grid gap-1">
-                <div className="grid grid-cols-2 gap-2">
-                  <div className="grid gap-1">
-                    <Label>Date *</Label>
-                    <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className={cn(
-                            "justify-start text-left font-normal",
-                            !date && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? format(date, "PPP") : "Pick a date"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={(d: Date | undefined) => {
-                            setDate(d)
-                            setCalendarOpen(false)
-                          }}
-                          disabled={(d: Date) => d < new Date()}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                  <div className="grid gap-1">
-                    <Label htmlFor="time">Time *</Label>
+              {/* Row 4: Meeting Link (Full Width) */}
+              {(!calendarConfig?.configured || !syncToCalendar || !createGoogleMeet) ? (
+                <div className="md:col-span-2 grid gap-1">
+                  <Label htmlFor="meetingLink">Meeting Link</Label>
+                  <div className="relative">
+                    <Video className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      id="time"
-                      type="time"
-                      value={time}
-                      onChange={(e) => setTime(e.target.value)}
+                      id="meetingLink"
+                      placeholder="https://meet.google.com/..."
+                      className="pl-9"
+                      value={meetingLink}
+                      onChange={(e) => setMeetingLink(e.target.value)}
                     />
                   </div>
                 </div>
-                {selectedInterviewers.length > 0 && !calendarConfig?.configured && (
-                  <div className="flex items-start gap-1 p-2 bg-amber-50 border border-amber-200 rounded-lg text-sm">
-                    <AlertCircle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-amber-800">
-                      <p className="font-medium">Smart scheduling unavailable</p>
-                      <p className="text-xs mt-0.5">
-                        Configure Google Workspace integration in Settings to enable automatic availability checking.
-                      </p>
+              ) : (
+                <div className="md:col-span-2 flex items-center gap-1 p-2 bg-success/10 dark:bg-green-900/20 border border-success/20 dark:border-success/30 rounded-lg text-sm">
+                  <Video className="h-4 w-4 text-success dark:text-success" />
+                  <span className="text-success dark:text-success">Google Meet link will be auto-generated</span>
+                </div>
+              )}
+
+              {/* Row 5: Calendar Integration Options (Full Width) */}
+              {calendarConfig?.configured && (
+                <div className="md:col-span-2 space-y-2 p-2 border rounded-lg bg-muted/30">
+                  <h4 className="text-sm font-medium flex items-center gap-1">
+                    <CalendarCheckIcon className="h-4 w-4" />
+                    Calendar Options
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="sync-calendar">Sync to Google Calendar</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Create a calendar event and send invites
+                        </p>
+                      </div>
+                      <Switch
+                        id="sync-calendar"
+                        checked={syncToCalendar}
+                        onCheckedChange={setSyncToCalendar}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="space-y-0.5">
+                        <Label htmlFor="create-meet">Auto-create Google Meet</Label>
+                        <p className="text-xs text-muted-foreground">
+                          Automatically generate a Google Meet link
+                        </p>
+                      </div>
+                      <Switch
+                        id="create-meet"
+                        checked={createGoogleMeet}
+                        onCheckedChange={setCreateGoogleMeet}
+                        disabled={!syncToCalendar || Boolean(meetingLink)}
+                      />
                     </div>
                   </div>
-                )}
-              </div>
-            )}
+                </div>
+              )}
 
-            {/* Row 4: Meeting Link (Full Width) */}
-            {(!calendarConfig?.configured || !syncToCalendar || !createGoogleMeet) ? (
-              <div className="md:col-span-2 grid gap-1">
-                <Label htmlFor="meetingLink">Meeting Link</Label>
-                <div className="relative">
-                  <Video className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    id="meetingLink"
-                    placeholder="https://meet.google.com/..."
-                    className="pl-9"
-                    value={meetingLink}
-                    onChange={(e) => setMeetingLink(e.target.value)}
+              {/* Row 6: Rubric & Notes */}
+              <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid gap-1">
+                  <Label htmlFor="rubric">Interview Rubric *</Label>
+                  <Select value={selectedRubricTemplateId} onValueChange={setSelectedRubricTemplateId}>
+                    <SelectTrigger id="rubric">
+                      <SelectValue
+                        placeholder={rubricTemplatesLoading ? 'Loading rubrics...' : 'Select rubric template...'}
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {rubricTemplates?.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.name}
+                        </SelectItem>
+                      ))}
+                      {(!rubricTemplates || rubricTemplates.length === 0) && !rubricTemplatesLoading && (
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          No rubric templates available. Create one in Settings.
+                        </div>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Interviewers will score the candidate using this rubric.
+                  </p>
+                </div>
+                <div className="grid gap-1">
+                  <Label htmlFor="notes">Notes (optional)</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Any special instructions or topics to cover..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={2}
                   />
                 </div>
               </div>
-            ) : (
-              <div className="md:col-span-2 flex items-center gap-1 p-2 bg-success/10 dark:bg-green-900/20 border border-success/20 dark:border-success/30 rounded-lg text-sm">
-                <Video className="h-4 w-4 text-success dark:text-success" />
-                <span className="text-success dark:text-success">Google Meet link will be auto-generated</span>
-              </div>
-            )}
-
-            {/* Row 5: Calendar Integration Options (Full Width) */}
-            {calendarConfig?.configured && (
-              <div className="md:col-span-2 space-y-2 p-2 border rounded-lg bg-muted/30">
-                <h4 className="text-sm font-medium flex items-center gap-1">
-                  <CalendarCheckIcon className="h-4 w-4" />
-                  Calendar Options
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="sync-calendar">Sync to Google Calendar</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Create a calendar event and send invites
-                      </p>
-                    </div>
-                    <Switch
-                      id="sync-calendar"
-                      checked={syncToCalendar}
-                      onCheckedChange={setSyncToCalendar}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="space-y-0.5">
-                      <Label htmlFor="create-meet">Auto-create Google Meet</Label>
-                      <p className="text-xs text-muted-foreground">
-                        Automatically generate a Google Meet link
-                      </p>
-                    </div>
-                    <Switch
-                      id="create-meet"
-                      checked={createGoogleMeet}
-                      onCheckedChange={setCreateGoogleMeet}
-                      disabled={!syncToCalendar || Boolean(meetingLink)}
-                    />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Row 6: Rubric & Notes */}
-            <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="grid gap-1">
-                <Label htmlFor="rubric">Interview Rubric *</Label>
-                <Select value={selectedRubricTemplateId} onValueChange={setSelectedRubricTemplateId}>
-                  <SelectTrigger id="rubric">
-                    <SelectValue
-                      placeholder={rubricTemplatesLoading ? 'Loading rubrics...' : 'Select rubric template...'}
-                    />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {rubricTemplates?.map((template) => (
-                      <SelectItem key={template.id} value={template.id}>
-                        {template.name}
-                      </SelectItem>
-                    ))}
-                    {(!rubricTemplates || rubricTemplates.length === 0) && !rubricTemplatesLoading && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        No rubric templates available. Create one in Settings.
-                      </div>
-                    )}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  Interviewers will score the candidate using this rubric.
-                </p>
-              </div>
-              <div className="grid gap-1">
-                <Label htmlFor="notes">Notes (optional)</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Any special instructions or topics to cover..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={2}
-                />
-              </div>
-            </div>
             </div>{/* End of grid container */}
           </CardContent>
         </Card>

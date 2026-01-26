@@ -66,9 +66,9 @@ function getPostmarkClient() {
 }
 
 function getSmtpTransporter() {
-  const smtpHost = readEnv('SMTP_HOST')
-  const smtpUser = readEnv('SMTP_USER', 'SMTP_USERNAME')
-  const smtpPassword = readEnv('SMTP_PASSWORD', 'SMTP_PASS')
+  const smtpHost = readEnv('SMTP_HOST', 'EMAIL_SERVER_HOST')
+  const smtpUser = readEnv('SMTP_USER', 'SMTP_USERNAME', 'EMAIL_SERVER_USER')
+  const smtpPassword = readEnv('SMTP_PASSWORD', 'SMTP_PASS', 'EMAIL_SERVER_PASSWORD')
   const hasSmtpCreds = Boolean(smtpHost && smtpUser && smtpPassword)
   if (!hasSmtpCreds) return null
 
@@ -178,34 +178,34 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
     try {
       const postmarkAttachments = attachments
         ? await Promise.all(
-            attachments.map(async (file) => {
-              if (file.content) {
-                return {
-                  Name: file.filename,
-                  Content: Buffer.isBuffer(file.content)
-                    ? file.content.toString('base64')
-                    : Buffer.from(file.content).toString('base64'),
-                  ContentType: file.contentType || 'application/octet-stream',
-                  ContentID: file.filename,
-                }
+          attachments.map(async (file) => {
+            if (file.content) {
+              return {
+                Name: file.filename,
+                Content: Buffer.isBuffer(file.content)
+                  ? file.content.toString('base64')
+                  : Buffer.from(file.content).toString('base64'),
+                ContentType: file.contentType || 'application/octet-stream',
+                ContentID: file.filename,
               }
+            }
 
-              if (file.path) {
-                const contentBuffer = await fs.readFile(file.path)
-                return {
-                  Name: file.filename,
-                  Content: contentBuffer.toString('base64'),
-                  ContentType: file.contentType || 'application/octet-stream',
-                  ContentID: file.filename,
-                }
+            if (file.path) {
+              const contentBuffer = await fs.readFile(file.path)
+              return {
+                Name: file.filename,
+                Content: contentBuffer.toString('base64'),
+                ContentType: file.contentType || 'application/octet-stream',
+                ContentID: file.filename,
               }
+            }
 
-              return null
-            })
-          ).then(
-            (values) =>
-              values.filter(Boolean) as Array<{ Name: string; Content: string; ContentType: string; ContentID: string }>
-          )
+            return null
+          })
+        ).then(
+          (values) =>
+            values.filter(Boolean) as Array<{ Name: string; Content: string; ContentType: string; ContentID: string }>
+        )
         : undefined
 
       await postmarkClient.sendEmail({
@@ -246,8 +246,11 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
     )
   }
   if (status.kind === 'none') {
+    const details = []
+    if (!status.postmarkConfigured) details.push('Postmark token missing')
+    if (!status.smtpConfigured) details.push('SMTP credentials incomplete')
     throw new Error(
-      'Email send failed: no email transport configured (set POSTMARK_SERVER_TOKEN / POSTMARK_API_TOKEN or SMTP_HOST/SMTP_USER/SMTP_PASSWORD, then restart the server)'
+      `Email send failed: no email transport configured (${details.join(', ')}). Set POSTMARK_SERVER_TOKEN / POSTMARK_API_TOKEN or SMTP_HOST/SMTP_USER/SMTP_PASSWORD, then restart the server.`
     )
   }
 
