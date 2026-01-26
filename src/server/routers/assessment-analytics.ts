@@ -13,7 +13,7 @@ export const assessmentAnalyticsRouter = router({
       }).optional()
     )
     .query(async ({ ctx, input }) => {
-      const where: Record<string, unknown> = {}
+      const where: Record<string, any> = {}
 
       if (input?.startDate || input?.endDate) {
         where.createdAt = {}
@@ -30,7 +30,11 @@ export const assessmentAnalyticsRouter = router({
       }
 
       if (input?.type) {
-        where.template = { type: input.type }
+        if (input.type === 'KANDI_IO') {
+          where.template = { externalPlatform: 'kandi' }
+        } else if (['COMPETENCY_TEST', 'CODING_TEST', 'PERSONALITY_TEST', 'WORK_TRIAL', 'CUSTOM'].includes(input.type)) {
+          where.template = { type: input.type }
+        }
       }
 
       // Get total counts
@@ -68,9 +72,9 @@ export const assessmentAnalyticsRouter = router({
 
       const avgScore = completedWithScores.length > 0
         ? Math.round(
-            completedWithScores.reduce((sum, a) => sum + (a.overallScore || 0), 0) /
-            completedWithScores.length
-          )
+          completedWithScores.reduce((sum, a) => sum + (a.overallScore || 0), 0) /
+          completedWithScores.length
+        )
         : 0
 
       // Get average completion time
@@ -142,7 +146,11 @@ export const assessmentAnalyticsRouter = router({
       }
 
       if (input?.type) {
-        where.template = { type: input.type }
+        if (input.type === 'KANDI_IO') {
+          where.template = { externalPlatform: 'kandi' }
+        } else if (['COMPETENCY_TEST', 'CODING_TEST', 'PERSONALITY_TEST', 'WORK_TRIAL', 'CUSTOM'].includes(input.type)) {
+          where.template = { type: input.type }
+        }
       }
 
       const statusCounts = await ctx.prisma.candidateAssessment.groupBy({
@@ -416,9 +424,9 @@ export const assessmentAnalyticsRouter = router({
           assessmentCount: candidate.assessments.length,
           avgScore: candidate.assessments.length > 0
             ? Math.round(
-                candidate.assessments.reduce((sum, a) => sum + (a.overallScore || 0), 0) /
-                candidate.assessments.length
-              )
+              candidate.assessments.reduce((sum, a) => sum + (a.overallScore || 0), 0) /
+              candidate.assessments.length
+            )
             : null,
         }
       }
@@ -466,7 +474,12 @@ export const assessmentAnalyticsRouter = router({
       }
 
       if (input.type) {
-        where.template = { type: input.type }
+        // Handle virtual types
+        if (input.type === 'KANDI_IO') {
+          where.template = { externalPlatform: 'kandi' }
+        } else if (['CODING_TEST', 'WORK_TRIAL', 'CUSTOM', 'COMPETENCY_TEST', 'PERSONALITY_TEST'].includes(input.type)) {
+          where.template = { type: input.type }
+        }
       }
 
       const assessments = await ctx.prisma.candidateAssessment.findMany({

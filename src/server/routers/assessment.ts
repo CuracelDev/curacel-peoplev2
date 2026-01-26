@@ -303,18 +303,18 @@ export const assessmentRouter = router({
           ...(templateData.isFeatured !== undefined && { isFeatured: templateData.isFeatured }),
           ...(workTrial && templateData.type === 'WORK_TRIAL'
             ? {
-                workTrialTemplate: {
-                  create: {
-                    tasks: workTrial.tasks,
-                    durationDays: workTrial.durationDays,
-                    defaultBuddyId: workTrial.defaultBuddyId,
-                    checkInSchedule: workTrial.checkInSchedule,
-                    dashboardTemplateUrl: workTrial.dashboardTemplateUrl,
-                    dashboardMetrics: workTrial.dashboardMetrics,
-                    evaluationCriteria: workTrial.evaluationCriteria,
-                  },
+              workTrialTemplate: {
+                create: {
+                  tasks: workTrial.tasks,
+                  durationDays: workTrial.durationDays,
+                  defaultBuddyId: workTrial.defaultBuddyId,
+                  checkInSchedule: workTrial.checkInSchedule,
+                  dashboardTemplateUrl: workTrial.dashboardTemplateUrl,
+                  dashboardMetrics: workTrial.dashboardMetrics,
+                  evaluationCriteria: workTrial.evaluationCriteria,
                 },
-              }
+              },
+            }
             : {}),
         },
         include: {
@@ -539,11 +539,19 @@ export const assessmentRouter = router({
     counts.all = await ctx.prisma.candidateAssessment.count()
 
     // Count by type
-    for (const type of types) {
+    const validGroupTypes = ['CODING_TEST', 'WORK_TRIAL', 'CUSTOM', 'COMPETENCY_TEST', 'PERSONALITY_TEST']
+    for (const type of validGroupTypes) {
       counts[type] = await ctx.prisma.candidateAssessment.count({
         where: { template: { type: type as any } },
       })
     }
+
+    // Handle virtual/specific platform counts if needed, or just set to 0 to avoid crashes
+    counts['KANDI_IO'] = await ctx.prisma.candidateAssessment.count({
+      where: { template: { externalPlatform: 'kandi' } },
+    })
+    counts['PERSONALITY_MBTI'] = 0
+    counts['PERSONALITY_BIG5'] = 0
 
     // Count pending (not started + invited + in progress)
     counts.pending = await ctx.prisma.candidateAssessment.count({
@@ -735,28 +743,28 @@ export const assessmentRouter = router({
 
           const emailBody = assessment.template.emailBody
             ? replaceVariables(assessment.template.emailBody, {
-                candidateName: assessment.candidate.name,
-                assessmentName: assessment.template.name,
-                jobTitle: assessment.candidate.job?.title || 'the position',
-                assessmentUrl,
-                expiresAt: assessment.expiresAt?.toLocaleDateString() || 'in 7 days',
-                durationMinutes: assessment.template.durationMinutes?.toString() || 'untimed',
-              })
+              candidateName: assessment.candidate.name,
+              assessmentName: assessment.template.name,
+              jobTitle: assessment.candidate.job?.title || 'the position',
+              assessmentUrl,
+              expiresAt: assessment.expiresAt?.toLocaleDateString() || 'in 7 days',
+              durationMinutes: assessment.template.durationMinutes?.toString() || 'untimed',
+            })
             : generateDefaultEmailBody(
-                assessment.candidate.name,
-                assessment.template.name,
-                assessment.candidate.job?.title || 'the position',
-                assessmentUrl,
-                assessment.expiresAt,
-                assessment.template.durationMinutes,
-                assessment.template.instructions
-              )
+              assessment.candidate.name,
+              assessment.template.name,
+              assessment.candidate.job?.title || 'the position',
+              assessmentUrl,
+              assessment.expiresAt,
+              assessment.template.durationMinutes,
+              assessment.template.instructions
+            )
 
           // Get the recruiter's email from session
-          const recruiterEmail = ctx.session?.user?.email || 'recruiting@curacel.co'
+          const recruiterEmail = ctx.session?.user?.email || 'peopleops@curacel.ai'
           const recruiterName = ctx.session?.user?.name || 'Curacel Recruiting'
 
-          await sendCandidateEmail({
+          const emailResult = await sendCandidateEmail({
             candidateId: assessment.candidateId,
             recruiterId: ctx.session?.user?.id || 'system',
             recruiterEmail,
@@ -764,9 +772,16 @@ export const assessmentRouter = router({
             subject,
             htmlBody: emailBody,
           })
+
+          if (!emailResult.success) {
+            throw new Error(emailResult.error || 'Failed to send assessment invite email')
+          }
         } catch (emailError) {
           console.error('Failed to send assessment invite email:', emailError)
-          // Don't fail the mutation if email fails, just log it
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: emailError instanceof Error ? emailError.message : 'Failed to send assessment invite email',
+          })
         }
       }
 
