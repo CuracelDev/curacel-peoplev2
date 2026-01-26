@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Image from 'next/image'
 import { useParams } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
 import { Button } from '@/components/ui/button'
@@ -230,9 +231,9 @@ export default function OnboardingSelfServicePage() {
     }
     if (employee.knowAboutMe) {
       const answers: Record<string, string> = {}
-      ;(employee.knowAboutMe as Array<{ question: string; answer: string }>).forEach(item => {
-        answers[item.question] = item.answer
-      })
+        ; (employee.knowAboutMe as Array<{ question: string; answer: string }>).forEach(item => {
+          answers[item.question] = item.answer
+        })
       setKnowAboutMe(answers)
     }
 
@@ -354,18 +355,18 @@ export default function OnboardingSelfServicePage() {
 
   const steps = isFullTime
     ? [
-        { id: 'profile', label: 'Personal Details', icon: User },
-        { id: 'former-employment', label: 'Former Employment', icon: Briefcase },
-        { id: 'values', label: 'Values', icon: Heart },
-        { id: 'personality', label: 'Personality', icon: Brain },
-        { id: 'complete', label: 'Complete', icon: CheckCircle2 },
-      ]
+      { id: 'profile', label: 'Personal Details', icon: User },
+      { id: 'former-employment', label: 'Former Employment', icon: Briefcase },
+      { id: 'values', label: 'Values', icon: Heart },
+      { id: 'personality', label: 'Personality', icon: Brain },
+      { id: 'complete', label: 'Complete', icon: CheckCircle2 },
+    ]
     : [
-        { id: 'profile', label: 'Personal Details', icon: User },
-        { id: 'values', label: 'Values', icon: Heart },
-        { id: 'personality', label: 'Personality', icon: Brain },
-        { id: 'complete', label: 'Complete', icon: CheckCircle2 },
-      ]
+      { id: 'profile', label: 'Personal Details', icon: User },
+      { id: 'values', label: 'Values', icon: Heart },
+      { id: 'personality', label: 'Personality', icon: Brain },
+      { id: 'complete', label: 'Complete', icon: CheckCircle2 },
+    ]
 
   const currentStepIndex = steps.findIndex(s => s.id === currentStep)
 
@@ -1093,9 +1094,11 @@ export default function OnboardingSelfServicePage() {
                     onClick={() => setPreviewImage({ src: '/samples/mbti-example.png', alt: 'MBTI Example' })}
                     className="hover:opacity-80 transition-opacity"
                   >
-                    <img
+                    <Image
                       src="/samples/mbti-example.png"
                       alt="MBTI Example"
+                      width={320}
+                      height={200}
                       className="max-w-xs rounded border cursor-pointer"
                     />
                   </button>
@@ -1162,9 +1165,11 @@ export default function OnboardingSelfServicePage() {
                     onClick={() => setPreviewImage({ src: '/samples/bigfive-example.png', alt: 'Big Five Example' })}
                     className="hover:opacity-80 transition-opacity"
                   >
-                    <img
+                    <Image
                       src="/samples/bigfive-example.png"
                       alt="Big Five Example"
+                      width={320}
+                      height={200}
                       className="max-w-xs rounded border cursor-pointer"
                     />
                   </button>

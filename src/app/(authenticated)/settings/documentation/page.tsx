@@ -1,6 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import Image from 'next/image'
 import { SettingsPageHeader } from '@/components/layout/settings-page-header'
 
 type DocBlock = {
@@ -1924,9 +1925,11 @@ export default function DocumentationPage() {
                   {block.image ? (
                     <figure className="space-y-2">
                       <div className="overflow-hidden rounded-lg border bg-muted/30">
-                        <img
+                        <Image
                           src={block.image.src}
                           alt={block.image.alt}
+                          width={800}
+                          height={500}
                           className="h-auto w-full"
                           loading="lazy"
                         />

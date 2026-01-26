@@ -1,6 +1,7 @@
 'use client'
 
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { trpc } from '@/lib/trpc-client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -598,10 +599,10 @@ export default function EmployeeDetailPage() {
                             {/* Circle with checkmark */}
                             <div
                               className={`relative z-10 flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-full ${isCurrent
-                                  ? 'bg-indigo-600 shadow-lg shadow-indigo-200'
-                                  : isCompleted
-                                    ? 'bg-muted'
-                                    : 'bg-muted'
+                                ? 'bg-indigo-600 shadow-lg shadow-indigo-200'
+                                : isCompleted
+                                  ? 'bg-muted'
+                                  : 'bg-muted'
                                 }`}
                             >
                               <Check
@@ -1046,9 +1047,11 @@ export default function EmployeeDetailPage() {
                           rel="noopener noreferrer"
                           className="inline-block"
                         >
-                          <img
+                          <Image
                             src={employee.mbtiImageUrl}
                             alt="MBTI Test Result"
+                            width={400}
+                            height={300}
                             className="max-w-sm rounded border shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                           />
                         </a>
@@ -1093,9 +1096,11 @@ export default function EmployeeDetailPage() {
                           rel="noopener noreferrer"
                           className="inline-block"
                         >
-                          <img
+                          <Image
                             src={employee.bigFiveImageUrl}
                             alt="Big Five Test Result"
+                            width={400}
+                            height={300}
                             className="max-w-sm rounded border shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                           />
                         </a>
