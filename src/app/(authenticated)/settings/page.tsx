@@ -26,6 +26,7 @@ import {
   Sparkles,
   Target,
   Clock,
+  Terminal as TerminalIcon,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -190,6 +191,12 @@ const settingsSections = [
         description: 'View system activity and changes.',
         icon: ClipboardList,
         href: '/settings/audit',
+      },
+      {
+        title: 'System Logs',
+        description: 'View live server logs and docker output.',
+        icon: TerminalIcon,
+        href: '/settings/system-logs',
       },
       {
         title: 'Notifications',
