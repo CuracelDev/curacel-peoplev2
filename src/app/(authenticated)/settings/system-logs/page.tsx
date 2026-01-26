@@ -91,7 +91,7 @@ export default function SystemLogsPage() {
                                 </SelectTrigger>
                                 <SelectContent className="bg-slate-900 border-slate-800 text-slate-300">
                                     <SelectItem value="all">All Services</SelectItem>
-                                    {services?.map((s) => (
+                                    {services?.map((s: string) => (
                                         <SelectItem key={s} value={s}>{s}</SelectItem>
                                     ))}
                                 </SelectContent>
