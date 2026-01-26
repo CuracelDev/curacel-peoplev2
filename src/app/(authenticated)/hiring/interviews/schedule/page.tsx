@@ -592,7 +592,7 @@ export default function ScheduleInterviewPage() {
                                         {candidate.job?.title || 'No position'}
                                       </span>
                                     </div>
-                                  </div>
+                                  </CommandItem>
                                 ))}
                               </CommandGroup>
                             </>
