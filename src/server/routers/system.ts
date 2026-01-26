@@ -17,9 +17,9 @@ export const systemRouter = router({
             try {
                 const { lines, service } = input
 
-                // Try 'docker compose' first (V2), then 'docker-compose' (V1)
+                // Try 'docker compose' (V2 plugin), then 'docker' (for native logs), then 'docker-compose' (V1)
                 let command = `docker compose logs --tail ${lines} --no-color --timestamps`
-                if (service) {
+                if (service && service !== 'all') {
                     command += ` ${service}`
                 }
 
@@ -30,6 +30,17 @@ export const systemRouter = router({
                         success: true,
                     }
                 } catch (error) {
+                    // Fallback to native 'docker logs' if it's a specific container
+                    if (service && service !== 'all') {
+                        const dockerCommand = `docker logs --tail ${lines} --timestamps ${service}`
+                        try {
+                            const { stdout, stderr } = await execAsync(dockerCommand)
+                            return { logs: stdout || stderr || 'No logs found.', success: true }
+                        } catch (dError) {
+                            // continue to next fallback
+                        }
+                    }
+
                     // Fallback to docker-compose v1
                     const v1Command = command.replace('docker compose', 'docker-compose')
                     try {
@@ -41,7 +52,7 @@ export const systemRouter = router({
                     } catch (v1Error) {
                         console.error('Failed to fetch docker logs:', v1Error)
                         return {
-                            logs: `Error fetching logs: Docker might not be available or accessible from the application container.\n\nCommand attempted: ${command}\n\nTechnical details: ${v1Error instanceof Error ? v1Error.message : String(v1Error)}`,
+                            logs: `Error fetching logs: Docker CLI might not be accessible or socket not mounted.\n\nTechnicals: ${v1Error instanceof Error ? v1Error.message : String(v1Error)}\n\n💡 Tip: Ensure /var/run/docker.sock is mounted to the container.`,
                             success: false,
                         }
                     }
