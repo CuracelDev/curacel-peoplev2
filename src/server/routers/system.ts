@@ -17,10 +17,20 @@ export const systemRouter = router({
             try {
                 const { lines, service } = input
 
-                // Try 'docker compose' (V2 plugin), then 'docker' (for native logs), then 'docker-compose' (V1)
-                let command = `docker compose logs --tail ${lines} --no-color --timestamps`
+                // We'll try to use the container name directly if a service is provided,
+                // otherwise we use docker compose with a project name to aggregate.
+                // Project name is usually 'curacel-people' based on the container names.
+                const projectName = 'curacel-people'
+
+                let command = ''
                 if (service && service !== 'all') {
-                    command += ` ${service}`
+                    // If we have a specific service, we can try to find the container name
+                    // In our compose it's 'curacel-people-app-v2', etc.
+                    const containerName = service.includes(projectName) ? service : `${projectName}-${service}-v2`
+                    command = `docker logs --tail ${lines} --timestamps ${containerName}`
+                } else {
+                    // For all logs, use project name with docker compose to avoid needing the .yml file
+                    command = `docker compose -p ${projectName} logs --tail ${lines} --no-color --timestamps`
                 }
 
                 try {
@@ -30,29 +40,20 @@ export const systemRouter = router({
                         success: true,
                     }
                 } catch (error) {
-                    // Fallback to native 'docker logs' if it's a specific container
-                    if (service && service !== 'all') {
-                        const dockerCommand = `docker logs --tail ${lines} --timestamps ${service}`
-                        try {
-                            const { stdout, stderr } = await execAsync(dockerCommand)
-                            return { logs: stdout || stderr || 'No logs found.', success: true }
-                        } catch (dError) {
-                            // continue to next fallback
-                        }
-                    }
+                    // Fallback: If project name 'curacel-people' failed, try without v2 suffix or wait for generic 'docker compose logs'
+                    // Actually, let's try a very broad fallback: find any container with our project label
+                    const fallbackCmd = `docker ps --filter "label=com.docker.compose.project" --format "{{.ID}}" | xargs -I {} docker logs --tail ${Math.floor(lines / 3)} --timestamps {}`
 
-                    // Fallback to docker-compose v1
-                    const v1Command = command.replace('docker compose', 'docker-compose')
                     try {
-                        const { stdout, stderr } = await execAsync(v1Command)
+                        const { stdout, stderr } = await execAsync(fallbackCmd)
                         return {
-                            logs: stdout || stderr || 'No logs found.',
+                            logs: stdout || stderr || 'No logs found in fallback.',
                             success: true,
                         }
                     } catch (v1Error) {
                         console.error('Failed to fetch docker logs:', v1Error)
                         return {
-                            logs: `Error fetching logs: Docker CLI might not be accessible or socket not mounted.\n\nTechnicals: ${v1Error instanceof Error ? v1Error.message : String(v1Error)}\n\n💡 Tip: Ensure /var/run/docker.sock is mounted to the container.`,
+                            logs: `Error fetching logs: Project context not found.\n\nTechnicals: ${v1Error instanceof Error ? v1Error.message : String(v1Error)}\n\n💡 Try selecting a specific service from the dropdown.`,
                             success: false,
                         }
                     }
@@ -67,12 +68,12 @@ export const systemRouter = router({
 
     getServices: adminProcedure.query(async () => {
         try {
-            const { stdout } = await execAsync('docker compose ps --format json')
-            const services = JSON.parse(stdout)
-            return services.map((s: any) => s.Service)
+            // Find container names via docker ps to avoid needing the config file
+            const { stdout } = await execAsync('docker ps --format "{{.Names}}"')
+            const containers = stdout.split('\n').filter(Boolean)
+            return containers.length > 0 ? containers : ['app', 'db', 'redis']
         } catch (error) {
-            // Fallback or handle missing docker
-            return ['app', 'db', 'redis'] // Reasonable defaults
+            return ['app', 'db', 'redis']
         }
     }),
 })
