@@ -19,17 +19,17 @@ export function generateTemporaryPassword(): string {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz23456789'
   const specialChars = '!@#$%&*'
   let password = ''
-  
+
   // 8 alphanumeric chars
   for (let i = 0; i < 8; i++) {
     password += chars.charAt(Math.floor(Math.random() * chars.length))
   }
-  
+
   // Add 2 special chars
   for (let i = 0; i < 2; i++) {
     password += specialChars.charAt(Math.floor(Math.random() * specialChars.length))
   }
-  
+
   // Shuffle
   return password
     .split('')
@@ -44,26 +44,40 @@ export function formatCurrency(amount: number, currency: string = 'USD'): string
   }).format(amount)
 }
 
-export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOptions): string {
-  const d = typeof date === 'string' ? new Date(date) : date
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-    ...options,
-  }).format(d)
+export function formatDate(date: Date | string | null | undefined, options?: Intl.DateTimeFormatOptions): string {
+  if (!date) return '-'
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date
+    if (!(d instanceof Date) || isNaN(d.getTime())) return '-'
+
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+      ...options,
+    }).format(d)
+  } catch (error) {
+    return '-'
+  }
 }
 
-export function formatDateTime(date: Date | string): string {
-  const d = typeof date === 'string' ? new Date(date) : date
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(d)
+export function formatDateTime(date: Date | string | null | undefined): string {
+  if (!date) return '-'
+  try {
+    const d = typeof date === 'string' ? new Date(date) : date
+    if (!(d instanceof Date) || isNaN(d.getTime())) return '-'
+
+    return new Intl.DateTimeFormat('en-GB', {
+      day: '2-digit',
+      month: '2-digit',
+      year: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+    }).format(d)
+  } catch (error) {
+    return '-'
+  }
 }
 
 export function slugify(text: string): string {
@@ -80,13 +94,13 @@ export function parseTemplateVariables(template: string): string[] {
   const regex = /%?\{(\w+)\}/g
   const variables: string[] = []
   let match
-  
+
   while ((match = regex.exec(template)) !== null) {
     if (!variables.includes(match[1])) {
       variables.push(match[1])
     }
   }
-  
+
   return variables
 }
 

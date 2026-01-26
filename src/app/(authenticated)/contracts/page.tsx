@@ -43,7 +43,10 @@ export default function ContractsPage() {
   const getStartDate = (offer: NonNullable<typeof data>['offers'][0]) => {
     const variables = offer.variables as Record<string, string> | null
     if (variables?.start_date) {
-      return `Start date: ${formatDate(new Date(variables.start_date))}`
+      const dateStr = formatDate(variables.start_date)
+      if (dateStr !== '-') {
+        return `Start date: ${dateStr}`
+      }
     }
     return null
   }
