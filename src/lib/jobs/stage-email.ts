@@ -208,7 +208,7 @@ export async function queueStageEmail(
 
   // Check if auto-send is enabled for this stage
   if (!stageConfig?.enabled) {
-    console.log(`[StageEmail] Auto-send disabled for stage: ${data.toStage}`)
+    console.log(`[StageEmail] Auto-send disabled for stage: ${data.toStage}. Check email settings.`)
     return null
   }
 
