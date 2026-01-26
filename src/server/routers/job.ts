@@ -1035,8 +1035,13 @@ export const jobRouter = router({
       if (input.stage && currentCandidate && input.stage !== currentCandidate.stage) {
         try {
           const { queueStageEmail } = await import('@/lib/jobs/stage-email')
-          const { ensureWorker } = await import('@/lib/jobs/worker')
-          const boss = await ensureWorker()
+          const { getWorker, initializeWorker } = await import('@/lib/jobs/worker')
+
+          let boss = getWorker()
+          if (!boss) {
+            console.log('[updateCandidate] Worker not initialized, attempting auto-initialization...')
+            boss = await initializeWorker()
+          }
 
           if (boss && ctx.user) {
             await queueStageEmail(boss, {
@@ -1048,10 +1053,12 @@ export const jobRouter = router({
               recruiterName: ctx.user.name || undefined,
               skipAutoEmail: skipAutoEmail || false,
             })
+            console.log(`[updateCandidate] Queued stage email for candidate ${id} moving to ${input.stage}`)
           } else {
-            console.warn('[updateCandidate] Email not queued: Worker missing or no user session')
+            console.warn('[updateCandidate] Background worker not available or user email missing, skipping email queue')
           }
         } catch (error) {
+          // Log error but don't fail the mutation
           console.error('[updateCandidate] Failed to queue stage email:', error)
         }
 
@@ -1059,9 +1066,9 @@ export const jobRouter = router({
         if (input.stage === 'OFFER') {
           try {
             const { queueHireFlow } = await import('@/lib/jobs/hire-flow')
-            const { ensureWorker } = await import('@/lib/jobs/worker')
+            const { getWorker } = await import('@/lib/jobs/worker')
 
-            const boss = await ensureWorker()
+            const boss = getWorker()
             if (boss) {
               await queueHireFlow(boss, {
                 candidateId: id,
@@ -1070,6 +1077,7 @@ export const jobRouter = router({
               console.log('[updateCandidate] Queued hire flow for candidate:', id)
             }
           } catch (error) {
+            // Log error but don't fail the mutation
             console.error('[updateCandidate] Failed to queue hire flow:', error)
           }
         }
@@ -1103,10 +1111,19 @@ export const jobRouter = router({
       // Queue auto-emails for candidates whose stage actually changed
       try {
         const { queueStageEmail } = await import('@/lib/jobs/stage-email')
-        const { ensureWorker } = await import('@/lib/jobs/worker')
-        const boss = await ensureWorker()
+        const { getWorker, initializeWorker } = await import('@/lib/jobs/worker')
+
+        let boss = getWorker()
+        if (!boss) {
+          console.log('[bulkUpdateCandidateStage] Worker not initialized, attempting auto-initialization...')
+          boss = await initializeWorker().catch(e => {
+            console.error('[bulkUpdateCandidateStage] Auto-initialization failed:', e)
+            return null
+          })
+        }
 
         if (boss && ctx.user) {
+          let queuedCount = 0
           for (const candidate of currentCandidates) {
             if (candidate.stage !== input.stage) {
               await queueStageEmail(boss, {
@@ -1118,8 +1135,12 @@ export const jobRouter = router({
                 recruiterName: ctx.user.name || undefined,
                 skipAutoEmail: input.skipAutoEmail || false,
               })
+              queuedCount++
             }
           }
+          console.log(`[bulkUpdateCandidateStage] Queued ${queuedCount} stage emails for move to ${input.stage}`)
+        } else {
+          console.warn('[bulkUpdateCandidateStage] Background worker not available, skipping email queue')
         }
       } catch (error) {
         // Log error but don't fail the mutation
