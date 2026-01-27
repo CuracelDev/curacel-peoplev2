@@ -600,7 +600,7 @@ export default function ScheduleInterviewPage() {
                                       setCandidateOpen(false)
                                       setCandidateSearch('')
                                     }}
-                                    className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                                    className="cursor-pointer"
                                   >
                                     <div className="flex flex-col">
                                       <span>{candidate.name}</span>
@@ -701,7 +701,7 @@ export default function ScheduleInterviewPage() {
                                       key={employee.id}
                                       value={employee.id}
                                       onSelect={() => addInterviewer(employee)}
-                                      className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                      className="cursor-pointer"
                                     >
                                       <div className="flex flex-col flex-1">
                                         <div className="flex items-center justify-between gap-1 w-full">
@@ -732,7 +732,7 @@ export default function ScheduleInterviewPage() {
                                         fullName: advisor.fullName,
                                         email: advisor.email,
                                       })}
-                                      className="flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+                                      className="cursor-pointer"
                                     >
                                       <div className="flex flex-col">
                                         <div className="flex items-center gap-1">
