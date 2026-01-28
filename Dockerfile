@@ -36,7 +36,7 @@ RUN npx prisma@5.10.2 generate
 # Next.js collects completely anonymous telemetry data about general usage.
 # Learn more here: https://nextjs.org/telemetry
 # Uncomment the following line in case you want to disable telemetry during the build.
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build the application
 # Note: Ensure "output: 'standalone'" is configured in next.config.js
@@ -46,8 +46,8 @@ RUN DATABASE_URL=postgresql://dummy:dummy@localhost:5432/dummy NODE_OPTIONS=--ma
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV production
-ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
@@ -74,7 +74,7 @@ USER nextjs
 
 EXPOSE 3800
 
-ENV PORT 3800
+ENV PORT=3800
 ENV HOSTNAME="0.0.0.0"
 
 # Health check using wget (available in alpine)
