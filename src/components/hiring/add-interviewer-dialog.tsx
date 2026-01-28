@@ -84,6 +84,42 @@ export function AddInterviewerDialog({
     { enabled: open && activeTab === 'internal' }
   )
 
+  // Fetch interview details to get hiring team
+  const { data: interview } = trpc.interview.get.useQuery(
+    { id: interviewId },
+    { enabled: open }
+  )
+
+  const hiringTeam = useMemo(() => {
+    if (!interview?.candidate?.job) return []
+
+    const job = interview.candidate.job
+    const team: any[] = []
+
+    if (job.hiringManager) {
+      team.push({
+        id: job.hiringManager.id,
+        fullName: job.hiringManager.fullName,
+        workEmail: job.hiringManager.workEmail,
+        jobTitle: job.hiringManager.jobTitle,
+        isHiringManager: true,
+      })
+    }
+
+    if (job.followers) {
+      job.followers.forEach((f: any) => {
+        if (f.employee.id !== job.hiringManager?.id) {
+          team.push({
+            ...f.employee,
+            isFollower: true,
+          })
+        }
+      })
+    }
+
+    return team
+  }, [interview])
+
   // Add interviewer mutation
   const utils = trpc.useUtils()
   const addInterviewerMutation = trpc.interview.addInterviewer.useMutation({
@@ -234,34 +270,76 @@ export function AddInterviewerDialog({
                       ) : (
                         <>
                           <CommandEmpty>No employees found.</CommandEmpty>
-                          <CommandGroup>
+
+                          {hiringTeam.length > 0 && !employeeSearch && (
+                            <CommandGroup heading="Hiring Team (Suggested)">
+                              {hiringTeam.map((member) => (
+                                <CommandItem
+                                  key={member.id}
+                                  value={`${member.fullName} ${member.workEmail}`}
+                                  onSelect={() => {
+                                    setSelectedEmployee({
+                                      id: member.id,
+                                      fullName: member.fullName,
+                                      workEmail: member.workEmail,
+                                      jobTitle: member.jobTitle,
+                                    })
+                                    setEmployeeOpen(false)
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      selectedEmployee?.id === member.id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <div className="flex flex-col">
+                                    <div className="flex items-center gap-2">
+                                      <span>{member.fullName}</span>
+                                      <Badge variant="secondary" className="text-[10px] h-4 px-1">
+                                        {member.isHiringManager ? 'Hiring Manager' : 'Team Member'}
+                                      </Badge>
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">
+                                      {member.jobTitle || 'Employee'} • {member.workEmail}
+                                    </span>
+                                  </div>
+                                </CommandItem>
+                              ))}
+                            </CommandGroup>
+                          )}
+
+                          <CommandGroup heading={hiringTeam.length > 0 && !employeeSearch ? "All Employees" : ""}>
                             {employeesData?.employees?.map((employee) => (
-                              <CommandItem
-                                key={employee.id}
-                                value={`${employee.fullName} ${employee.workEmail}`}
-                                onSelect={() => {
-                                  setSelectedEmployee({
-                                    id: employee.id,
-                                    fullName: employee.fullName,
-                                    workEmail: employee.workEmail,
-                                    jobTitle: employee.jobTitle,
-                                  })
-                                  setEmployeeOpen(false)
-                                }}
-                              >
-                                <Check
-                                  className={cn(
-                                    "mr-2 h-4 w-4",
-                                    selectedEmployee?.id === employee.id ? "opacity-100" : "opacity-0"
-                                  )}
-                                />
-                                <div className="flex flex-col">
-                                  <span>{employee.fullName}</span>
-                                  <span className="text-xs text-muted-foreground">
-                                    {employee.jobTitle || 'Employee'} • {employee.workEmail}
-                                  </span>
-                                </div>
-                              </CommandItem>
+                              // Filter out team members if they are already shown above to avoid duplicates when not searching
+                              (!employeeSearch && hiringTeam.some(m => m.id === employee.id)) ? null : (
+                                <CommandItem
+                                  key={employee.id}
+                                  value={`${employee.fullName} ${employee.workEmail}`}
+                                  onSelect={() => {
+                                    setSelectedEmployee({
+                                      id: employee.id,
+                                      fullName: employee.fullName,
+                                      workEmail: employee.workEmail,
+                                      jobTitle: employee.jobTitle,
+                                    })
+                                    setEmployeeOpen(false)
+                                  }}
+                                >
+                                  <Check
+                                    className={cn(
+                                      "mr-2 h-4 w-4",
+                                      selectedEmployee?.id === employee.id ? "opacity-100" : "opacity-0"
+                                    )}
+                                  />
+                                  <div className="flex flex-col">
+                                    <span>{employee.fullName}</span>
+                                    <span className="text-xs text-muted-foreground">
+                                      {employee.jobTitle || 'Employee'} • {employee.workEmail}
+                                    </span>
+                                  </div>
+                                </CommandItem>
+                              )
                             ))}
                           </CommandGroup>
                         </>

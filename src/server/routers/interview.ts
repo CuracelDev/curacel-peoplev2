@@ -212,7 +212,14 @@ export const interviewRouter = router({
         include: {
           candidate: {
             include: {
-              job: true,
+              job: {
+                include: {
+                  hiringManager: { select: { id: true, fullName: true, workEmail: true, jobTitle: true } },
+                  followers: {
+                    include: { employee: { select: { id: true, fullName: true, workEmail: true, jobTitle: true } } },
+                  },
+                }
+              },
             },
           },
           evaluations: {
