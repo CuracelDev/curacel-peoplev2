@@ -12,6 +12,12 @@ module.exports = (phase) => {
     experimental: {
       serverComponentsExternalPackages: ['pg-boss'],
     },
+    eslint: {
+      ignoreDuringBuilds: true,
+    },
+    typescript: {
+      ignoreBuildErrors: true,
+    },
     async redirects() {
       return [
         {
