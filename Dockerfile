@@ -75,7 +75,7 @@ USER nextjs
 EXPOSE 3800
 
 ENV PORT 3800
-ENV HOSTNAME "0.0.0.0"
+ENV HOSTNAME="0.0.0.0"
 
 # Health check using wget (available in alpine)
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
