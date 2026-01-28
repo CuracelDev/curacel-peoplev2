@@ -570,7 +570,7 @@ export default function EditJobPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Followers</Label>
+                <Label>Hiring Team & Interviewers</Label>
                 <div className="flex flex-wrap gap-2 p-2 border rounded-md min-h-[42px]">
                   {followers.map((id) => {
                     const emp = (employees || []).find(e => e.id === id)
@@ -583,7 +583,7 @@ export default function EditJobPage() {
                     )
                   })}
                   <Input
-                    placeholder={followers.length === 0 ? "Search employees..." : ""}
+                    placeholder={followers.length === 0 ? "Search employees to add to the team..." : ""}
                     value={followerSearch}
                     onChange={(e) => setFollowerSearch(e.target.value)}
                     className="border-0 shadow-none p-0 h-6 flex-1 min-w-[100px] focus-visible:ring-0"

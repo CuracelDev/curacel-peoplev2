@@ -3,7 +3,7 @@
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { trpc } from '@/lib/trpc-client'
-import { ArrowLeft, Briefcase, Calendar, DollarSign, MapPin, Users, Target, Award, Network, ChevronDown, Clipboard, ExternalLink } from 'lucide-react'
+import { ArrowLeft, Briefcase, Calendar, DollarSign, MapPin, Users, Target, Award, Network, ChevronDown, Clipboard, ExternalLink, UserPlus } from 'lucide-react'
 import { format } from 'date-fns'
 import { toast } from 'sonner'
 import {
@@ -29,6 +29,7 @@ export default function JobDetailsPage() {
     scorecard: false,
     competencies: false,
     pipeline: false,
+    team: true,
   })
 
   const toggleSection = (section: keyof typeof openSections) => {
@@ -349,6 +350,87 @@ export default function JobDetailsPage() {
                     )}
                   </dl>
                 </div>
+              </div>
+            </div>
+          </CollapsibleContent>
+        </Collapsible>
+      </div>
+
+      {/* Hiring Team & Interviewers Section */}
+      <div className="bg-white border border-gray-200 rounded-lg">
+        <Collapsible open={openSections.team} onOpenChange={() => toggleSection('team')}>
+          <CollapsibleTrigger className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50">
+            <div className="flex items-center gap-3">
+              <Users className="h-5 w-5 text-gray-600" />
+              <div className="text-left">
+                <h2 className="text-lg font-semibold text-gray-900">Hiring Team & Interviewers</h2>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  The people involved in hiring for this role
+                </p>
+              </div>
+            </div>
+            <ChevronDown className="h-5 w-5 text-gray-600" />
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <div className="px-6 pb-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Hiring Manager */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                    <Award className="h-4 w-4 text-indigo-500" />
+                    Hiring Manager
+                  </h3>
+                  {job.hiringManager ? (
+                    <div className="flex items-center gap-3 p-3 bg-indigo-50 border border-indigo-100 rounded-lg">
+                      <div className="h-10 w-10 rounded-full bg-indigo-600/10 text-indigo-600 flex items-center justify-center font-bold">
+                        {job.hiringManager.fullName.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{job.hiringManager.fullName}</p>
+                        <p className="text-xs text-gray-500">{job.hiringManager.workEmail}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-gray-500 italic">No hiring manager assigned</p>
+                  )}
+                </div>
+
+                {/* Additional Team Members */}
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+                    <Users className="h-4 w-4 text-blue-500" />
+                    Hiring Team Member & Followers
+                  </h3>
+                  <div className="space-y-2">
+                    {job.followers && job.followers.length > 0 ? (
+                      job.followers.map((follower) => (
+                        <div key={follower.employee.id} className="flex items-center justify-between p-3 bg-gray-50 border border-gray-100 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-gray-200 text-gray-600 flex items-center justify-center text-xs font-bold">
+                              {follower.employee.fullName.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">{follower.employee.fullName}</p>
+                              <p className="text-xs text-gray-500">Hiring Team Member</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500 italic">No additional team members added</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Action Buttons for Team Management */}
+              <div className="flex pt-4 border-t">
+                <Link href={`/hiring/positions/${jobId}/edit`}>
+                  <Button variant="outline" size="sm" className="gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Manage Hiring Team
+                  </Button>
+                </Link>
               </div>
             </div>
           </CollapsibleContent>
