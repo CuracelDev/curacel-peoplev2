@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
+import { toast } from 'sonner'
 
 export default function OfferSigningPage() {
   const params = useParams()
@@ -30,8 +31,13 @@ export default function OfferSigningPage() {
 
   const signOffer = trpc.offer.manualSign.useMutation({
     onSuccess: () => {
+      toast.success('Offer signed successfully!')
       setAgreed(false)
       refetch()
+    },
+    onError: (error) => {
+      console.error('Signing error:', error)
+      toast.error(error.message || 'Failed to sign offer. Please try again.')
     },
   })
 
@@ -82,7 +88,9 @@ export default function OfferSigningPage() {
       return
     }
     const buffer = await file.arrayBuffer()
-    const base64 = Buffer.from(buffer).toString('base64')
+    // Use btoa for browser-safe base64 conversion instead of Buffer
+    const binary = String.fromCharCode(...new Uint8Array(buffer))
+    const base64 = btoa(binary)
     const dataUrl = `data:${file.type};base64,${base64}`
     setSignatureImage(dataUrl)
   }

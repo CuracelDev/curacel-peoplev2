@@ -850,8 +850,15 @@ export const offerRouter = router({
         </div>
       `
 
-      const signedPdf = await renderHtmlToPdfBuffer(signedHtml)
-      const signedDocUrl = `data:application/pdf;base64,${signedPdf.toString('base64')}`
+      let signedPdf: Buffer | undefined
+      let signedDocUrl: string | null = null
+
+      try {
+        signedPdf = await renderHtmlToPdfBuffer(signedHtml)
+        signedDocUrl = `data:application/pdf;base64,${signedPdf.toString('base64')}`
+      } catch (error) {
+        console.error('[manualSign] PDF generation failed:', error)
+      }
 
       // Update offer
       await ctx.prisma.offer.update({
@@ -891,14 +898,18 @@ export const offerRouter = router({
       })
 
       // Email signed copy
-      await sendSignedOfferEmail({
-        to: offer.candidateEmail,
-        candidateName: offer.candidateName,
-        companyName: organization.name,
-        signedHtml,
-        signedPdf,
-        signedFileName: `signed-offer-${offer.candidateName.replace(/\s+/g, '-').toLowerCase() || 'candidate'}.pdf`,
-      })
+      try {
+        await sendSignedOfferEmail({
+          to: offer.candidateEmail,
+          candidateName: offer.candidateName,
+          companyName: organization.name,
+          signedHtml,
+          signedPdf,
+          signedFileName: `signed-offer-${offer.candidateName.replace(/\s+/g, '-').toLowerCase() || 'candidate'}.pdf`,
+        })
+      } catch (error) {
+        console.error('[manualSign] Failed to send signed offer email:', error)
+      }
 
       return { success: true }
     }),
