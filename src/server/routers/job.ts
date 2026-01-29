@@ -1081,6 +1081,21 @@ export const jobRouter = router({
             console.error('[updateCandidate] Failed to queue hire flow:', error)
           }
         }
+
+        // Handle moving to HIRED stage
+        if (input.stage === 'HIRED') {
+          try {
+            // Update linked employee status to HIRED_PENDING_START
+            // This ensures they show up correctly in employee lists and are picked up by auto-activation
+            await ctx.prisma.employee.updateMany({
+              where: { candidateId: id },
+              data: { status: 'HIRED_PENDING_START' }
+            })
+            console.log('[updateCandidate] Updated linked employee status to HIRED_PENDING_START for candidate:', id)
+          } catch (error) {
+            console.error('[updateCandidate] Failed to update linked employee status:', error)
+          }
+        }
       }
 
       return result
@@ -1141,6 +1156,18 @@ export const jobRouter = router({
           console.log(`[bulkUpdateCandidateStage] Queued ${queuedCount} stage emails for move to ${input.stage}`)
         } else {
           console.warn('[bulkUpdateCandidateStage] Background worker not available, skipping email queue')
+        }
+        // Handle bulk moving to HIRED stage
+        if (input.stage === 'HIRED') {
+          try {
+            await ctx.prisma.employee.updateMany({
+              where: { candidateId: { in: input.candidateIds } },
+              data: { status: 'HIRED_PENDING_START' }
+            })
+            console.log(`[bulkUpdateCandidateStage] Updated ${input.candidateIds.length} linked employees to HIRED_PENDING_START`)
+          } catch (error) {
+            console.error('[bulkUpdateCandidateStage] Failed to update linked employee statuses:', error)
+          }
         }
       } catch (error) {
         // Log error but don't fail the mutation
