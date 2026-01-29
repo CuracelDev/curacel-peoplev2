@@ -1,7 +1,17 @@
 FROM node:20-alpine AS base
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 # openssl is required for Prisma Client to work on Alpine, docker-cli for log streaming
-RUN apk add --no-cache libc6-compat openssl docker-cli docker-cli-compose
+RUN apk add --no-cache \
+  libc6-compat \
+  openssl \
+  docker-cli \
+  docker-cli-compose \
+  chromium \
+  nss \
+  freetype \
+  harfbuzz \
+  ca-certificates \
+  ttf-freefont
 
 # Install dependencies only when needed
 FROM base AS deps
@@ -48,6 +58,8 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
