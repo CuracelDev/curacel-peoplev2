@@ -911,6 +911,31 @@ export const offerRouter = router({
         console.error('[manualSign] Failed to send signed offer email:', error)
       }
 
+      // Notify the sender (admin/recruiter)
+      if (offer.sentBy) {
+        try {
+          // sendEmail needs to be imported or we check if offer.sentBy resolves to a user
+          const sender = await ctx.prisma.user.findUnique({
+            where: { id: offer.sentBy },
+            select: { email: true, name: true }
+          })
+
+          if (sender && sender.email) {
+            const { sendOfferSignedNotificationToAdmin } = await import('@/lib/email')
+            await sendOfferSignedNotificationToAdmin({
+              adminEmail: sender.email,
+              adminName: sender.name,
+              candidateName: offer.candidateName,
+              companyName: organization.name,
+              offerId: offer.id,
+              signedPdf
+            })
+          }
+        } catch (error) {
+          console.error('[manualSign] Failed to notify admin of signed offer:', error)
+        }
+      }
+
       return { success: true }
     }),
 })

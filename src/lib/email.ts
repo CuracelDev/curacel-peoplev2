@@ -650,3 +650,64 @@ export async function sendInterviewerInviteEmail(params: {
     `,
   })
 }
+
+export async function sendOfferSignedNotificationToAdmin(params: {
+  adminEmail: string
+  adminName?: string | null
+  candidateName: string
+  companyName: string
+  offerId: string
+  signedPdf?: Buffer
+}): Promise<void> {
+  const { adminEmail, adminName, candidateName, companyName, offerId, signedPdf } = params
+  const appUrl = getAppUrl()
+
+  // Link to the offer details page for the admin
+  const offerLink = `${appUrl}/hiring/offers/${offerId}`
+
+  await sendEmail({
+    to: adminEmail,
+    subject: `Offer Signed: ${candidateName}`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .content { background: #f9fafb; padding: 24px; border-radius: 8px; border: 1px solid #e5e7eb; }
+            .button { display: inline-block; background: #111827; color: #ffffff; padding: 12px 20px; text-decoration: none; border-radius: 6px; margin-top: 16px; font-weight: 500; }
+            .meta { color: #6b7280; font-size: 14px; margin-top: 24px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="content">
+              <h2 style="margin-top: 0; color: #111827;">Offer Signed!</h2>
+              <p>Hi ${adminName || 'there'},</p>
+              <p><strong>${candidateName}</strong> has successfully signed their offer letter.</p>
+              
+              <p>The candidate has been moved to the <strong>Offer Signed</strong> status. You can now proceed with the next steps in the hiring process.</p>
+              
+              <a class="button" href="${offerLink}">View Offer Details</a>
+              
+              <p class="meta">
+                A copy of the signed PDF is attached to this email.
+              </p>
+            </div>
+            <p style="text-align: center; font-size: 12px; color: #9ca3af; margin-top: 24px;">
+              &copy; ${new Date().getFullYear()} ${companyName}
+            </p>
+          </div>
+        </body>
+      </html>
+    `,
+    attachments: signedPdf ? [
+      {
+        filename: `${candidateName.replace(/\s+/g, '-').toLowerCase()}-signed-offer.pdf`,
+        content: signedPdf,
+        contentType: 'application/pdf',
+      }
+    ] : undefined,
+  })
+}
