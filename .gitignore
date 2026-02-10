@@ -59,3 +59,7 @@ chathistory/
 prisma/dev.db
 prisma/dev.db-journal
 .next-dev/
+*.pem
+*.key
+temp_key
+temp_key.pub
