@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useParams, useSearchParams } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
 import {
@@ -22,6 +22,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { marked } from 'marked'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -218,6 +219,23 @@ export default function PublicCareersPage() {
   const jobDescriptionContent = (job as { jobDescription?: { content?: string | null } } | null)
     ?.jobDescription?.content
 
+  const [htmlContent, setHtmlContent] = useState<string>('')
+
+  useEffect(() => {
+    const parseContent = async () => {
+      if (jobDescriptionContent) {
+        try {
+          const parsed = await marked.parse(jobDescriptionContent)
+          setHtmlContent(parsed)
+        } catch (e) {
+          console.error('Failed to parse markdown:', e)
+          setHtmlContent(jobDescriptionContent)
+        }
+      }
+    }
+    parseContent()
+  }, [jobDescriptionContent])
+
   // Loading state
   if (isLoading) {
     return (
@@ -324,10 +342,10 @@ export default function PublicCareersPage() {
             <CardTitle>About This Role</CardTitle>
           </CardHeader>
           <CardContent>
-            {jobDescriptionContent ? (
+            {htmlContent ? (
               <div
                 className="prose prose-sm max-w-none"
-                dangerouslySetInnerHTML={{ __html: jobDescriptionContent }}
+                dangerouslySetInnerHTML={{ __html: htmlContent }}
               />
             ) : (
               <p className="text-muted-foreground">No description available.</p>
