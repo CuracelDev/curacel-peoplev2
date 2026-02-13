@@ -101,9 +101,12 @@ jobs:
             # We tagged it `curacel-people-app-staging:latest`
             # We need to tell docker compose to use that image.
             
-            export APP_IMAGE=curacel-people-app-staging:latest
-            
-            echo "[3/3] Swapping application..."
+            # Migrations
+            echo "[3/4] Running database migrations..."
+            APP_IMAGE=curacel-people-app-staging:latest \
+            docker compose -f docker-compose.deploy.yml run --rm app npx prisma migrate deploy || echo "Migration failed, check logs"
+
+            echo "[4/4] Starting application..."
             APP_IMAGE=curacel-people-app-staging:latest \
             docker compose -f docker-compose.deploy.yml up -d --force-recreate app adminer
             

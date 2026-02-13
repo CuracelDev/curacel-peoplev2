@@ -91,6 +91,6 @@ ENV HOSTNAME="0.0.0.0"
 
 # Health check using wget (available in alpine)
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3800/api/auth/session || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3800/api/auth/session || exit 1
 
 CMD ["node", "server.js"]
