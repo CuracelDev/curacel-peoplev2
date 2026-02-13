@@ -1,0 +1,124 @@
+name: Build and Deploy to Staging (Compliance)
+
+on:
+  push:
+    branches:
+      - staging
+  workflow_dispatch:
+
+env:
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build staging image
+        run: |
+          echo "Building staging image..."
+          docker build --target runner -t curacel-people-app-staging:latest .
+
+      - name: Save image for transfer
+        run: |
+          echo "Saving image..."
+          docker save curacel-people-app-staging:latest | gzip > app_image_staging.tar.gz
+
+      - name: Prepare .env file
+        run: |
+          cat << EOF > .env
+          NODE_ENV=production
+          PORT=3800
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL=https://peoplestaging.crl.to
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          POSTMARK_SERVER_TOKEN=${{ secrets.POSTMARK_SERVER_TOKEN || secrets.POSTMARK_API_TOKEN || secrets.POSTMARK_TOKEN }}
+          POSTMARK_API_TOKEN=${{ secrets.POSTMARK_API_TOKEN || secrets.POSTMARK_SERVER_TOKEN }}
+          POSTMARK_FROM=${{ secrets.POSTMARK_FROM || secrets.EMAIL_FROM }}
+          POSTMARK_MESSAGE_STREAM=${{ secrets.POSTMARK_MESSAGE_STREAM || 'outbound' }}
+          SMTP_HOST=${{ secrets.SMTP_HOST || secrets.EMAIL_SERVER_HOST }}
+          SMTP_PORT=${{ secrets.SMTP_PORT || secrets.EMAIL_SERVER_PORT || 587 }}
+          SMTP_USER=${{ secrets.SMTP_USER || secrets.EMAIL_SERVER_USER || secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD || secrets.EMAIL_SERVER_PASSWORD || secrets.SMTP_PASS }}
+          EMAIL_FROM=${{ secrets.EMAIL_FROM || secrets.POSTMARK_FROM }}
+          EMAIL_SERVER_HOST=${{ secrets.EMAIL_SERVER_HOST || secrets.SMTP_HOST }}
+          EMAIL_SERVER_PORT=${{ secrets.EMAIL_SERVER_PORT || secrets.SMTP_PORT || 587 }}
+          EMAIL_SERVER_USER=${{ secrets.EMAIL_SERVER_USER || secrets.SMTP_USER || secrets.SMTP_USERNAME }}
+          EMAIL_SERVER_PASSWORD=${{ secrets.EMAIL_SERVER_PASSWORD || secrets.SMTP_PASSWORD || secrets.SMTP_PASS }}
+          DOCUSIGN_CLIENT_ID=${{ secrets.DOCUSIGN_CLIENT_ID }}
+          DOCUSIGN_CLIENT_SECRET=${{ secrets.DOCUSIGN_CLIENT_SECRET }}
+          DOCUSIGN_REDIRECT_URI=${{ secrets.DOCUSIGN_REDIRECT_URI }}
+          UPLOADTHING_SECRET=${{ secrets.UPLOADTHING_SECRET }}
+          UPLOADTHING_APP_ID=${{ secrets.UPLOADTHING_APP_ID }}
+          ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
+          DEV_PASSWORDLESS_LOGIN=${{ secrets.DEV_PASSWORDLESS_LOGIN }}
+          DEV_AUTO_CREATE_SUPER_ADMIN=${{ secrets.DEV_AUTO_CREATE_SUPER_ADMIN }}
+          NEXT_PUBLIC_DEV_PASSWORDLESS_LOGIN=${{ secrets.DEV_PASSWORDLESS_LOGIN }}
+          EOF
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Transfer files to server
+        run: |
+          echo "Transferring artifacts..."
+          ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=5 -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p ~/peopleos-staging"
+          scp -o ServerAliveInterval=60 -o ServerAliveCountMax=5 -i ~/.ssh/deploy_key .env docker-compose.deploy.yml app_image_staging.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/peopleos-staging/
+
+      - name: Deploy on server
+        run: |
+          ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=5 -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            cd ~/peopleos-staging
+            echo "--- Starting Deployment ---"
+            
+            # Load new image
+            echo "[1/3] Loading image..."
+            gunzip -c app_image_staging.tar.gz | docker load
+            
+            # Start infra (ensure different ports or network if running alongside prod, but this is a separate instance)
+            echo "[2/3] Starting infrastructure..."
+            # Note: Using restart: always in docker-compose might conflict if we don't handle it
+            # But assume standard deploy for now
+            docker compose -f docker-compose.deploy.yml up -d postgres redis
+            sleep 10
+            
+            # Swap app
+            # Updating env vars or image tag reference? 
+            # The docker-compose uses `curacel-people-app:latest` typically
+            # We tagged it `curacel-people-app-staging:latest`
+            # We need to tell docker compose to use that image.
+            
+            # Migrations
+            echo "[3/4] Running database migrations..."
+            APP_IMAGE=curacel-people-app-staging:latest \
+            docker compose -f docker-compose.deploy.yml run --rm -T app prisma migrate deploy || echo "Migration failed, check logs"
+
+            echo "[4/4] Starting application..."
+            APP_IMAGE=curacel-people-app-staging:latest \
+            docker compose -f docker-compose.deploy.yml up -d --force-recreate app adminer
+            
+            # Diagnostics
+            sleep 15
+            echo "=== Container Status ==="
+            docker compose -f docker-compose.deploy.yml ps
+            echo "=== App Logs ==="
+            docker logs curacel-people-app-v2 --tail 30
+            
+            # Cleanup
+            rm -f app_image_staging.tar.gz
+            docker image prune -f
+            echo "✅ Deployment complete!"
+          EOF

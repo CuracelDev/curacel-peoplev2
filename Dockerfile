@@ -13,6 +13,9 @@ RUN apk add --no-cache \
   ca-certificates \
   ttf-freefont
 
+# Install Prisma globally so it's available in the final image without downloading
+RUN npm install -g prisma@5.10.2
+
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
@@ -91,6 +94,6 @@ ENV HOSTNAME="0.0.0.0"
 
 # Health check using wget (available in alpine)
 HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3800/api/auth/session || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:3800/api/auth/session || exit 1
 
 CMD ["node", "server.js"]
