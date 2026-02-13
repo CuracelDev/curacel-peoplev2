@@ -2,8 +2,8 @@ version: '3.8'
 
 services:
   app:
-    container_name: curacel-people-app-v2
-    image: curacel-people-app:latest
+    container_name: ${CONTAINER_NAME:-curacel-people-app-v2}
+    image: ${APP_IMAGE:-curacel-people-app:latest}
     ports:
       - "3800:3800"
     env_file:
@@ -29,7 +29,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U curacel -d curacel_people"]
+      test: [ "CMD-SHELL", "pg_isready -U curacel -d curacel_people" ]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -59,6 +59,7 @@ services:
 
 volumes:
   postgres_data:
+
 
 networks:
   app-network:
