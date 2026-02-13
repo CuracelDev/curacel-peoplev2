@@ -75,12 +75,12 @@ jobs:
       - name: Transfer files to server
         run: |
           echo "Transferring artifacts..."
-          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p ~/peopleos-staging"
-          scp -i ~/.ssh/deploy_key .env docker-compose.deploy.yml app_image_staging.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/peopleos-staging/
+          ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=5 -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p ~/peopleos-staging"
+          scp -o ServerAliveInterval=60 -o ServerAliveCountMax=5 -i ~/.ssh/deploy_key .env docker-compose.deploy.yml app_image_staging.tar.gz ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/peopleos-staging/
 
       - name: Deploy on server
         run: |
-          ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          ssh -o ServerAliveInterval=60 -o ServerAliveCountMax=5 -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
             cd ~/peopleos-staging
             echo "--- Starting Deployment ---"
             
@@ -104,7 +104,7 @@ jobs:
             # Migrations
             echo "[3/4] Running database migrations..."
             APP_IMAGE=curacel-people-app-staging:latest \
-            docker compose -f docker-compose.deploy.yml run --rm app npx prisma migrate deploy || echo "Migration failed, check logs"
+            docker compose -f docker-compose.deploy.yml run --rm app prisma migrate deploy || echo "Migration failed, check logs"
 
             echo "[4/4] Starting application..."
             APP_IMAGE=curacel-people-app-staging:latest \

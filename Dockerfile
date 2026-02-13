@@ -13,6 +13,9 @@ RUN apk add --no-cache \
   ca-certificates \
   ttf-freefont
 
+# Install Prisma globally so it's available in the final image without downloading
+RUN npm install -g prisma@5.10.2
+
 # Install dependencies only when needed
 FROM base AS deps
 WORKDIR /app
