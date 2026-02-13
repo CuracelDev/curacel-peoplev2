@@ -38,7 +38,7 @@ jobs:
           PORT=3800
           DATABASE_URL=${{ secrets.DATABASE_URL }}
           NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
-          NEXTAUTH_URL=https://staging.peopleos.crl.to
+          NEXTAUTH_URL=https://peoplestaging.crl.to
           GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
           POSTMARK_SERVER_TOKEN=${{ secrets.POSTMARK_SERVER_TOKEN || secrets.POSTMARK_API_TOKEN || secrets.POSTMARK_TOKEN }}
