@@ -701,9 +701,9 @@ export default function CandidateProfilePage() {
                 )}
                 {candidate.linkedinUrl && (
                   <a
-                    href={`https://${candidate.linkedinUrl}`}
+                    href={candidate.linkedinUrl.startsWith('http') ? candidate.linkedinUrl : `https://${candidate.linkedinUrl}`}
                     target="_blank"
-                    rel="noreferrer"
+                    rel="noopener noreferrer"
                     className="flex items-center gap-1.5 text-indigo-600 hover:text-indigo-700"
                   >
                     <Linkedin className="h-3.5 w-3.5 flex-shrink-0" />
