@@ -335,7 +335,7 @@ export function CandidatesTable({
                         ))}
                         {candidate.linkedinUrl && (
                           <a
-                            href={candidate.linkedinUrl}
+                            href={candidate.linkedinUrl.startsWith('http') ? candidate.linkedinUrl : `https://${candidate.linkedinUrl}`}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="mt-1 inline-flex items-center gap-1 text-xs text-[#0A66C2] hover:text-[#004182]"
