@@ -226,7 +226,9 @@ export default function PublicCareersPage() {
       if (jobDescriptionContent) {
         try {
           const parsed = await marked.parse(jobDescriptionContent)
-          setHtmlContent(parsed)
+          // Sanitize the content to remove the YC AE post link
+          const sanitized = parsed.replace(/<a[^>]*href="[^"]*ycombinator\.com[^"]*"[^>]*>.*?<\/a>/gi, '')
+          setHtmlContent(sanitized)
         } catch (e) {
           console.error('Failed to parse markdown:', e)
           setHtmlContent(jobDescriptionContent)
