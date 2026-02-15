@@ -1044,7 +1044,7 @@ export const jobRouter = router({
           }
 
           if (boss && ctx.user) {
-            await queueStageEmail(boss, {
+            const jobId = await queueStageEmail(boss, {
               candidateId: id,
               fromStage: currentCandidate.stage,
               toStage: input.stage,
@@ -1053,7 +1053,12 @@ export const jobRouter = router({
               recruiterName: ctx.user.name || undefined,
               skipAutoEmail: skipAutoEmail || false,
             })
-            console.log(`[updateCandidate] Queued stage email for candidate ${id} moving to ${input.stage}`)
+
+            if (jobId) {
+              console.log(`[updateCandidate] Queued stage email job ${jobId} for candidate ${id} moving to ${input.stage}`)
+            } else {
+              console.log(`[updateCandidate] Stage email skipped (disabled or no settings) for candidate ${id} moving to ${input.stage}`)
+            }
           } else {
             console.warn('[updateCandidate] Background worker not available or user email missing, skipping email queue')
           }

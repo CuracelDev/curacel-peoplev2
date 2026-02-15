@@ -203,7 +203,13 @@ export async function queueStageEmail(
 
   // Get email settings for delay and enabled status
   const emailSettings = await prisma.emailSettings.findFirst()
-  const autoSendStages = emailSettings?.autoSendStages as unknown as Record<string, AutoSendStageConfig> | null
+
+  if (!emailSettings) {
+    console.warn('[StageEmail] No organization email settings found. Skipping auto-email.')
+    return null
+  }
+
+  const autoSendStages = emailSettings.autoSendStages as unknown as Record<string, AutoSendStageConfig> | null
   const stageConfig = autoSendStages?.[data.toStage]
 
   // Check if auto-send is enabled for this stage
