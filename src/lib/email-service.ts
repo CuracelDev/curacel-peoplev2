@@ -222,6 +222,25 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
           },
         })
 
+        // Audit Log: Email Sent via Gmail
+        await prisma.auditLog.create({
+          data: {
+            action: 'ASSISTANT_ACTION',
+            resourceType: 'candidate_email',
+            resourceId: email.id,
+            actorId: options.recruiterId, // Or system/bot ID if automated
+            actorEmail: options.recruiterEmail,
+            actorType: 'system',
+            metadata: {
+              type: 'email_sent',
+              provider: 'gmail',
+              messageId: gmailResult.messageId,
+              recipient: candidate.email,
+              candidateId: candidate.id
+            }
+          }
+        }).catch(err => console.error('[EmailService] Failed to create audit log:', err))
+
         // Update thread with Gmail thread ID if new
         if (gmailResult.threadId && !thread.gmailThreadId) {
           await prisma.candidateEmailThread.update({
@@ -274,6 +293,25 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
           },
         })
 
+        // Audit Log: Email Sent via System
+        await prisma.auditLog.create({
+          data: {
+            action: 'ASSISTANT_ACTION',
+            resourceType: 'candidate_email',
+            resourceId: email.id,
+            actorId: options.recruiterId,
+            actorEmail: options.recruiterEmail,
+            actorType: 'system',
+            metadata: {
+              type: 'email_sent',
+              provider: 'system_fallback',
+              recipient: candidate.email,
+              candidateId: candidate.id,
+              fallbackReason: gmail ? 'gmail_failed' : 'gmail_not_configured'
+            }
+          }
+        }).catch(err => console.error('[EmailService] Failed to create audit log:', err))
+
         // Update thread
         await prisma.candidateEmailThread.update({
           where: { id: thread.id },
@@ -291,6 +329,24 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
             errorMessage: systemError instanceof Error ? systemError.message : String(systemError),
           },
         })
+
+        // Audit Log: Email Failed
+        await prisma.auditLog.create({
+          data: {
+            action: 'ASSISTANT_ACTION',
+            resourceType: 'candidate_email',
+            resourceId: email.id,
+            actorId: options.recruiterId,
+            actorEmail: options.recruiterEmail,
+            actorType: 'system',
+            metadata: {
+              type: 'email_failed',
+              error: systemError instanceof Error ? systemError.message : String(systemError),
+              candidateId: candidate.id
+            }
+          }
+        }).catch(err => console.error('[EmailService] Failed to create audit log:', err))
+
         return {
           success: false,
           error: systemError instanceof Error ? systemError.message : 'Fallback email failed',
