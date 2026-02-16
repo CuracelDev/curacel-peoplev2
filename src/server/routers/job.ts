@@ -1043,6 +1043,23 @@ export const jobRouter = router({
             boss = await initializeWorker()
           }
 
+          // Audit Log: Stage Change
+          await ctx.prisma.auditLog.create({
+            data: {
+              action: 'EMPLOYEE_STATUS_CHANGED',
+              resourceType: 'job_candidate',
+              resourceId: id,
+              actorId: ctx.user?.id,
+              actorEmail: ctx.user?.email,
+              actorType: 'user',
+              metadata: {
+                fromStage: currentCandidate.stage,
+                toStage: input.stage,
+                skipAutoEmail
+              }
+            }
+          }).catch(err => console.error('[updateCandidate] Failed to create audit log:', err))
+
           if (boss && ctx.user) {
             const jobId = await queueStageEmail(boss, {
               candidateId: id,
@@ -1056,8 +1073,44 @@ export const jobRouter = router({
 
             if (jobId) {
               console.log(`[updateCandidate] Queued stage email job ${jobId} for candidate ${id} moving to ${input.stage}`)
+
+              // Audit Log: Email Queued
+              await ctx.prisma.auditLog.create({
+                data: {
+                  action: 'ASSISTANT_ACTION',
+                  resourceType: 'job_candidate',
+                  resourceId: id,
+                  actorId: ctx.user.id,
+                  actorEmail: ctx.user.email,
+                  actorType: 'system',
+                  metadata: {
+                    type: 'candidate_email_queued',
+                    pgBossJobId: jobId,
+                    stage: input.stage,
+                    templateId: 'auto'
+                  }
+                }
+              }).catch(err => console.error('[updateCandidate] Failed to create audit log:', err))
+
             } else {
               console.log(`[updateCandidate] Stage email skipped (disabled or no settings) for candidate ${id} moving to ${input.stage}`)
+
+              // Audit Log: Email Skipped
+              await ctx.prisma.auditLog.create({
+                data: {
+                  action: 'ASSISTANT_ACTION',
+                  resourceType: 'job_candidate',
+                  resourceId: id,
+                  actorId: ctx.user.id,
+                  actorEmail: ctx.user.email,
+                  actorType: 'system',
+                  metadata: {
+                    type: 'candidate_email_skipped',
+                    reason: 'disabled_or_no_settings',
+                    stage: input.stage
+                  }
+                }
+              }).catch(err => console.error('[updateCandidate] Failed to create audit log:', err))
             }
           } else {
             console.warn('[updateCandidate] Background worker not available or user email missing, skipping email queue')
