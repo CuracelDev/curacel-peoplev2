@@ -53,7 +53,7 @@ export class SlackConnector implements IntegrationConnector {
   private matchesCondition(employee: Employee, condition: ProvisioningCondition): boolean {
     for (const [key, value] of Object.entries(condition)) {
       if (value === undefined || value === null) continue
-      
+
       const employeeValue = (employee as Record<string, unknown>)[key]
       if (typeof employeeValue === 'string' && typeof value === 'string') {
         if (employeeValue.toLowerCase() !== value.toLowerCase()) {
@@ -79,15 +79,15 @@ export class SlackConnector implements IntegrationConnector {
 
     for (const rule of sortedRules) {
       if (!rule.isActive) continue
-      
+
       const condition = rule.condition as ProvisioningCondition
       if (this.matchesCondition(employee, condition)) {
         const data = rule.provisionData as SlackProvisionData
-        
+
         if (data.channels) {
           result.channels = [...(result.channels || []), ...data.channels]
         }
-        
+
         if (data.userGroups) {
           result.userGroups = [...(result.userGroups || []), ...data.userGroups]
         }
@@ -97,7 +97,7 @@ export class SlackConnector implements IntegrationConnector {
     // Dedupe
     result.channels = [...new Set(result.channels)]
     result.userGroups = [...new Set(result.userGroups)]
-    
+
     return result
   }
 
@@ -109,7 +109,7 @@ export class SlackConnector implements IntegrationConnector {
   ): Promise<ProvisionResult> {
     try {
       const provisionData = this.getProvisionDataForEmployee(employee, rules)
-      
+
       // Prefer work email, fall back to personal email.
       const email = employee.workEmail || employee.personalEmail
       if (!email) {
@@ -124,7 +124,7 @@ export class SlackConnector implements IntegrationConnector {
       // Check if user already exists
       if (existingAccount?.externalUserId) {
         slackUserId = existingAccount.externalUserId
-        
+
         // Reactivate if deactivated
         try {
           await this.adminClient?.apiCall('admin.users.setRegular', {
@@ -182,7 +182,7 @@ export class SlackConnector implements IntegrationConnector {
               ...(this.config.teamId ? { team_id: this.config.teamId } : {}),
               channel_ids: channelIds.join(','),
             })
-            
+
             if ((inviteResult as any)?.ok) {
               // The user ID won't be available until they accept
               return {
@@ -286,13 +286,13 @@ export class SlackConnector implements IntegrationConnector {
       } catch (error) {
         // If admin method not available, we might need to remove from all channels
         console.warn('Admin deactivate failed, trying to remove from channels:', error)
-        
+
         // List user's conversations and remove them
         const conversations = await this.botClient.users.conversations({
           user: slackUserId,
           types: 'public_channel,private_channel',
         })
-        
+
         for (const channel of conversations.channels || []) {
           if (channel.id) {
             try {
@@ -307,7 +307,15 @@ export class SlackConnector implements IntegrationConnector {
         }
       }
 
-      return { success: true }
+      return {
+        success: true,
+        apiConfirmation: {
+          provider: 'slack',
+          action: this.adminClient ? 'deactivated' : 'removed_from_channels',
+          slackUserId,
+          method: this.adminClient ? 'admin.users.setInactive' : 'conversations.kick',
+        }
+      }
     } catch (error) {
       console.error('Slack deprovisioning error:', error)
       return {

@@ -22,6 +22,7 @@ interface SyncResponse {
   success: boolean
   message?: string
   error?: string
+  apiConfirmation?: Record<string, unknown>
 }
 
 /**
@@ -230,6 +231,12 @@ export async function removeEmployeeFromStandup(
     return {
       success: true,
       message: 'Removed from standup teams',
+      apiConfirmation: {
+        provider: 'standup_ninja',
+        action: 'removed_from_teams',
+        email,
+        method: 'api',
+      }
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'

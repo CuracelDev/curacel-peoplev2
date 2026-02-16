@@ -360,7 +360,16 @@ export class BitbucketConnector implements IntegrationConnector {
         )
       }
 
-      return { success: true }
+      return {
+        success: true,
+        apiConfirmation: {
+          provider: 'bitbucket',
+          action: 'access_revoked',
+          accountId,
+          revokedGroups: groups,
+          revokedRepositories: repos.map(r => r.repoSlug),
+        }
+      }
     } catch (error) {
       return {
         success: false,
