@@ -1060,11 +1060,19 @@ export default function CandidateProfilePage() {
                 <CardContent>
                   {candidate.documents.length > 0 ? (
                     candidate.documents.map((doc) => (
-                      <div key={doc.id} className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer">
-                        <FileText className="h-4 w-4 text-red-500" />
-                        <span className="flex-1 text-sm">{doc.name}</span>
-                        <Download className="h-4 w-4 text-muted-foreground" />
-                      </div>
+                      <a
+                        key={doc.id}
+                        href={doc.url}
+                        download={doc.name || `${doc.type}-${candidate.name}.pdf`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer"
+                        title={doc.name}
+                      >
+                        <FileText className="h-4 w-4 text-red-500 flex-shrink-0" />
+                        <span className="flex-1 text-sm truncate">{doc.name}</span>
+                        <Download className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      </a>
                     ))
                   ) : (
                     <div className="text-sm text-muted-foreground">No documents uploaded yet.</div>
