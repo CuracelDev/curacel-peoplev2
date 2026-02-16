@@ -1,0 +1,31 @@
+          cat << EOF > .env
+          NODE_ENV=production
+          PORT=3800
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
+          NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          POSTMARK_SERVER_TOKEN=${{ secrets.POSTMARK_SERVER_TOKEN || secrets.POSTMARK_API_TOKEN || secrets.POSTMARK_TOKEN }}
+          POSTMARK_API_TOKEN=${{ secrets.POSTMARK_API_TOKEN || secrets.POSTMARK_SERVER_TOKEN }}
+          POSTMARK_FROM=${{ secrets.POSTMARK_FROM || secrets.EMAIL_FROM }}
+          POSTMARK_MESSAGE_STREAM=${{ secrets.POSTMARK_MESSAGE_STREAM || 'outbound' }}
+          SMTP_HOST=${{ secrets.SMTP_HOST || secrets.EMAIL_SERVER_HOST }}
+          SMTP_PORT=${{ secrets.SMTP_PORT || secrets.EMAIL_SERVER_PORT || 587 }}
+          SMTP_USER=${{ secrets.SMTP_USER || secrets.EMAIL_SERVER_USER || secrets.SMTP_USERNAME }}
+          SMTP_PASSWORD=${{ secrets.SMTP_PASSWORD || secrets.EMAIL_SERVER_PASSWORD || secrets.SMTP_PASS }}
+          EMAIL_FROM=${{ secrets.EMAIL_FROM || secrets.POSTMARK_FROM }}
+          EMAIL_SERVER_HOST=${{ secrets.EMAIL_SERVER_HOST || secrets.SMTP_HOST }}
+          EMAIL_SERVER_PORT=${{ secrets.EMAIL_SERVER_PORT || secrets.SMTP_PORT || 587 }}
+          EMAIL_SERVER_USER=${{ secrets.EMAIL_SERVER_USER || secrets.SMTP_USER || secrets.SMTP_USERNAME }}
+          EMAIL_SERVER_PASSWORD=${{ secrets.EMAIL_SERVER_PASSWORD || secrets.SMTP_PASSWORD || secrets.SMTP_PASS }}
+          DOCUSIGN_CLIENT_ID=${{ secrets.DOCUSIGN_CLIENT_ID }}
+          DOCUSIGN_CLIENT_SECRET=${{ secrets.DOCUSIGN_CLIENT_SECRET }}
+          DOCUSIGN_REDIRECT_URI=${{ secrets.DOCUSIGN_REDIRECT_URI }}
+          UPLOADTHING_SECRET=${{ secrets.UPLOADTHING_SECRET }}
+          UPLOADTHING_APP_ID=${{ secrets.UPLOADTHING_APP_ID }}
+          ENCRYPTION_KEY=${{ secrets.ENCRYPTION_KEY }}
+          DEV_PASSWORDLESS_LOGIN=${{ secrets.DEV_PASSWORDLESS_LOGIN }}
+          DEV_AUTO_CREATE_SUPER_ADMIN=${{ secrets.DEV_AUTO_CREATE_SUPER_ADMIN }}
+          NEXT_PUBLIC_DEV_PASSWORDLESS_LOGIN=${{ secrets.DEV_PASSWORDLESS_LOGIN }}
+          EOF
