@@ -94,6 +94,10 @@ jobs:
             docker compose -f docker-compose.deploy.yml up -d postgres redis
             sleep 10
             
+            # Migrations (db push)
+            echo "[2.5/3] Running migrations..."
+            docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push || echo "Migration failed"
+            
             # Swap app
             echo "[3/3] Swapping application..."
             docker compose -f docker-compose.deploy.yml up -d --force-recreate app adminer
