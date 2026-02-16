@@ -775,6 +775,12 @@ enum AuditAction {
 
   // AI Assistant
   ASSISTANT_ACTION
+
+  // Candidate Lifecycle
+  CANDIDATE_STAGE_CHANGED
+  CANDIDATE_STAGE_EMAIL_QUEUED
+  CANDIDATE_STAGE_EMAIL_SKIPPED
+  CANDIDATE_RESUME_PARSED
 }
 
 enum NotificationRecipientMode {

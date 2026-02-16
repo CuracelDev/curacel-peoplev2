@@ -1046,7 +1046,7 @@ export const jobRouter = router({
           // Audit Log: Stage Change
           await ctx.prisma.auditLog.create({
             data: {
-              action: 'EMPLOYEE_STATUS_CHANGED',
+              action: 'CANDIDATE_STAGE_CHANGED',
               resourceType: 'job_candidate',
               resourceId: id,
               actorId: ctx.user?.id,
@@ -1077,14 +1077,13 @@ export const jobRouter = router({
               // Audit Log: Email Queued
               await ctx.prisma.auditLog.create({
                 data: {
-                  action: 'ASSISTANT_ACTION',
+                  action: 'CANDIDATE_STAGE_EMAIL_QUEUED',
                   resourceType: 'job_candidate',
                   resourceId: id,
                   actorId: ctx.user.id,
                   actorEmail: ctx.user.email,
                   actorType: 'system',
                   metadata: {
-                    type: 'candidate_email_queued',
                     pgBossJobId: jobId,
                     stage: input.stage,
                     templateId: 'auto'
@@ -1098,14 +1097,13 @@ export const jobRouter = router({
               // Audit Log: Email Skipped
               await ctx.prisma.auditLog.create({
                 data: {
-                  action: 'ASSISTANT_ACTION',
+                  action: 'CANDIDATE_STAGE_EMAIL_SKIPPED',
                   resourceType: 'job_candidate',
                   resourceId: id,
                   actorId: ctx.user.id,
                   actorEmail: ctx.user.email,
                   actorType: 'system',
                   metadata: {
-                    type: 'candidate_email_skipped',
                     reason: 'disabled_or_no_settings',
                     stage: input.stage
                   }
