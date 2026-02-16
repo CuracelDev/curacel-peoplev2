@@ -1737,11 +1737,12 @@ export const jobRouter = router({
         bio: z.string().optional(),
         coverLetter: z.string().min(10, 'Please write a cover letter'),
         resumeUrl: z.string().optional(),
+        resumeFileName: z.string().optional(),
         inboundChannel: InboundChannelEnum.default('PEOPLEOS'),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { jobId, inboundChannel, ...candidateData } = input
+      const { jobId, inboundChannel, resumeFileName, ...candidateData } = input
 
       // Verify job exists and is public/active
       const job = await ctx.prisma.job.findFirst({
@@ -1774,6 +1775,25 @@ export const jobRouter = router({
         })
       }
 
+      // Build documents array if resume is provided
+      const documents: Array<{
+        id: string
+        name: string
+        type: string
+        url: string
+        uploadedAt: string
+      }> = []
+
+      if (candidateData.resumeUrl) {
+        documents.push({
+          id: `resume-${Date.now()}`,
+          name: resumeFileName || 'Resume',
+          type: 'resume',
+          url: candidateData.resumeUrl,
+          uploadedAt: new Date().toISOString(),
+        })
+      }
+
       // Create the candidate with INBOUND source
       const candidate = await ctx.prisma.jobCandidate.create({
         data: {
@@ -1782,8 +1802,23 @@ export const jobRouter = router({
           source: 'INBOUND',
           inboundChannel,
           stage: 'APPLIED',
+          documents: documents.length > 0 ? documents : undefined,
+          processingStatus: candidateData.resumeUrl ? 'pending' : undefined,
         },
       })
+
+      // Queue resume processing if resume was provided
+      if (candidateData.resumeUrl) {
+        try {
+          const { initializeWorker } = await import('@/lib/jobs/worker')
+          const { queueResumeProcess } = await import('@/lib/jobs/resume-process')
+          const boss = await initializeWorker()
+          await queueResumeProcess(boss, candidate.id, candidateData.resumeUrl)
+        } catch (error) {
+          // Don't fail the application if queue fails - resume processing is non-critical
+          console.error('[submitApplication] Failed to queue resume processing:', error)
+        }
+      }
 
       return { success: true, candidateId: candidate.id }
     }),
