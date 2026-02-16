@@ -124,8 +124,25 @@ export default function CandidateProfilePage() {
   )
   const utils = trpc.useUtils()
   const updateCandidate = trpc.job.updateCandidate.useMutation({
-    onSuccess: () => {
-      utils.job.getCandidateProfile.invalidate({ candidateId })
+    onSuccess: async (data, variables) => {
+      // Force immediate invalidation and refetch
+      await utils.job.getCandidateProfile.invalidate({ candidateId })
+
+      // Optimistically update the UI if stage changed
+      if (variables.stage) {
+        utils.job.getCandidateProfile.setData({ candidateId }, (oldData) => {
+          if (!oldData || !oldData.candidate) return oldData
+          return {
+            ...oldData,
+            candidate: {
+              ...oldData.candidate,
+              stage: variables.stage!,
+              // Also update display name if possible, though we might need the mapping
+              stageDisplayName: variables.stage!,
+            },
+          }
+        })
+      }
     },
   })
 
