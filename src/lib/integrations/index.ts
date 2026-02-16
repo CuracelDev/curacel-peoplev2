@@ -60,7 +60,7 @@ export async function getConnector(app: App): Promise<IntegrationConnector | nul
         adminEmail: (config.adminEmail as string) || process.env.GOOGLE_WORKSPACE_ADMIN_EMAIL || '',
         serviceAccountKey: (config.serviceAccountKey as string) || process.env.GOOGLE_SERVICE_ACCOUNT_KEY || '',
       })
-    
+
     case 'SLACK':
       if (!config.botToken || typeof config.botToken !== 'string') return null
       return new SlackConnector({
@@ -337,6 +337,7 @@ export async function deprovisionEmployeeInAppById(
       appId: app.id,
       success: result.success,
       error: result.error,
+      apiConfirmation: result.apiConfirmation
     },
   })
 
@@ -348,7 +349,7 @@ export async function deprovisionEmployeeFromAllApps(
   actorId?: string
 ): Promise<Record<string, DeprovisionResult>> {
   const accounts = await prisma.appAccount.findMany({
-    where: { 
+    where: {
       employeeId: employee.id,
       status: { in: ['ACTIVE', 'PENDING', 'PROVISIONING'] },
     },

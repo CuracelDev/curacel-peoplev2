@@ -12,6 +12,7 @@ export interface ProvisionResult {
 export interface DeprovisionResult {
   success: boolean
   error?: string
+  apiConfirmation?: Record<string, unknown>
 }
 
 export interface IntegrationConnector {
@@ -21,14 +22,14 @@ export interface IntegrationConnector {
     rules: AppProvisioningRule[],
     existingAccount?: AppAccount | null
   ): Promise<ProvisionResult>
-  
+
   deprovisionEmployee(
     employee: Employee,
     app: App,
     account: AppAccount,
     options?: DeprovisionOptions
   ): Promise<DeprovisionResult>
-  
+
   testConnection(): Promise<{ success: boolean; error?: string }>
 }
 
