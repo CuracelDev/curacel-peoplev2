@@ -41,13 +41,18 @@ export async function initializeWorker(): Promise<PgBoss> {
       throw new Error('DATABASE_URL environment variable is not set')
     }
 
+    // Force bypass for Cloud SQL/Self-signed certificates in the background worker
+    if (process.env.NODE_ENV === 'production') {
+      process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
+    }
+
     boss = new PgBoss({
       connectionString,
       retryLimit: 3,
-      retryDelay: 60000, // 1 minute between retries
+      retryDelay: 60000,
       monitorStateIntervalSeconds: 30,
-      archiveCompletedAfterSeconds: 86400, // Archive completed jobs after 24 hours
-      deleteAfterDays: 7, // Delete archived jobs after 7 days
+      archiveCompletedAfterSeconds: 86400,
+      deleteAfterDays: 7,
       ssl: {
         rejectUnauthorized: false
       }
