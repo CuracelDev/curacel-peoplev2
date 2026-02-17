@@ -47,16 +47,24 @@ export async function initializeWorker(): Promise<PgBoss> {
       throw new Error('DATABASE_URL environment variable is not set')
     }
 
+    const { parse } = await import('pg-connection-string')
+    const dbConfig = parse(connectionString)
+
     boss = new PgBoss({
-      connectionString,
+      host: dbConfig.host || undefined,
+      port: dbConfig.port ? parseInt(dbConfig.port) : undefined,
+      user: dbConfig.user || undefined,
+      password: dbConfig.password || undefined,
+      database: dbConfig.database || undefined,
+      schema: (dbConfig.schema as any) || 'public',
+      ssl: {
+        rejectUnauthorized: false
+      },
       retryLimit: 3,
       retryDelay: 60000,
       monitorStateIntervalSeconds: 30,
       archiveCompletedAfterSeconds: 86400,
       deleteAfterDays: 7,
-      ssl: {
-        rejectUnauthorized: false
-      }
     })
 
     boss.on('error', (error) => {
