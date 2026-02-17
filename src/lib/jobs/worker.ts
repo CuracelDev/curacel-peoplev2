@@ -48,6 +48,9 @@ export async function initializeWorker(): Promise<PgBoss> {
       monitorStateIntervalSeconds: 30,
       archiveCompletedAfterSeconds: 86400, // Archive completed jobs after 24 hours
       deleteAfterDays: 7, // Delete archived jobs after 7 days
+      ssl: {
+        rejectUnauthorized: false
+      }
     })
 
     boss.on('error', (error) => {
