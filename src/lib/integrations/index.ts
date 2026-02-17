@@ -282,15 +282,81 @@ export async function deprovisionEmployeeInAppById(
     },
   })
 
+  // Get connector first to check if we can lookup users
+  const connector = await getConnector(app)
+
   if (!account) {
-    return { success: true } // Nothing to deprovision
+    // No AppAccount exists - try to find user in the actual service
+    if (!connector) {
+      return { success: true, error: 'No account found and no connector available' }
+    }
+
+    // For services that support user lookup, try to find and deprovision the user
+    const userEmail = employee.workEmail || employee.personalEmail
+    if (!userEmail) {
+      return { success: true, error: 'No account found and employee has no email to lookup' }
+    }
+
+    // Create a temporary account object for lookup
+    const tempAccount = {
+      id: 'temp-' + employee.id,
+      employeeId: employee.id,
+      appId: app.id,
+      externalUserId: null,
+      externalEmail: userEmail,
+      externalUsername: null,
+      status: 'ACTIVE' as const,
+      statusMessage: null,
+      provisionedResources: null,
+      lastSyncAt: null,
+      provisionedAt: null,
+      deprovisionedAt: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }
+
+    // Try to deprovision using the email
+    const result = await connector.deprovisionEmployee(employee, app, tempAccount, options)
+
+    // If successful, create an AppAccount record for audit trail
+    if (result.success) {
+      await prisma.appAccount.create({
+        data: {
+          employeeId: employee.id,
+          appId: app.id,
+          externalEmail: userEmail,
+          status: 'DEPROVISIONED',
+          statusMessage: 'Auto-discovered and deprovisioned',
+          deprovisionedAt: new Date(),
+        },
+      })
+
+      // Log the integration event
+      await logIntegrationEvent({
+        actorId,
+        actorType: 'system',
+        action: 'APP_ACCOUNT_DEPROVISIONED',
+        appAccountId: undefined, // No pre-existing account
+        employeeId: employee.id,
+        metadata: {
+          app: app.type,
+          appId: app.id,
+          success: result.success,
+          error: result.error,
+          apiConfirmation: result.apiConfirmation,
+          autoDiscovered: true,
+          discoveredEmail: userEmail,
+        },
+      })
+    }
+
+    return result
   }
 
   if (account.status === 'DEPROVISIONED' || account.status === 'DISABLED') {
     return { success: true } // Already deprovisioned
   }
 
-  const connector = await getConnector(app)
   if (!connector) {
     // No connector but we still want to mark as disabled
     await prisma.appAccount.update({
