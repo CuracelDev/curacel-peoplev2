@@ -6,7 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased]
 
+### Added
+- **Work Email Sync from Google Workspace**
+  - Syncs workEmail field from Google Workspace AppAccount.externalEmail
+  - Background job runs every 6 hours to keep emails in sync
+  - Automatically syncs before offboarding to ensure correct email is used
+  - Admin endpoints to preview and manually trigger sync
+  - WORK_EMAIL_SYNCED audit action for tracking changes
+
 ### Fixed
+- Resume file names now retained in job applications (previously showed generic "Resume")
+- Worker SSL connection error for localhost PostgreSQL connections
 - Docker configuration: Added missing development stage for docker-compose compatibility
 - Next.js configuration: Added required `output: 'standalone'` setting for Docker deployment
 - Bitbucket pipeline: Improved database migration handling with status checks and wait time
