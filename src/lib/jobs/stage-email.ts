@@ -81,13 +81,13 @@ export async function stageEmailHandler(job: any): Promise<void> {
       : await getTemplateForStage(queuedEmail.toStage, queuedEmail.candidate.jobId)
 
     if (!template) {
-      console.log('[StageEmail] No template found for stage:', queuedEmail.toStage)
+      console.log('[StageEmail] No template configured for stage:', queuedEmail.toStage, '- marking as SKIPPED')
       await prisma.queuedStageEmail.update({
         where: { id: queuedEmail.id },
         data: {
-          status: 'FAILED',
+          status: 'SKIPPED',
           processedAt: new Date(),
-          error: `No email template found for stage: ${queuedEmail.toStage}`,
+          error: `No email template configured for stage: ${queuedEmail.toStage}`,
         },
       })
       return
