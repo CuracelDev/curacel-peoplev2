@@ -64,6 +64,8 @@ jobs:
           NEXT_PUBLIC_DEV_PASSWORDLESS_LOGIN=${{ secrets.DEV_PASSWORDLESS_LOGIN }}
           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL=${{ secrets.OPENAI_MODEL }}
+          PGSSLMODE=no-verify
+          NODE_TLS_REJECT_UNAUTHORIZED=0
           EOF
 
       - name: Setup SSH

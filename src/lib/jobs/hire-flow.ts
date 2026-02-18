@@ -350,7 +350,7 @@ async function createOfferIfNeeded(
 /**
  * Process hire flow job
  */
-export async function hireFlowHandler(job: PgBoss.Job<HireFlowJobData>): Promise<void> {
+export async function hireFlowHandler(job: any): Promise<void> {
   console.log('[HireFlow] Processing job:', job.id, 'data:', job.data)
 
   const { candidateId, jobId } = job.data

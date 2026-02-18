@@ -47,55 +47,60 @@ export async function initializeWorker(): Promise<PgBoss> {
       throw new Error('DATABASE_URL environment variable is not set')
     }
 
-    const { parse } = await import('pg-connection-string')
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { parse } = require('pg-connection-string')
     const dbConfig = parse(connectionString)
 
-    boss = new PgBoss({
-      host: dbConfig.host || undefined,
-      port: dbConfig.port ? parseInt(dbConfig.port) : undefined,
-      user: dbConfig.user || undefined,
-      password: dbConfig.password || undefined,
-      database: dbConfig.database || undefined,
-      schema: (dbConfig.schema as any) || 'public',
-      ssl: {
-        rejectUnauthorized: false
-      },
-      retryLimit: 3,
-      retryDelay: 60000,
-      monitorStateIntervalSeconds: 30,
-      archiveCompletedAfterSeconds: 86400,
-      deleteAfterDays: 7,
-    })
+    try {
+      boss = new PgBoss({
+        host: dbConfig.host || undefined,
+        port: dbConfig.port ? parseInt(dbConfig.port) : undefined,
+        user: dbConfig.user || undefined,
+        password: dbConfig.password || undefined,
+        database: dbConfig.database || undefined,
+        schema: (dbConfig.schema as any) || 'public',
+        ssl: {
+          rejectUnauthorized: false
+        },
+        retryLimit: 3,
+        retryDelay: 60000,
+        monitorStateIntervalSeconds: 30,
+        archiveCompletedAfterSeconds: 86400,
+        deleteAfterDays: 7,
+      })
 
-    boss.on('error', (error) => {
-      console.error('[Worker] pg-boss error:', error)
-    })
+      boss.on('error', (error) => {
+        console.error('[Worker] pg-boss error:', error)
+      })
 
-    await boss.start()
-    console.log('[Worker] pg-boss started successfully')
+      await boss.start()
+      console.log('[Worker] pg-boss started')
 
-    // Register all job handlers
-    initDailyBriefJob(boss)
-    initStageEmailJob(boss)
-    initReminderJob(boss)
-    initEscalationJob(boss)
-    initResumeProcessJob(boss)
+      // Initialize jobs
+      await initStageEmailJob(boss)
+      await initReminderJob(boss)
+      await initEscalationJob(boss)
+      await scheduleReminderProcessor(boss)
+      await scheduleEscalationProcessor(boss)
 
-    // Register hire flow job handler
-    await boss.work(HIRE_FLOW_JOB_NAME, { teamSize: 2, teamConcurrency: 1 }, hireFlowHandler)
-    console.log(`[Worker] Job handler registered: ${HIRE_FLOW_JOB_NAME}`)
+      // Schedule daily brief
+      await initDailyBriefJob(boss)
+      await scheduleDailyBrief(boss)
 
-    // Schedule recurring jobs
-    await scheduleDailyBrief(boss)
-    await scheduleReminderProcessor(boss)
-    await scheduleEscalationProcessor(boss)
+      // Initialize hire flow job
+      await hireFlowHandler(boss)
 
-    console.log('[Worker] All job handlers registered and scheduled')
+      // Initialize resume processing
+      await initResumeProcessJob(boss)
 
-    return boss
-  } catch (error) {
-    console.error('[Worker] Failed to initialize:', error)
-    throw error
+      console.log('[Worker] All job handlers registered and scheduled')
+
+      return boss
+    } catch (error) {
+      console.error('[Worker] Failed to initialize:', error)
+      boss = null // Important: reset boss on failure so we can retry
+      throw error
+    }
   } finally {
     isInitializing = false
   }
