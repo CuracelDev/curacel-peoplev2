@@ -1299,4 +1299,45 @@ export const integrationRouter = router({
         orderBy: { app: { name: 'asc' } },
       })
     }),
+
+  // Work Email Sync endpoints
+  previewWorkEmailSync: adminProcedure
+    .query(async () => {
+      const { getWorkEmailMismatches } = await import('@/lib/sync-work-email')
+      const mismatches = await getWorkEmailMismatches()
+      
+      return {
+        count: mismatches.length,
+        employees: mismatches.map(emp => ({
+          id: emp.id,
+          fullName: emp.fullName,
+          status: emp.status,
+          currentWorkEmail: emp.workEmail,
+          personalEmail: emp.personalEmail,
+          googleWorkspaceEmail: emp.googleWorkspaceEmail,
+        })),
+      }
+    }),
+
+  runWorkEmailSync: adminProcedure
+    .mutation(async ({ ctx }) => {
+      const { syncAllWorkEmails } = await import('@/lib/sync-work-email')
+      const result = await syncAllWorkEmails((ctx.user as { id: string }).id)
+      
+      return {
+        success: result.success,
+        updated: result.updated,
+        errors: result.errors,
+        details: result.details,
+      }
+    }),
+
+  syncEmployeeWorkEmail: adminProcedure
+    .input(z.object({ employeeId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const { syncEmployeeWorkEmail } = await import('@/lib/sync-work-email')
+      const result = await syncEmployeeWorkEmail(input.employeeId, (ctx.user as { id: string }).id)
+      
+      return result
+    }),
 })

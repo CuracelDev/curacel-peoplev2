@@ -13,6 +13,7 @@ import { initEscalationJob, ESCALATION_JOB_NAME } from './escalation'
 import { hireFlowHandler, HIRE_FLOW_JOB_NAME } from './hire-flow'
 import { initResumeProcessJob, RESUME_PROCESS_JOB_NAME } from './resume-process'
 import { initAutoActivateJob, scheduleAutoActivate } from './auto-activate'
+import { initWorkEmailSyncJob, scheduleWorkEmailSync, WORK_EMAIL_SYNC_JOB_NAME } from './work-email-sync'
 
 // No global SSL bypass - use local config instead
 
@@ -97,6 +98,10 @@ export async function initializeWorker(): Promise<PgBoss> {
       await initAutoActivateJob(boss)
       await scheduleAutoActivate(boss)
 
+      // Initialize work email sync (syncs workEmail from Google Workspace)
+      await initWorkEmailSyncJob(boss)
+      await scheduleWorkEmailSync(boss)
+
       console.log('[Worker] All job handlers registered and scheduled')
 
       return boss
@@ -166,6 +171,8 @@ export async function getQueueStats(): Promise<{
     hireFlowFailed,
     resumeProcessPending,
     resumeProcessFailed,
+    workEmailSyncPending,
+    workEmailSyncFailed,
   ] = await Promise.all([
     boss.getQueueSize(STAGE_EMAIL_JOB_NAME, { state: 'created' }),
     boss.getQueueSize(STAGE_EMAIL_JOB_NAME, { state: 'failed' }),
@@ -175,6 +182,8 @@ export async function getQueueStats(): Promise<{
     boss.getQueueSize(HIRE_FLOW_JOB_NAME, { state: 'failed' }),
     boss.getQueueSize(RESUME_PROCESS_JOB_NAME, { state: 'created' }),
     boss.getQueueSize(RESUME_PROCESS_JOB_NAME, { state: 'failed' }),
+    boss.getQueueSize(WORK_EMAIL_SYNC_JOB_NAME, { state: 'created' }),
+    boss.getQueueSize(WORK_EMAIL_SYNC_JOB_NAME, { state: 'failed' }),
   ])
 
   return {
@@ -183,5 +192,6 @@ export async function getQueueStats(): Promise<{
     dailyBrief: { pending: dailyBriefPending },
     hireFlow: { pending: hireFlowPending, failed: hireFlowFailed },
     resumeProcess: { pending: resumeProcessPending, failed: resumeProcessFailed },
+    workEmailSync: { pending: workEmailSyncPending, failed: workEmailSyncFailed },
   }
 }

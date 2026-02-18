@@ -6,6 +6,7 @@ import { createAuditLog } from '@/lib/audit'
 import { deprovisionEmployeeInApp, deprovisionEmployeeInAppById, deprovisionEmployeeFromAllApps } from '@/lib/integrations'
 import { getOrganization } from '@/lib/organization'
 import { removeEmployeeFromStandup } from '@/lib/integrations/standup-sync'
+import { syncEmployeeWorkEmail } from '@/lib/sync-work-email'
 
 const DEFAULT_OFFBOARDING_TASK_TEMPLATES = [
   { name: 'Collect company equipment', type: 'MANUAL' as const, sortOrder: 1 },
@@ -542,6 +543,10 @@ export const offboardingRouter = router({
       if (employee.status === 'EXITED') {
         throw new TRPCError({ code: 'BAD_REQUEST', message: 'Employee has already exited' })
       }
+
+      // Sync workEmail from Google Workspace AppAccount before offboarding
+      // This ensures we have the correct company email for deprovisioning
+      await syncEmployeeWorkEmail(input.employeeId, (ctx.user as { id: string }).id)
 
       // Check for existing active workflow
       const existingWorkflow = await ctx.prisma.offboardingWorkflow.findFirst({
