@@ -1002,10 +1002,11 @@ export const jobRouter = router({
         decisionStatus: z.enum(['PENDING', 'HIRE', 'HOLD', 'NO_HIRE']).optional(),
         decisionNotes: z.string().optional().nullable(),
         skipAutoEmail: z.boolean().optional().default(false),
+        templateId: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, decisionStatus, decisionNotes, skipAutoEmail, ...data } = input
+      const { id, decisionStatus, decisionNotes, skipAutoEmail, templateId, ...data } = input
 
       // Get current candidate state for stage comparison
       const currentCandidate = await ctx.prisma.jobCandidate.findUnique({
@@ -1055,7 +1056,8 @@ export const jobRouter = router({
               metadata: {
                 fromStage: currentCandidate.stage,
                 toStage: input.stage,
-                skipAutoEmail
+                skipAutoEmail,
+                templateId // Log template ID
               }
             }
           }).catch(err => console.error('[updateCandidate] Failed to create audit log:', err))
@@ -1069,6 +1071,7 @@ export const jobRouter = router({
               recruiterEmail: ctx.user.email || '',
               recruiterName: ctx.user.name || undefined,
               skipAutoEmail: skipAutoEmail || false,
+              templateId,
             })
 
             if (jobId) {
