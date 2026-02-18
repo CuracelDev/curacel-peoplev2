@@ -13,6 +13,7 @@ import { initEscalationJob, ESCALATION_JOB_NAME } from './escalation'
 import { hireFlowHandler, HIRE_FLOW_JOB_NAME } from './hire-flow'
 import { initResumeProcessJob, RESUME_PROCESS_JOB_NAME } from './resume-process'
 import { initAutoActivateJob, scheduleAutoActivate } from './auto-activate'
+import { initWorkEmailSyncJob, scheduleWorkEmailSync, WORK_EMAIL_SYNC_JOB_NAME } from './work-email-sync'
 
 // No global SSL bypass - use local config instead
 
@@ -49,6 +50,10 @@ export async function initializeWorker(): Promise<PgBoss> {
     const { parse } = require('pg-connection-string')
     const dbConfig = parse(connectionString)
 
+    // Only use SSL for non-localhost connections (cloud databases)
+    const isLocalhost = dbConfig.host === 'localhost' || dbConfig.host === '127.0.0.1'
+    const sslConfig = isLocalhost ? false : { rejectUnauthorized: false }
+
     try {
       boss = new PgBoss({
         host: dbConfig.host || undefined,
@@ -57,9 +62,7 @@ export async function initializeWorker(): Promise<PgBoss> {
         password: dbConfig.password || undefined,
         database: dbConfig.database || undefined,
         schema: (dbConfig.schema as any) || 'public',
-        ssl: {
-          rejectUnauthorized: false
-        },
+        ssl: sslConfig,
         retryLimit: 3,
         retryDelay: 60000,
         monitorStateIntervalSeconds: 30,
@@ -94,6 +97,10 @@ export async function initializeWorker(): Promise<PgBoss> {
       // Auto-activation
       await initAutoActivateJob(boss)
       await scheduleAutoActivate(boss)
+
+      // Initialize work email sync (syncs workEmail from Google Workspace)
+      await initWorkEmailSyncJob(boss)
+      await scheduleWorkEmailSync(boss)
 
       console.log('[Worker] All job handlers registered and scheduled')
 
@@ -164,6 +171,8 @@ export async function getQueueStats(): Promise<{
     hireFlowFailed,
     resumeProcessPending,
     resumeProcessFailed,
+    workEmailSyncPending,
+    workEmailSyncFailed,
   ] = await Promise.all([
     boss.getQueueSize(STAGE_EMAIL_JOB_NAME, { state: 'created' }),
     boss.getQueueSize(STAGE_EMAIL_JOB_NAME, { state: 'failed' }),
@@ -173,6 +182,8 @@ export async function getQueueStats(): Promise<{
     boss.getQueueSize(HIRE_FLOW_JOB_NAME, { state: 'failed' }),
     boss.getQueueSize(RESUME_PROCESS_JOB_NAME, { state: 'created' }),
     boss.getQueueSize(RESUME_PROCESS_JOB_NAME, { state: 'failed' }),
+    boss.getQueueSize(WORK_EMAIL_SYNC_JOB_NAME, { state: 'created' }),
+    boss.getQueueSize(WORK_EMAIL_SYNC_JOB_NAME, { state: 'failed' }),
   ])
 
   return {
@@ -181,5 +192,6 @@ export async function getQueueStats(): Promise<{
     dailyBrief: { pending: dailyBriefPending },
     hireFlow: { pending: hireFlowPending, failed: hireFlowFailed },
     resumeProcess: { pending: resumeProcessPending, failed: resumeProcessFailed },
+    workEmailSync: { pending: workEmailSyncPending, failed: workEmailSyncFailed },
   }
 }

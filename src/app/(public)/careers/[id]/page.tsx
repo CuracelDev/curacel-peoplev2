@@ -78,6 +78,7 @@ export default function PublicCareersPage() {
     bio: '',
     coverLetter: '',
     resumeUrl: '',
+    resumeFileName: '',
     inboundChannel: 'PEOPLEOS',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -133,7 +134,7 @@ export default function PublicCareersPage() {
       // TODO: Replace with actual file upload to storage service
       const reader = new FileReader()
       reader.onload = () => {
-        setFormData(prev => ({ ...prev, resumeUrl: reader.result as string }))
+        setFormData(prev => ({ ...prev, resumeUrl: reader.result as string, resumeFileName: file.name }))
         setUploadedFile(file)
         setIsUploading(false)
       }
@@ -176,7 +177,7 @@ export default function PublicCareersPage() {
 
   const handleRemoveFile = () => {
     setUploadedFile(null)
-    setFormData(prev => ({ ...prev, resumeUrl: '' }))
+    setFormData(prev => ({ ...prev, resumeUrl: '', resumeFileName: '' }))
   }
 
   const validateForm = () => {
@@ -207,6 +208,7 @@ export default function PublicCareersPage() {
         bio: formData.bio || undefined,
         coverLetter: formData.coverLetter,
         resumeUrl: formData.resumeUrl || undefined,
+        resumeFileName: formData.resumeFileName || undefined,
         inboundChannel: formData.inboundChannel as 'YC' | 'PEOPLEOS' | 'COMPANY_SITE' | 'OTHER',
       })
     } catch {

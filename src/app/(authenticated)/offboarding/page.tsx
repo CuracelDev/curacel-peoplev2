@@ -317,11 +317,13 @@ export default function OffboardingPage() {
                       <SelectValue placeholder="Select an employee" />
                     </SelectTrigger>
                     <SelectContent>
-                      {activeEmployees?.employees.map((e) => (
-                        <SelectItem key={e.id} value={e.id}>
-                          {e.fullName} ({e.personalEmail})
-                        </SelectItem>
-                      ))}
+                      {activeEmployees?.employees
+                        .filter((e) => e.workEmail) // Only show employees with company email
+                        .map((e) => (
+                          <SelectItem key={e.id} value={e.id}>
+                            {e.fullName} ({e.workEmail})
+                          </SelectItem>
+                        ))}
                     </SelectContent>
                   </Select>
                 </div>
