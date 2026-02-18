@@ -12,6 +12,7 @@ import { initReminderJob, REMINDER_JOB_NAME } from './reminder'
 import { initEscalationJob, ESCALATION_JOB_NAME } from './escalation'
 import { hireFlowHandler, HIRE_FLOW_JOB_NAME } from './hire-flow'
 import { initResumeProcessJob, RESUME_PROCESS_JOB_NAME } from './resume-process'
+import { initAutoActivateJob, scheduleAutoActivate } from './auto-activate'
 
 // No global SSL bypass - use local config instead
 
@@ -89,6 +90,10 @@ export async function initializeWorker(): Promise<PgBoss> {
 
       // Initialize resume processing
       await initResumeProcessJob(boss)
+
+      // Auto-activation
+      await initAutoActivateJob(boss)
+      await scheduleAutoActivate(boss)
 
       console.log('[Worker] All job handlers registered and scheduled')
 
