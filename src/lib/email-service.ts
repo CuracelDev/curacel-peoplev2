@@ -5,7 +5,7 @@
  */
 
 import { prisma } from './prisma'
-import { sendEmail as sendSystemEmail } from './email'
+import { sendEmail as sendSystemEmail, buildBrandedEmailHtml } from './email'
 import { getGmailConnector, type SendEmailParams as GmailSendParams } from './integrations/gmail'
 import { addEmailTracking } from './email-tracking'
 import type { Job, JobCandidate, CandidateEmailThread, CandidateEmail, EmailTemplate, EmailReminder } from '@prisma/client'
@@ -166,8 +166,17 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
       },
     })
 
+    // Wrap content in branding layout if not full HTML
+    let htmlContent = options.htmlBody
+    if (!htmlContent.includes('<html') && !htmlContent.includes('<!DOCTYPE')) {
+      htmlContent = buildBrandedEmailHtml({
+        companyName: process.env.NEXT_PUBLIC_COMPANY_NAME || 'Curacel',
+        bodyHtml: htmlContent
+      })
+    }
+
     // Add tracking to HTML
-    const trackedHtml = addEmailTracking(email.id, options.htmlBody)
+    const trackedHtml = addEmailTracking(email.id, htmlContent)
 
     // If scheduled for later, don't send now
     if (options.scheduledFor && options.scheduledFor > new Date()) {
