@@ -518,13 +518,26 @@ export async function getTemplateForStage(
   }
 
   // Fall back to global template
-  return prisma.emailTemplate.findFirst({
+  // Fall back to global template (default one first)
+  const defaultTemplate = await prisma.emailTemplate.findFirst({
     where: {
       stage,
       jobId: null,
       isActive: true,
       isDefault: true,
     },
+  })
+
+  if (defaultTemplate) return defaultTemplate
+
+  // Final fallback: any active template for this stage (if no default is marked)
+  return prisma.emailTemplate.findFirst({
+    where: {
+      stage,
+      jobId: null,
+      isActive: true,
+    },
+    orderBy: { createdAt: 'desc' }
   })
 }
 
