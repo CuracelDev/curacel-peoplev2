@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -146,6 +146,16 @@ export function StageDropdown({
       enabled: !!confirmDialog?.stage && !skipAutoEmail
     }
   )
+
+  // Reset states when dialog opens
+  useEffect(() => {
+    if (confirmDialog?.open) {
+      setSkipAutoEmail(false)
+      setIsCreatingTemplate(false)
+      setSelectedTemplateId('auto')
+      setNewTemplate({ name: '', subject: '', body: '' })
+    }
+  }, [confirmDialog?.open])
 
   const createTemplate = trpc.candidateEmail.createTemplate.useMutation()
 
