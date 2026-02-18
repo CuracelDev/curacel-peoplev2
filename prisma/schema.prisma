@@ -3053,7 +3053,7 @@ model QueuedStageEmail {
   scheduledFor    DateTime // When to send (now + delay)
 
   // Status tracking
-  status          String   @default("PENDING") // PENDING, PROCESSING, SENT, FAILED, CANCELLED
+  status          String   @default("PENDING") // PENDING, PROCESSING, SENT, FAILED, CANCELLED, SKIPPED
   processedAt     DateTime?
   error           String?  @db.Text
   emailId         String?  // Reference to CandidateEmail once sent
