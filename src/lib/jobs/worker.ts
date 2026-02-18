@@ -13,11 +13,8 @@ import { initEscalationJob, ESCALATION_JOB_NAME } from './escalation'
 import { hireFlowHandler, HIRE_FLOW_JOB_NAME } from './hire-flow'
 import { initResumeProcessJob, RESUME_PROCESS_JOB_NAME } from './resume-process'
 
-// Force bypass for Cloud SQL/Self-signed certificates in the background worker
-// This is necessary because Cloud SQL certificates are often not trustable by standard CA bundles
-if (process.env.NODE_ENV === 'production') {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0'
-}
+// No global SSL bypass - use local config instead
+
 
 let boss: PgBoss | null = null
 let isInitializing = false
