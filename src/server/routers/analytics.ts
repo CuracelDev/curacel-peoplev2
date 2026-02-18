@@ -121,13 +121,13 @@ export const analyticsRouter = router({
       const avgHiringDays =
         hiredCandidates.length > 0
           ? Math.round(
-              hiredCandidates.reduce((sum, c) => {
-                return (
-                  sum +
-                  Math.ceil((c.updatedAt.getTime() - c.appliedAt.getTime()) / (1000 * 60 * 60 * 24))
-                )
-              }, 0) / hiredCandidates.length
-            )
+            hiredCandidates.reduce((sum, c) => {
+              return (
+                sum +
+                Math.ceil((c.updatedAt.getTime() - c.appliedAt.getTime()) / (1000 * 60 * 60 * 24))
+              )
+            }, 0) / hiredCandidates.length
+          )
           : 0
 
       return {
@@ -219,21 +219,21 @@ export const analyticsRouter = router({
       const avgTimeToHire =
         hiredCandidates.length > 0
           ? Math.round(
-              hiredCandidates.reduce((sum, c) => {
-                return (
-                  sum +
-                  Math.ceil((c.updatedAt.getTime() - c.appliedAt.getTime()) / (1000 * 60 * 60 * 24))
-                )
-              }, 0) / hiredCandidates.length
-            )
+            hiredCandidates.reduce((sum, c) => {
+              return (
+                sum +
+                Math.ceil((c.updatedAt.getTime() - c.appliedAt.getTime()) / (1000 * 60 * 60 * 24))
+              )
+            }, 0) / hiredCandidates.length
+          )
           : 0
 
       const scoredCandidates = hiredCandidates.filter((c) => c.score != null)
       const qualityOfHire =
         scoredCandidates.length > 0
           ? Math.round(
-              scoredCandidates.reduce((sum, c) => sum + (c.score ?? 0), 0) / scoredCandidates.length
-            )
+            scoredCandidates.reduce((sum, c) => sum + (c.score ?? 0), 0) / scoredCandidates.length
+          )
           : 0
 
       const offerAcceptanceRate =
@@ -618,52 +618,62 @@ export const analyticsRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const year = input.year ?? new Date().getFullYear()
-      const months = []
+      const monthsRange = Array.from({ length: 12 }, (_, i) => i + 1)
+      const startDateOfYear = startOfYear(new Date(year, 0))
+      const endDateOfYear = endOfYear(new Date(year, 0))
 
-      for (let month = 1; month <= 12; month++) {
-        const startDate = startOfMonth(new Date(year, month - 1))
-        const endDate = endOfMonth(new Date(year, month - 1))
+      // Fetch all required data for the year in large batches
+      const [allInterviews, allCandidates] = await Promise.all([
+        ctx.prisma.candidateInterview.findMany({
+          where: {
+            status: 'COMPLETED',
+            completedAt: { gte: startDateOfYear, lte: endDateOfYear },
+          },
+          select: { completedAt: true },
+        }),
+        ctx.prisma.jobCandidate.findMany({
+          where: {
+            updatedAt: { gte: startDateOfYear, lte: endDateOfYear },
+          },
+          select: { stage: true, updatedAt: true },
+        }),
+      ])
 
-        const [interviews, trials, hired, trialsPassedToCeoChat] = await Promise.all([
-          ctx.prisma.candidateInterview.count({
-            where: {
-              status: 'COMPLETED',
-              completedAt: { gte: startDate, lte: endDate },
-            },
-          }),
-          ctx.prisma.jobCandidate.count({
-            where: {
-              stage: { in: ['TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'] },
-              updatedAt: { gte: startDate, lte: endDate },
-            },
-          }),
-          ctx.prisma.jobCandidate.count({
-            where: {
-              stage: 'HIRED',
-              updatedAt: { gte: startDate, lte: endDate },
-            },
-          }),
-          ctx.prisma.jobCandidate.count({
-            where: {
-              stage: { in: ['CEO_CHAT', 'OFFER', 'HIRED'] },
-              updatedAt: { gte: startDate, lte: endDate },
-            },
-          }),
-        ])
+      const months = monthsRange.map((month) => {
+        const monthStart = startOfMonth(new Date(year, month - 1))
+        const monthEnd = endOfMonth(new Date(year, month - 1))
+
+        const interviews = allInterviews.filter(
+          (i) => i.completedAt! >= monthStart && i.completedAt! <= monthEnd
+        ).length
+
+        const monthCandidates = allCandidates.filter(
+          (c) => c.updatedAt >= monthStart && c.updatedAt <= monthEnd
+        )
+
+        const trials = monthCandidates.filter((c) =>
+          ['TRIAL', 'CEO_CHAT', 'OFFER', 'HIRED'].includes(c.stage)
+        ).length
+
+        const hired = monthCandidates.filter((c) => c.stage === 'HIRED').length
+
+        const trialsPassedToCeoChat = monthCandidates.filter((c) =>
+          ['CEO_CHAT', 'OFFER', 'HIRED'].includes(c.stage)
+        ).length
 
         const trialPassRate = trials > 0 ? Math.round((trialsPassedToCeoChat / trials) * 100 * 100) / 100 : 0
         const interviewTrialRate = interviews > 0 ? Math.round((trials / interviews) * 100 * 100) / 100 : 0
 
-        months.push({
+        return {
           month,
-          monthName: format(startDate, 'MMMM'),
+          monthName: format(monthStart, 'MMMM'),
           interviews,
           trials,
           hired,
           trialPassRate,
           interviewTrialRate,
-        })
-      }
+        }
+      })
 
       // Calculate yearly totals
       const totals = months.reduce(
@@ -1258,90 +1268,90 @@ export const analyticsRouter = router({
       }).optional()
     )
     .query(async ({ ctx, input }) => {
-    const db = ctx.prisma
-    const jobFilter = input?.jobId ? { jobId: input.jobId } : {}
+      const db = ctx.prisma
+      const jobFilter = input?.jobId ? { jobId: input.jobId } : {}
 
-    // Get candidates by stage for pipeline visualization
-    const candidatesByStage = await db.jobCandidate.groupBy({
-      by: ['stage'],
-      _count: { id: true },
-      where: {
-        ...jobFilter,
-        stage: { notIn: ['REJECTED', 'WITHDRAWN'] },
-      },
-    })
+      // Get candidates by stage for pipeline visualization
+      const candidatesByStage = await db.jobCandidate.groupBy({
+        by: ['stage'],
+        _count: { id: true },
+        where: {
+          ...jobFilter,
+          stage: { notIn: ['REJECTED', 'WITHDRAWN'] },
+        },
+      })
 
-    // Define pipeline order
-    const pipelineOrder: JobCandidateStage[] = [
-      'APPLIED',
-      'SHORTLISTED',
-      'HR_SCREEN',
-      'TECHNICAL',
-      'TEAM_CHAT',
-      'ADVISOR_CHAT',
-      'TRIAL',
-      'CEO_CHAT',
-      'OFFER',
-      'HIRED',
-    ]
+      // Define pipeline order
+      const pipelineOrder: JobCandidateStage[] = [
+        'APPLIED',
+        'SHORTLISTED',
+        'HR_SCREEN',
+        'TECHNICAL',
+        'TEAM_CHAT',
+        'ADVISOR_CHAT',
+        'TRIAL',
+        'CEO_CHAT',
+        'OFFER',
+        'HIRED',
+      ]
 
-    const stageDisplayNames: Partial<Record<JobCandidateStage, string>> = {
-      APPLIED: 'Applied',
-      SHORTLISTED: 'Short Listed',
-      HR_SCREEN: 'People Chat',
-      TECHNICAL: 'Coding Test',
-      TEAM_CHAT: 'Team Chat',
-      ADVISOR_CHAT: 'Advisor Chat',
-      TRIAL: 'Trial',
-      CEO_CHAT: 'CEO Chat',
-      OFFER: 'Offer',
-      HIRED: 'Hired',
-    }
-
-    const stageCountMap = new Map<string, number>(
-      candidatesByStage.map((item) => [item.stage, item._count.id])
-    )
-
-    const totalCandidates = candidatesByStage.reduce(
-      (sum, item) => sum + item._count.id,
-      0
-    )
-
-    const stages = pipelineOrder.map((stage) => {
-      const count = stageCountMap.get(stage) || 0
-      return {
-        stage,
-        displayName: stageDisplayNames[stage] || stage,
-        count,
-        percentage: totalCandidates > 0 ? Math.round((count / totalCandidates) * 100) : 0,
+      const stageDisplayNames: Partial<Record<JobCandidateStage, string>> = {
+        APPLIED: 'Applied',
+        SHORTLISTED: 'Short Listed',
+        HR_SCREEN: 'People Chat',
+        TECHNICAL: 'Coding Test',
+        TEAM_CHAT: 'Team Chat',
+        ADVISOR_CHAT: 'Advisor Chat',
+        TRIAL: 'Trial',
+        CEO_CHAT: 'CEO Chat',
+        OFFER: 'Offer',
+        HIRED: 'Hired',
       }
-    })
 
-    // Get hiring trends (last 30 days)
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+      const stageCountMap = new Map<string, number>(
+        candidatesByStage.map((item) => [item.stage, item._count.id])
+      )
 
-    const applicationsLast30Days = await db.jobCandidate.count({
-      where: {
-        ...jobFilter,
-        appliedAt: { gte: thirtyDaysAgo },
-      },
-    })
+      const totalCandidates = candidatesByStage.reduce(
+        (sum, item) => sum + item._count.id,
+        0
+      )
 
-    const hiresLast30Days = await db.jobCandidate.count({
-      where: {
-        ...jobFilter,
-        stage: 'HIRED',
-        updatedAt: { gte: thirtyDaysAgo },
-      },
-    })
+      const stages = pipelineOrder.map((stage) => {
+        const count = stageCountMap.get(stage) || 0
+        return {
+          stage,
+          displayName: stageDisplayNames[stage] || stage,
+          count,
+          percentage: totalCandidates > 0 ? Math.round((count / totalCandidates) * 100) : 0,
+        }
+      })
 
-    return {
-      stages,
-      totalCandidates,
-      applicationsLast30Days,
-      hiresLast30Days,
-    }
-  }),
+      // Get hiring trends (last 30 days)
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+      const applicationsLast30Days = await db.jobCandidate.count({
+        where: {
+          ...jobFilter,
+          appliedAt: { gte: thirtyDaysAgo },
+        },
+      })
+
+      const hiresLast30Days = await db.jobCandidate.count({
+        where: {
+          ...jobFilter,
+          stage: 'HIRED',
+          updatedAt: { gte: thirtyDaysAgo },
+        },
+      })
+
+      return {
+        stages,
+        totalCandidates,
+        applicationsLast30Days,
+        hiresLast30Days,
+      }
+    }),
 
   // ============================
   // TOP CANDIDATES

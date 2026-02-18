@@ -1,11 +1,22 @@
 import { router, protectedProcedure, hrAdminProcedure } from '@/lib/trpc'
 import type { JobCandidateStage } from '@prisma/client'
-import { autoActivateEmployees } from '@/lib/employee-status'
+import { redis } from '@/lib/redis'
 
 export const dashboardRouter = router({
   // Get all sidebar badge counts with settings
   getSidebarCounts: protectedProcedure.query(async ({ ctx }) => {
-    await autoActivateEmployees(ctx.prisma)
+    const cacheKey = `sidebar_counts:${ctx.user.id}`
+
+    // Attempt to get from cache
+    try {
+      const cached = await redis.get(cacheKey)
+      if (cached) {
+        return JSON.parse(cached)
+      }
+    } catch (err) {
+      console.error('[Dashboard] Redis get error:', err)
+    }
+
     // Get badge settings from organization
     const org = await ctx.prisma.organization.findFirst({
       select: {
@@ -29,7 +40,7 @@ export const dashboardRouter = router({
 
     // If badges are disabled globally, return zeros
     if (!badgesEnabled) {
-      return {
+      const result = {
         openJobs: 0,
         activeCandidates: 0,
         scheduledInterviews: 0,
@@ -41,6 +52,8 @@ export const dashboardRouter = router({
         settings,
         enabled: false,
       }
+      await redis.setex(cacheKey, 300, JSON.stringify(result)).catch(() => { })
+      return result
     }
 
     const [
@@ -61,30 +74,30 @@ export const dashboardRouter = router({
       // Active candidates (in pipeline on active jobs)
       settings.activeCandidates
         ? ctx.prisma.jobCandidate.count({
-            where: {
-              job: { status: 'ACTIVE' },
-              stage: { in: ['APPLIED', 'SHORTLISTED', 'HR_SCREEN', 'TEAM_CHAT', 'ADVISOR_CHAT', 'TECHNICAL', 'PANEL', 'OFFER'] },
-            },
-          })
+          where: {
+            job: { status: 'ACTIVE' },
+            stage: { in: ['APPLIED', 'SHORTLISTED', 'HR_SCREEN', 'TEAM_CHAT', 'ADVISOR_CHAT', 'TECHNICAL', 'PANEL', 'OFFER'] },
+          },
+        })
         : Promise.resolve(0),
 
       // Scheduled interviews (upcoming)
       settings.scheduledInterviews
         ? ctx.prisma.candidateInterview.count({
-            where: {
-              status: 'SCHEDULED',
-              scheduledAt: { gte: new Date() },
-            },
-          })
+          where: {
+            status: 'SCHEDULED',
+            scheduledAt: { gte: new Date() },
+          },
+        })
         : Promise.resolve(0),
 
       // Pending assessments (not started, invited, or in progress)
       settings.pendingAssessments
         ? ctx.prisma.candidateAssessment.count({
-            where: {
-              status: { in: ['NOT_STARTED', 'INVITED', 'IN_PROGRESS'] },
-            },
-          })
+          where: {
+            status: { in: ['NOT_STARTED', 'INVITED', 'IN_PROGRESS'] },
+          },
+        })
         : Promise.resolve(0),
 
       // Active employees
@@ -108,7 +121,7 @@ export const dashboardRouter = router({
         : Promise.resolve(0),
     ])
 
-    return {
+    const result = {
       openJobs,
       activeCandidates,
       scheduledInterviews,
@@ -120,11 +133,15 @@ export const dashboardRouter = router({
       settings,
       enabled: true,
     }
+
+    // Cache for 5 minutes
+    await redis.setex(cacheKey, 300, JSON.stringify(result)).catch(() => { })
+
+    return result
   }),
 
   getStats: hrAdminProcedure
     .query(async ({ ctx }) => {
-      await autoActivateEmployees(ctx.prisma)
       const [
         totalEmployees,
         activeEmployees,
@@ -138,28 +155,28 @@ export const dashboardRouter = router({
         ctx.prisma.employee.count({
           where: { status: { not: 'CANDIDATE' } },
         }),
-        
+
         // Active employees
         ctx.prisma.employee.count({
           where: { status: 'ACTIVE' },
         }),
-        
+
         // Pending onboarding
         ctx.prisma.onboardingWorkflow.count({
           where: { status: { in: ['PENDING', 'IN_PROGRESS'] } },
         }),
-        
+
         // Pending offboarding
         ctx.prisma.offboardingWorkflow.count({
           where: { status: { in: ['PENDING', 'IN_PROGRESS'] } },
         }),
-        
+
         // Offers by status
         ctx.prisma.offer.groupBy({
           by: ['status'],
           _count: true,
         }),
-        
+
         // Recent hires (last 30 days)
         ctx.prisma.employee.findMany({
           where: {
@@ -172,7 +189,7 @@ export const dashboardRouter = router({
           orderBy: { startDate: 'desc' },
           take: 5,
         }),
-        
+
         // Upcoming starts (next 30 days)
         ctx.prisma.employee.findMany({
           where: {
@@ -332,7 +349,7 @@ export const dashboardRouter = router({
   getManagerDashboard: protectedProcedure
     .query(async ({ ctx }) => {
       const user = ctx.user as { employeeId?: string }
-      
+
       if (!user.employeeId) {
         return { directReports: [], onboardingInProgress: [] }
       }
@@ -349,7 +366,7 @@ export const dashboardRouter = router({
           },
           orderBy: { fullName: 'asc' },
         }),
-        
+
         ctx.prisma.onboardingWorkflow.findMany({
           where: {
             status: { in: ['PENDING', 'IN_PROGRESS'] },
@@ -369,10 +386,10 @@ export const dashboardRouter = router({
           employee: workflow.employee,
           progress: workflow.tasks.length > 0
             ? Math.round(
-                (workflow.tasks.filter(t => t.status === 'SUCCESS' || t.status === 'SKIPPED').length /
-                  workflow.tasks.length) *
-                  100
-              )
+              (workflow.tasks.filter(t => t.status === 'SUCCESS' || t.status === 'SKIPPED').length /
+                workflow.tasks.length) *
+              100
+            )
             : 0,
         })),
       }
