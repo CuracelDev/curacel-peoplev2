@@ -87,8 +87,8 @@ export async function initializeWorker(): Promise<PgBoss> {
       await initDailyBriefJob(boss)
       await scheduleDailyBrief(boss)
 
-      // Initialize hire flow job
-      await hireFlowHandler(boss)
+      // Register hire flow job handler
+      await boss.work(HIRE_FLOW_JOB_NAME, hireFlowHandler)
 
       // Initialize resume processing
       await initResumeProcessJob(boss)
