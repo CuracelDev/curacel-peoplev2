@@ -133,7 +133,7 @@ async function getAISettings() {
   // First check environment variables for quick setup
   const envOpenAIKey = process.env.OPENAI_API_KEY
   const envOpenAIModel = process.env.OPENAI_MODEL || 'gpt-4o-mini'
-  
+
   if (envOpenAIKey) {
     console.log('[ResumeProcess] Using OpenAI from environment variables')
     return {
@@ -289,28 +289,28 @@ IMPORTANT:
     cleanResponse = cleanResponse.trim()
 
     const parsed = JSON.parse(cleanResponse)
-    
+
     // Transform and validate the parsed data
     const workExperience = Array.isArray(parsed.workExperience)
       ? parsed.workExperience.map((exp: any) => ({
-          title: exp.title || '',
-          company: exp.company || '',
-          startDate: exp.startDate || undefined,
-          endDate: exp.endDate || undefined,
-          isCurrent: Boolean(exp.isCurrent),
-          highlights: Array.isArray(exp.highlights) ? exp.highlights.filter((h: any) => typeof h === 'string') : [],
-          skills: Array.isArray(exp.skills) ? exp.skills.filter((s: any) => typeof s === 'string') : [],
-        }))
+        title: exp.title || '',
+        company: exp.company || '',
+        startDate: exp.startDate || undefined,
+        endDate: exp.endDate || undefined,
+        isCurrent: Boolean(exp.isCurrent),
+        highlights: Array.isArray(exp.highlights) ? exp.highlights.filter((h: any) => typeof h === 'string') : [],
+        skills: Array.isArray(exp.skills) ? exp.skills.filter((s: any) => typeof s === 'string') : [],
+      }))
       : []
 
     const education = Array.isArray(parsed.education)
       ? parsed.education.map((edu: any) => ({
-          degree: edu.degree || '',
-          field: edu.field || '',
-          institution: edu.institution || '',
-          years: edu.years || '',
-          honors: edu.honors || '',
-        }))
+        degree: edu.degree || '',
+        field: edu.field || '',
+        institution: edu.institution || '',
+        years: edu.years || '',
+        honors: edu.honors || '',
+      }))
       : []
 
     const skills = {
@@ -361,7 +361,12 @@ function basicResumeParse(resumeText: string): ParsedResume {
 /**
  * Resume processing job handler
  */
-export async function resumeProcessHandler(job: PgBoss.Job<ResumeProcessJobData>) {
+export async function resumeProcessHandler(job: any) {
+  if (!job?.data) {
+    console.error('[ResumeProcess] Job data is missing, skipping job:', job?.id)
+    return
+  }
+
   const { candidateId, resumeUrl } = job.data
 
   console.log(`[ResumeProcess] Processing resume for candidate ${candidateId}`)

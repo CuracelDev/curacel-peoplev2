@@ -386,9 +386,6 @@ export default function CandidateProfilePage() {
     }
 
     const isHiredStage = c.stage === 'HIRED' || candidateStageKey.includes('hired')
-    if (candidateStageIndex > -1 && lastCompletedIndex > -1 && candidateStageIndex > lastCompletedIndex + 1) {
-      displayStageIndex = lastCompletedIndex
-    }
     if (isHiredStage && c.decisionStatus !== 'HIRE' && lastCompletedIndex >= 0) {
       displayStageIndex = lastCompletedIndex
     }

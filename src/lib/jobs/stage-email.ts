@@ -32,8 +32,13 @@ interface AutoSendStageConfig {
 /**
  * Process a queued stage email
  */
-export async function stageEmailHandler(job: PgBoss.Job<StageEmailJobData>): Promise<void> {
-  console.log('[StageEmail] Processing job:', job.id, 'data:', job.data)
+export async function stageEmailHandler(job: any): Promise<void> {
+  console.log('[StageEmail] Processing job:', job?.id, 'data:', job?.data)
+
+  if (!job?.data?.queuedEmailId) {
+    console.error('[StageEmail] Job data or queuedEmailId is missing, skipping job:', job?.id)
+    return
+  }
 
   const queuedEmail = await prisma.queuedStageEmail.findUnique({
     where: { id: job.data.queuedEmailId },

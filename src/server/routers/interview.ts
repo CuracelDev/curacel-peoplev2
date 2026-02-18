@@ -957,7 +957,7 @@ export const interviewRouter = router({
           const companyName = process.env.COMPANY_NAME || 'Curacel'
 
           // Send emails in parallel (don't block on failures)
-          await Promise.allSettled(
+          const results = await Promise.allSettled(
             interviewerTokens.map((token) =>
               sendInterviewerInviteEmail({
                 to: token.interviewerEmail,
@@ -971,6 +971,15 @@ export const interviewRouter = router({
               })
             )
           )
+
+          // Log failures
+          results.forEach((result, index) => {
+            if (result.status === 'rejected') {
+              console.error(`[InterviewRouter] Failed to send email to ${interviewerTokens[index].interviewerEmail}:`, result.reason)
+            } else {
+              console.log(`[InterviewRouter] Successfully sent email to ${interviewerTokens[index].interviewerEmail}`)
+            }
+          })
         }
       }
 
