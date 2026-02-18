@@ -353,6 +353,11 @@ async function createOfferIfNeeded(
 export async function hireFlowHandler(job: any): Promise<void> {
   console.log('[HireFlow] Processing job:', job.id, 'data:', job.data)
 
+  if (!job?.data) {
+    console.error('[HireFlow] Job data is missing, skipping job:', job?.id)
+    return
+  }
+
   const { candidateId, jobId } = job.data
 
   try {

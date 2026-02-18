@@ -67,8 +67,8 @@ ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 RUN addgroup nextjs nodejs
-# Add nextjs to a 'docker' group (creating it if it doesn't exist, GID 999 is common for docker)
-RUN addgroup -g 999 docker || true
+# Add nextjs to a 'docker' group (matching host GID 998 for logs)
+RUN addgroup -g 998 docker || true
 RUN adduser nextjs docker || true
 
 # Copy public folder
