@@ -217,13 +217,16 @@ export async function queueStageEmail(
   const autoSendStages = emailSettings.autoSendStages as unknown as Record<string, AutoSendStageConfig> | null
   const stageConfig = autoSendStages?.[data.toStage]
 
-  // Check if auto-send is enabled for this stage
-  if (!stageConfig?.enabled) {
-    console.log(`[StageEmail] Auto-send disabled for stage: ${data.toStage}. Check email settings.`)
+  // Check if auto-send is enabled for this stage, OR if a specific template was requested manually
+  const isEnabled = stageConfig?.enabled || !!data.templateId
+
+  if (!isEnabled) {
+    // console.log(`[StageEmail] Auto-send disabled for stage: ${data.toStage}. Check email settings.`)
+    // Don't log spam if just disabled
     return null
   }
 
-  const delayMinutes = stageConfig.delayMinutes || 0
+  const delayMinutes = stageConfig?.delayMinutes || 0
   const scheduledFor = new Date(Date.now() + delayMinutes * 60 * 1000)
 
   // Create queued email record
@@ -235,7 +238,7 @@ export async function queueStageEmail(
       recruiterId: data.recruiterId,
       recruiterEmail: data.recruiterEmail,
       recruiterName: data.recruiterName,
-      templateId: data.templateId || stageConfig.templateId,
+      templateId: data.templateId || stageConfig?.templateId,
       scheduledFor,
       skipAutoEmail: false,
     },

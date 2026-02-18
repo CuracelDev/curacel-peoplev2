@@ -635,12 +635,13 @@ export default function CandidateProfilePage() {
     }
   }
 
-  const handleMoveToStage = async (stage: JobCandidateStage, skipAutoEmail: boolean) => {
+  const handleMoveToStage = async (stage: JobCandidateStage, skipAutoEmail: boolean, templateId?: string) => {
     try {
       await updateCandidate.mutateAsync({
         id: candidateId,
         stage,
         skipAutoEmail,
+        templateId,
       })
       toast.success(`Candidate moved to ${stage}`)
     } catch (error) {
@@ -757,6 +758,7 @@ export default function CandidateProfilePage() {
               <StageDropdown
                 currentStage={candidate.rawStage as JobCandidateStage}
                 hiringFlowStages={candidate.flowStages}
+                jobId={candidate.job?.id}
                 allowBackwardMovement={scoreSettings?.allowBackwardStageMovement ?? false}
                 onStageChange={handleMoveToStage}
                 className="flex-1 sm:flex-none w-full text-xs sm:text-sm"
