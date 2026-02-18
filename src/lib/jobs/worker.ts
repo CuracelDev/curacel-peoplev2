@@ -49,6 +49,10 @@ export async function initializeWorker(): Promise<PgBoss> {
     const { parse } = require('pg-connection-string')
     const dbConfig = parse(connectionString)
 
+    // Only use SSL for non-localhost connections (cloud databases)
+    const isLocalhost = dbConfig.host === 'localhost' || dbConfig.host === '127.0.0.1'
+    const sslConfig = isLocalhost ? false : { rejectUnauthorized: false }
+
     try {
       boss = new PgBoss({
         host: dbConfig.host || undefined,
@@ -57,9 +61,7 @@ export async function initializeWorker(): Promise<PgBoss> {
         password: dbConfig.password || undefined,
         database: dbConfig.database || undefined,
         schema: (dbConfig.schema as any) || 'public',
-        ssl: {
-          rejectUnauthorized: false
-        },
+        ssl: sslConfig,
         retryLimit: 3,
         retryDelay: 60000,
         monitorStateIntervalSeconds: 30,
