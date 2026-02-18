@@ -1540,6 +1540,27 @@ export const jobRouter = router({
         }
       })
 
+      // Queue auto-email for the initial 'APPLIED' stage
+      try {
+        const { queueStageEmail } = await import('@/lib/jobs/stage-email')
+        const { getWorker } = await import('@/lib/jobs/worker')
+        const boss = getWorker()
+        if (boss && ctx.user) {
+          await queueStageEmail(boss, {
+            candidateId: candidate.id,
+            fromStage: null,
+            toStage: 'APPLIED',
+            recruiterId: ctx.user.id,
+            recruiterEmail: ctx.user.email || '',
+            recruiterName: ctx.user.name || undefined,
+            skipAutoEmail: false,
+          })
+          console.log('[createCandidate] Queued initial stage email for candidate:', candidate.id)
+        }
+      } catch (error) {
+        console.error('[createCandidate] Failed to queue initial stage email:', error)
+      }
+
       // Create employee record with status CANDIDATE
       try {
         const employee = await ctx.prisma.employee.create({
@@ -1860,6 +1881,29 @@ export const jobRouter = router({
           processingStatus: candidateData.resumeUrl ? 'pending' : undefined,
         },
       })
+
+      // Queue auto-email for the initial 'APPLIED' stage
+      try {
+        const { queueStageEmail } = await import('@/lib/jobs/stage-email')
+        const { getWorker } = await import('@/lib/jobs/worker')
+        const boss = getWorker()
+        if (boss) {
+          // Since this is a public submission, we don't have a ctx.user (recruiter)
+          // We use the hiring manager or a system default
+          await queueStageEmail(boss, {
+            candidateId: candidate.id,
+            fromStage: null,
+            toStage: 'APPLIED',
+            recruiterId: job.hiringManagerId || 'system',
+            recruiterEmail: 'people@curacel.ai',
+            recruiterName: 'Recruiting Team',
+            skipAutoEmail: false,
+          })
+          console.log('[submitApplication] Queued initial stage email for candidate:', candidate.id)
+        }
+      } catch (error) {
+        console.error('[submitApplication] Failed to queue initial stage email:', error)
+      }
 
       // Queue resume processing if resume was provided
       if (candidateData.resumeUrl) {
