@@ -63,3 +63,4 @@ prisma/dev.db-journal
 *.key
 temp_key
 temp_key.pub
+.env.production

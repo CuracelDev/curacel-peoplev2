@@ -20,6 +20,16 @@ import {
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { ChevronDown, Loader2 } from 'lucide-react'
+import { trpc } from '@/lib/trpc-client'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 
 export type JobCandidateStage =
   | 'APPLIED'
@@ -95,8 +105,9 @@ const normalizeStageKey = (value: string) =>
 interface StageDropdownProps {
   currentStage: JobCandidateStage
   hiringFlowStages?: string[] | null // Stages from job hiring flow
+  jobId?: string
   allowBackwardMovement?: boolean
-  onStageChange: (stage: JobCandidateStage, skipAutoEmail: boolean) => Promise<void>
+  onStageChange: (stage: JobCandidateStage, skipAutoEmail: boolean, templateId?: string) => Promise<void>
   disabled?: boolean
   className?: string
 }
@@ -104,18 +115,49 @@ interface StageDropdownProps {
 export function StageDropdown({
   currentStage,
   hiringFlowStages,
+  jobId,
   allowBackwardMovement = false,
   onStageChange,
   disabled = false,
   className,
 }: StageDropdownProps) {
   const [loading, setLoading] = useState(false)
+  const [skipAutoEmail, setSkipAutoEmail] = useState(false)
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('auto')
+  const [isCreatingTemplate, setIsCreatingTemplate] = useState(false)
+  const [newTemplate, setNewTemplate] = useState({
+    name: '',
+    subject: '',
+    body: '',
+  })
+
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean
     stage: JobCandidateStage
     stageLabel: string
   } | null>(null)
-  const [skipAutoEmail, setSkipAutoEmail] = useState(false)
+
+  const { data: templates, isLoading: loadingTemplates, refetch: refetchTemplates } = trpc.candidateEmail.listTemplates.useQuery(
+    {
+      stage: confirmDialog?.stage,
+      jobId: jobId
+    },
+    {
+      enabled: !!confirmDialog?.stage && !skipAutoEmail
+    }
+  )
+
+  const createTemplate = trpc.candidateEmail.createTemplate.useMutation()
+
+  // Reset template selection when dialog opens or templates load
+  /* useEffect(() => {
+    if (templates?.length) {
+      const defaultTemplate = templates.find(t => t.isDefault)
+      setSelectedTemplateId(defaultTemplate?.id || 'auto')
+    } else {
+      setSelectedTemplateId('auto')
+    }
+  }, [templates, confirmDialog?.open]) */
 
   // Get the current stage index in the standard progression
   const currentStageIndex = ALL_STAGES.findIndex((s) => s.value === currentStage)
@@ -195,8 +237,31 @@ export function StageDropdown({
 
     setLoading(true)
     try {
-      await onStageChange(confirmDialog.stage, skipAutoEmail)
+      let templateIdToUse = selectedTemplateId === 'auto' ? undefined : selectedTemplateId
+
+      if (isCreatingTemplate && !skipAutoEmail) {
+        if (!newTemplate.name || !newTemplate.subject || !newTemplate.body) {
+          throw new Error('Please fill in all template fields')
+        }
+
+        const created = await createTemplate.mutateAsync({
+          name: newTemplate.name,
+          slug: newTemplate.name.toLowerCase().replace(/\s+/g, '-'),
+          category: 'stage_transition',
+          stage: confirmDialog?.stage,
+          jobId: jobId || undefined,
+          subject: newTemplate.subject,
+          htmlBody: newTemplate.body,
+        })
+        templateIdToUse = created.id
+      }
+
+      await onStageChange(confirmDialog.stage, skipAutoEmail, templateIdToUse)
       setConfirmDialog(null)
+      setIsCreatingTemplate(false)
+      setNewTemplate({ name: '', subject: '', body: '' })
+    } catch (err) {
+      console.error(err)
     } finally {
       setLoading(false)
     }
@@ -279,6 +344,85 @@ export function StageDropdown({
               Skip automated email notification
             </Label>
           </div>
+
+          {!skipAutoEmail && (
+            <div className="space-y-4 pt-4 border-t mt-4">
+              <div className="flex items-center justify-between">
+                <Label className="text-sm font-medium">Email Template</Label>
+                <Button
+                  variant="link"
+                  size="sm"
+                  className="h-auto p-0 text-xs text-blue-600 hover:text-blue-700"
+                  onClick={() => setIsCreatingTemplate(!isCreatingTemplate)}
+                >
+                  {isCreatingTemplate ? 'Cancel' : '+ Create New'}
+                </Button>
+              </div>
+
+              {!isCreatingTemplate ? (
+                <div className="space-y-2">
+                  <Select
+                    value={selectedTemplateId}
+                    onValueChange={setSelectedTemplateId}
+                    disabled={loadingTemplates || loading}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a template..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="auto">
+                        Default (Auto-select)
+                      </SelectItem>
+                      {templates?.map((template) => (
+                        <SelectItem key={template.id} value={template.id}>
+                          {template.name} {template.isDefault && '(Default)'}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedTemplateId === 'auto'
+                      ? "Changes happen automatically based on your stage settings."
+                      : "Override the default email for this stage."}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3 p-3 bg-muted/30 rounded-lg border border-dashed border-muted-foreground/30">
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Template Name</Label>
+                    <Input
+                      placeholder="e.g. Reject after Technical Interview"
+                      value={newTemplate.name}
+                      onChange={(e) => setNewTemplate({ ...newTemplate, name: e.target.value })}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Email Subject</Label>
+                    <Input
+                      placeholder="Next steps with Curacel"
+                      value={newTemplate.subject}
+                      onChange={(e) => setNewTemplate({ ...newTemplate, subject: e.target.value })}
+                      className="h-8 text-sm"
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-[11px] uppercase tracking-wider text-muted-foreground">Message Body</Label>
+                    <Textarea
+                      placeholder="Hi {{candidate.name}}, ..."
+                      value={newTemplate.body}
+                      onChange={(e) => setNewTemplate({ ...newTemplate, body: e.target.value })}
+                      className="min-h-[120px] text-sm py-2"
+                    />
+                    <p className="text-[10px] text-muted-foreground">
+                      Use <code className="bg-muted px-1 rounded">{"{{candidate.name}}"}</code> to personalize.
+                      Logo and footer will be added automatically.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <DialogFooter>
             <Button

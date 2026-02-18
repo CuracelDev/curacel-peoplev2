@@ -29,7 +29,7 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
     if (this.admin) return this.admin
 
     const serviceAccount = JSON.parse(this.config.serviceAccountKey)
-    
+
     if (!this.auth) {
       this.auth = new google.auth.JWT({
         email: serviceAccount.client_email,
@@ -154,7 +154,7 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
   private matchesCondition(employee: Employee, condition: ProvisioningCondition): boolean {
     for (const [key, value] of Object.entries(condition)) {
       if (value === undefined || value === null) continue
-      
+
       const employeeValue = (employee as Record<string, unknown>)[key]
       if (typeof employeeValue === 'string' && typeof value === 'string') {
         // Case-insensitive match
@@ -181,15 +181,15 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
 
     for (const rule of sortedRules) {
       if (!rule.isActive) continue
-      
+
       const condition = rule.condition as ProvisioningCondition
       if (this.matchesCondition(employee, condition)) {
         const data = rule.provisionData as GoogleProvisionData
-        
+
         if (data.orgUnitPath && !result.orgUnitPath) {
           result.orgUnitPath = data.orgUnitPath
         }
-        
+
         if (data.groups) {
           result.groups = [...(result.groups || []), ...data.groups]
         }
@@ -198,7 +198,7 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
 
     // Dedupe groups
     result.groups = [...new Set(result.groups)]
-    
+
     return result
   }
 
@@ -211,11 +211,11 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
     try {
       const admin = await this.getAdminClient()
       const provisionData = this.getProvisionDataForEmployee(employee, rules)
-      
+
       // Generate work email if not exists
       const workEmail = employee.workEmail || generateWorkEmail(employee.fullName, this.config.domain)
       const tempPassword = generateTemporaryPassword()
-      
+
       // Split name
       const nameParts = employee.fullName.trim().split(/\s+/)
       const givenName = nameParts[0]
@@ -269,7 +269,7 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
             tempPassword,
             orgUnitPath: provisionData.orgUnitPath,
           })
-          
+
           // Send credentials email
           await sendAccountCredentialsEmail({
             employeeEmail: employee.personalEmail,
@@ -355,7 +355,7 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
   ): Promise<DeprovisionResult> {
     try {
       const admin = await this.getAdminClient()
-      
+
       const userKey = account.externalUserId || account.externalEmail || employee.workEmail
       if (!userKey) {
         return { success: false, error: 'No external user ID or email found' }
@@ -396,7 +396,19 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
         })
       }
 
-      return { success: true }
+      return {
+        success: true,
+        apiConfirmation: {
+          provider: 'google_workspace',
+          action: deleteAccount ? 'deleted' : 'suspended',
+          userKey,
+          transferredData: !!transferToEmail,
+          transferredTo: transferToEmail,
+          transferredApps: transferToEmail ? transferApps : undefined,
+          aliasCreated: !!(deleteAccount && aliasToEmail),
+          aliasTarget: aliasToEmail,
+        }
+      }
     } catch (error) {
       console.error('Google Workspace deprovisioning error:', error)
       return {

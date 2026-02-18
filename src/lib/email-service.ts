@@ -5,7 +5,7 @@
  */
 
 import { prisma } from './prisma'
-import { sendEmail as sendSystemEmail } from './email'
+import { sendEmail as sendSystemEmail, buildBrandedEmailHtml } from './email'
 import { getGmailConnector, type SendEmailParams as GmailSendParams } from './integrations/gmail'
 import { addEmailTracking } from './email-tracking'
 import type { Job, JobCandidate, CandidateEmailThread, CandidateEmail, EmailTemplate, EmailReminder } from '@prisma/client'
@@ -166,8 +166,17 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
       },
     })
 
+    // Wrap content in branding layout if not full HTML
+    let htmlContent = options.htmlBody
+    if (!htmlContent.includes('<html') && !htmlContent.includes('<!DOCTYPE')) {
+      htmlContent = buildBrandedEmailHtml({
+        companyName: process.env.NEXT_PUBLIC_COMPANY_NAME || 'Curacel',
+        bodyHtml: htmlContent
+      })
+    }
+
     // Add tracking to HTML
-    const trackedHtml = addEmailTracking(email.id, options.htmlBody)
+    const trackedHtml = addEmailTracking(email.id, htmlContent)
 
     // If scheduled for later, don't send now
     if (options.scheduledFor && options.scheduledFor > new Date()) {
@@ -222,6 +231,25 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
           },
         })
 
+        // Audit Log: Email Sent via Gmail
+        await prisma.auditLog.create({
+          data: {
+            action: 'ASSISTANT_ACTION',
+            resourceType: 'candidate_email',
+            resourceId: email.id,
+            actorId: options.recruiterId, // Or system/bot ID if automated
+            actorEmail: options.recruiterEmail,
+            actorType: 'system',
+            metadata: {
+              type: 'email_sent',
+              provider: 'gmail',
+              messageId: gmailResult.messageId,
+              recipient: candidate.email,
+              candidateId: candidate.id
+            }
+          }
+        }).catch(err => console.error('[EmailService] Failed to create audit log:', err))
+
         // Update thread with Gmail thread ID if new
         if (gmailResult.threadId && !thread.gmailThreadId) {
           await prisma.candidateEmailThread.update({
@@ -274,6 +302,25 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
           },
         })
 
+        // Audit Log: Email Sent via System
+        await prisma.auditLog.create({
+          data: {
+            action: 'ASSISTANT_ACTION',
+            resourceType: 'candidate_email',
+            resourceId: email.id,
+            actorId: options.recruiterId,
+            actorEmail: options.recruiterEmail,
+            actorType: 'system',
+            metadata: {
+              type: 'email_sent',
+              provider: 'system_fallback',
+              recipient: candidate.email,
+              candidateId: candidate.id,
+              fallbackReason: gmail ? 'gmail_failed' : 'gmail_not_configured'
+            }
+          }
+        }).catch(err => console.error('[EmailService] Failed to create audit log:', err))
+
         // Update thread
         await prisma.candidateEmailThread.update({
           where: { id: thread.id },
@@ -291,6 +338,24 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
             errorMessage: systemError instanceof Error ? systemError.message : String(systemError),
           },
         })
+
+        // Audit Log: Email Failed
+        await prisma.auditLog.create({
+          data: {
+            action: 'ASSISTANT_ACTION',
+            resourceType: 'candidate_email',
+            resourceId: email.id,
+            actorId: options.recruiterId,
+            actorEmail: options.recruiterEmail,
+            actorType: 'system',
+            metadata: {
+              type: 'email_failed',
+              error: systemError instanceof Error ? systemError.message : String(systemError),
+              candidateId: candidate.id
+            }
+          }
+        }).catch(err => console.error('[EmailService] Failed to create audit log:', err))
+
         return {
           success: false,
           error: systemError instanceof Error ? systemError.message : 'Fallback email failed',
@@ -462,13 +527,26 @@ export async function getTemplateForStage(
   }
 
   // Fall back to global template
-  return prisma.emailTemplate.findFirst({
+  // Fall back to global template (default one first)
+  const defaultTemplate = await prisma.emailTemplate.findFirst({
     where: {
       stage,
       jobId: null,
       isActive: true,
       isDefault: true,
     },
+  })
+
+  if (defaultTemplate) return defaultTemplate
+
+  // Final fallback: any active template for this stage (if no default is marked)
+  return prisma.emailTemplate.findFirst({
+    where: {
+      stage,
+      jobId: null,
+      isActive: true,
+    },
+    orderBy: { createdAt: 'desc' }
   })
 }
 

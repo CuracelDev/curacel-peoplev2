@@ -469,7 +469,7 @@ export const offboardingRouter = router({
     }).optional())
     .query(async ({ ctx, input }) => {
       const { status, page = 1, limit = 20 } = input || {}
-      
+
       const where: Record<string, unknown> = {}
       if (status) where.status = status
 
@@ -580,11 +580,11 @@ export const offboardingRouter = router({
         })
       }
 
-      const scheduledFor = input.isImmediate 
-        ? new Date() 
-        : input.endDate 
-        ? new Date(input.endDate) 
-        : undefined
+      const scheduledFor = input.isImmediate
+        ? new Date()
+        : input.endDate
+          ? new Date(input.endDate)
+          : undefined
 
       const workflow = await ctx.prisma.offboardingWorkflow.create({
         data: {
@@ -817,7 +817,7 @@ async function runOffboardingTask(
   })
 
   try {
-    let result: { success: boolean; error?: string }
+    let result: { success: boolean; error?: string; apiConfirmation?: Record<string, unknown> }
 
     // Get full employee with necessary relations
     const fullEmployee = await prisma.employee.findUnique({
@@ -859,7 +859,7 @@ async function runOffboardingTask(
           break
         }
         const sync = await removeEmployeeFromStandup(email, actorId)
-        result = { success: sync.success, error: sync.error }
+        result = { success: sync.success, error: sync.error, apiConfirmation: sync.apiConfirmation }
         break
       }
       default:
@@ -894,6 +894,7 @@ async function runOffboardingTask(
         automationType: task.automationType,
         success: result.success,
         error: result.error,
+        apiConfirmation: result.apiConfirmation,
       },
     })
 
