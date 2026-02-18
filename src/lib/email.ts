@@ -172,8 +172,13 @@ export async function sendEmail(options: SendEmailOptions): Promise<void> {
   const postmarkFrom = status.from
   const messageStream = status.messageStream
 
+  // Extract email if postmarkFrom is in "Name <email@example.com>" format
+  const emailOnly = postmarkFrom.includes('<')
+    ? postmarkFrom.match(/<([^>]+)>/)?.[1] || postmarkFrom
+    : postmarkFrom
+
   // Combine fromName with the system from address if provided
-  const formattedFrom = fromName ? `${fromName} <${postmarkFrom}>` : postmarkFrom
+  const formattedFrom = fromName ? `${fromName} <${emailOnly}>` : postmarkFrom
 
   let lastError: unknown = null
 

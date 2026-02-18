@@ -289,7 +289,8 @@ export default function InterviewDetailPage() {
   const overallScore = useMemo(() => {
     if (!interview?.evaluations || interview.evaluations.length === 0) return null
     const totalScore = interview.evaluations.reduce((sum, ev) => sum + (ev.overallScore || 0), 0)
-    return Math.round((totalScore / interview.evaluations.length) * 20) // Convert 1-5 to percentage
+    const count = interview.evaluations.length
+    return count > 0 ? Math.round((totalScore / count) * 20) : null
   }, [interview?.evaluations])
 
   // Split tokens by type
@@ -432,9 +433,9 @@ export default function InterviewDetailPage() {
           : status === 'IN_PROGRESS'
             ? 'In Progress'
             : 'Pending'
-      return `${interviewer.name} (${statusLabel})`
+      return `${interviewer.name || 'Unknown'} (${statusLabel})`
     })
-    .join(', ')
+    .join(', ') || 'None assigned'
 
   return (
     <div className="pt-3 pb-3 sm:pt-4 sm:pb-6 -mx-3 sm:-mx-4 md:-mx-6 px-2 sm:px-3 md:px-4">
@@ -488,7 +489,7 @@ export default function InterviewDetailPage() {
               href={`/hiring/candidates/${candidateId}`}
               className="text-sm text-indigo-600 hover:text-indigo-700 hover:underline font-medium"
             >
-              {interview.candidate.name}
+              {interview?.candidate?.name || 'Candidate'}
             </Link>
           </div>
 
@@ -1256,10 +1257,10 @@ export default function InterviewDetailPage() {
           duration: interview.duration,
           meetingLink: interview.meetingLink,
           googleMeetLink: (interview as { googleMeetLink?: string | null }).googleMeetLink,
-          feedback: interview.feedback,
-          interviewers: interview.interviewers as Array<{ employeeId?: string; name: string; email: string }> || [],
-          interviewTypeId: (interview as { interviewTypeId?: string | null }).interviewTypeId,
-          stageName: (interview as { stageName?: string | null }).stageName,
+          feedback: interview?.feedback,
+          interviewers: (Array.isArray(interview?.interviewers) ? interview.interviewers : []) as Array<{ employeeId?: string; name: string; email: string }>,
+          interviewTypeId: (interview as any)?.interviewTypeId,
+          stageName: (interview as any)?.stageName,
         }}
         onSuccess={() => {
           utils.interview.get.invalidate({ id: interviewId })

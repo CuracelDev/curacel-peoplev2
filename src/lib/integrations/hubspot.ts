@@ -135,7 +135,15 @@ export class HubSpotConnector implements IntegrationConnector {
         },
         [204, 200]
       )
-      return { success: true }
+      return {
+        success: true,
+        apiConfirmation: {
+          provider: 'hubspot',
+          action: 'user_deleted',
+          userId: userId ?? undefined,
+          email: email ?? undefined,
+        }
+      }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to deprovision HubSpot user' }
     }

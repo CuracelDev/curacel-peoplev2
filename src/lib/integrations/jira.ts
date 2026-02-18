@@ -267,7 +267,17 @@ export class JiraConnector implements IntegrationConnector {
         )
       }
 
-      return { success: true }
+      return {
+        success: true,
+        apiConfirmation: {
+          provider: 'jira',
+          action: 'access_revoked',
+          accountId,
+          revokedGroups: groups,
+          revokedRoles: projectRoles,
+          userDeleted: !!this.config.deleteOnDeprovision,
+        }
+      }
     } catch (error) {
       return { success: false, error: error instanceof Error ? error.message : 'Failed to deprovision Jira access' }
     }

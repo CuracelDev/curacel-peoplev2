@@ -355,7 +355,7 @@ export const candidateEmailRouter = router({
       return getTemplateForStage(input.stage, input.jobId)
     }),
 
-  createTemplate: adminProcedure
+  createTemplate: protectedProcedure
     .input(CreateTemplateSchema)
     .mutation(async ({ ctx, input }) => {
       // Check for duplicate slug

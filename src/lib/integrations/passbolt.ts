@@ -264,13 +264,22 @@ export class PassboltConnector implements IntegrationConnector {
     }
 
     if (this.apiConfig) {
-      try {
-        const userId = await lookupPassboltUserId(this.apiConfig, email)
-        if (!userId) {
-          return { success: true }
-        }
-        await passboltApiRequest(this.apiConfig, `/users/${userId}.json`, 'DELETE')
+      const userId = await lookupPassboltUserId(this.apiConfig!, email)
+      if (!userId) {
         return { success: true }
+      }
+      try {
+        await passboltApiRequest(this.apiConfig!, `/users/${userId}.json`, 'DELETE')
+        return {
+          success: true,
+          apiConfirmation: {
+            provider: 'passbolt',
+            action: 'user_deleted',
+            method: 'api',
+            userId,
+            email,
+          }
+        }
       } catch (error) {
         return {
           success: false,
@@ -282,7 +291,15 @@ export class PassboltConnector implements IntegrationConnector {
     if (this.cliConfig) {
       try {
         await runPassboltCli(this.cliConfig, ['delete_user', '-u', email])
-        return { success: true }
+        return {
+          success: true,
+          apiConfirmation: {
+            provider: 'passbolt',
+            action: 'user_deleted',
+            method: 'cli',
+            email,
+          }
+        }
       } catch (error) {
         return {
           success: false,
