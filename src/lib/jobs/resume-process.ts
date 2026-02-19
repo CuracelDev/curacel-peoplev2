@@ -452,10 +452,27 @@ export function initResumeProcessJob(boss: PgBoss) {
 }
 
 /**
- * Queue a resume for processing
+ * Queue a resume for processing (async via pg-boss)
  */
 export async function queueResumeProcess(boss: PgBoss, candidateId: string, resumeUrl: string) {
   const jobId = await boss.send(RESUME_PROCESS_JOB_NAME, { candidateId, resumeUrl })
   console.log(`[ResumeProcess] Queued resume processing for candidate ${candidateId}, job ID: ${jobId}`)
   return jobId
+}
+
+/**
+ * Process a resume synchronously (direct call, not via job queue)
+ * Use this when pg-boss worker reliability is an issue.
+ */
+export async function processResumeDirectly(candidateId: string, resumeUrl: string): Promise<boolean> {
+  console.log(`[ResumeProcess] Processing resume directly for candidate ${candidateId}`)
+  
+  try {
+    // Call the handler with a mock job object
+    await resumeProcessHandler({ data: { candidateId, resumeUrl } })
+    return true
+  } catch (error) {
+    console.error(`[ResumeProcess] Direct processing failed for candidate ${candidateId}:`, error)
+    return false
+  }
 }

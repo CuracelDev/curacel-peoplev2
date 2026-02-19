@@ -141,6 +141,19 @@ export async function stageEmailHandler(job: any): Promise<void> {
     }
 
     console.log('[StageEmail] Email sent successfully:', result.emailId)
+
+    // Process resume when candidate applies (APPLIED stage) and has a resume
+    if (queuedEmail.toStage === 'APPLIED' && queuedEmail.candidate.resumeUrl) {
+      try {
+        console.log('[StageEmail] Processing resume for new applicant:', queuedEmail.candidateId)
+        const { processResumeDirectly } = await import('./resume-process')
+        await processResumeDirectly(queuedEmail.candidateId, queuedEmail.candidate.resumeUrl)
+        console.log('[StageEmail] Resume processed successfully for:', queuedEmail.candidateId)
+      } catch (resumeError) {
+        // Don't fail the job if resume processing fails - email was already sent
+        console.error('[StageEmail] Resume processing failed (non-critical):', resumeError)
+      }
+    }
   } catch (error) {
     console.error('[StageEmail] Failed to send:', error)
 
