@@ -84,6 +84,7 @@ jobs:
       - name: Deploy on server
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e
             cd ~/peopleos
             echo "--- Starting Deployment ---"
             
@@ -98,7 +99,7 @@ jobs:
             
             # Migrations (db push)
             echo "[2.5/3] Running migrations..."
-            docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push || echo "Migration failed"
+            docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push
             
             # Swap app
             echo "[3/3] Swapping application..."
