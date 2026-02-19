@@ -52,10 +52,17 @@ export async function initializeWorker(): Promise<PgBoss> {
     const dbConfig = parse(connectionString)
     console.log(`[Worker] Database config: host=${dbConfig.host}, database=${dbConfig.database}, user=${dbConfig.user}`)
 
-    // Only use SSL for non-localhost connections (cloud databases)
-    const isLocalhost = dbConfig.host === 'localhost' || dbConfig.host === '127.0.0.1'
-    const sslConfig = isLocalhost ? false : { rejectUnauthorized: false }
-    console.log(`[Worker] SSL config: ${isLocalhost ? 'disabled (localhost)' : 'enabled'}`)
+    // Only use SSL for non-localhost/docker connections (cloud databases)
+    const isLocal =
+      dbConfig.host === 'localhost' ||
+      dbConfig.host === '127.0.0.1' ||
+      dbConfig.host === 'postgres' ||
+      dbConfig.host === 'db' ||
+      process.env.PGSSLMODE === 'no-verify' ||
+      process.env.PGSSLMODE === 'disable'
+
+    const sslConfig = isLocal ? false : { rejectUnauthorized: false }
+    console.log(`[Worker] SSL config: ${isLocal ? 'disabled' : 'enabled'}`)
 
     // For pg-boss, we explicitly set the schema to 'pgboss'
     const schema = 'pgboss'
