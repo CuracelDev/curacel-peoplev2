@@ -1885,22 +1885,20 @@ export const jobRouter = router({
       // Queue auto-email for the initial 'APPLIED' stage
       try {
         const { queueStageEmail } = await import('@/lib/jobs/stage-email')
-        const { getWorker } = await import('@/lib/jobs/worker')
-        const boss = getWorker()
-        if (boss) {
-          // Since this is a public submission, we don't have a ctx.user (recruiter)
-          // We use the hiring manager or a system default
-          await queueStageEmail(boss, {
-            candidateId: candidate.id,
-            fromStage: null,
-            toStage: 'APPLIED',
-            recruiterId: job.hiringManagerId || 'system',
-            recruiterEmail: 'people@curacel.ai',
-            recruiterName: 'Recruiting Team',
-            skipAutoEmail: false,
-          })
-          console.log('[submitApplication] Queued initial stage email for candidate:', candidate.id)
-        }
+        const { initializeWorker } = await import('@/lib/jobs/worker')
+        const boss = await initializeWorker()
+        // Since this is a public submission, we don't have a ctx.user (recruiter)
+        // We use the hiring manager or a system default
+        await queueStageEmail(boss, {
+          candidateId: candidate.id,
+          fromStage: null,
+          toStage: 'APPLIED',
+          recruiterId: job.hiringManagerId || 'system',
+          recruiterEmail: 'people@curacel.ai',
+          recruiterName: 'Recruiting Team',
+          skipAutoEmail: false,
+        })
+        console.log('[submitApplication] Queued initial stage email for candidate:', candidate.id)
       } catch (error) {
         console.error('[submitApplication] Failed to queue initial stage email:', error)
       }
