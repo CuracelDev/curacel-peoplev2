@@ -57,12 +57,16 @@ export async function initializeWorker(): Promise<PgBoss> {
     const sslConfig = isLocalhost ? false : { rejectUnauthorized: false }
     console.log(`[Worker] SSL config: ${isLocalhost ? 'disabled (localhost)' : 'enabled'}`)
 
-    // For pg-boss, we explicitly set the schema if provided
-    const schema = (dbConfig.schema as any) || 'pgboss'
+    // For pg-boss, we explicitly set the schema to 'pgboss'
+    const schema = 'pgboss'
 
     try {
       boss = new PgBoss({
-        connectionString: connectionString,
+        host: dbConfig.host,
+        port: parseInt(dbConfig.port || '5432'),
+        database: dbConfig.database,
+        user: dbConfig.user,
+        password: dbConfig.password,
         schema: schema,
         ssl: sslConfig,
         retryLimit: 3,
