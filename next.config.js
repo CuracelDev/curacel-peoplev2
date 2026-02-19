@@ -11,6 +11,7 @@ module.exports = (phase) => {
     output: 'standalone',
     experimental: {
       serverComponentsExternalPackages: ['pg-boss'],
+      instrumentationHook: true,
     },
     eslint: {
       ignoreDuringBuilds: true,
