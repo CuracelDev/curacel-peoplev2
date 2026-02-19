@@ -61,7 +61,7 @@ export async function initializeWorker(): Promise<PgBoss> {
         user: dbConfig.user || undefined,
         password: dbConfig.password || undefined,
         database: dbConfig.database || undefined,
-        schema: (dbConfig.schema as any) || 'public',
+        schema: (dbConfig.schema as any) || 'pgboss',
         ssl: sslConfig,
         retryLimit: 3,
         retryDelay: 60000,
@@ -159,6 +159,7 @@ export async function getQueueStats(): Promise<{
   dailyBrief: { pending: number }
   hireFlow: { pending: number; failed: number }
   resumeProcess: { pending: number; failed: number }
+  workEmailSync: { pending: number; failed: number }
 } | null> {
   if (!boss) return null
 
