@@ -143,9 +143,14 @@ export async function stageEmailHandler(job: any): Promise<void> {
     console.log('[StageEmail] Email sent successfully:', result.emailId)
 
     // Process resume when candidate applies (APPLIED stage) and has a resume
-    if (queuedEmail.toStage === 'APPLIED' && queuedEmail.candidate.resumeUrl) {
+    // Skip if already processed (synchronous processing in submitApplication handles this now)
+    if (
+      queuedEmail.toStage === 'APPLIED' &&
+      queuedEmail.candidate.resumeUrl &&
+      queuedEmail.candidate.processingStatus !== 'completed'
+    ) {
       try {
-        console.log('[StageEmail] Processing resume for new applicant:', queuedEmail.candidateId)
+        console.log('[StageEmail] Processing resume for new applicant (fallback):', queuedEmail.candidateId)
         const { processResumeDirectly } = await import('./resume-process')
         await processResumeDirectly(queuedEmail.candidateId, queuedEmail.candidate.resumeUrl)
         console.log('[StageEmail] Resume processed successfully for:', queuedEmail.candidateId)

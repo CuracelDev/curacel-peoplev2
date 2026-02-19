@@ -101,7 +101,21 @@ export default function PublicCareersPage() {
       setIsSubmitted(true)
     },
     onError: (err) => {
-      setErrors({ submit: err.message })
+      // Parse Zod validation errors for user-friendly messages
+      let errorMessage = err.message
+      try {
+        const parsed = JSON.parse(err.message)
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          // Extract first validation error message
+          const firstError = parsed[0]
+          if (firstError.message) {
+            errorMessage = firstError.message
+          }
+        }
+      } catch {
+        // Not a JSON error, use the raw message
+      }
+      setErrors({ submit: errorMessage })
     },
   })
 
@@ -187,7 +201,11 @@ export default function PublicCareersPage() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Invalid email address'
     }
-    if (!formData.coverLetter.trim()) newErrors.coverLetter = 'Please tell us why you want to apply'
+    if (!formData.coverLetter.trim()) {
+      newErrors.coverLetter = 'Please tell us why you want to apply'
+    } else if (formData.coverLetter.trim().length < 10) {
+      newErrors.coverLetter = 'Please write a longer cover letter (at least 10 characters)'
+    }
     if (!consentChecked) newErrors.consent = 'You must agree to the data processing terms'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0

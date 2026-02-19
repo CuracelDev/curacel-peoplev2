@@ -1882,6 +1882,20 @@ export const jobRouter = router({
         },
       })
 
+      // Process resume synchronously before sending confirmation
+      // This ensures resume data is extracted immediately when application is submitted
+      if (candidateData.resumeUrl) {
+        try {
+          console.log('[submitApplication] Processing resume synchronously for candidate:', candidate.id)
+          const { processResumeDirectly } = await import('@/lib/jobs/resume-process')
+          await processResumeDirectly(candidate.id, candidateData.resumeUrl)
+          console.log('[submitApplication] Resume processed successfully for candidate:', candidate.id)
+        } catch (resumeError) {
+          // Don't fail the application if resume processing fails
+          console.error('[submitApplication] Resume processing failed (non-critical):', resumeError)
+        }
+      }
+
       // Queue auto-email for the initial 'APPLIED' stage
       try {
         const { queueStageEmail } = await import('@/lib/jobs/stage-email')
@@ -1902,9 +1916,6 @@ export const jobRouter = router({
       } catch (error) {
         console.error('[submitApplication] Failed to queue initial stage email:', error)
       }
-
-      // Resume processing is now handled by the stage-email job handler
-      // when processing APPLIED stage emails (see stage-email.ts)
 
       return { success: true, candidateId: candidate.id }
     }),
