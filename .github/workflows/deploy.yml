@@ -99,7 +99,7 @@ jobs:
             
             # Migrations (db push)
             echo "[2.5/3] Running migrations..."
-            docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push --accept-data-loss
+            docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push --accept-data-loss --skip-generate
             
             # Swap app
             echo "[3/3] Swapping application..."
