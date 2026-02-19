@@ -46,13 +46,16 @@ export async function initializeWorker(): Promise<PgBoss> {
       throw new Error('DATABASE_URL environment variable is not set')
     }
 
+    console.log('[Worker] Parsing DATABASE_URL...')
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { parse } = require('pg-connection-string')
     const dbConfig = parse(connectionString)
+    console.log(`[Worker] Database config: host=${dbConfig.host}, database=${dbConfig.database}, user=${dbConfig.user}`)
 
     // Only use SSL for non-localhost connections (cloud databases)
     const isLocalhost = dbConfig.host === 'localhost' || dbConfig.host === '127.0.0.1'
     const sslConfig = isLocalhost ? false : { rejectUnauthorized: false }
+    console.log(`[Worker] SSL config: ${isLocalhost ? 'disabled (localhost)' : 'enabled'}`)
 
     try {
       boss = new PgBoss({
@@ -61,7 +64,7 @@ export async function initializeWorker(): Promise<PgBoss> {
         user: dbConfig.user || undefined,
         password: dbConfig.password || undefined,
         database: dbConfig.database || undefined,
-        schema: (dbConfig.schema as any) || 'public',
+        // pg-boss uses its own 'pgboss' schema, not the app schema
         ssl: sslConfig,
         retryLimit: 3,
         retryDelay: 60000,
