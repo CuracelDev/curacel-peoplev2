@@ -1903,18 +1903,8 @@ export const jobRouter = router({
         console.error('[submitApplication] Failed to queue initial stage email:', error)
       }
 
-      // Queue resume processing if resume was provided
-      if (candidateData.resumeUrl) {
-        try {
-          const { initializeWorker } = await import('@/lib/jobs/worker')
-          const { queueResumeProcess } = await import('@/lib/jobs/resume-process')
-          const boss = await initializeWorker()
-          await queueResumeProcess(boss, candidate.id, candidateData.resumeUrl)
-        } catch (error) {
-          // Don't fail the application if queue fails - resume processing is non-critical
-          console.error('[submitApplication] Failed to queue resume processing:', error)
-        }
-      }
+      // Resume processing is now handled by the stage-email job handler
+      // when processing APPLIED stage emails (see stage-email.ts)
 
       return { success: true, candidateId: candidate.id }
     }),
