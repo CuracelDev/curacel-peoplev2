@@ -375,7 +375,17 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
       }
 
       if (transferToEmail) {
-        await this.transferDataOwnership(userKey, transferToEmail, transferApps)
+        // Validate email format
+        if (!transferToEmail.includes('@')) {
+          return { success: false, error: `Invalid transfer email address: ${transferToEmail}` }
+        }
+        try {
+          await this.transferDataOwnership(userKey, transferToEmail, transferApps)
+        } catch (transferError) {
+          // Provide more context if transfer fails
+          const message = transferError instanceof Error ? transferError.message : 'Unknown transfer error'
+          return { success: false, error: `Failed to transfer data to ${transferToEmail}: ${message}` }
+        }
       }
 
       if (deleteAccount) {
@@ -418,7 +428,27 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
     }
   }
 
+  /**
+   * Resolve an email address or user key to a Google user ID
+   */
+  private async resolveUserIdFromEmail(userKey: string): Promise<string> {
+    const admin = await this.getAdminClient()
+    const response = await admin.users.get({ userKey })
+    const userId = response.data.id
+    if (!userId) {
+      throw new Error(`Could not resolve user ID for: ${userKey}`)
+    }
+    return userId
+  }
+
   private async transferDataOwnership(oldOwner: string, newOwner: string, apps: string[]) {
+    // Google Data Transfer API requires user IDs, not email addresses
+    // Resolve emails to user IDs first
+    const [oldOwnerUserId, newOwnerUserId] = await Promise.all([
+      this.resolveUserIdFromEmail(oldOwner),
+      this.resolveUserIdFromEmail(newOwner),
+    ])
+
     const dataTransfer = await this.getDataTransferClient()
     const response = await dataTransfer.applications.list({ customerId: 'my_customer' })
     const availableApps = response.data.applications || []
@@ -442,8 +472,8 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
 
     await dataTransfer.transfers.insert({
       requestBody: {
-        oldOwnerUserId: oldOwner,
-        newOwnerUserId: newOwner,
+        oldOwnerUserId,
+        newOwnerUserId,
         applicationDataTransfers,
       },
     })
