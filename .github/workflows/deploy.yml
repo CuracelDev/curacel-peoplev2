@@ -66,6 +66,7 @@ jobs:
           OPENAI_MODEL=${{ secrets.OPENAI_MODEL }}
           PGSSLMODE=no-verify
           REDIS_URL=${{ secrets.REDIS_URL || 'redis://redis:6379' }}
+          REDIS_ENABLED=${{ vars.REDIS_ENABLED || 'true' }}
           EOF
 
       - name: Setup SSH
