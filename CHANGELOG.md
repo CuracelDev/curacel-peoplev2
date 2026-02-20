@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - WORK_EMAIL_SYNCED audit action for tracking changes
 
 ### Fixed
+- Resume processing now runs synchronously when application is submitted, instead of relying on background job queue (pg-boss) which was unreliable in production
+- Improved error handling on job application form - Zod validation errors now show user-friendly messages instead of raw JSON
+- Added client-side validation for cover letter minimum length
 - Resume file names now retained in job applications (previously showed generic "Resume")
 - Worker SSL connection error for localhost PostgreSQL connections
 - Docker configuration: Added missing development stage for docker-compose compatibility
