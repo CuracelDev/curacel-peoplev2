@@ -52,6 +52,8 @@ import {
   AlertCircle,
   Sparkles,
   Archive,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
@@ -167,6 +169,12 @@ export default function CandidatesPage() {
   } | null>(null)
   const [skipAutoEmail, setSkipAutoEmail] = useState(false)
 
+  // Delete confirmation state
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean
+    candidateIds: string[]
+  } | null>(null)
+
   // Bulk upload state
   const [bulkUploadStep, setBulkUploadStep] = useState<'upload' | 'mapping' | 'importing' | 'complete'>('upload')
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
@@ -220,6 +228,31 @@ export default function CandidatesPage() {
       setSkipAutoEmail(false)
     },
   })
+
+  const deleteCandidate = trpc.job.deleteCandidate.useMutation({
+    onSuccess: () => {
+      utils.job.getAllCandidates.invalidate()
+      setSelectedCandidates([])
+      setDeleteDialog(null)
+      toast.success('Candidate deleted successfully')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete candidate')
+    },
+  })
+
+  // Handle delete with dialog
+  const handleDelete = (candidateIds: string[]) => {
+    setDeleteDialog({ open: true, candidateIds })
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteDialog) return
+    // Delete one by one (could be optimized with a bulk delete mutation)
+    for (const id of deleteDialog.candidateIds) {
+      await deleteCandidate.mutateAsync({ id })
+    }
+  }
 
   // Handle bulk stage change with dialog
   const handleBulkStageChange = (candidateIds: string[], stage: CandidateStage, stageName: string) => {
@@ -982,8 +1015,10 @@ export default function CandidatesPage() {
         }}
         onArchiveCandidate={(id) => handleBulkStageChange([id], 'ARCHIVED', 'Archive')}
         onRejectCandidate={(id) => handleBulkStageChange([id], 'REJECTED', 'Reject')}
+        onDeleteCandidate={(id) => handleDelete([id])}
         onBulkArchive={(ids) => handleBulkStageChange(ids, 'ARCHIVED', 'Archive')}
         onBulkReject={(ids) => handleBulkStageChange(ids, 'REJECTED', 'Reject')}
+        onBulkDelete={(ids) => handleDelete(ids)}
         bulkActions={(
           <Button
             size="sm"
@@ -1061,6 +1096,45 @@ export default function CandidatesPage() {
             >
               {bulkUpdateStage.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog?.open ?? false}
+        onOpenChange={(open) => {
+          if (!open) setDeleteDialog(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Delete {deleteDialog?.candidateIds.length === 1 ? 'Candidate' : `${deleteDialog?.candidateIds.length} Candidates`}
+            </DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. {deleteDialog?.candidateIds.length === 1 
+                ? 'This candidate' 
+                : `These ${deleteDialog?.candidateIds.length} candidates`} will be permanently deleted along with all associated data including interviews, evaluations, and documents.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialog(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteCandidate.isPending}
+            >
+              {deleteCandidate.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Delete Permanently
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -31,6 +31,7 @@ import {
   Mic,
   Loader2,
   Clock,
+  Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -123,6 +124,17 @@ export default function CandidateProfilePage() {
     { enabled: !!candidateId }
   )
   const utils = trpc.useUtils()
+  const router = require('next/navigation').useRouter()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const deleteCandidate = trpc.job.deleteCandidate.useMutation({
+    onSuccess: () => {
+      toast.success('Candidate deleted successfully')
+      router.push('/hiring/candidates')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to delete candidate')
+    },
+  })
   const updateCandidate = trpc.job.updateCandidate.useMutation({
     onSuccess: async (data, variables) => {
       // Force immediate invalidation and refetch
@@ -1073,28 +1085,28 @@ export default function CandidateProfilePage() {
                     Documents
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  {candidate.documents.length > 0 ? (
-                    candidate.documents.map((doc) => (
-                      <a
-                        key={doc.id}
-                        href={doc.url}
-                        download={doc.name || `${doc.type}-${candidate.name}.pdf`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer"
-                        title={doc.name}
-                      >
-                        <FileText className="h-4 w-4 text-red-500 flex-shrink-0" />
-                        <span className="flex-1 text-sm truncate">{doc.name}</span>
-                        <Download className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                      </a>
-                    ))
-                  ) : (
-                    <div className="text-sm text-muted-foreground">No documents uploaded yet.</div>
-                  )}
-                </CardContent>
-              </Card>
+                  <CardContent>
+                    {candidate.documents.length > 0 ? (
+                      candidate.documents.map((doc) => (
+                        <a
+                          key={doc.id}
+                          href={doc.url}
+                          download={doc.name || `${doc.type}-${candidate.name}.pdf`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer"
+                          title={doc.name}
+                        >
+                          <FileText className="h-4 w-4 text-red-500 flex-shrink-0" />
+                          <span className="flex-1 text-sm truncate">{doc.name}</span>
+                          <Download className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                        </a>
+                      ))
+                    ) : (
+                      <div className="text-sm text-muted-foreground">No documents uploaded yet.</div>
+                    )}
+                  </CardContent>
+                </Card>
             </div>
           </div>
         </TabsContent>
@@ -1565,30 +1577,30 @@ export default function CandidateProfilePage() {
                       </Badge>
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-2 text-sm text-muted-foreground">
-                    <div className="flex items-center justify-between">
-                      <span>Score</span>
-                      <span className="font-medium text-foreground">
-                        {typeof assessment.overallScore === 'number'
-                          ? assessment.overallScore
-                          : typeof assessment.qualityScore === 'number'
-                            ? assessment.qualityScore
-                            : '—'}
-                      </span>
-                    </div>
-                    {assessment.completedAt && (
+                    <CardContent className="space-y-2 text-sm text-muted-foreground">
                       <div className="flex items-center justify-between">
-                        <span>Completed</span>
+                        <span>Score</span>
                         <span className="font-medium text-foreground">
-                          {format(new Date(assessment.completedAt), 'MMM d, yyyy')}
+                          {typeof assessment.overallScore === 'number'
+                            ? assessment.overallScore
+                            : typeof assessment.qualityScore === 'number'
+                              ? assessment.qualityScore
+                              : '—'}
                         </span>
                       </div>
-                    )}
-                    {assessment.summary && (
-                      <p className="text-foreground/80">{assessment.summary}</p>
-                    )}
-                  </CardContent>
-                </Card>
+                      {assessment.completedAt && (
+                        <div className="flex items-center justify-between">
+                          <span>Completed</span>
+                          <span className="font-medium text-foreground">
+                            {format(new Date(assessment.completedAt), 'MMM d, yyyy')}
+                          </span>
+                        </div>
+                      )}
+                      {assessment.summary && (
+                        <p className="text-foreground/80">{assessment.summary}</p>
+                      )}
+                    </CardContent>
+                  </Card>
               ))}
             </div>
           ) : (
@@ -1978,6 +1990,14 @@ export default function CandidateProfilePage() {
                     <ThumbsDown className="h-4 w-4 mr-2" />
                     Send Rejection
                   </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-red-600 hover:text-red-700"
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Permanently
+                  </Button>
                 </CardContent>
               </Card>
             </div>
@@ -2033,6 +2053,34 @@ export default function CandidateProfilePage() {
             >
               {actionInFlight && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Delete Candidate
+            </DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This candidate and all associated data (interviews, evaluations, documents) will be permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteCandidate.mutate({ id: candidateId })}
+              disabled={deleteCandidate.isPending}
+            >
+              {deleteCandidate.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Delete Permanently
             </Button>
           </DialogFooter>
         </DialogContent>

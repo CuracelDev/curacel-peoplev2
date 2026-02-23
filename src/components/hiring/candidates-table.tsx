@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { format, formatDistanceToNow } from 'date-fns'
-import { MoreHorizontal, MoreVertical } from 'lucide-react'
+import { MoreHorizontal, MoreVertical, Trash2 } from 'lucide-react'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -54,8 +54,10 @@ type CandidatesTableProps = {
   formatUpdated?: (candidate: CandidateRow) => string
   onArchiveCandidate?: (id: string) => void
   onRejectCandidate?: (id: string) => void
+  onDeleteCandidate?: (id: string) => void
   onBulkArchive?: (ids: string[]) => void
   onBulkReject?: (ids: string[]) => void
+  onBulkDelete?: (ids: string[]) => void
   footer?: React.ReactNode
   bulkActions?: React.ReactNode
 }
@@ -158,8 +160,10 @@ export function CandidatesTable({
   formatUpdated = defaultFormatUpdated,
   onArchiveCandidate,
   onRejectCandidate,
+  onDeleteCandidate,
   onBulkArchive,
   onBulkReject,
+  onBulkDelete,
   footer,
   bulkActions,
 }: CandidatesTableProps) {
@@ -198,7 +202,7 @@ export function CandidatesTable({
   ]), [])
 
   const visibleOptionalColumns = optionalColumns.filter((column) => visibleColumns[column.key])
-  const hasRowActions = Boolean(onArchiveCandidate || onRejectCandidate)
+  const hasRowActions = Boolean(onArchiveCandidate || onRejectCandidate || onDeleteCandidate)
 
   const toggleCandidate = (id: string) => {
     if (selectedCandidates.includes(id)) {
@@ -403,6 +407,18 @@ export function CandidatesTable({
                                 Reject
                               </DropdownMenuItem>
                             )}
+                            {onDeleteCandidate && (
+                              <>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem 
+                                  className="text-red-600 focus:text-red-600"
+                                  onClick={() => onDeleteCandidate(candidate.id)}
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete Permanently
+                                </DropdownMenuItem>
+                              </>
+                            )}
                           </DropdownMenuContent>
                         </DropdownMenu>
                       )}
@@ -426,7 +442,7 @@ export function CandidatesTable({
         ) : null}
       </Card>
 
-      {selectedCandidates.length > 0 && (onBulkArchive || onBulkReject) && (
+      {selectedCandidates.length > 0 && (onBulkArchive || onBulkReject || onBulkDelete) && (
         <div className="fixed bottom-4 sm:bottom-6 left-2 right-2 sm:left-1/2 sm:right-auto sm:-translate-x-1/2 flex flex-wrap items-center justify-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 bg-gray-900 text-white rounded-lg shadow-lg z-50">
           <span className="font-medium text-sm sm:text-base">{selectedCandidates.length} selected</span>
           {bulkActions}
@@ -448,6 +464,17 @@ export function CandidatesTable({
               onClick={() => onBulkArchive(selectedCandidates)}
             >
               Archive
+            </Button>
+          )}
+          {onBulkDelete && (
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-red-600 text-red-500 hover:bg-red-900/50 text-xs sm:text-sm"
+              onClick={() => onBulkDelete(selectedCandidates)}
+            >
+              <Trash2 className="h-3 w-3 mr-1" />
+              Delete
             </Button>
           )}
           <Button
