@@ -21,6 +21,7 @@ import {
   Sparkles,
   Paperclip,
   X,
+  Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -188,6 +189,17 @@ export default function CandidatesListPage() {
       setSelectedCandidates([])
     },
   })
+  const deleteCandidate = trpc.job.deleteCandidate.useMutation({
+    onSuccess: () => {
+      utils.job.listCandidates.invalidate({ jobId })
+      setSelectedCandidates([])
+      setDeleteDialog(null)
+      toast.success('Candidate deleted successfully')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete candidate')
+    },
+  })
   const upgradeFlowMutation = trpc.hiringFlow.upgradeJobFlow.useMutation({
     onSuccess: () => {
       utils.job.get.invalidate({ id: jobId })
@@ -208,6 +220,7 @@ export default function CandidatesListPage() {
   const [selectedStage, setSelectedStage] = useState('all')
   const [sortBy, setSortBy] = useState('score-desc')
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
+  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; candidateIds: string[] } | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
@@ -1236,8 +1249,10 @@ export default function CandidatesListPage() {
         formatUpdated={(candidate) => getRelativeTime(candidate.updatedAt)}
         onArchiveCandidate={(id) => updateCandidateStage.mutate({ id, stage: 'ARCHIVED' })}
         onRejectCandidate={(id) => updateCandidateStage.mutate({ id, stage: 'REJECTED' })}
+        onDeleteCandidate={(id) => setDeleteDialog({ open: true, candidateIds: [id] })}
         onBulkArchive={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'ARCHIVED' })}
         onBulkReject={(ids) => bulkUpdateStage.mutate({ candidateIds: ids, stage: 'REJECTED' })}
+        onBulkDelete={(ids) => setDeleteDialog({ open: true, candidateIds: ids })}
         bulkActions={(
           <Button
             size="sm"
@@ -1295,6 +1310,50 @@ export default function CandidatesListPage() {
           </div>
         )}
       />
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog?.open ?? false}
+        onOpenChange={(open) => {
+          if (!open) setDeleteDialog(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Delete {deleteDialog?.candidateIds.length === 1 ? 'Candidate' : `${deleteDialog?.candidateIds.length} Candidates`}
+            </DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. {deleteDialog?.candidateIds.length === 1 
+                ? 'This candidate' 
+                : `These ${deleteDialog?.candidateIds.length} candidates`} will be permanently deleted along with all associated data including interviews, evaluations, and documents.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialog(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!deleteDialog) return
+                for (const id of deleteDialog.candidateIds) {
+                  await deleteCandidate.mutateAsync({ id })
+                }
+              }}
+              disabled={deleteCandidate.isPending}
+            >
+              {deleteCandidate.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Delete Permanently
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
