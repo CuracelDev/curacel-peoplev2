@@ -28,17 +28,31 @@ export class SlackConnector implements IntegrationConnector {
         return { success: false, error: 'Auth test failed' }
       }
 
-      // Validate required bot scopes for provisioning.
-      // Without users:read.email we cannot reliably match employees by email.
-      const scopesResult = await this.botClient.apiCall('apps.permissions.scopes.list', {})
-      const scopes = (scopesResult as any)?.scopes as string[] | undefined
-      const required = ['users:read', 'users:read.email', 'conversations:read', 'conversations:write']
-      const missing = required.filter((s) => !scopes?.includes(s))
-      if (missing.length) {
-        return {
-          success: false,
-          error: `Slack bot token is missing required scopes: ${missing.join(', ')}. Add them in Slack app settings and reinstall the app.`,
+      // Try to list users to verify the bot has the required scopes
+      // This validates users:read scope
+      try {
+        await this.botClient.users.list({ limit: 1 })
+      } catch (scopeError: any) {
+        if (scopeError?.data?.error === 'missing_scope') {
+          return {
+            success: false,
+            error: 'Slack bot token is missing required scope: users:read. Add it in Slack app settings and reinstall the app.',
+          }
         }
+        throw scopeError
+      }
+
+      // Try to list conversations to verify conversations:read scope
+      try {
+        await this.botClient.conversations.list({ limit: 1 })
+      } catch (scopeError: any) {
+        if (scopeError?.data?.error === 'missing_scope') {
+          return {
+            success: false,
+            error: 'Slack bot token is missing required scope: conversations:read. Add it in Slack app settings and reinstall the app.',
+          }
+        }
+        throw scopeError
       }
 
       return { success: true }
