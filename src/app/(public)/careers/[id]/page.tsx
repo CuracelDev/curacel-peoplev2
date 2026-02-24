@@ -102,20 +102,37 @@ export default function PublicCareersPage() {
     },
     onError: (err) => {
       // Parse Zod validation errors for user-friendly messages
-      let errorMessage = err.message
+      let errorMessage = err.message;
       try {
-        const parsed = JSON.parse(err.message)
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          // Extract first validation error message
-          const firstError = parsed[0]
-          if (firstError.message) {
-            errorMessage = firstError.message
+        // Handle TRPC Zod errors directly if available
+        if (err.data?.zodError?.fieldErrors) {
+          const fields = Object.values(err.data.zodError.fieldErrors);
+          if (fields.length > 0 && fields[0] && fields[0].length > 0) {
+            errorMessage = fields[0][0];
+            setErrors({ submit: errorMessage });
+            return;
           }
+        }
+
+        // Fallback to parsing the message string
+        let parsed = err.message;
+        try { parsed = JSON.parse(err.message); } catch (e) { }
+        if (typeof parsed === 'string') {
+          try { parsed = JSON.parse(parsed); } catch (e) { }
+        }
+
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const firstError = parsed[0];
+          if (firstError?.message) {
+            errorMessage = firstError.message;
+          }
+        } else if (parsed && typeof parsed === 'object' && parsed.message) {
+          errorMessage = parsed.message;
         }
       } catch {
         // Not a JSON error, use the raw message
       }
-      setErrors({ submit: errorMessage })
+      setErrors({ submit: errorMessage });
     },
   })
 

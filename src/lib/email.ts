@@ -117,47 +117,156 @@ function resolveAbsoluteUrl(rawUrl: string | undefined, appUrl: string, fallback
   return `${baseUrl}/${trimmed}`
 }
 
+import { marked } from 'marked'
+
+/**
+ * Process raw email body into formatted HTML.
+ * Converts Markdown to HTML and ensures consistent styling.
+ */
+function processEmailBody(content: string): string {
+  // If it already looks like it has complex HTML tags, return as is
+  if (/<[a-z][\s\S]*>/i.test(content) && (content.includes('<div') || content.includes('<table') || content.includes('<p'))) {
+    return content
+  }
+
+  // Configure marked for safe, clean output
+  marked.setOptions({
+    gfm: true,
+    breaks: true,
+  })
+
+  // Convert markdown to HTML
+  const parsed = marked.parse(content) as string
+
+  return parsed
+}
+
 export function buildBrandedEmailHtml(params: {
   companyName: string
   bodyHtml: string
   logoUrl?: string
+  themeColor?: string
 }): string {
-  const { companyName, bodyHtml, logoUrl: rawLogoUrl } = params
+  const { companyName, bodyHtml, logoUrl: rawLogoUrl, themeColor = '#4f46e5' } = params
   const appUrl = getAppUrl()
   const logoUrl = resolveAbsoluteUrl(rawLogoUrl, appUrl, '/logo.png')
   const year = new Date().getFullYear()
 
+  // Process body (Markdown support)
+  const formattedBody = processEmailBody(bodyHtml)
+
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
       <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <title>${companyName}</title>
+        <style>
+          @media only screen and (max-width: 600px) {
+            .container { width: 100% !important; padding: 10px !important; }
+            .content { padding: 24px 20px !important; }
+          }
+          /* Markdown Styling */
+          .email-body h1, .email-body h2, .email-body h3 { 
+            color: #0f172a; 
+            margin: 24px 0 12px; 
+            font-weight: 700;
+          }
+          .email-body h1 { font-size: 22px; }
+          .email-body h2 { font-size: 18px; }
+          .email-body p { margin: 0 0 16px; }
+          .email-body ul, .email-body ol { 
+            margin: 0 0 16px 20px; 
+            padding: 0; 
+          }
+          .email-body li { margin-bottom: 8px; }
+          .email-body strong { color: #0f172a; }
+          .email-body a { color: ${themeColor}; text-decoration: underline; }
+          .email-body blockquote {
+            margin: 20px 0;
+            padding: 10px 20px;
+            border-left: 4px solid #e2e8f0;
+            color: #64748b;
+            font-style: italic;
+          }
+          .button {
+            display: inline-block;
+            background-color: ${themeColor};
+            color: #ffffff !important;
+            padding: 12px 24px;
+            text-decoration: none !important;
+            border-radius: 8px;
+            font-weight: 600;
+            margin: 16px 0;
+          }
+          .info-box {
+            background-color: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 24px;
+          }
+        </style>
       </head>
-      <body style="margin:0; padding:0; background-color:#eef2f7; font-family:'Segoe UI', Arial, sans-serif; color:#0f172a;">
-        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#eef2f7;">
+      <body style="margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; -webkit-font-smoothing: antialiased; color: #1e293b;">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color: #f8fafc;">
           <tr>
-            <td align="center" style="padding:32px 16px;">
-              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px; background:#ffffff; border-radius:16px; border:1px solid #e2e8f0; overflow:hidden;">
+            <td align="center" style="padding: 40px 16px;">
+              <!--[if mso]>
+              <table role="presentation" width="600" cellspacing="0" cellpadding="0" align="center">
                 <tr>
-                  <td style="padding:24px 32px 12px; text-align:center;">
+                  <td>
+              <![endif]-->
+              <table role="presentation" class="container" width="100%" cellspacing="0" cellpadding="0" style="max-width: 600px; background-color: #ffffff; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); border: 1px solid #e2e8f0; overflow: hidden;">
+                <!-- Header / Logo -->
+                <tr>
+                  <td style="padding: 40px 40px 10px; text-align: left;">
                     <img
                       src="${logoUrl}"
-                      alt="${companyName} logo"
+                      alt="${companyName}"
                       width="120"
-                      style="display:block; margin:0 auto; height:auto;"
+                      style="display: block; height: auto; border: 0;"
                     />
                   </td>
                 </tr>
+                
+                <!-- Main Content -->
                 <tr>
-                  <td style="padding:8px 32px 32px; font-size:16px; line-height:1.6; color:#334155;">
-                    ${bodyHtml}
+                  <td class="content" style="padding: 20px 40px 40px; font-size: 16px; line-height: 1.7; color: #334155;">
+                    <div class="email-body">
+                      ${formattedBody}
+                    </div>
+                  </td>
+                </tr>
+
+                <!-- Footer Divider -->
+                <tr>
+                  <td style="padding: 0 40px;">
+                    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-top: 1px solid #f1f5f9;">
+                      <tr><td></td></tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Footer Legal/Info -->
+                <tr>
+                  <td style="padding: 32px 40px; background-color: #fafafa;">
+                    <p style="margin: 0; font-size: 14px; color: #64748b; line-height: 1.5;">
+                      Sent by <strong>${companyName}</strong> Recruitment Team.
+                    </p>
+                    <p style="margin: 8px 0 0; font-size: 12px; color: #94a3b8;">
+                      &copy; ${year} ${companyName}. All rights reserved.
+                    </p>
                   </td>
                 </tr>
               </table>
-              <p style="margin:16px 0 0; font-size:12px; color:#94a3b8; text-align:center;">
-                &copy; ${year} ${companyName}
-              </p>
+              <!--[if mso]>
+                  </td>
+                </tr>
+              </table>
+              <![endif]-->
             </td>
           </tr>
         </table>
@@ -276,66 +385,27 @@ export async function sendOfferEmail(params: {
   companyName: string
   logoUrl?: string
 }): Promise<void> {
-  const { candidateEmail, candidateName, offerLink, companyName, logoUrl: rawLogoUrl } = params
-  const appUrl = getAppUrl()
-  const logoUrl = resolveAbsoluteUrl(rawLogoUrl, appUrl, '/logo.png')
-  const year = new Date().getFullYear()
+  const { candidateEmail, candidateName, offerLink, companyName, logoUrl } = params
 
   await sendEmail({
     to: candidateEmail,
     subject: `Your offer from ${companyName}`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-	        </head>
-	        <body style="margin:0; padding:0; background-color:#eef2f7; font-family: 'Segoe UI', Arial, sans-serif; color:#0f172a;">
-	          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#eef2f7;">
-              <tr>
-                <td align="center" style="padding:32px 16px;">
-                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px; background:#ffffff; border-radius:16px; border:1px solid #e2e8f0; overflow:hidden;">
-                    <tr>
-                      <td style="padding:24px 32px 12px; text-align:center;">
-                        <img
-                          src="${logoUrl}"
-                          alt="${companyName} logo"
-                          width="120"
-                          style="display:block; margin:0 auto; height:auto;"
-                        />
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style="padding:8px 32px 32px;">
-                        <h1 style="margin:0 0 16px; font-size:24px; line-height:1.3; font-weight:700; color:#0f172a;">
-                          Congratulations, ${candidateName}!
-                        </h1>
-                        <p style="margin:0 0 12px; font-size:16px; line-height:1.6; color:#334155;">
-                          We&#39;re excited to extend an offer to join ${companyName}.
-                        </p>
-                        <p style="margin:0 0 24px; font-size:16px; line-height:1.6; color:#334155;">
-                          Please review and sign your offer letter by clicking the button below.
-                        </p>
-                        <a
-                          href="${offerLink}"
-                          style="display:inline-block; background:#1d4ed8; color:#ffffff; text-decoration:none; padding:12px 20px; border-radius:10px; font-weight:600; font-size:15px;"
-                        >Review &amp; Sign Offer</a>
-                        <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#64748b; text-align:center;">
-                          If you have any issues, please reach out to the People team.
-                        </p>
-                      </td>
-                    </tr>
-                  </table>
-                  <p style="margin:16px 0 0; font-size:12px; color:#94a3b8; text-align:center;">
-                    &copy; ${year} ${companyName}
-                  </p>
-                </td>
-              </tr>
-	          </table>
-	        </body>
-	      </html>
-	    `,
+    html: buildBrandedEmailHtml({
+      companyName,
+      logoUrl,
+      themeColor: '#1d4ed8', // Blue
+      bodyHtml: `
+# Congratulations, ${candidateName}!
+
+We're excited to extend an offer to join **${companyName}**.
+
+Please review and sign your offer letter by clicking the button below.
+
+<a href="${offerLink}" class="button">Review & Sign Offer</a>
+
+If you have any issues, please reach out to the People team.
+      `,
+    }),
   })
 }
 
@@ -349,54 +419,41 @@ export async function sendOnboardingEmail(params: {
 }): Promise<void> {
   const { employeeEmail, employeeName, onboardingLink, startDate, managerName, companyName } = params
 
+  const dateStr = startDate.toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+
   await sendEmail({
     to: employeeEmail,
     subject: `Welcome to ${companyName} - Complete your onboarding`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
-            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
-            .button { display: inline-block; background: #10b981; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px; }
-            .info-box { background: white; padding: 15px; border-radius: 6px; margin: 15px 0; }
-            .footer { margin-top: 20px; font-size: 12px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0;">Welcome aboard, ${employeeName}!</h1>
-            </div>
-            <div class="content">
-              <p>We're thrilled to have you joining ${companyName}!</p>
-              
-              <div class="info-box">
-                <strong>Start Date:</strong> ${startDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-                ${managerName ? `<br><strong>Manager:</strong> ${managerName}` : ''}
-              </div>
-              
-              <p>To complete your onboarding, please fill out your personal details:</p>
-              <ul>
-                <li>Home address</li>
-                <li>Phone number</li>
-                <li>Emergency contact</li>
-                <li>Bank details</li>
-              </ul>
-              
-              <a href="${onboardingLink}" class="button">Complete Onboarding</a>
-              
-              <p class="footer">
-                This link will expire in 7 days. If you have any questions, please contact HR.
-              </p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `,
+    html: buildBrandedEmailHtml({
+      companyName,
+      themeColor: '#10b981', // Green
+      bodyHtml: `
+# Welcome aboard, ${employeeName}!
+
+We're thrilled to have you joining **${companyName}**!
+
+<div class="info-box">
+  <strong>Start Date:</strong> ${dateStr}
+  ${managerName ? `<br><strong>Manager:</strong> ${managerName}` : ''}
+</div>
+
+To complete your onboarding, please fill out your personal details:
+
+* Home address
+* Phone number
+* Emergency contact
+* Bank details
+
+<a href="${onboardingLink}" class="button">Complete Onboarding</a>
+
+This link will expire in 7 days. If you have any questions, please contact HR.
+      `,
+    }),
   })
 }
 
@@ -412,48 +469,28 @@ export async function sendAccountCredentialsEmail(params: {
   await sendEmail({
     to: employeeEmail,
     subject: `Your ${companyName} account credentials`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); color: white; padding: 30px; border-radius: 8px 8px 0 0; }
-            .content { background: #f9fafb; padding: 30px; border-radius: 0 0 8px 8px; }
-            .credentials { background: white; padding: 20px; border-radius: 6px; margin: 15px 0; font-family: monospace; }
-            .warning { background: #fef3c7; border-left: 4px solid #f59e0b; padding: 12px; margin: 15px 0; }
-            .footer { margin-top: 20px; font-size: 12px; color: #666; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1 style="margin: 0;">Your Account is Ready!</h1>
-            </div>
-            <div class="content">
-              <p>Hi ${employeeName},</p>
-              <p>Your ${companyName} Google Workspace account has been created:</p>
-              
-              <div class="credentials">
-                <strong>Email:</strong> ${workEmail}<br>
-                <strong>Temporary Password:</strong> ${temporaryPassword}
-              </div>
-              
-              <div class="warning">
-                <strong>Important:</strong> You will be required to change your password on first login.
-              </div>
-              
-              <p>You can sign in at <a href="https://workspace.google.com">workspace.google.com</a></p>
-              
-              <p class="footer">
-                If you didn't expect this email or have questions, please contact IT.
-              </p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `,
+    html: buildBrandedEmailHtml({
+      companyName,
+      themeColor: '#3b82f6', // Blue
+      bodyHtml: `
+# Your Account is Ready!
+
+Hi ${employeeName},
+
+Your **${companyName}** Google Workspace account has been created:
+
+<div class="info-box" style="font-family: monospace;">
+  <strong>Email:</strong> ${workEmail}<br>
+  <strong>Temporary Password:</strong> ${temporaryPassword}
+</div>
+
+> **Important:** You will be required to change your password on first login.
+
+You can sign in at [workspace.google.com](https://workspace.google.com)
+
+If you didn't expect this email or have questions, please contact IT.
+      `,
+    }),
   })
 }
 
@@ -502,31 +539,20 @@ export async function sendTeamInviteEmail(params: {
   await sendEmail({
     to,
     subject: `You've been invited to Curacel People`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .content { background: #f9fafb; padding: 24px; border-radius: 8px; }
-            .button { display: inline-block; background: #4f46e5; color: #ffffff; padding: 12px 18px; text-decoration: none; border-radius: 6px; margin-top: 16px; }
-            .meta { color: #6b7280; font-size: 12px; margin-top: 16px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="content">
-              <h2 style="margin-top: 0;">You've been invited</h2>
-              <p>${invitedByName ? `${invitedByName} has` : 'You have'} invited you to Curacel People.</p>
-              <p><strong>Role:</strong> ${role}</p>
-              <a class="button" href="${acceptUrl}">Accept invite</a>
-              <p class="meta">If you didn't expect this invite, you can ignore this email.</p>
-            </div>
-          </div>
-        </body>
-      </html>
-    `,
+    html: buildBrandedEmailHtml({
+      companyName: 'Curacel People',
+      bodyHtml: `
+# You've been invited
+
+${invitedByName ? `${invitedByName} has` : 'You have'} invited you to join **Curacel People**.
+
+**Role:** ${role}
+
+<a href="${acceptUrl}" class="button">Accept invite</a>
+
+If you didn't expect this invite, you can safely ignore this email.
+      `,
+    }),
   })
 }
 
@@ -542,18 +568,15 @@ export async function sendInterviewerInviteEmail(params: {
   logoUrl?: string
 }): Promise<void> {
   const { to, interviewerName, candidateName, jobTitle, interviewDate, interviewType, interviewLink, companyName, logoUrl } = params
-  const appUrl = getAppUrl()
-  const resolvedLogoUrl = resolveAbsoluteUrl(logoUrl, appUrl, '/logo.png')
-  const year = new Date().getFullYear()
 
-  const formattedDate = interviewDate.toLocaleDateString('en-US', {
+  const dateStr = interviewDate.toLocaleDateString('en-US', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   })
 
-  const formattedTime = interviewDate.toLocaleTimeString('en-US', {
+  const timeStr = interviewDate.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
@@ -562,97 +585,40 @@ export async function sendInterviewerInviteEmail(params: {
   await sendEmail({
     to,
     subject: `Interview Assignment: ${candidateName} for ${jobTitle}`,
-    html: `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta charset="UTF-8" />
-          <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        </head>
-        <body style="margin:0; padding:0; background-color:#eef2f7; font-family:'Segoe UI', Arial, sans-serif; color:#0f172a;">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background-color:#eef2f7;">
-            <tr>
-              <td align="center" style="padding:32px 16px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px; background:#ffffff; border-radius:16px; border:1px solid #e2e8f0; overflow:hidden;">
-                  <tr>
-                    <td style="padding:24px 32px 12px; text-align:center;">
-                      <img
-                        src="${resolvedLogoUrl}"
-                        alt="${companyName} logo"
-                        width="120"
-                        style="display:block; margin:0 auto; height:auto;"
-                      />
-                    </td>
-                  </tr>
-                  <tr>
-                    <td style="padding:8px 32px 32px;">
-                      <h1 style="margin:0 0 16px; font-size:24px; line-height:1.3; font-weight:700; color:#0f172a;">
-                        Interview Assignment
-                      </h1>
-                      <p style="margin:0 0 12px; font-size:16px; line-height:1.6; color:#334155;">
-                        Hi ${interviewerName},
-                      </p>
-                      <p style="margin:0 0 20px; font-size:16px; line-height:1.6; color:#334155;">
-                        You've been assigned as an interviewer for <strong>${candidateName}</strong> applying for <strong>${jobTitle}</strong>.
-                      </p>
+    html: buildBrandedEmailHtml({
+      companyName,
+      logoUrl,
+      bodyHtml: `
+# Interview Assignment
 
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc; border-radius:10px; margin-bottom:24px;">
-                        <tr>
-                          <td style="padding:20px;">
-                            <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                              <tr>
-                                <td style="padding:4px 0;">
-                                  <span style="color:#64748b; font-size:14px;">Date</span>
-                                </td>
-                                <td style="padding:4px 0; text-align:right;">
-                                  <span style="color:#0f172a; font-weight:600; font-size:14px;">${formattedDate}</span>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td style="padding:4px 0;">
-                                  <span style="color:#64748b; font-size:14px;">Time</span>
-                                </td>
-                                <td style="padding:4px 0; text-align:right;">
-                                  <span style="color:#0f172a; font-weight:600; font-size:14px;">${formattedTime}</span>
-                                </td>
-                              </tr>
-                              <tr>
-                                <td style="padding:4px 0;">
-                                  <span style="color:#64748b; font-size:14px;">Interview Type</span>
-                                </td>
-                                <td style="padding:4px 0; text-align:right;">
-                                  <span style="color:#0f172a; font-weight:600; font-size:14px;">${interviewType}</span>
-                                </td>
-                              </tr>
-                            </table>
-                          </td>
-                        </tr>
-                      </table>
+Hi ${interviewerName},
 
-                      <p style="margin:0 0 20px; font-size:16px; line-height:1.6; color:#334155;">
-                        Click the button below to view your interview questions and submit your feedback after the interview.
-                      </p>
+You've been assigned as an interviewer for **${candidateName}** applying for **${jobTitle}**.
 
-                      <a
-                        href="${interviewLink}"
-                        style="display:inline-block; background:#4f46e5; color:#ffffff; text-decoration:none; padding:14px 24px; border-radius:10px; font-weight:600; font-size:15px;"
-                      >View Interview Questions</a>
+<div class="info-box">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td style="padding:4px 0; color:#64748b; font-size:14px;">Date</td>
+      <td style="padding:4px 0; text-align:right; font-weight:600;">${dateStr}</td>
+    </tr>
+    <tr>
+      <td style="padding:4px 0; color:#64748b; font-size:14px;">Time</td>
+      <td style="padding:4px 0; text-align:right; font-weight:600;">${timeStr}</td>
+    </tr>
+    <tr>
+      <td style="padding:4px 0; color:#64748b; font-size:14px;">Type</td>
+      <td style="padding:4px 0; text-align:right; font-weight:600;">${interviewType}</td>
+    </tr>
+  </table>
+</div>
 
-                      <p style="margin:24px 0 0; font-size:14px; line-height:1.6; color:#64748b;">
-                        You can customize your questions before the interview. After the interview, please submit your feedback within 3 days.
-                      </p>
-                    </td>
-                  </tr>
-                </table>
-                <p style="margin:16px 0 0; font-size:12px; color:#94a3b8; text-align:center;">
-                  &copy; ${year} ${companyName}
-                </p>
-              </td>
-            </tr>
-          </table>
-        </body>
-      </html>
-    `,
+Click the button below to view your interview questions and submit your feedback after the interview.
+
+<a href="${interviewLink}" class="button">View Interview Questions</a>
+
+You can customize your questions before the interview. After the interview, please submit your feedback within 3 days.
+      `,
+    }),
   })
 }
 
