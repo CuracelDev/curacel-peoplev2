@@ -102,6 +102,10 @@ jobs:
             echo "[2.5/3] Running migrations..."
             docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push --accept-data-loss --skip-generate
             
+            # Init pg-boss schema
+            echo "[2.6/3] Initializing pg-boss schema..."
+            docker compose -f docker-compose.deploy.yml run --rm -T app node -e "const PgBoss = require('pg-boss'); const sslConfig = process.env.PGSSLMODE === 'no-verify' ? false : { rejectUnauthorized: false }; const boss = new PgBoss({ connectionString: process.env.DATABASE_URL, schema: 'pgboss', ssl: sslConfig }); boss.start().then(() => { console.log('Successfully initialized pg-boss schema'); return boss.stop(); }).catch(e => { console.error('PGBOSS INIT ERROR:', e); process.exit(1); });"
+            
             # Swap app
             echo "[3/3] Swapping application..."
             docker compose -f docker-compose.deploy.yml up -d --force-recreate app adminer
