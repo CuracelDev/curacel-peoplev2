@@ -1810,7 +1810,7 @@ export const jobRouter = router({
           })
           .pipe(z.string().url().optional().or(z.literal(''))),
         bio: z.string().optional(),
-        coverLetter: z.string().optional(),
+        coverLetter: z.string().min(10, 'Your cover letter is too short. Please provide a more detailed cover letter (minimum 10 characters).'),
         resumeUrl: z.string().optional(),
         resumeFileName: z.string().optional(),
         inboundChannel: InboundChannelEnum.default('PEOPLEOS'),
