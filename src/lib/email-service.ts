@@ -10,6 +10,29 @@ import { getGmailConnector, type SendEmailParams as GmailSendParams } from './in
 import { addEmailTracking } from './email-tracking'
 import type { Job, JobCandidate, CandidateEmailThread, CandidateEmail, EmailTemplate, EmailReminder } from '@prisma/client'
 
+/**
+ * Convert plain text to HTML by wrapping paragraphs in <p> tags
+ * and converting single newlines to <br> tags
+ */
+function plainTextToHtml(text: string): string {
+  // If already contains HTML tags, return as-is
+  if (/<[a-z][\s\S]*>/i.test(text)) {
+    return text
+  }
+  
+  // Split by double newlines (paragraphs)
+  const paragraphs = text.split(/\n\n+/)
+  
+  return paragraphs
+    .map(para => {
+      // Convert single newlines to <br> within paragraphs
+      const withBreaks = para.trim().replace(/\n/g, '<br>')
+      return `<p>${withBreaks}</p>`
+    })
+    .filter(p => p !== '<p></p>')
+    .join('\n')
+}
+
 export interface SendEmailOptions {
   candidateId: string
   recruiterId: string
@@ -166,12 +189,14 @@ export async function sendCandidateEmail(options: SendEmailOptions): Promise<Sen
       },
     })
 
-    // Wrap content in branding layout if not full HTML
+    // Convert plain text to HTML if needed, then wrap in branding layout
     let htmlContent = options.htmlBody
     if (!htmlContent.includes('<html') && !htmlContent.includes('<!DOCTYPE')) {
+      // Convert plain text with newlines to proper HTML paragraphs
+      const formattedBody = plainTextToHtml(htmlContent)
       htmlContent = buildBrandedEmailHtml({
         companyName: process.env.NEXT_PUBLIC_COMPANY_NAME || 'Curacel',
-        bodyHtml: htmlContent
+        bodyHtml: formattedBody
       })
     }
 
