@@ -1015,7 +1015,7 @@ export default function CandidatesPage() {
         selectedCandidates={selectedCandidates}
         onSelectedCandidatesChange={setSelectedCandidates}
         storageKey="hiring.candidates.visibleColumns"
-        candidateHref={(candidate) => `/recruiting/candidates/${candidate.id}`}
+        candidateHref={(candidate) => `/hiring/candidates/${candidate.id}`}
         renderStage={(candidate) => (
           <Badge variant="secondary" className={stageStyles[candidate.stage || ''] || 'bg-muted text-foreground/80'}>
             {candidate.stageDisplayName || candidate.stage || '—'}

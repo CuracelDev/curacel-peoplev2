@@ -270,7 +270,7 @@ export default function RecruitingDashboard() {
                 topCandidates.map((candidate, i) => (
                   <Link
                     key={candidate.id}
-                    href={`/recruiting/candidates/${candidate.id}`}
+                    href={`/hiring/candidates/${candidate.id}`}
                     className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted"
                   >
                     <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-semibold ${getRankStyle(i + 1)}`}>

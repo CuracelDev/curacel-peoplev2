@@ -170,7 +170,7 @@ export default function InterviewTypesPage() {
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem asChild>
-                          <Link href={`/recruiting/settings/interview-types/${type.id}`}>
+                          <Link href={`/hiring/settings/interview-types/${type.id}`}>
                             <Pencil className="h-4 w-4 mr-2" />
                             Edit
                           </Link>

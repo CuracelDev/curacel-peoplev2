@@ -788,7 +788,7 @@ export default function CandidatesListPage() {
           <Download className="h-4 w-4 mr-2" />
           Export
         </Button>
-        <Link href={`/recruiting/positions/${jobId}/edit`}>
+        <Link href={`/hiring/positions/${jobId}/edit`}>
           <Button variant="outline" size="sm">
             <Pencil className="h-4 w-4 mr-2" />
             Edit Job
@@ -1252,7 +1252,7 @@ export default function CandidatesListPage() {
         selectedCandidates={selectedCandidates}
         onSelectedCandidatesChange={setSelectedCandidates}
         storageKey="hiring.jobCandidates.visibleColumns"
-        candidateHref={(candidate) => `/recruiting/candidates/${candidate.id}`}
+        candidateHref={(candidate) => `/hiring/candidates/${candidate.id}`}
         scoreClassName={(score) => getScoreClass(score || 0)}
         renderStage={(candidate) => getStageBadge(candidate.stage || '')}
         formatApplied={(candidate) => formatDate(candidate.appliedAt) || '-'}

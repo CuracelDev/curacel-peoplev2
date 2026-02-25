@@ -160,7 +160,7 @@ export default function InterestFormsPage() {
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                           <DropdownMenuItem asChild>
-                            <Link href={`/recruiting/settings/interest-forms/${form.id}`}>
+                            <Link href={`/hiring/settings/interest-forms/${form.id}`}>
                               <Pencil className="h-4 w-4 mr-2" />
                               Edit
                             </Link>

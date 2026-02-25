@@ -324,7 +324,7 @@ export default function AssessmentsPage() {
                     <TableRow
                       key={assessment.id}
                       className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => router.push(`/recruiting/assessments/${assessment.id}`)}
+                      onClick={() => router.push(`/hiring/assessments/${assessment.id}`)}
                     >
                       <TableCell className="py-4">
                         <div className="flex items-center gap-3">
@@ -380,7 +380,7 @@ export default function AssessmentsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/recruiting/assessments/${assessment.id}`}>
+                              <Link href={`/hiring/assessments/${assessment.id}`}>
                                 <Eye className="h-4 w-4 mr-2" />
                                 View Details
                               </Link>

@@ -276,6 +276,7 @@ export default function CandidateProfilePage() {
       const date = interviewDate ? format(new Date(interviewDate), 'MMM d, yyyy') : null
 
       return {
+        id: interviewForStage?.id,
         stage: stage.stageName || stage.stage,
         stageType: stage.stage,
         date,
@@ -286,7 +287,7 @@ export default function CandidateProfilePage() {
           overallRating: e.overallRating,
           recommendation: e.recommendation || 'PENDING',
           notes: e.notes || '',
-          criteria: e.criteriaScores.map((cs) => ({
+          criteria: e.criteriaScores.map((cs: any) => ({
             name: cs.name,
             score: cs.score,
             maxScore: 5,
@@ -589,7 +590,7 @@ export default function CandidateProfilePage() {
     if (!candidateId) return
     try {
       setExporting(true)
-      const response = await fetch(`/api/recruiting/candidates/${candidateId}/export`, {
+      const response = await fetch(`/api/hiring/candidates/${candidateId}/export`, {
         method: 'GET',
         credentials: 'include',
       })
@@ -1085,28 +1086,28 @@ export default function CandidateProfilePage() {
                     Documents
                   </CardTitle>
                 </CardHeader>
-                  <CardContent>
-                    {candidate.documents.length > 0 ? (
-                      candidate.documents.map((doc) => (
-                        <a
-                          key={doc.id}
-                          href={doc.url}
-                          download={doc.name || `${doc.type}-${candidate.name}.pdf`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer"
-                          title={doc.name}
-                        >
-                          <FileText className="h-4 w-4 text-red-500 flex-shrink-0" />
-                          <span className="flex-1 text-sm truncate">{doc.name}</span>
-                          <Download className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        </a>
-                      ))
-                    ) : (
-                      <div className="text-sm text-muted-foreground">No documents uploaded yet.</div>
-                    )}
-                  </CardContent>
-                </Card>
+                <CardContent>
+                  {candidate.documents.length > 0 ? (
+                    candidate.documents.map((doc) => (
+                      <a
+                        key={doc.id}
+                        href={doc.url}
+                        download={doc.name || `${doc.type}-${candidate.name}.pdf`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer"
+                        title={doc.name}
+                      >
+                        <FileText className="h-4 w-4 text-red-500 flex-shrink-0" />
+                        <span className="flex-1 text-sm truncate">{doc.name}</span>
+                        <Download className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      </a>
+                    ))
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No documents uploaded yet.</div>
+                  )}
+                </CardContent>
+              </Card>
             </div>
           </div>
         </TabsContent>
@@ -1387,7 +1388,7 @@ export default function CandidateProfilePage() {
             <div className="space-y-6">
               {candidate.interviewEvaluations.map((evaluation, evalIdx) => (
                 <Card key={evalIdx} className="hover:border-indigo-300 transition-colors">
-                  <Link href={`/recruiting/candidates/${candidateId}/interviews/${evaluation.stageType.toLowerCase()}`}>
+                  <Link href={`/hiring/candidates/${candidateId}/interviews/${evaluation.id || evaluation.stageType.toLowerCase()}`}>
                     <CardHeader className="pb-4 cursor-pointer">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -1545,7 +1546,7 @@ export default function CandidateProfilePage() {
                         </div>
                       </div>
                     </div>
-                    <Link href={`/recruiting/candidates/${candidateId}/stages/panel`}>
+                    <Link href={`/hiring/candidates/${candidateId}/stages/panel`}>
                       <Button variant="outline">
                         View Full Details
                         <ChevronRight className="h-4 w-4 ml-2" />
@@ -1577,30 +1578,30 @@ export default function CandidateProfilePage() {
                       </Badge>
                     </CardTitle>
                   </CardHeader>
-                    <CardContent className="space-y-2 text-sm text-muted-foreground">
+                  <CardContent className="space-y-2 text-sm text-muted-foreground">
+                    <div className="flex items-center justify-between">
+                      <span>Score</span>
+                      <span className="font-medium text-foreground">
+                        {typeof assessment.overallScore === 'number'
+                          ? assessment.overallScore
+                          : typeof assessment.qualityScore === 'number'
+                            ? assessment.qualityScore
+                            : '—'}
+                      </span>
+                    </div>
+                    {assessment.completedAt && (
                       <div className="flex items-center justify-between">
-                        <span>Score</span>
+                        <span>Completed</span>
                         <span className="font-medium text-foreground">
-                          {typeof assessment.overallScore === 'number'
-                            ? assessment.overallScore
-                            : typeof assessment.qualityScore === 'number'
-                              ? assessment.qualityScore
-                              : '—'}
+                          {format(new Date(assessment.completedAt), 'MMM d, yyyy')}
                         </span>
                       </div>
-                      {assessment.completedAt && (
-                        <div className="flex items-center justify-between">
-                          <span>Completed</span>
-                          <span className="font-medium text-foreground">
-                            {format(new Date(assessment.completedAt), 'MMM d, yyyy')}
-                          </span>
-                        </div>
-                      )}
-                      {assessment.summary && (
-                        <p className="text-foreground/80">{assessment.summary}</p>
-                      )}
-                    </CardContent>
-                  </Card>
+                    )}
+                    {assessment.summary && (
+                      <p className="text-foreground/80">{assessment.summary}</p>
+                    )}
+                  </CardContent>
+                </Card>
               ))}
             </div>
           ) : (
@@ -1972,7 +1973,7 @@ export default function CandidateProfilePage() {
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Advance to Offer
                   </Button>
-                  <Link href={`/recruiting/interviews/schedule?candidateId=${candidateId}`}>
+                  <Link href={`/hiring/interviews/schedule?candidateId=${candidateId}`}>
                     <Button
                       variant="outline"
                       className="w-full justify-start"

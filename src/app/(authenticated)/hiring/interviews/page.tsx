@@ -289,7 +289,7 @@ export default function InterviewsPage() {
                     <TableRow
                       key={interview.id}
                       className="cursor-pointer hover:bg-muted"
-                      onClick={() => router.push(`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}`)}
+                      onClick={() => router.push(`/hiring/candidates/${interview.candidateId}/interviews/${interview.id}`)}
                     >
                       <TableCell>
                         <div className="font-medium text-foreground">
