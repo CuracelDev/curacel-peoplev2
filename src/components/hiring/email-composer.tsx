@@ -33,6 +33,7 @@ import { Calendar } from '@/components/ui/calendar'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
 import { format } from 'date-fns'
+import { toast } from 'sonner'
 
 interface EmailComposerProps {
   candidateId: string
@@ -77,12 +78,23 @@ export function EmailComposer({
   // Send email mutation
   const sendEmail = trpc.candidateEmail.sendEmail.useMutation({
     onSuccess: () => {
+      toast.success(scheduledDate ? 'Email scheduled successfully!' : 'Email sent successfully!')
       onSent?.()
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to send email')
     },
   })
 
   // Save draft mutation
-  const saveDraft = trpc.candidateEmail.saveDraft.useMutation()
+  const saveDraft = trpc.candidateEmail.saveDraft.useMutation({
+    onSuccess: () => {
+      toast.success('Draft saved successfully!')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to save draft')
+    },
+  })
 
   // Preview template mutation
   const previewTemplate = trpc.candidateEmail.previewTemplate.useMutation()

@@ -1722,7 +1722,7 @@ export const jobRouter = router({
             recommendation: evaluation.recommendation,
             notes: evaluation.overallNotes,
             criteriaScores: evaluation.criteriaScores.map((cs) => ({
-              name: cs.criteria.name,
+              name: cs.criteria?.name || 'Unknown Criteria',
               score: cs.score,
               notes: cs.notes,
             })),
