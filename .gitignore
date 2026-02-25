@@ -64,3 +64,9 @@ prisma/dev.db-journal
 temp_key
 temp_key.pub
 .env.production
+
+# Sensitive files / local notes
+*.md.local
+Copying Prod DB Locally.md
+*_password*
+*_credentials*
