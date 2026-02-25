@@ -635,7 +635,7 @@ export default function CandidatesPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="_talent_pool">General Talent Pool (No Specific Job)</SelectItem>
-                      {activeJobs?.items.map(job => (
+                      {(activeJobs || []).map(job => (
                         <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
                       ))}
                     </SelectContent>
@@ -832,7 +832,7 @@ export default function CandidatesPage() {
                       <div className="space-y-3">
                         <Label className="text-sm font-medium">Field Mapping</Label>
                         <div className="border rounded-lg divide-y max-h-[300px] overflow-y-auto">
-                          {parsedData.headers.map((header) => {
+                          {(parsedData?.headers || []).map((header) => {
                             const confidence = parsedData.confidenceScores[header] || 0
                             const isLowConfidence = confidence > 0 && confidence < 70
                             const isMapped = Boolean(fieldMapping[header])
@@ -879,7 +879,7 @@ export default function CandidatesPage() {
                                     <SelectItem value="_skip">
                                       <span className="text-muted-foreground">Skip this column</span>
                                     </SelectItem>
-                                    {parsedData.expectedFields.map((field) => (
+                                    {(parsedData?.expectedFields || []).map((field) => (
                                       <SelectItem key={field.key} value={field.key}>
                                         {field.label} {field.required && '*'}
                                       </SelectItem>
@@ -900,7 +900,7 @@ export default function CandidatesPage() {
                             <table className="w-full text-xs">
                               <thead>
                                 <tr className="bg-muted">
-                                  {parsedData.headers.map((h) => (
+                                  {(parsedData?.headers || []).map((h) => (
                                     <th key={h} className="px-2 py-1.5 text-left font-medium truncate max-w-[120px]">
                                       {fieldMapping[h] || <span className="text-muted-foreground">skipped</span>}
                                     </th>
@@ -908,9 +908,9 @@ export default function CandidatesPage() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {parsedData.sampleRows.slice(0, 3).map((row, i) => (
+                                {((parsedData?.sampleRows || []).slice(0, 3) || []).map((row, i) => (
                                   <tr key={i} className="border-t">
-                                    {row.map((cell, j) => (
+                                    {(row || []).map((cell, j) => (
                                       <td key={j} className="px-2 py-1.5 truncate max-w-[120px]">
                                         {cell || '-'}
                                       </td>
@@ -983,7 +983,7 @@ export default function CandidatesPage() {
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-destructive">Errors</Label>
                           <div className="border border-destructive/20 rounded-lg divide-y max-h-[150px] overflow-y-auto">
-                            {importResult.errors.map((err, i) => (
+                            {(importResult.errors || []).map((err, i) => (
                               <div key={i} className="px-3 py-2 text-sm">
                                 <span className="text-muted-foreground">Row {err.row}:</span> {err.error}
                               </div>
