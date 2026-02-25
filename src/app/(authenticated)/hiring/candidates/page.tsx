@@ -151,6 +151,7 @@ export default function CandidatesPage() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('all')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [addMode, setAddMode] = useState<'single' | 'bulk'>('single')
+  const [targetJobId, setTargetJobId] = useState<string>('_talent_pool')
   const [newCandidate, setNewCandidate] = useState({
     name: '',
     email: '',
@@ -201,6 +202,8 @@ export default function CandidatesPage() {
   const addParam = searchParams.get('add')
 
   const { data: teams } = trpc.team.listForSelect.useQuery()
+  const { data: activeJobs } = trpc.job.list.useQuery({ status: 'ACTIVE' })
+
   const parseUpload = trpc.job.parseUploadForBulkImport.useMutation()
   const bulkImport = trpc.job.bulkImportCandidates.useMutation()
   const utils = trpc.useUtils()
@@ -394,7 +397,7 @@ export default function CandidatesPage() {
   }
 
   const handleAddCandidate = () => {
-    createCandidate.mutate(newCandidate)
+    createCandidate.mutate({ ...newCandidate, jobId: targetJobId === '_talent_pool' ? undefined : targetJobId })
   }
 
   const resetBulkUpload = () => {
@@ -467,6 +470,7 @@ export default function CandidatesPage() {
         fieldMapping,
         data: parsedData.parsedData,
         headers: parsedData.headers,
+        jobId: targetJobId === '_talent_pool' ? undefined : targetJobId,
       })
 
       setImportResult(result)
@@ -622,6 +626,22 @@ export default function CandidatesPage() {
                     Bulk Upload
                   </TabsTrigger>
                 </TabsList>
+
+                <div className="mb-4">
+                  <Label htmlFor="targetJob" className="mb-2 block">Assign to Job / Position</Label>
+                  <Select value={targetJobId} onValueChange={setTargetJobId}>
+                    <SelectTrigger id="targetJob" className="w-full">
+                      <SelectValue placeholder="Select a position" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_talent_pool">General Talent Pool (No Specific Job)</SelectItem>
+                      {activeJobs?.items.map(job => (
+                        <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">If "Talent Pool" is selected, the candidate will be held in the general pool untyped to a specific job unless assigned later.</p>
+                </div>
 
                 {/* Single Candidate Tab */}
                 <TabsContent value="single" className="space-y-4">
@@ -1115,8 +1135,8 @@ export default function CandidatesPage() {
               Delete {deleteDialog?.candidateIds.length === 1 ? 'Candidate' : `${deleteDialog?.candidateIds.length} Candidates`}
             </DialogTitle>
             <DialogDescription>
-              This action cannot be undone. {deleteDialog?.candidateIds.length === 1 
-                ? 'This candidate' 
+              This action cannot be undone. {deleteDialog?.candidateIds.length === 1
+                ? 'This candidate'
                 : `These ${deleteDialog?.candidateIds.length} candidates`} will be permanently deleted along with all associated data including interviews, evaluations, and documents.
             </DialogDescription>
           </DialogHeader>

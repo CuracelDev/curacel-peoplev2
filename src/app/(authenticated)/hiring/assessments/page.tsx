@@ -89,6 +89,12 @@ export default function AssessmentsPage() {
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>('')
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
   const [candidateSearch, setCandidateSearch] = useState('')
+  const [debouncedCandidateSearch, setDebouncedCandidateSearch] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedCandidateSearch(candidateSearch), 500)
+    return () => clearTimeout(timer)
+  }, [candidateSearch])
 
   const utils = trpc.useUtils()
 
@@ -108,7 +114,7 @@ export default function AssessmentsPage() {
 
   // Fetch candidates for send dialog
   const { data: candidatesData } = trpc.job.getAllCandidates.useQuery(
-    { search: candidateSearch || undefined, limit: 50 },
+    { search: debouncedCandidateSearch || undefined, limit: 500 },
     { enabled: sendDialogOpen }
   )
   const candidates = candidatesData?.candidates
