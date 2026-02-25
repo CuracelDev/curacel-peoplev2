@@ -81,6 +81,7 @@ const stageConfig: Record<string, { label: string; color: string }> = {
   TECHNICAL: { label: 'Coding Test', color: 'bg-amber-100 text-amber-800' },
   CEO_CHAT: { label: 'CEO Chat', color: 'bg-pink-100 text-pink-800' },
   TRIAL: { label: 'Work Trial', color: 'bg-orange-100 text-orange-800' },
+  PANEL: { label: 'Panel Interview', color: 'bg-success/10 text-success' },
 }
 
 const statusConfig: Record<string, { label: string; color: string; icon: React.ComponentType<{ className?: string }> }> = {

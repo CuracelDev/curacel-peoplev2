@@ -98,7 +98,8 @@ const defaultStageCards = [
   { key: 'shortlisted', label: 'Short Listed', stageKeys: ['SHORTLISTED'] },
   { key: 'hrScreen', label: 'People Chat', stageKeys: ['HR_SCREEN'] },
   { key: 'technical', label: 'Coding Test', stageKeys: ['TECHNICAL'] },
-  { key: 'panel', label: 'Team Chat', stageKeys: ['TEAM_CHAT', 'PANEL'] },
+  { key: 'panel', label: 'Interviews', stageKeys: ['TEAM_CHAT', 'ADVISOR_CHAT', 'PANEL', 'CEO_CHAT'] },
+  { key: 'trial', label: 'Trial', stageKeys: ['TRIAL'] },
   { key: 'offer', label: 'Offer', stageKeys: ['OFFER'] },
 ]
 

@@ -42,7 +42,7 @@ const allCandidatesFiltersSchema = z.object({
   includeArchived: z.boolean().optional(),
   sortBy: z.enum(['score', 'appliedAt', 'name', 'updatedAt']).default('appliedAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(1000).default(50),
   offset: z.number().min(0).default(0),
 }).optional()
 type AllCandidatesFilters = z.infer<typeof allCandidatesFiltersSchema>
@@ -163,7 +163,7 @@ export const jobRouter = router({
           applicants: job._count.candidates,
           inReview: job.candidates.filter((c) => ['APPLIED', 'SHORTLISTED'].includes(c.stage)).length,
           interviewing: job.candidates.filter((c) =>
-            ['HR_SCREEN', 'TECHNICAL', 'PANEL'].includes(c.stage)
+            ['HR_SCREEN', 'TEAM_CHAT', 'ADVISOR_CHAT', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT'].includes(c.stage)
           ).length,
           offerStage: job.candidates.filter((c) => c.stage === 'OFFER').length,
           hired: job.candidates.filter((c) => c.stage === 'HIRED').length,
