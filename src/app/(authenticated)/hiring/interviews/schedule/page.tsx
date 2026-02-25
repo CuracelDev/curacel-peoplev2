@@ -383,7 +383,7 @@ export default function ScheduleInterviewPage() {
   }
 
   // Check if Step 1 is valid
-  const isStep1Valid = selectedCandidateId && interviewTypeId && date && selectedInterviewers.length > 0 && selectedRubricTemplateId
+  const isStep1Valid = selectedCandidateId && interviewTypeId && date && selectedInterviewers.length > 0
 
   // Check if Step 3 should be shown (only if 2+ interviewers)
   const showStep3 = selectedInterviewers.length >= 2 && selectedQuestions.length > 0
@@ -1102,7 +1102,7 @@ export default function ScheduleInterviewPage() {
               {/* Row 6: Rubric & Notes */}
               <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="grid gap-1">
-                  <Label htmlFor="rubric">Interview Rubric *</Label>
+                  <Label htmlFor="rubric">Interview Rubric</Label>
                   <Select value={selectedRubricTemplateId} onValueChange={setSelectedRubricTemplateId}>
                     <SelectTrigger id="rubric">
                       <SelectValue

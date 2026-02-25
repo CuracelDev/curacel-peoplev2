@@ -308,13 +308,20 @@ export default function CandidatesListPage() {
   }
   const hiringFlowStages = candidatesData?.hiringFlowStages || []
 
+  // Count active candidates (excluding finished states)
+  const activeCount = useMemo(() => {
+    return allCandidates.filter(
+      (c) => c.stage !== 'ARCHIVED' && c.stage !== 'REJECTED' && c.stage !== 'WITHDRAWN'
+    ).length
+  }, [allCandidates])
+
   // Use actual stages from backend with real counts
   const stages = useMemo(() => {
     const stageInfo = candidatesData?.stageInfo || []
 
     // Always include "All" stage
     const allStages = [
-      { id: 'all', label: 'All Candidates', count: counts.all }
+      { id: 'all', label: 'All Candidates', count: activeCount }
     ]
 
     // Add actual stages with candidates
@@ -334,7 +341,10 @@ export default function CandidatesListPage() {
   // Filter candidates by stage
   const stageFilteredCandidates = useMemo(() => {
     let filtered = allCandidates.filter((c) => {
-      if (selectedStage === 'all') return true
+      if (selectedStage === 'all') {
+        // Only show active candidates in the 'all' view
+        return c.stage !== 'ARCHIVED' && c.stage !== 'REJECTED' && c.stage !== 'WITHDRAWN'
+      }
       // Match by actual database stage
       return c.stage === selectedStage
     })
@@ -1325,8 +1335,8 @@ export default function CandidatesListPage() {
               Delete {deleteDialog?.candidateIds.length === 1 ? 'Candidate' : `${deleteDialog?.candidateIds.length} Candidates`}
             </DialogTitle>
             <DialogDescription>
-              This action cannot be undone. {deleteDialog?.candidateIds.length === 1 
-                ? 'This candidate' 
+              This action cannot be undone. {deleteDialog?.candidateIds.length === 1
+                ? 'This candidate'
                 : `These ${deleteDialog?.candidateIds.length} candidates`} will be permanently deleted along with all associated data including interviews, evaluations, and documents.
             </DialogDescription>
           </DialogHeader>

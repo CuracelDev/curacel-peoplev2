@@ -77,7 +77,7 @@ export const interviewStageRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { criteria, ...templateData } = input
 
-      return ctx.prisma.interviewStageTemplate.create({
+      const template = await ctx.prisma.interviewStageTemplate.create({
         data: {
           name: templateData.name.trim(),
           description: templateData.description?.trim(),
@@ -86,13 +86,13 @@ export const interviewStageRouter = router({
           jobId: templateData.jobId,
           criteria: criteria?.length
             ? {
-                create: criteria.map((c, index) => ({
-                  name: c.name.trim(),
-                  description: c.description?.trim(),
-                  weight: c.weight,
-                  sortOrder: index,
-                })),
-              }
+              create: criteria.map((c, index) => ({
+                name: c.name.trim(),
+                description: c.description?.trim(),
+                weight: c.weight,
+                sortOrder: index,
+              })),
+            }
             : undefined,
         },
         include: {
@@ -101,6 +101,21 @@ export const interviewStageRouter = router({
           },
         },
       })
+
+      // If it's a global template (no jobId), try to link it to the interview type with matching slug
+      if (!templateData.jobId) {
+        try {
+          await ctx.prisma.interviewType.updateMany({
+            where: { slug: templateData.stage },
+            data: { rubricTemplateId: template.id },
+          })
+        } catch (error) {
+          console.error('Failed to link rubric template to interview type:', error)
+          // Don't fail the whole request if linking fails
+        }
+      }
+
+      return template
     }),
 
   // Update a stage template

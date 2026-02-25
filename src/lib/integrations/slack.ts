@@ -338,6 +338,33 @@ export class SlackConnector implements IntegrationConnector {
       }
     }
   }
+
+  async listChannels(): Promise<Array<{ id: string; name: string }>> {
+    try {
+      const result = await this.botClient.conversations.list({
+        types: 'public_channel,private_channel',
+        limit: 1000,
+      })
+      return (result.channels || [])
+        .map((c) => ({ id: c.id || '', name: c.name || '' }))
+        .filter((c) => c.id && c.name) as Array<{ id: string; name: string }>
+    } catch (error) {
+      console.error('Slack listChannels error:', error)
+      throw error
+    }
+  }
+
+  async listUserGroups(): Promise<Array<{ id: string; name: string; handle: string }>> {
+    try {
+      const result = await this.botClient.usergroups.list()
+      return (result.usergroups || [])
+        .map((g) => ({ id: g.id || '', name: g.name || '', handle: g.handle || '' }))
+        .filter((g) => g.id && g.name) as Array<{ id: string; name: string; handle: string }>
+    } catch (error) {
+      console.error('Slack listUserGroups error:', error)
+      throw error
+    }
+  }
 }
 
 export function createSlackConnector(): SlackConnector | null {
