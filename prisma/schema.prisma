@@ -2620,6 +2620,154 @@ model JobAssessmentTemplate {
 }
 
 // ============================================
+// ASSESSMENT QUESTION LIBRARY
+// ============================================
+
+enum QuestionClassification {
+  SINGLE_SELECT
+  MULTI_SELECT
+  SHORT_ANSWER
+  CODING_ANSWER
+  AUDIO_ANSWER
+  MS_EXCEL
+  RANKING
+  SPREADSHEET
+  TYPING_TEST
+}
+
+enum DifficultyLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+// Reference table: Programming/database languages for coding tests
+model CodingLanguage {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  version   String?
+
+  libraries AssessmentLibrary[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Reference table: Industry categories
+model IndustryType {
+  id        String   @id @default(uuid())
+  name      String   @unique
+
+  libraries AssessmentLibrary[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Reference table: Assessment library categories
+model AssessmentLibraryType {
+  id        String   @id @default(uuid())
+  name      String   @unique
+
+  libraries AssessmentLibrary[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Reference table: Job roles
+model JobRole {
+  id        String   @id @default(uuid())
+  name      String   @unique
+
+  libraries AssessmentLibrary[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Assessment library: A curated test with metadata
+model AssessmentLibrary {
+  id              String                @id @default(uuid())
+  title           String
+  overview        String?               @db.Text
+  description     String?               @db.Text
+  relevancy       String?               @db.Text
+  libraryTypeId   String
+  libraryType     AssessmentLibraryType @relation(fields: [libraryTypeId], references: [id])
+  difficultyLevel DifficultyLevel?
+  timeLimit       Int?                  // In seconds
+  questionLimit   Int?                  // Max questions per session
+  source          String?               // e.g. "testlify", "chatGPT"
+  isActive        Boolean               @default(true)
+
+  skills          AssessmentLibrarySkill[]
+  questions       AssessmentQuestion[]
+  industryTypes   IndustryType[]
+  jobRoles        JobRole[]
+  codingLanguages CodingLanguage[]
+
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([libraryTypeId])
+  @@index([difficultyLevel])
+  @@index([isActive])
+}
+
+// Skills measured by an assessment library
+model AssessmentLibrarySkill {
+  id                  String            @id @default(uuid())
+  assessmentLibraryId String
+  assessmentLibrary   AssessmentLibrary @relation(fields: [assessmentLibraryId], references: [id], onDelete: Cascade)
+  description         String            @db.Text
+  extendedDescription String?           @db.Text
+
+  questions           AssessmentQuestion[]
+
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@index([assessmentLibraryId])
+}
+
+// Individual assessment question
+model AssessmentQuestion {
+  id                  String                  @id @default(uuid())
+  assessmentLibraryId String
+  assessmentLibrary   AssessmentLibrary       @relation(fields: [assessmentLibraryId], references: [id], onDelete: Cascade)
+  skillId             String?
+  skill               AssessmentLibrarySkill? @relation(fields: [skillId], references: [id], onDelete: SetNull)
+  skillName           String?                 // Denormalized skill name for display
+
+  classification      QuestionClassification
+  title               String?
+  question            String                  @db.Text
+  paragraph           String?                 @db.Text
+  options             Json?                   // [{description, isCorrect}]
+
+  difficultyLevel     DifficultyLevel?
+  score               Int?
+  maximumScore        Int?
+  timeLimit           Int?                    // Seconds
+
+  status              String?
+  source              String?
+
+  codingLanguages     Json?                   // Language configs for coding questions
+  testCases           Json?                   // Test cases for coding questions
+
+  createdAt           DateTime                @default(now())
+  updatedAt           DateTime                @updatedAt
+
+  @@index([assessmentLibraryId])
+  @@index([skillId])
+  @@index([classification])
+  @@index([difficultyLevel])
+  @@index([assessmentLibraryId, skillId])
+}
+
+// ============================================
 // RECRUITING - QUESTION BANK
 // ============================================
 
