@@ -2641,6 +2641,12 @@ enum DifficultyLevel {
   ADVANCED
 }
 
+enum AssessmentQuestionStatus {
+  ACTIVE
+  DRAFT
+  ARCHIVED
+}
+
 // Reference table: Programming/database languages for coding tests
 model CodingLanguage {
   id        String   @id @default(uuid())
@@ -2751,7 +2757,7 @@ model AssessmentQuestion {
   maximumScore        Int?
   timeLimit           Int?                    // Seconds
 
-  status              String?
+  status              AssessmentQuestionStatus @default(ACTIVE)
   source              String?
 
   codingLanguages     Json?                   // Language configs for coding questions
