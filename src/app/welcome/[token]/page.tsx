@@ -1113,12 +1113,12 @@ export default function OnboardingSelfServicePage() {
                 <p className="text-sm text-foreground/80 mb-4">
                   If you don't know your results, take the test at{' '}
                   <a
-                    href="https://bigfive-test.com"
+                    href="https://app.testgorilla.com/s/eefshj0z"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-blue-600 hover:underline"
                   >
-                    bigfive-test.com
+                    app.testgorilla.com
                   </a>
                 </p>
 
@@ -1130,7 +1130,7 @@ export default function OnboardingSelfServicePage() {
                       type="url"
                       value={bigFiveUrl}
                       onChange={(e) => setBigFiveUrl(e.target.value)}
-                      placeholder="https://bigfive-test.com/result/..."
+                      placeholder="https://app.testgorilla.com/s/eefshj0z"
                       className="mt-2"
                     />
                   </div>

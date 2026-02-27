@@ -164,6 +164,22 @@ export default function OnboardingDetailPage() {
   const { data: bitbucketOptions } = trpc.integration.listBitbucketOptions.useQuery(bitbucketApp?.id ?? '', {
     enabled: Boolean(bitbucketApp?.id),
   })
+
+  const googleApp = apps?.find((app) => app.type === 'GOOGLE_WORKSPACE')
+  const { data: googleRules } = trpc.integration.listRules.useQuery(googleApp?.id, {
+    enabled: Boolean(googleApp?.id),
+  })
+  const { data: googleGroups } = trpc.integration.listGoogleWorkspaceGroups.useQuery(googleApp?.id ?? '', {
+    enabled: Boolean(googleApp?.id),
+  })
+
+  const slackApp = apps?.find((app) => app.type === 'SLACK')
+  const { data: slackRules } = trpc.integration.listRules.useQuery(slackApp?.id, {
+    enabled: Boolean(slackApp?.id),
+  })
+  const { data: slackOptions } = trpc.integration.listSlackOptions.useQuery(slackApp?.id ?? '', {
+    enabled: Boolean(slackApp?.id),
+  })
   const employeeSheetQuery = trpc.onboarding.getEmployeeSheetData.useQuery(
     {
       fullName: workflow?.employee?.fullName || undefined,
@@ -171,15 +187,15 @@ export default function OnboardingDetailPage() {
     },
     { enabled: Boolean(workflow?.employee) }
   )
-  
+
   const runTask = trpc.onboarding.runAutomatedTask.useMutation({
     onSuccess: () => refetch(),
   })
-  
+
   const completeTask = trpc.onboarding.completeManualTask.useMutation({
     onSuccess: () => refetch(),
   })
-  
+
   const skipTask = trpc.onboarding.skipTask.useMutation({
     onSuccess: () => {
       setSkipDialogOpen(false)
@@ -293,6 +309,127 @@ export default function OnboardingDetailPage() {
     if (cfg.appType === 'BITBUCKET') return true
     if (cfg.appId && bitbucketApp?.id && cfg.appId === bitbucketApp.id) return true
     return false
+  }
+
+  const isGoogleTask = (task: WorkflowTask) => {
+    const cfg = (task.automationConfig as any) ?? {}
+    if (task.automationType?.includes('google')) return true
+    if (cfg.appType === 'GOOGLE_WORKSPACE') return true
+    if (cfg.appId && googleApp?.id && cfg.appId === googleApp.id) return true
+    return false
+  }
+
+  const isSlackTask = (task: WorkflowTask) => {
+    const cfg = (task.automationConfig as any) ?? {}
+    if (task.automationType?.includes('slack')) return true
+    if (cfg.appType === 'SLACK') return true
+    if (cfg.appId && slackApp?.id && cfg.appId === slackApp.id) return true
+    return false
+  }
+
+  const renderGoogleRules = () => {
+    if (!googleApp) return null
+    if (!googleRules || googleRules.length === 0) {
+      return <span className="text-sm text-muted-foreground">No Google Workspace rules found.</span>
+    }
+    return (
+      <div className="space-y-2">
+        {googleRules.map((rule) => {
+          const data = (rule.provisionData as any) ?? {}
+          const groups = Array.isArray(data.groups) ? data.groups : []
+          return (
+            <div key={rule.id} className="rounded-md border border-border bg-muted/50 p-2">
+              <div className="text-xs text-foreground/80">{rule.name} · Priority {rule.priority}</div>
+              {groups.length > 0 && (
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {groups.map((g: string) => (
+                    <span key={g} className="text-xs text-foreground">{g}</span>
+                  ))}
+                </div>
+              )}
+              {data.orgUnitPath && (
+                <p className="mt-1 text-xs text-foreground/80">OU: {data.orgUnitPath}</p>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  const renderGoogleOptions = () => {
+    if (!googleGroups) return <span className="text-xs text-muted-foreground">Loading groups...</span>
+    if (googleGroups.error) return <span className="text-xs text-destructive">{googleGroups.error}</span>
+    const groups = googleGroups.groups || []
+    return (
+      <div className="mt-1 flex flex-wrap gap-2">
+        {groups.slice(0, 10).map((g: any) => (
+          <span key={g.email} className="text-xs text-foreground">{g.name || g.email}</span>
+        ))}
+        {groups.length > 10 && <span className="text-xs text-muted-foreground">+{groups.length - 10} more</span>}
+      </div>
+    )
+  }
+
+  const renderSlackRules = () => {
+    if (!slackApp) return null
+    if (!slackRules || slackRules.length === 0) {
+      return <span className="text-sm text-muted-foreground">No Slack rules found.</span>
+    }
+    return (
+      <div className="space-y-2">
+        {slackRules.map((rule) => {
+          const data = (rule.provisionData as any) ?? {}
+          const channels = Array.isArray(data.channels) ? data.channels : []
+          const userGroups = Array.isArray(data.userGroups) ? data.userGroups : []
+          return (
+            <div key={rule.id} className="rounded-md border border-border bg-muted/50 p-2">
+              <div className="text-xs text-foreground/80">{rule.name} · Priority {rule.priority}</div>
+              {(channels.length > 0 || userGroups.length > 0) && (
+                <div className="mt-1 flex flex-wrap gap-2">
+                  {channels.map((c: string) => (
+                    <span key={c} className="text-xs text-foreground">#{c}</span>
+                  ))}
+                  {userGroups.map((g: string) => (
+                    <span key={g} className="text-xs text-foreground">@{g}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    )
+  }
+
+  const renderSlackOptions = () => {
+    if (!slackOptions) return <span className="text-xs text-muted-foreground">Loading Slack options...</span>
+    if (slackOptions.error) return <span className="text-xs text-destructive">{slackOptions.error}</span>
+    const channels = slackOptions.channels || []
+    const userGroups = slackOptions.userGroups || []
+    return (
+      <div className="space-y-2">
+        <div>
+          <p className="text-xs text-foreground/80">Channels</p>
+          <div className="mt-1 flex flex-wrap gap-2">
+            {channels.slice(0, 10).map((c: any) => (
+              <span key={c.id} className="text-xs text-foreground">#{c.name}</span>
+            ))}
+            {channels.length > 10 && <span className="text-xs text-muted-foreground">+{channels.length - 10} more</span>}
+          </div>
+        </div>
+        {userGroups.length > 0 && (
+          <div>
+            <p className="text-xs text-foreground/80">Groups</p>
+            <div className="mt-1 flex flex-wrap gap-2">
+              {userGroups.map((g: any) => (
+                <span key={g.id} className="text-xs text-foreground">@{g.handle}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
   }
 
   const renderBitbucketRules = () => {
@@ -443,9 +580,9 @@ export default function OnboardingDetailPage() {
         </div>
         <Badge className={
           workflow.status === 'COMPLETED' ? 'bg-success/10 text-success' :
-          workflow.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
-          workflow.status === 'FAILED' ? 'bg-destructive/10 text-destructive-foreground' :
-          'bg-muted text-foreground'
+            workflow.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
+              workflow.status === 'FAILED' ? 'bg-destructive/10 text-destructive-foreground' :
+                'bg-muted text-foreground'
         }>
           {workflow.status.replace('_', ' ')}
         </Badge>
@@ -568,6 +705,30 @@ export default function OnboardingDetailPage() {
                                   Bitbucket teams and repositories
                                 </p>
                                 <div className="mt-1">{renderBitbucketOptions()}</div>
+                              </div>
+                            </div>
+                          )}
+                          {isGoogleTask(task) && (
+                            <div className="mt-2">
+                              <p className="text-xs font-semibold text-foreground/80">Google Workspace provisioning rules</p>
+                              <div className="mt-1">{renderGoogleRules()}</div>
+                              <div className="mt-3">
+                                <p className="text-xs font-semibold text-foreground/80">
+                                  Active Groups
+                                </p>
+                                <div className="mt-1">{renderGoogleOptions()}</div>
+                              </div>
+                            </div>
+                          )}
+                          {isSlackTask(task) && (
+                            <div className="mt-2">
+                              <p className="text-xs font-semibold text-foreground/80">Slack provisioning rules</p>
+                              <div className="mt-1">{renderSlackRules()}</div>
+                              <div className="mt-3">
+                                <p className="text-xs font-semibold text-foreground/80">
+                                  Workspace Options
+                                </p>
+                                <div className="mt-1">{renderSlackOptions()}</div>
                               </div>
                             </div>
                           )}

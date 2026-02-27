@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { trpc } from '@/lib/trpc-client'
 import {
   Dialog,

@@ -111,9 +111,11 @@ export function renderTemplate(template: string, variables: Record<string, strin
   })
 }
 
-export function getInitials(name: string): string {
+export function getInitials(name: string | null | undefined): string {
+  if (!name) return '??'
   return name
     .split(' ')
+    .filter(Boolean)
     .map((part) => part[0])
     .join('')
     .toUpperCase()

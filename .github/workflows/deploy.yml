@@ -65,6 +65,8 @@ jobs:
           OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
           OPENAI_MODEL=${{ secrets.OPENAI_MODEL }}
           PGSSLMODE=no-verify
+          REDIS_URL=${{ secrets.REDIS_URL || 'redis://redis:6379' }}
+          REDIS_ENABLED=${{ vars.REDIS_ENABLED || 'true' }}
           EOF
 
       - name: Setup SSH
@@ -83,6 +85,7 @@ jobs:
       - name: Deploy on server
         run: |
           ssh -i ~/.ssh/deploy_key ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+            set -e
             cd ~/peopleos
             echo "--- Starting Deployment ---"
             
@@ -97,7 +100,11 @@ jobs:
             
             # Migrations (db push)
             echo "[2.5/3] Running migrations..."
-            docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push || echo "Migration failed"
+            docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push --accept-data-loss --skip-generate < /dev/null
+            
+            # Init pg-boss schema
+            echo "[2.6/3] Initializing pg-boss schema..."
+            docker compose -f docker-compose.deploy.yml run --rm -T app node -e "const PgBoss = require('pg-boss'); const sslConfig = process.env.PGSSLMODE === 'no-verify' ? false : { rejectUnauthorized: false }; const boss = new PgBoss({ connectionString: process.env.DATABASE_URL, schema: 'pgboss', ssl: sslConfig }); boss.start().then(() => { console.log('Successfully initialized pg-boss schema'); return boss.stop(); }).catch(e => { console.error('PGBOSS INIT ERROR:', e); process.exit(1); });" < /dev/null
             
             # Swap app
             echo "[3/3] Swapping application..."

@@ -226,7 +226,7 @@ export default function PositionsPage() {
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-3 flex-wrap">
-                    <Link href={`/recruiting/positions/${job.id}/candidates`}>
+                    <Link href={`/hiring/positions/${job.id}/candidates`}>
                       <h3 className="text-[18px] font-semibold hover:text-indigo-600 transition-colors">
                         {job.title}
                         {job.hiresCount > 1 ? ` (${job.hiresCount})` : ''}

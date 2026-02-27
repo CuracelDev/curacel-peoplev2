@@ -12,6 +12,8 @@ import { initReminderJob, REMINDER_JOB_NAME } from './reminder'
 import { initEscalationJob, ESCALATION_JOB_NAME } from './escalation'
 import { hireFlowHandler, HIRE_FLOW_JOB_NAME } from './hire-flow'
 import { initResumeProcessJob, RESUME_PROCESS_JOB_NAME } from './resume-process'
+import { initAutoActivateJob, scheduleAutoActivate } from './auto-activate'
+import { initWorkEmailSyncJob, scheduleWorkEmailSync, WORK_EMAIL_SYNC_JOB_NAME } from './work-email-sync'
 
 // No global SSL bypass - use local config instead
 
@@ -44,21 +46,36 @@ export async function initializeWorker(): Promise<PgBoss> {
       throw new Error('DATABASE_URL environment variable is not set')
     }
 
+    console.log('[Worker] Parsing DATABASE_URL...')
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { parse } = require('pg-connection-string')
     const dbConfig = parse(connectionString)
+    console.log(`[Worker] Database config: host=${dbConfig.host}, database=${dbConfig.database}, user=${dbConfig.user}`)
+
+    // Only use SSL for non-localhost/docker connections (cloud databases)
+    const isLocal =
+      dbConfig.host === 'localhost' ||
+      dbConfig.host === '127.0.0.1' ||
+      dbConfig.host === 'postgres' ||
+      dbConfig.host === 'db' ||
+      process.env.PGSSLMODE === 'no-verify' ||
+      process.env.PGSSLMODE === 'disable'
+
+    const sslConfig = isLocal ? false : { rejectUnauthorized: false }
+    console.log(`[Worker] SSL config: ${isLocal ? 'disabled' : 'enabled'}`)
+
+    // For pg-boss, we explicitly set the schema to 'pgboss'
+    const schema = 'pgboss'
 
     try {
       boss = new PgBoss({
-        host: dbConfig.host || undefined,
-        port: dbConfig.port ? parseInt(dbConfig.port) : undefined,
-        user: dbConfig.user || undefined,
-        password: dbConfig.password || undefined,
-        database: dbConfig.database || undefined,
-        schema: (dbConfig.schema as any) || 'public',
-        ssl: {
-          rejectUnauthorized: false
-        },
+        host: dbConfig.host,
+        port: parseInt(dbConfig.port || '5432'),
+        database: dbConfig.database,
+        user: dbConfig.user,
+        password: dbConfig.password,
+        schema: schema,
+        ssl: sslConfig,
         retryLimit: 3,
         retryDelay: 60000,
         monitorStateIntervalSeconds: 30,
@@ -89,6 +106,14 @@ export async function initializeWorker(): Promise<PgBoss> {
 
       // Initialize resume processing
       await initResumeProcessJob(boss)
+
+      // Auto-activation
+      await initAutoActivateJob(boss)
+      await scheduleAutoActivate(boss)
+
+      // Initialize work email sync (syncs workEmail from Google Workspace)
+      await initWorkEmailSyncJob(boss)
+      await scheduleWorkEmailSync(boss)
 
       console.log('[Worker] All job handlers registered and scheduled')
 
@@ -147,6 +172,7 @@ export async function getQueueStats(): Promise<{
   dailyBrief: { pending: number }
   hireFlow: { pending: number; failed: number }
   resumeProcess: { pending: number; failed: number }
+  workEmailSync: { pending: number; failed: number }
 } | null> {
   if (!boss) return null
 
@@ -159,6 +185,8 @@ export async function getQueueStats(): Promise<{
     hireFlowFailed,
     resumeProcessPending,
     resumeProcessFailed,
+    workEmailSyncPending,
+    workEmailSyncFailed,
   ] = await Promise.all([
     boss.getQueueSize(STAGE_EMAIL_JOB_NAME, { state: 'created' }),
     boss.getQueueSize(STAGE_EMAIL_JOB_NAME, { state: 'failed' }),
@@ -168,6 +196,8 @@ export async function getQueueStats(): Promise<{
     boss.getQueueSize(HIRE_FLOW_JOB_NAME, { state: 'failed' }),
     boss.getQueueSize(RESUME_PROCESS_JOB_NAME, { state: 'created' }),
     boss.getQueueSize(RESUME_PROCESS_JOB_NAME, { state: 'failed' }),
+    boss.getQueueSize(WORK_EMAIL_SYNC_JOB_NAME, { state: 'created' }),
+    boss.getQueueSize(WORK_EMAIL_SYNC_JOB_NAME, { state: 'failed' }),
   ])
 
   return {
@@ -176,5 +206,6 @@ export async function getQueueStats(): Promise<{
     dailyBrief: { pending: dailyBriefPending },
     hireFlow: { pending: hireFlowPending, failed: hireFlowFailed },
     resumeProcess: { pending: resumeProcessPending, failed: resumeProcessFailed },
+    workEmailSync: { pending: workEmailSyncPending, failed: workEmailSyncFailed },
   }
 }

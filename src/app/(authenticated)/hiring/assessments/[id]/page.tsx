@@ -640,7 +640,7 @@ export default function AssessmentDetailPage() {
         <CardContent className="pt-6">
           <div className="flex flex-wrap gap-3">
             <Button asChild variant="outline">
-              <Link href={`/recruiting/candidates/${assessment.candidateId}`}>
+              <Link href={`/hiring/candidates/${assessment.candidateId}`}>
                 <User className="h-4 w-4 mr-2" />
                 View Candidate Profile
               </Link>

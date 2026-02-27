@@ -209,7 +209,7 @@ export default function AssessmentSettingsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/recruiting/settings/assessments/${template.id}`}>
+                              <Link href={`/hiring/settings/assessments/${template.id}`}>
                                 <Pencil className="h-4 w-4 mr-2" />
                                 Edit
                               </Link>

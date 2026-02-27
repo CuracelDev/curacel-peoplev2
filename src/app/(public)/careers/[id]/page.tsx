@@ -78,6 +78,7 @@ export default function PublicCareersPage() {
     bio: '',
     coverLetter: '',
     resumeUrl: '',
+    resumeFileName: '',
     inboundChannel: 'PEOPLEOS',
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -100,7 +101,38 @@ export default function PublicCareersPage() {
       setIsSubmitted(true)
     },
     onError: (err) => {
-      setErrors({ submit: err.message })
+      // Parse Zod validation errors for user-friendly messages
+      let errorMessage = err.message;
+      try {
+        // Handle TRPC Zod errors directly if available
+        if (err.data?.zodError?.fieldErrors) {
+          const fields = Object.values(err.data.zodError.fieldErrors);
+          if (fields.length > 0 && fields[0] && fields[0].length > 0) {
+            errorMessage = fields[0][0];
+            setErrors({ submit: errorMessage });
+            return;
+          }
+        }
+
+        // Fallback to parsing the message string
+        let parsed = err.message;
+        try { parsed = JSON.parse(err.message); } catch (e) { }
+        if (typeof parsed === 'string') {
+          try { parsed = JSON.parse(parsed); } catch (e) { }
+        }
+
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const firstError = parsed[0];
+          if (firstError?.message) {
+            errorMessage = firstError.message;
+          }
+        } else if (parsed && typeof parsed === 'object' && parsed.message) {
+          errorMessage = parsed.message;
+        }
+      } catch {
+        // Not a JSON error, use the raw message
+      }
+      setErrors({ submit: errorMessage });
     },
   })
 
@@ -133,7 +165,7 @@ export default function PublicCareersPage() {
       // TODO: Replace with actual file upload to storage service
       const reader = new FileReader()
       reader.onload = () => {
-        setFormData(prev => ({ ...prev, resumeUrl: reader.result as string }))
+        setFormData(prev => ({ ...prev, resumeUrl: reader.result as string, resumeFileName: file.name }))
         setUploadedFile(file)
         setIsUploading(false)
       }
@@ -176,7 +208,7 @@ export default function PublicCareersPage() {
 
   const handleRemoveFile = () => {
     setUploadedFile(null)
-    setFormData(prev => ({ ...prev, resumeUrl: '' }))
+    setFormData(prev => ({ ...prev, resumeUrl: '', resumeFileName: '' }))
   }
 
   const validateForm = () => {
@@ -186,7 +218,11 @@ export default function PublicCareersPage() {
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Invalid email address'
     }
-    if (!formData.coverLetter.trim()) newErrors.coverLetter = 'Please tell us why you want to apply'
+    if (!formData.coverLetter.trim()) {
+      newErrors.coverLetter = 'Please tell us why you want to apply'
+    } else if (formData.coverLetter.trim().length < 10) {
+      newErrors.coverLetter = 'Please write a longer cover letter (at least 10 characters)'
+    }
     if (!consentChecked) newErrors.consent = 'You must agree to the data processing terms'
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -207,6 +243,7 @@ export default function PublicCareersPage() {
         bio: formData.bio || undefined,
         coverLetter: formData.coverLetter,
         resumeUrl: formData.resumeUrl || undefined,
+        resumeFileName: formData.resumeFileName || undefined,
         inboundChannel: formData.inboundChannel as 'YC' | 'PEOPLEOS' | 'COMPANY_SITE' | 'OTHER',
       })
     } catch {

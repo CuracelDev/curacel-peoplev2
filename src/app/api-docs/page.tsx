@@ -383,7 +383,7 @@ export default function ApiDocsPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant="secondary">GET</Badge>
-                  <code>/api/recruiting/candidates/:id/export</code>
+                  <code>/api/hiring/candidates/:id/export</code>
                   <span className="text-muted-foreground">— export candidate profile PDF</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -393,7 +393,7 @@ export default function ApiDocsPage() {
                 </div>
                 <div className="rounded border border-border/60 bg-muted/40 p-3 text-xs text-foreground/80">
                   <div className="font-semibold text-foreground">PDF export</div>
-                  <div>GET `/api/recruiting/candidates/:id/export` returns a PDF stream.</div>
+                  <div>GET `/api/hiring/candidates/:id/export` returns a PDF stream.</div>
                   <div>Auth: signed-in session (cookies). Response: `application/pdf`.</div>
                   <div>Errors: 401 unauthenticated, 404 candidate not found.</div>
                 </div>
