@@ -403,16 +403,15 @@ export default function DashboardPage() {
             <div className="space-y-3">
               {topCandidateRows.length > 0 ? (
                 topCandidateRows.map((candidate, index) => (
-                  <Link key={candidate.id} href={`/recruiting/candidates/${candidate.id}`}>
+                  <Link key={candidate.id} href={`/hiring/candidates/${candidate.id}`}>
                     <div className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted transition-colors">
                       <span className="text-sm text-muted-foreground w-4">{index + 1}</span>
                       <Avatar className="h-9 w-9">
-                        <AvatarFallback className={`text-xs font-medium ${
-                          index === 0 ? 'bg-success/10 text-success' :
-                          index === 1 ? 'bg-orange-100 text-orange-700' :
-                          index === 2 ? 'bg-purple-100 text-purple-700' :
-                          'bg-blue-100 text-blue-700'
-                        }`}>
+                        <AvatarFallback className={`text-xs font-medium ${index === 0 ? 'bg-success/10 text-success' :
+                            index === 1 ? 'bg-orange-100 text-orange-700' :
+                              index === 2 ? 'bg-purple-100 text-purple-700' :
+                                'bg-blue-100 text-blue-700'
+                          }`}>
                           {getInitials(candidate.name)}
                         </AvatarFallback>
                       </Avatar>
@@ -422,11 +421,10 @@ export default function DashboardPage() {
                           {candidate.job?.title || candidate.currentRole || 'Role'}
                         </p>
                       </div>
-                      <span className={`text-sm font-semibold ${
-                        (candidate.score ?? 0) >= 85 ? 'text-success' :
-                        (candidate.score ?? 0) >= 75 ? 'text-orange-500' :
-                        'text-foreground/80'
-                      }`}>
+                      <span className={`text-sm font-semibold ${(candidate.score ?? 0) >= 85 ? 'text-success' :
+                          (candidate.score ?? 0) >= 75 ? 'text-orange-500' :
+                            'text-foreground/80'
+                        }`}>
                         {candidate.score ?? '-'}
                       </span>
                     </div>
@@ -568,7 +566,7 @@ export default function DashboardPage() {
                       <td className="py-3">
                         {interview.candidateId ? (
                           <Button asChild variant="outline" size="sm">
-                            <Link href={`/recruiting/candidates/${interview.candidateId}/interviews/${interview.id}`}>
+                            <Link href={`/hiring/candidates/${interview.candidateId}/interviews/${interview.id}`}>
                               Prepare
                             </Link>
                           </Button>

@@ -129,7 +129,7 @@ export default function ArchivedCandidatesPage() {
                       </div>
                     </td>
                     <td className="py-3 px-4">
-                      <Link href={`/recruiting/candidates/${candidate.id}`} className="flex items-center gap-2">
+                      <Link href={`/hiring/candidates/${candidate.id}`} className="flex items-center gap-2">
                         <Avatar className={cn("h-7 w-7", getAvatarColor(candidate.name))}>
                           <AvatarFallback className={cn("text-white text-[10px] font-medium", getAvatarColor(candidate.name))}>
                             {getInitials(candidate.name)}

@@ -245,7 +245,7 @@ export default function EditJobPage() {
 
       setSaveState({ type: 'success', message: 'Job updated successfully.' })
       setTimeout(() => {
-        router.push(`/recruiting/positions/${jobId}/candidates`)
+        router.push(`/hiring/positions/${jobId}/candidates`)
       }, 1000)
     } catch (error) {
       setSaveState({

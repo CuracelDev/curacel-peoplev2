@@ -52,6 +52,8 @@ import {
   AlertCircle,
   Sparkles,
   Archive,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
@@ -96,7 +98,8 @@ const defaultStageCards = [
   { key: 'shortlisted', label: 'Short Listed', stageKeys: ['SHORTLISTED'] },
   { key: 'hrScreen', label: 'People Chat', stageKeys: ['HR_SCREEN'] },
   { key: 'technical', label: 'Coding Test', stageKeys: ['TECHNICAL'] },
-  { key: 'panel', label: 'Team Chat', stageKeys: ['TEAM_CHAT', 'PANEL'] },
+  { key: 'panel', label: 'Interviews', stageKeys: ['TEAM_CHAT', 'ADVISOR_CHAT', 'PANEL', 'CEO_CHAT'] },
+  { key: 'trial', label: 'Trial', stageKeys: ['TRIAL'] },
   { key: 'offer', label: 'Offer', stageKeys: ['OFFER'] },
 ]
 
@@ -149,6 +152,7 @@ export default function CandidatesPage() {
   const [dateFilter, setDateFilter] = useState<DateFilter>('all')
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
   const [addMode, setAddMode] = useState<'single' | 'bulk'>('single')
+  const [targetJobId, setTargetJobId] = useState<string>('_talent_pool')
   const [newCandidate, setNewCandidate] = useState({
     name: '',
     email: '',
@@ -166,6 +170,12 @@ export default function CandidatesPage() {
     stageName: string
   } | null>(null)
   const [skipAutoEmail, setSkipAutoEmail] = useState(false)
+
+  // Delete confirmation state
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean
+    candidateIds: string[]
+  } | null>(null)
 
   // Bulk upload state
   const [bulkUploadStep, setBulkUploadStep] = useState<'upload' | 'mapping' | 'importing' | 'complete'>('upload')
@@ -193,6 +203,8 @@ export default function CandidatesPage() {
   const addParam = searchParams.get('add')
 
   const { data: teams } = trpc.team.listForSelect.useQuery()
+  const { data: activeJobs } = trpc.job.list.useQuery({ status: 'ACTIVE' })
+
   const parseUpload = trpc.job.parseUploadForBulkImport.useMutation()
   const bulkImport = trpc.job.bulkImportCandidates.useMutation()
   const utils = trpc.useUtils()
@@ -220,6 +232,31 @@ export default function CandidatesPage() {
       setSkipAutoEmail(false)
     },
   })
+
+  const deleteCandidate = trpc.job.deleteCandidate.useMutation({
+    onSuccess: () => {
+      utils.job.getAllCandidates.invalidate()
+      setSelectedCandidates([])
+      setDeleteDialog(null)
+      toast.success('Candidate deleted successfully')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete candidate')
+    },
+  })
+
+  // Handle delete with dialog
+  const handleDelete = (candidateIds: string[]) => {
+    setDeleteDialog({ open: true, candidateIds })
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteDialog) return
+    // Delete one by one (could be optimized with a bulk delete mutation)
+    for (const id of deleteDialog.candidateIds) {
+      await deleteCandidate.mutateAsync({ id })
+    }
+  }
 
   // Handle bulk stage change with dialog
   const handleBulkStageChange = (candidateIds: string[], stage: CandidateStage, stageName: string) => {
@@ -361,7 +398,7 @@ export default function CandidatesPage() {
   }
 
   const handleAddCandidate = () => {
-    createCandidate.mutate(newCandidate)
+    createCandidate.mutate({ ...newCandidate, jobId: targetJobId === '_talent_pool' ? undefined : targetJobId })
   }
 
   const resetBulkUpload = () => {
@@ -434,6 +471,7 @@ export default function CandidatesPage() {
         fieldMapping,
         data: parsedData.parsedData,
         headers: parsedData.headers,
+        jobId: targetJobId === '_talent_pool' ? undefined : targetJobId,
       })
 
       setImportResult(result)
@@ -589,6 +627,22 @@ export default function CandidatesPage() {
                     Bulk Upload
                   </TabsTrigger>
                 </TabsList>
+
+                <div className="mb-4">
+                  <Label htmlFor="targetJob" className="mb-2 block">Assign to Job / Position</Label>
+                  <Select value={targetJobId} onValueChange={setTargetJobId}>
+                    <SelectTrigger id="targetJob" className="w-full">
+                      <SelectValue placeholder="Select a position" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="_talent_pool">General Talent Pool (No Specific Job)</SelectItem>
+                      {(activeJobs || []).map(job => (
+                        <SelectItem key={job.id} value={job.id}>{job.title}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">If "Talent Pool" is selected, the candidate will be held in the general pool untyped to a specific job unless assigned later.</p>
+                </div>
 
                 {/* Single Candidate Tab */}
                 <TabsContent value="single" className="space-y-4">
@@ -779,7 +833,7 @@ export default function CandidatesPage() {
                       <div className="space-y-3">
                         <Label className="text-sm font-medium">Field Mapping</Label>
                         <div className="border rounded-lg divide-y max-h-[300px] overflow-y-auto">
-                          {parsedData.headers.map((header) => {
+                          {(parsedData?.headers || []).map((header) => {
                             const confidence = parsedData.confidenceScores[header] || 0
                             const isLowConfidence = confidence > 0 && confidence < 70
                             const isMapped = Boolean(fieldMapping[header])
@@ -826,7 +880,7 @@ export default function CandidatesPage() {
                                     <SelectItem value="_skip">
                                       <span className="text-muted-foreground">Skip this column</span>
                                     </SelectItem>
-                                    {parsedData.expectedFields.map((field) => (
+                                    {(parsedData?.expectedFields || []).map((field) => (
                                       <SelectItem key={field.key} value={field.key}>
                                         {field.label} {field.required && '*'}
                                       </SelectItem>
@@ -847,7 +901,7 @@ export default function CandidatesPage() {
                             <table className="w-full text-xs">
                               <thead>
                                 <tr className="bg-muted">
-                                  {parsedData.headers.map((h) => (
+                                  {(parsedData?.headers || []).map((h) => (
                                     <th key={h} className="px-2 py-1.5 text-left font-medium truncate max-w-[120px]">
                                       {fieldMapping[h] || <span className="text-muted-foreground">skipped</span>}
                                     </th>
@@ -855,9 +909,9 @@ export default function CandidatesPage() {
                                 </tr>
                               </thead>
                               <tbody>
-                                {parsedData.sampleRows.slice(0, 3).map((row, i) => (
+                                {((parsedData?.sampleRows || []).slice(0, 3) || []).map((row, i) => (
                                   <tr key={i} className="border-t">
-                                    {row.map((cell, j) => (
+                                    {(row || []).map((cell, j) => (
                                       <td key={j} className="px-2 py-1.5 truncate max-w-[120px]">
                                         {cell || '-'}
                                       </td>
@@ -930,7 +984,7 @@ export default function CandidatesPage() {
                         <div className="space-y-2">
                           <Label className="text-sm font-medium text-destructive">Errors</Label>
                           <div className="border border-destructive/20 rounded-lg divide-y max-h-[150px] overflow-y-auto">
-                            {importResult.errors.map((err, i) => (
+                            {(importResult.errors || []).map((err, i) => (
                               <div key={i} className="px-3 py-2 text-sm">
                                 <span className="text-muted-foreground">Row {err.row}:</span> {err.error}
                               </div>
@@ -962,7 +1016,7 @@ export default function CandidatesPage() {
         selectedCandidates={selectedCandidates}
         onSelectedCandidatesChange={setSelectedCandidates}
         storageKey="hiring.candidates.visibleColumns"
-        candidateHref={(candidate) => `/recruiting/candidates/${candidate.id}`}
+        candidateHref={(candidate) => `/hiring/candidates/${candidate.id}`}
         renderStage={(candidate) => (
           <Badge variant="secondary" className={stageStyles[candidate.stage || ''] || 'bg-muted text-foreground/80'}>
             {candidate.stageDisplayName || candidate.stage || '—'}
@@ -982,8 +1036,10 @@ export default function CandidatesPage() {
         }}
         onArchiveCandidate={(id) => handleBulkStageChange([id], 'ARCHIVED', 'Archive')}
         onRejectCandidate={(id) => handleBulkStageChange([id], 'REJECTED', 'Reject')}
+        onDeleteCandidate={(id) => handleDelete([id])}
         onBulkArchive={(ids) => handleBulkStageChange(ids, 'ARCHIVED', 'Archive')}
         onBulkReject={(ids) => handleBulkStageChange(ids, 'REJECTED', 'Reject')}
+        onBulkDelete={(ids) => handleDelete(ids)}
         bulkActions={(
           <Button
             size="sm"
@@ -1061,6 +1117,45 @@ export default function CandidatesPage() {
             >
               {bulkUpdateStage.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={deleteDialog?.open ?? false}
+        onOpenChange={(open) => {
+          if (!open) setDeleteDialog(null)
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Delete {deleteDialog?.candidateIds.length === 1 ? 'Candidate' : `${deleteDialog?.candidateIds.length} Candidates`}
+            </DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. {deleteDialog?.candidateIds.length === 1
+                ? 'This candidate'
+                : `These ${deleteDialog?.candidateIds.length} candidates`} will be permanently deleted along with all associated data including interviews, evaluations, and documents.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialog(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={confirmDelete}
+              disabled={deleteCandidate.isPending}
+            >
+              {deleteCandidate.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Delete Permanently
             </Button>
           </DialogFooter>
         </DialogContent>

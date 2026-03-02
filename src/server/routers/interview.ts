@@ -339,6 +339,23 @@ export const interviewRouter = router({
           stageName = interviewType.name
           stageTemplateId = interviewType.rubricTemplateId || stageTemplateId
           duration = input.duration || interviewType.defaultDuration
+
+          // Map slug to enum if possible
+          const slugToStage: Record<string, string> = {
+            'people-chat': 'HR_SCREEN',
+            'team-chat': 'TEAM_CHAT',
+            'advisor-chat': 'ADVISOR_CHAT',
+            'coding-test': 'TECHNICAL',
+            'technical': 'TECHNICAL',
+            'panel': 'PANEL',
+            'ceo-chat': 'CEO_CHAT',
+            'trial': 'TRIAL',
+            'work-trial': 'TRIAL',
+          }
+
+          if (slugToStage[interviewType.slug]) {
+            stage = slugToStage[interviewType.slug] as any
+          }
         }
       }
 

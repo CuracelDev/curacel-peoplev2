@@ -76,7 +76,7 @@ export const dashboardRouter = router({
         ? ctx.prisma.jobCandidate.count({
           where: {
             job: { status: 'ACTIVE' },
-            stage: { in: ['APPLIED', 'SHORTLISTED', 'HR_SCREEN', 'TEAM_CHAT', 'ADVISOR_CHAT', 'TECHNICAL', 'PANEL', 'OFFER'] },
+            stage: { in: ['APPLIED', 'SHORTLISTED', 'HR_SCREEN', 'TEAM_CHAT', 'ADVISOR_CHAT', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT', 'OFFER'] },
           },
         })
         : Promise.resolve(0),
@@ -240,9 +240,9 @@ export const dashboardRouter = router({
 
       const interviewStages: JobCandidateStage[] = [
         'HR_SCREEN',
-        'TECHNICAL',
         'TEAM_CHAT',
         'ADVISOR_CHAT',
+        'TECHNICAL',
         'PANEL',
         'TRIAL',
         'CEO_CHAT',

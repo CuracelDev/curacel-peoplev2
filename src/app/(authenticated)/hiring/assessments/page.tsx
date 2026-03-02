@@ -80,6 +80,38 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   CANCELLED: { label: 'Cancelled', color: 'bg-muted text-muted-foreground' },
 }
 
+const stageLabels: Record<string, string> = {
+  APPLIED: 'Applied',
+  SHORTLISTED: 'Short Listed',
+  HR_SCREEN: 'People Chat',
+  TECHNICAL: 'Coding Test',
+  TEAM_CHAT: 'Team Chat',
+  ADVISOR_CHAT: 'Advisor Chat',
+  PANEL: 'Panel',
+  TRIAL: 'Trial',
+  CEO_CHAT: 'CEO Chat',
+  OFFER: 'Offer',
+  HIRED: 'Hired',
+  REJECTED: 'Rejected',
+  WITHDRAWN: 'Withdrawn',
+  ARCHIVED: 'Archived',
+}
+
+const stageStyles: Record<string, string> = {
+  'APPLIED': 'bg-muted text-foreground/80',
+  'SHORTLISTED': 'bg-indigo-50 text-indigo-700',
+  'HR_SCREEN': 'bg-indigo-100 text-indigo-700',
+  'TECHNICAL': 'bg-amber-100 text-amber-700',
+  'TEAM_CHAT': 'bg-success/10 text-success',
+  'ADVISOR_CHAT': 'bg-indigo-50 text-indigo-700',
+  'PANEL': 'bg-success/10 text-success',
+  'TRIAL': 'bg-blue-100 text-blue-700',
+  'CEO_CHAT': 'bg-purple-100 text-purple-700',
+  'OFFER': 'bg-pink-100 text-pink-700',
+  'HIRED': 'bg-emerald-100 text-emerald-700',
+  'ARCHIVED': 'bg-slate-100 text-slate-700',
+}
+
 export default function AssessmentsPage() {
   const router = useRouter()
   const [activeFilter, setActiveFilter] = useState('all')
@@ -89,6 +121,12 @@ export default function AssessmentsPage() {
   const [selectedCandidateId, setSelectedCandidateId] = useState<string>('')
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('')
   const [candidateSearch, setCandidateSearch] = useState('')
+  const [debouncedCandidateSearch, setDebouncedCandidateSearch] = useState('')
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedCandidateSearch(candidateSearch), 500)
+    return () => clearTimeout(timer)
+  }, [candidateSearch])
 
   const utils = trpc.useUtils()
 
@@ -108,7 +146,7 @@ export default function AssessmentsPage() {
 
   // Fetch candidates for send dialog
   const { data: candidatesData } = trpc.job.getAllCandidates.useQuery(
-    { search: candidateSearch || undefined, limit: 50 },
+    { search: debouncedCandidateSearch || undefined, limit: 500 },
     { enabled: sendDialogOpen }
   )
   const candidates = candidatesData?.candidates
@@ -318,7 +356,7 @@ export default function AssessmentsPage() {
                     <TableRow
                       key={assessment.id}
                       className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => router.push(`/recruiting/assessments/${assessment.id}`)}
+                      onClick={() => router.push(`/hiring/assessments/${assessment.id}`)}
                     >
                       <TableCell className="py-4">
                         <div className="flex items-center gap-3">
@@ -329,8 +367,15 @@ export default function AssessmentsPage() {
                             <div className="font-medium text-foreground truncate">
                               {assessment.candidate?.name || 'Unknown'}
                             </div>
-                            <div className="text-sm text-muted-foreground truncate">
-                              {assessment.candidate?.job?.title || '-'}
+                            <div className="flex items-center gap-2 mt-0.5">
+                              <div className="text-sm text-muted-foreground truncate max-w-[120px]">
+                                {assessment.candidate?.job?.title || '-'}
+                              </div>
+                              {assessment.candidate?.stage && (
+                                <Badge variant="secondary" className={cn('text-[10px] h-4 px-1 font-normal', stageStyles[assessment.candidate.stage])}>
+                                  {stageLabels[assessment.candidate.stage] || assessment.candidate.stage}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </div>
@@ -374,7 +419,7 @@ export default function AssessmentsPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem asChild>
-                              <Link href={`/recruiting/assessments/${assessment.id}`}>
+                              <Link href={`/hiring/assessments/${assessment.id}`}>
                                 <Eye className="h-4 w-4 mr-2" />
                                 View Details
                               </Link>
@@ -456,11 +501,18 @@ export default function AssessmentsPage() {
                 <SelectContent>
                   {candidates?.map((candidate) => (
                     <SelectItem key={candidate.id} value={candidate.id}>
-                      <div className="flex items-center gap-2">
-                        <span>{candidate.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {candidate.job?.title || 'No position'}
-                        </span>
+                      <div className="flex items-center justify-between w-full gap-4">
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-medium truncate">{candidate.name}</span>
+                          <span className="text-xs text-muted-foreground truncate">
+                            {candidate.job?.title || 'No position'}
+                          </span>
+                        </div>
+                        {candidate.stage && (
+                          <Badge variant="secondary" className={cn('text-[10px] h-4 px-1.5 font-normal shrink-0', stageStyles[candidate.stage])}>
+                            {stageLabels[candidate.stage] || candidate.stage}
+                          </Badge>
+                        )}
                       </div>
                     </SelectItem>
                   ))}

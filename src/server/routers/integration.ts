@@ -1,11 +1,11 @@
-import { z } from 'zod'
-import { router, itAdminProcedure, adminProcedure } from '@/lib/trpc'
-import { TRPCError } from '@trpc/server'
-import { decrypt, encrypt } from '@/lib/encryption'
 import { createAuditLog } from '@/lib/audit'
-import { getConnector, BitbucketConnector, GoogleWorkspaceConnector } from '@/lib/integrations'
+import { decrypt, encrypt } from '@/lib/encryption'
+import { BitbucketConnector, getConnector, GoogleWorkspaceConnector, SlackConnector } from '@/lib/integrations'
 import { hasWebhookConfig } from '@/lib/integrations/webhook'
+import { adminProcedure, itAdminProcedure, router } from '@/lib/trpc'
 import { Prisma } from '@prisma/client'
+import { TRPCError } from '@trpc/server'
+import { z } from 'zod'
 
 function safeParseConfig(configEncrypted: string): Record<string, unknown> {
   try {
@@ -242,7 +242,7 @@ export const integrationRouter = router({
         include: {
           connections: { where: { isActive: true } },
           _count: {
-            select: { 
+            select: {
               provisioningRules: true,
               accounts: { where: { status: 'ACTIVE' } },
             },
@@ -1121,6 +1121,47 @@ export const integrationRouter = router({
       }
     }),
 
+  listSlackOptions: adminProcedure
+    .input(z.string())
+    .query(async ({ ctx, input: appId }) => {
+      const app = await ctx.prisma.app.findUnique({ where: { id: appId } })
+      if (!app) {
+        throw new TRPCError({ code: 'NOT_FOUND' })
+      }
+      if (app.type !== 'SLACK') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'App is not Slack' })
+      }
+
+      const connection = await ctx.prisma.appConnection.findFirst({
+        where: { appId, isActive: true },
+      })
+      if (!connection) {
+        return { channels: [], userGroups: [], error: 'No active Slack connection configured.' }
+      }
+
+      const config = safeParseConfig(connection.configEncrypted)
+      const botToken = typeof config.botToken === 'string' ? config.botToken : ''
+
+      if (!botToken) {
+        return { channels: [], userGroups: [], error: 'Slack bot token is not configured.' }
+      }
+
+      const connector = new SlackConnector({ botToken })
+      try {
+        const [channels, userGroups] = await Promise.all([
+          connector.listChannels(),
+          connector.listUserGroups(),
+        ])
+        return { channels, userGroups }
+      } catch (error) {
+        return {
+          channels: [],
+          userGroups: [],
+          error: error instanceof Error ? error.message : 'Failed to load Slack data',
+        }
+      }
+    }),
+
   listGoogleWorkspaceUsers: adminProcedure
     .input(z.string().optional())
     .query(async ({ ctx, input: appId }) => {
@@ -1167,7 +1208,7 @@ export const integrationRouter = router({
     .input(z.string().optional())
     .query(async ({ ctx, input: appId }) => {
       const where = appId ? { appId } : {}
-      
+
       return ctx.prisma.appProvisioningRule.findMany({
         where,
         include: { app: { select: { id: true, name: true, type: true } } },
@@ -1262,7 +1303,7 @@ export const integrationRouter = router({
     }).optional())
     .query(async ({ ctx, input }) => {
       const { appId, status, page = 1, limit = 20 } = input || {}
-      
+
       const where: Record<string, unknown> = {}
       if (appId) where.appId = appId
       if (status) where.status = status
@@ -1305,7 +1346,7 @@ export const integrationRouter = router({
     .query(async () => {
       const { getWorkEmailMismatches } = await import('@/lib/sync-work-email')
       const mismatches = await getWorkEmailMismatches()
-      
+
       return {
         count: mismatches.length,
         employees: mismatches.map(emp => ({
@@ -1323,7 +1364,7 @@ export const integrationRouter = router({
     .mutation(async ({ ctx }) => {
       const { syncAllWorkEmails } = await import('@/lib/sync-work-email')
       const result = await syncAllWorkEmails((ctx.user as { id: string }).id)
-      
+
       return {
         success: result.success,
         updated: result.updated,
@@ -1337,7 +1378,7 @@ export const integrationRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { syncEmployeeWorkEmail } = await import('@/lib/sync-work-email')
       const result = await syncEmployeeWorkEmail(input.employeeId, (ctx.user as { id: string }).id)
-      
+
       return result
     }),
 })

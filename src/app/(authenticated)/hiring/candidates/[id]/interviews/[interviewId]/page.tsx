@@ -115,7 +115,8 @@ function RatingScale({
 }
 
 // Avatar colors based on name hash
-function getAvatarColor(name: string) {
+function getAvatarColor(name: string | undefined | null) {
+  if (!name) return 'bg-gray-500'
   const colors = [
     'bg-red-500',
     'bg-orange-500',
@@ -267,10 +268,10 @@ export default function InterviewDetailPage() {
     }>
     return raw.map((i) => ({
       id: i.employeeId || i.email,
-      name: i.name,
+      name: i.name || i.email || 'Unknown',
       email: i.email,
       role: i.role || 'Interviewer',
-      avatar: getAvatarColor(i.name),
+      avatar: getAvatarColor(i.name || i.email || 'Unknown'),
     }))
   }, [interview?.interviewers])
 
@@ -695,7 +696,7 @@ export default function InterviewDetailPage() {
                     interview.evaluations[0].criteriaScores.map((criteriaScore) => (
                       <div key={criteriaScore.id}>
                         <div className="flex justify-between items-center mb-2">
-                          <span className="font-medium text-sm">{criteriaScore.criteria.name}</span>
+                          <span className="font-medium text-sm">{criteriaScore.criteria?.name || 'Unknown Criteria'}</span>
                           <span className="font-semibold text-sm">{criteriaScore.score}/5</span>
                         </div>
                         <div className="flex gap-2">

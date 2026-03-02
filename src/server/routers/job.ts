@@ -2,6 +2,8 @@ import { z } from 'zod'
 import * as xlsx from 'xlsx'
 import { TRPCError } from '@trpc/server'
 import { router, protectedProcedure, publicProcedure } from '@/lib/trpc'
+import { createAuditLog } from '@/lib/audit'
+import { AuditAction } from '@prisma/client'
 import { onJobStatusChange, syncJobToWebflow, unpublishJobFromWebflow } from '@/lib/integrations/webflow-sync'
 
 const InboundChannelEnum = z.enum(['YC', 'PEOPLEOS', 'COMPANY_SITE', 'OTHER'])
@@ -40,7 +42,7 @@ const allCandidatesFiltersSchema = z.object({
   includeArchived: z.boolean().optional(),
   sortBy: z.enum(['score', 'appliedAt', 'name', 'updatedAt']).default('appliedAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
-  limit: z.number().min(1).max(100).default(20),
+  limit: z.number().min(1).max(1000).default(50),
   offset: z.number().min(0).default(0),
 }).optional()
 type AllCandidatesFilters = z.infer<typeof allCandidatesFiltersSchema>
@@ -161,7 +163,7 @@ export const jobRouter = router({
           applicants: job._count.candidates,
           inReview: job.candidates.filter((c) => ['APPLIED', 'SHORTLISTED'].includes(c.stage)).length,
           interviewing: job.candidates.filter((c) =>
-            ['HR_SCREEN', 'TECHNICAL', 'PANEL'].includes(c.stage)
+            ['HR_SCREEN', 'TEAM_CHAT', 'ADVISOR_CHAT', 'TECHNICAL', 'PANEL', 'TRIAL', 'CEO_CHAT'].includes(c.stage)
           ).length,
           offerStage: job.candidates.filter((c) => c.stage === 'OFFER').length,
           hired: job.candidates.filter((c) => c.stage === 'HIRED').length,
@@ -1045,20 +1047,18 @@ export const jobRouter = router({
           }
 
           // Audit Log: Stage Change
-          await ctx.prisma.auditLog.create({
-            data: {
-              action: 'CANDIDATE_STAGE_CHANGED',
-              resourceType: 'job_candidate',
-              resourceId: id,
-              actorId: ctx.user?.id,
-              actorEmail: ctx.user?.email,
-              actorType: 'user',
-              metadata: {
-                fromStage: currentCandidate.stage,
-                toStage: input.stage,
-                skipAutoEmail,
-                templateId // Log template ID
-              }
+          await createAuditLog({
+            action: 'CANDIDATE_STAGE_CHANGED' as any,
+            resourceType: 'job_candidate',
+            resourceId: id,
+            actorId: ctx.user?.id,
+            actorEmail: (ctx.user?.email ?? undefined) as string | undefined,
+            actorType: 'user',
+            metadata: {
+              fromStage: currentCandidate.stage,
+              toStage: input.stage,
+              skipAutoEmail,
+              templateId // Log template ID
             }
           }).catch(err => console.error('[updateCandidate] Failed to create audit log:', err))
 
@@ -1078,19 +1078,17 @@ export const jobRouter = router({
               console.log(`[updateCandidate] Queued stage email job ${jobId} for candidate ${id} moving to ${input.stage}`)
 
               // Audit Log: Email Queued
-              await ctx.prisma.auditLog.create({
-                data: {
-                  action: 'CANDIDATE_STAGE_EMAIL_QUEUED',
-                  resourceType: 'job_candidate',
-                  resourceId: id,
-                  actorId: ctx.user.id,
-                  actorEmail: ctx.user.email,
-                  actorType: 'system',
-                  metadata: {
-                    pgBossJobId: jobId,
-                    stage: input.stage,
-                    templateId: 'auto'
-                  }
+              await createAuditLog({
+                action: 'CANDIDATE_STAGE_EMAIL_QUEUED' as any,
+                resourceType: 'job_candidate',
+                resourceId: id,
+                actorId: ctx.user.id,
+                actorEmail: (ctx.user.email ?? undefined) as string | undefined,
+                actorType: 'system',
+                metadata: {
+                  pgBossJobId: jobId,
+                  stage: input.stage,
+                  templateId: 'auto'
                 }
               }).catch(err => console.error('[updateCandidate] Failed to create audit log:', err))
 
@@ -1098,18 +1096,16 @@ export const jobRouter = router({
               console.log(`[updateCandidate] Stage email skipped (disabled or no settings) for candidate ${id} moving to ${input.stage}`)
 
               // Audit Log: Email Skipped
-              await ctx.prisma.auditLog.create({
-                data: {
-                  action: 'CANDIDATE_STAGE_EMAIL_SKIPPED',
-                  resourceType: 'job_candidate',
-                  resourceId: id,
-                  actorId: ctx.user.id,
-                  actorEmail: ctx.user.email,
-                  actorType: 'system',
-                  metadata: {
-                    reason: 'disabled_or_no_settings',
-                    stage: input.stage
-                  }
+              await createAuditLog({
+                action: 'CANDIDATE_STAGE_EMAIL_SKIPPED' as any,
+                resourceType: 'job_candidate',
+                resourceId: id,
+                actorId: ctx.user.id,
+                actorEmail: (ctx.user.email ?? undefined) as string | undefined,
+                actorType: 'system',
+                metadata: {
+                  reason: 'disabled_or_no_settings',
+                  stage: input.stage
                 }
               }).catch(err => console.error('[updateCandidate] Failed to create audit log:', err))
             }
@@ -1726,7 +1722,7 @@ export const jobRouter = router({
             recommendation: evaluation.recommendation,
             notes: evaluation.overallNotes,
             criteriaScores: evaluation.criteriaScores.map((cs) => ({
-              name: cs.criteria.name,
+              name: cs.criteria?.name || 'Unknown Criteria',
               score: cs.score,
               notes: cs.notes,
             })),
@@ -1810,7 +1806,7 @@ export const jobRouter = router({
           })
           .pipe(z.string().url().optional().or(z.literal(''))),
         bio: z.string().optional(),
-        coverLetter: z.string().min(10, 'Please write a cover letter'),
+        coverLetter: z.string().min(10, 'Your cover letter is too short. Please provide a more detailed cover letter (minimum 10 characters).'),
         resumeUrl: z.string().optional(),
         resumeFileName: z.string().optional(),
         inboundChannel: InboundChannelEnum.default('PEOPLEOS'),

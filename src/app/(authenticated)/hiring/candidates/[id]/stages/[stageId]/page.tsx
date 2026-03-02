@@ -138,7 +138,7 @@ Areas to probe in next stage:
               </div>
               <p className="text-muted-foreground">
                 Candidate:{' '}
-                <Link href={`/recruiting/candidates/${candidateId}`} className="text-indigo-600 font-medium hover:underline">
+                <Link href={`/hiring/candidates/${candidateId}`} className="text-indigo-600 font-medium hover:underline">
                   {stageInfo.candidateName}
                 </Link>
               </p>

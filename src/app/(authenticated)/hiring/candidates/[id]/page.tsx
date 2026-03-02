@@ -31,6 +31,7 @@ import {
   Mic,
   Loader2,
   Clock,
+  Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -123,6 +124,17 @@ export default function CandidateProfilePage() {
     { enabled: !!candidateId }
   )
   const utils = trpc.useUtils()
+  const router = require('next/navigation').useRouter()
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const deleteCandidate = trpc.job.deleteCandidate.useMutation({
+    onSuccess: () => {
+      toast.success('Candidate deleted successfully')
+      router.push('/hiring/candidates')
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to delete candidate')
+    },
+  })
   const updateCandidate = trpc.job.updateCandidate.useMutation({
     onSuccess: async (data, variables) => {
       // Force immediate invalidation and refetch
@@ -264,6 +276,7 @@ export default function CandidateProfilePage() {
       const date = interviewDate ? format(new Date(interviewDate), 'MMM d, yyyy') : null
 
       return {
+        id: interviewForStage?.id,
         stage: stage.stageName || stage.stage,
         stageType: stage.stage,
         date,
@@ -274,7 +287,7 @@ export default function CandidateProfilePage() {
           overallRating: e.overallRating,
           recommendation: e.recommendation || 'PENDING',
           notes: e.notes || '',
-          criteria: e.criteriaScores.map((cs) => ({
+          criteria: e.criteriaScores.map((cs: any) => ({
             name: cs.name,
             score: cs.score,
             maxScore: 5,
@@ -577,7 +590,7 @@ export default function CandidateProfilePage() {
     if (!candidateId) return
     try {
       setExporting(true)
-      const response = await fetch(`/api/recruiting/candidates/${candidateId}/export`, {
+      const response = await fetch(`/api/hiring/candidates/${candidateId}/export`, {
         method: 'GET',
         credentials: 'include',
       })
@@ -1375,7 +1388,7 @@ export default function CandidateProfilePage() {
             <div className="space-y-6">
               {candidate.interviewEvaluations.map((evaluation, evalIdx) => (
                 <Card key={evalIdx} className="hover:border-indigo-300 transition-colors">
-                  <Link href={`/recruiting/candidates/${candidateId}/interviews/${evaluation.stageType.toLowerCase()}`}>
+                  <Link href={`/hiring/candidates/${candidateId}/interviews/${evaluation.id || evaluation.stageType.toLowerCase()}`}>
                     <CardHeader className="pb-4 cursor-pointer">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
@@ -1533,7 +1546,7 @@ export default function CandidateProfilePage() {
                         </div>
                       </div>
                     </div>
-                    <Link href={`/recruiting/candidates/${candidateId}/stages/panel`}>
+                    <Link href={`/hiring/candidates/${candidateId}/stages/panel`}>
                       <Button variant="outline">
                         View Full Details
                         <ChevronRight className="h-4 w-4 ml-2" />
@@ -1960,7 +1973,7 @@ export default function CandidateProfilePage() {
                     <CheckCircle className="h-4 w-4 mr-2" />
                     Advance to Offer
                   </Button>
-                  <Link href={`/recruiting/interviews/schedule?candidateId=${candidateId}`}>
+                  <Link href={`/hiring/interviews/schedule?candidateId=${candidateId}`}>
                     <Button
                       variant="outline"
                       className="w-full justify-start"
@@ -1977,6 +1990,14 @@ export default function CandidateProfilePage() {
                   >
                     <ThumbsDown className="h-4 w-4 mr-2" />
                     Send Rejection
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start text-red-600 hover:text-red-700"
+                    onClick={() => setDeleteDialogOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Permanently
                   </Button>
                 </CardContent>
               </Card>
@@ -2033,6 +2054,34 @@ export default function CandidateProfilePage() {
             >
               {actionInFlight && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               Confirm
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="h-5 w-5" />
+              Delete Candidate
+            </DialogTitle>
+            <DialogDescription>
+              This action cannot be undone. This candidate and all associated data (interviews, evaluations, documents) will be permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => deleteCandidate.mutate({ id: candidateId })}
+              disabled={deleteCandidate.isPending}
+            >
+              {deleteCandidate.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Delete Permanently
             </Button>
           </DialogFooter>
         </DialogContent>
