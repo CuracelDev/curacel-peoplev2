@@ -2744,7 +2744,6 @@ model AssessmentQuestion {
   assessmentLibrary   AssessmentLibrary       @relation(fields: [assessmentLibraryId], references: [id], onDelete: Cascade)
   skillId             String?
   skill               AssessmentLibrarySkill? @relation(fields: [skillId], references: [id], onDelete: SetNull)
-  skillName           String?                 // Denormalized skill name for display
 
   classification      QuestionClassification
   title               String?
