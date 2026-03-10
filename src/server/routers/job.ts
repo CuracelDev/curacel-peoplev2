@@ -1392,20 +1392,27 @@ export const jobRouter = router({
         ]
       }
 
-      const excludedStages = filters.includeArchived
+      const excludedStages = (filters.includeArchived === true)
         ? ['REJECTED', 'WITHDRAWN']
         : ['REJECTED', 'WITHDRAWN', 'ARCHIVED']
 
-      const where: Record<string, unknown> = { ...baseWhere }
-      if (filters.stage) {
-        where.stage = filters.stage
-      } else {
-        where.stage = { notIn: excludedStages }
+      const where: any = {
+        AND: [
+          baseWhere,
+        ]
       }
 
-      const countsWhere: Record<string, unknown> = {
-        ...baseWhere,
-        stage: { notIn: excludedStages },
+      if (filters.stage) {
+        where.AND.push({ stage: filters.stage })
+      } else {
+        where.AND.push({ stage: { notIn: excludedStages } })
+      }
+
+      const countsWhere: any = {
+        AND: [
+          baseWhere,
+          { stage: { notIn: excludedStages } }
+        ]
       }
 
       // Get candidates with pagination
