@@ -347,7 +347,7 @@ export default function PositionsPage() {
                 </div>
 
                 {/* Score Circle and Actions */}
-                <div className="hidden sm:flex flex-col items-end justify-between">
+                <div className="flex flex-col items-end justify-between ml-auto">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button variant="ghost" size="icon" className="h-8 w-8">

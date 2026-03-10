@@ -145,11 +145,22 @@ export default function AssessmentsPage() {
   })
 
   // Fetch candidates for send dialog
-  const { data: candidatesData } = trpc.job.getAllCandidates.useQuery(
+  const { data: allCandidatesData } = trpc.job.getAllCandidates.useQuery(
     { search: debouncedCandidateSearch || undefined, limit: 500 },
-    { enabled: sendDialogOpen }
+    { enabled: sendDialogOpen && !selectedTemplateId }
   )
-  const candidates = candidatesData?.candidates
+
+  const { data: eligibleCandidatesData } = trpc.assessment.getEligibleCandidates.useQuery(
+    {
+      templateId: selectedTemplateId,
+      search: debouncedCandidateSearch || undefined
+    },
+    { enabled: sendDialogOpen && !!selectedTemplateId }
+  )
+
+  const candidates = selectedTemplateId
+    ? (eligibleCandidatesData || [])
+    : (allCandidatesData?.candidates || [])
 
   // Fetch templates for send dialog
   const { data: templates } = trpc.assessment.listTemplates.useQuery(

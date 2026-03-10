@@ -605,12 +605,73 @@ export const assessmentRouter = router({
 
   // Get candidates eligible for a specific assessment (e.g. at TECHNICAL stage)
   getEligibleCandidates: protectedProcedure
-    .input(z.object({ templateId: z.string() }))
+    .input(z.object({
+      templateId: z.string(),
+      stage: z.string().optional(),
+      search: z.string().optional()
+    }))
     .query(async ({ ctx, input }) => {
-      // Find candidates in TECHNICAL stage who don't have this assessment yet
+      // Find the template to see if it has a default stage or if we should use one
+      const template = await ctx.prisma.assessmentTemplate.findUnique({
+        where: { id: input.templateId },
+        select: { name: true, type: true }
+      })
+
+      const searchFilter = input.search ? {
+        OR: [
+          { name: { contains: input.search, mode: 'insensitive' as const } },
+          { email: { contains: input.search, mode: 'insensitive' as const } }
+        ]
+      } : {}
+
+      let targetStages: string[] = []
+
+      if (input.stage) {
+        targetStages = [input.stage]
+      } else {
+        // Try to find trigger stages from JobAssessmentTemplate
+        const jobTemplates = await ctx.prisma.jobAssessmentTemplate.findMany({
+          where: { templateId: input.templateId },
+          select: { triggerStage: true }
+        })
+
+        targetStages = jobTemplates
+          .map(t => t.triggerStage)
+          .filter((s): s is string => !!s)
+
+        // Sensible defaults if no job-specific trigger is set
+        if (targetStages.length === 0) {
+          if (template?.name.toLowerCase().includes('ocean') || template?.name.toLowerCase().includes('big5')) {
+            targetStages = ['HR_SCREEN', 'APPLIED'] // OCEAN is usually early
+          } else if (template?.type === 'CODING_TEST') {
+            targetStages = ['TECHNICAL']
+          } else {
+            // Default to showing all non-terminal candidates if we can't be specific
+            const candidates = await ctx.prisma.jobCandidate.findMany({
+              where: {
+                ...searchFilter,
+                stage: { notIn: ['REJECTED', 'WITHDRAWN', 'ARCHIVED', 'HIRED'] } as any,
+                assessments: {
+                  none: {
+                    templateId: input.templateId,
+                  },
+                },
+              },
+              include: {
+                job: { select: { title: true, department: true } },
+              },
+              orderBy: { name: 'asc' },
+            })
+            return candidates
+          }
+        }
+      }
+
+      // Find candidates in those stages who don't have this assessment yet
       const candidates = await ctx.prisma.jobCandidate.findMany({
         where: {
-          stage: 'TECHNICAL',
+          ...searchFilter,
+          stage: { in: targetStages as any },
           assessments: {
             none: {
               templateId: input.templateId,

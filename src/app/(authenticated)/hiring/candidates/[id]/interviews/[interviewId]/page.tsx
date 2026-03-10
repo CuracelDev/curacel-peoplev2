@@ -170,6 +170,7 @@ export default function InterviewDetailPage() {
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [deleteCandidateDialogOpen, setDeleteCandidateDialogOpen] = useState(false)
   const [addInterviewerDialogOpen, setAddInterviewerDialogOpen] = useState(false)
   const [removeInterviewerDialogOpen, setRemoveInterviewerDialogOpen] = useState(false)
   const [interviewerToRemove, setInterviewerToRemove] = useState<{ email: string; name: string } | null>(null)
@@ -210,6 +211,17 @@ export default function InterviewDetailPage() {
     },
     onError: (error) => {
       toast.error('Failed to cancel interview', { description: error.message })
+    },
+  })
+
+  const deleteCandidateMutation = trpc.job.deleteCandidate.useMutation({
+    onSuccess: () => {
+      toast.success('Candidate deleted successfully')
+      utils.job.getAllCandidates.invalidate()
+      window.location.href = '/hiring/candidates'
+    },
+    onError: (error) => {
+      toast.error('Failed to delete candidate', { description: error.message })
     },
   })
 
@@ -556,6 +568,15 @@ export default function InterviewDetailPage() {
                     </DropdownMenuItem>
                   </>
                 )}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() => setDeleteCandidateDialogOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete Candidate
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   onClick={() => {
                     window.open(`/api/hiring/interviews/${interviewId}/export`, '_blank')
@@ -1317,6 +1338,29 @@ export default function InterviewDetailPage() {
             >
               {removeInterviewerMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Remove Interviewer
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Candidate Confirmation Dialog */}
+      <AlertDialog open={deleteCandidateDialogOpen} onOpenChange={setDeleteCandidateDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Candidate</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to permanently delete {interview.candidate.name}?
+              This action cannot be undone and will remove all their data.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Keep Candidate</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => deleteCandidateMutation.mutate({ id: candidateId })}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleteCandidateMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Delete Candidate
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

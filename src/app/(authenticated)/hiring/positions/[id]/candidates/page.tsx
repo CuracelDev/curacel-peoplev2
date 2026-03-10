@@ -170,6 +170,13 @@ export default function CandidatesListPage() {
   const addCandidateMutation = trpc.job.addCandidate.useMutation({
     onSuccess: () => {
       utils.job.listCandidates.invalidate({ jobId })
+      setIsAddDialogOpen(false)
+      setNewCandidate({ name: '', email: '', phone: '', linkedinUrl: '', resumeUrl: '', source: 'EXCELLER', notes: '', currentRole: '', currentCompany: '' })
+      setCandidateDocuments([])
+      toast.success('Candidate added successfully')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to add candidate')
     },
   })
   const parseUpload = trpc.job.parseUploadForBulkImport.useMutation()
@@ -233,6 +240,8 @@ export default function CandidatesListPage() {
     resumeUrl: '',
     source: 'EXCELLER',
     notes: '',
+    currentRole: '',
+    currentCompany: '',
   })
   const [candidateDocuments, setCandidateDocuments] = useState<CandidateDocument[]>([])
   const [docType, setDocType] = useState<CandidateDocument['type']>('other')
@@ -876,6 +885,26 @@ export default function CandidatesListPage() {
                       value={newCandidate.linkedinUrl}
                       onChange={(e) => setNewCandidate((prev) => ({ ...prev, linkedinUrl: e.target.value }))}
                     />
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="candidate-role">Current Role</Label>
+                      <Input
+                        id="candidate-role"
+                        placeholder="e.g. Software Engineer"
+                        value={newCandidate.currentRole}
+                        onChange={(e) => setNewCandidate((prev) => ({ ...prev, currentRole: e.target.value }))}
+                      />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="candidate-company">Current Company</Label>
+                      <Input
+                        id="candidate-company"
+                        placeholder="e.g. Curacel"
+                        value={newCandidate.currentCompany}
+                        onChange={(e) => setNewCandidate((prev) => ({ ...prev, currentCompany: e.target.value }))}
+                      />
+                    </div>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="candidate-resume">Resume URL (optional)</Label>

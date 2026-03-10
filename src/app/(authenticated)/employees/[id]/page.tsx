@@ -1849,6 +1849,50 @@ export default function EmployeeDetailPage() {
               <Separator />
 
               <div className="space-y-3">
+                <h3 className="text-sm font-semibold text-foreground">Personal details</h3>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="grid gap-2">
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select value={watch('gender')} onValueChange={(value) => setValue('gender', value)}>
+                      <SelectTrigger id="gender">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="MALE">Male</SelectItem>
+                        <SelectItem value="FEMALE">Female</SelectItem>
+                        <SelectItem value="NON_BINARY">Non-binary</SelectItem>
+                        <SelectItem value="PREFER_NOT_TO_SAY">Prefer not to say</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="maritalStatus">Marital status</Label>
+                    <Select value={watch('maritalStatus')} onValueChange={(value) => setValue('maritalStatus', value)}>
+                      <SelectTrigger id="maritalStatus">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SINGLE">Single</SelectItem>
+                        <SelectItem value="MARRIED">Married</SelectItem>
+                        <SelectItem value="DIVORCED">Divorced</SelectItem>
+                        <SelectItem value="WIDOWED">Widowed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="dateOfBirth">Date of birth</Label>
+                    <Input id="dateOfBirth" type="date" {...register('dateOfBirth')} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="taxId">Tax ID / TIN</Label>
+                    <Input id="taxId" {...register('taxId')} />
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-foreground">Contact</h3>
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="md:col-span-2 grid gap-2">

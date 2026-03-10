@@ -160,6 +160,8 @@ export default function CandidatesPage() {
     linkedinUrl: '',
     source: '',
     notes: '',
+    currentRole: '',
+    currentCompany: '',
   })
 
   // Bulk stage change state
@@ -213,7 +215,7 @@ export default function CandidatesPage() {
       toast.success('Candidate added successfully')
       utils.job.getAllCandidates.invalidate()
       setIsAddDialogOpen(false)
-      setNewCandidate({ name: '', email: '', phone: '', linkedinUrl: '', source: '', notes: '' })
+      setNewCandidate({ name: '', email: '', phone: '', linkedinUrl: '', source: '', notes: '', currentRole: '', currentCompany: '' })
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to add candidate')
@@ -313,7 +315,7 @@ export default function CandidatesPage() {
     department: teamFilter === 'all' ? undefined : teamFilter,
     appliedFrom: dateRange?.from,
     appliedTo: dateRange?.to,
-    includeArchived: searchQuery ? true : undefined, // Include archived when searching
+    includeArchived: undefined, // Archive candidates are in their own section
     sortBy,
     sortOrder,
     limit: 50,
@@ -704,6 +706,26 @@ export default function CandidatesPage() {
                         value={newCandidate.linkedinUrl}
                         onChange={(e) => setNewCandidate(prev => ({ ...prev, linkedinUrl: e.target.value }))}
                       />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="currentRole">Current Role</Label>
+                        <Input
+                          id="currentRole"
+                          placeholder="e.g. Software Engineer"
+                          value={newCandidate.currentRole}
+                          onChange={(e) => setNewCandidate(prev => ({ ...prev, currentRole: e.target.value }))}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="currentCompany">Current Company</Label>
+                        <Input
+                          id="currentCompany"
+                          placeholder="e.g. Curacel"
+                          value={newCandidate.currentCompany}
+                          onChange={(e) => setNewCandidate(prev => ({ ...prev, currentCompany: e.target.value }))}
+                        />
+                      </div>
                     </div>
                     <div className="grid gap-2">
                       <Label htmlFor="notes">Notes</Label>

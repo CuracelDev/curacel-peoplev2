@@ -972,6 +972,8 @@ export const jobRouter = router({
         referredBy: z.string().optional(),
         notes: z.string().optional(),
         score: z.number().min(0).max(100).optional(),
+        currentRole: z.string().optional(),
+        currentCompany: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -1478,22 +1480,20 @@ export const jobRouter = router({
       source: z.string().optional(),
       notes: z.string().optional(),
       jobId: z.string().optional(),
+      currentRole: z.string().optional(),
+      currentCompany: z.string().optional(),
     }))
     .mutation(async ({ ctx, input }) => {
       let targetJobId = input.jobId
 
       if (!targetJobId) {
-        // Look for an active job or create a generic talent pool
-        const activeJob = await ctx.prisma.job.findFirst({
-          where: { status: 'ACTIVE' },
-          orderBy: { createdAt: 'desc' },
+        // Find or create "General Application" job for talent pool
+        let generalJob = await ctx.prisma.job.findFirst({
+          where: { title: 'General Application' },
         })
 
-        if (activeJob) {
-          targetJobId = activeJob.id
-        } else {
-          // Create "General Application" job
-          const generalJob = await ctx.prisma.job.create({
+        if (!generalJob) {
+          generalJob = await ctx.prisma.job.create({
             data: {
               title: 'General Application',
               department: 'General',
@@ -1501,8 +1501,8 @@ export const jobRouter = router({
               employmentType: 'full-time',
             }
           })
-          targetJobId = generalJob.id
         }
+        targetJobId = generalJob.id
       }
 
       // Check if candidate already exists by email
@@ -1550,6 +1550,8 @@ export const jobRouter = router({
           outboundChannel,
           notes: input.notes,
           stage: 'APPLIED',
+          currentRole: input.currentRole,
+          currentCompany: input.currentCompany,
         }
       })
 

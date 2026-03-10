@@ -469,7 +469,7 @@ export default function ScheduleInterviewPage() {
         interviewTypeId,
         scheduledAt: scheduledAt.toISOString(),
         duration,
-        interviewers: selectedInterviewers.map(i => ({
+        interviewers: selectedInterviewers.filter(i => !!i.email).map(i => ({
           employeeId: i.id,
           name: i.name,
           email: i.email,
@@ -745,6 +745,30 @@ export default function ScheduleInterviewPage() {
                                       </div>
                                     </CommandItem>
                                   ))}
+                              </CommandGroup>
+                            )}
+                            {/* External Interviewer Section */}
+                            {interviewerSearch.trim().match(/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/) && !selectedInterviewers.find(i => i.email.toLowerCase() === interviewerSearch.trim().toLowerCase()) && (
+                              <CommandGroup heading="External Interviewer">
+                                <CommandItem
+                                  value={interviewerSearch.trim()}
+                                  onSelect={() => addInterviewer({
+                                    id: `ext-${Date.now()}`,
+                                    fullName: interviewerSearch.trim().split('@')[0],
+                                    email: interviewerSearch.trim(),
+                                  })}
+                                  className="cursor-pointer"
+                                >
+                                  <div className="flex flex-col">
+                                    <div className="flex items-center gap-1">
+                                      <span>{interviewerSearch.trim()}</span>
+                                      <Badge variant="outline" className="text-[10px] px-1 py-0 bg-indigo-50 text-indigo-700">External</Badge>
+                                    </div>
+                                    <span className="text-xs text-muted-foreground">
+                                      Invite external guest via email
+                                    </span>
+                                  </div>
+                                </CommandItem>
                               </CommandGroup>
                             )}
                           </>
