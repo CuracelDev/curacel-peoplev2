@@ -93,17 +93,38 @@ export async function stageEmailHandler(job: any): Promise<void> {
       return
     }
 
+    // Fetch assessment link for TECHNICAL stage if needed
+    let assessmentLink: string | undefined
+    if (queuedEmail.toStage === 'TECHNICAL') {
+      const assessment = await prisma.candidateAssessment.findFirst({
+        where: { candidateId: queuedEmail.candidateId },
+        include: { template: true },
+        orderBy: { createdAt: 'desc' },
+      })
+
+      if (assessment) {
+        assessmentLink = (assessment.resultUrl || assessment.template.externalUrl) || ''
+      }
+    }
+
     // Apply template variables
-    const content = await applyTemplateVariables(template, queuedEmail.candidate, {
-      name: queuedEmail.recruiterName || 'Recruiting Team',
-      email: queuedEmail.recruiterEmail,
-    })
+    const content = await applyTemplateVariables(
+      template,
+      queuedEmail.candidate,
+      {
+        name: queuedEmail.recruiterName || 'Recruiting Team',
+        email: queuedEmail.recruiterEmail ?? '',
+      },
+      {
+        assessment: assessmentLink || '',
+      }
+    )
 
     // Send email
     const result = await sendCandidateEmail({
       candidateId: queuedEmail.candidateId,
       recruiterId: queuedEmail.recruiterId,
-      recruiterEmail: queuedEmail.recruiterEmail,
+      recruiterEmail: queuedEmail.recruiterEmail ?? '',
       recruiterName: queuedEmail.recruiterName || undefined,
       subject: content.subject,
       htmlBody: content.htmlBody,

@@ -198,10 +198,22 @@ export const interviewRouter = router({
     })
 
     return {
-      ...counts,
+      all: counts.all,
+      upcoming: counts.upcoming,
+      byStage: counts,
       byType: countsByType,
     }
   }),
+
+  // Proxy to delete candidate (for cleanup from interview view)
+  deleteCandidate: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      await ctx.prisma.jobCandidate.delete({
+        where: { id: input.id },
+      })
+      return { success: true }
+    }),
 
   // Get a single interview
   get: protectedProcedure
@@ -391,7 +403,7 @@ export const interviewRouter = router({
         await ctx.prisma.interviewerToken.createMany({
           data: input.interviewers.map((interviewer) => ({
             interviewId: interview.id,
-            interviewerId: interviewer.employeeId,
+            interviewerId: interviewer.employeeId || null,
             interviewerName: interviewer.name,
             interviewerEmail: interviewer.email,
             expiresAt: tokenExpiresAt,

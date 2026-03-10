@@ -603,6 +603,28 @@ export const assessmentRouter = router({
       }
     }),
 
+  // Get candidates eligible for a specific assessment (e.g. at TECHNICAL stage)
+  getEligibleCandidates: protectedProcedure
+    .input(z.object({ templateId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Find candidates in TECHNICAL stage who don't have this assessment yet
+      const candidates = await ctx.prisma.jobCandidate.findMany({
+        where: {
+          stage: 'TECHNICAL',
+          assessments: {
+            none: {
+              templateId: input.templateId,
+            },
+          },
+        },
+        include: {
+          job: { select: { title: true, department: true } },
+        },
+        orderBy: { name: 'asc' },
+      })
+      return candidates
+    }),
+
   // Create an assessment for a candidate
   create: protectedProcedure
     .input(
