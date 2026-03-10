@@ -106,11 +106,11 @@ jobs:
             # Migrations
             echo "[3/4] Running database migrations..."
             APP_IMAGE=curacel-people-app-staging:latest \
-            docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push || echo "DB Push failed, check logs"
+            docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push --accept-data-loss < /dev/null || echo "DB Push failed, check logs"
 
             echo "[4/4] Starting application..."
             APP_IMAGE=curacel-people-app-staging:latest \
-            docker compose -f docker-compose.deploy.yml up -d --force-recreate app adminer
+            docker compose -f docker-compose.deploy.yml up -d --force-recreate app adminer < /dev/null
             
             # Diagnostics
             sleep 15
