@@ -1927,6 +1927,7 @@ model CandidateInterview {
   transcriptUrl        String?   // Link to Fireflies transcript
   recordingUrl         String?   // Link to recording
   meetingLink          String?   // Video meeting link (Zoom/Google Meet)
+  calendarEventId      String?   // Google Calendar event ID
 
   status       String       @default("SCHEDULED") // SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED, NO_SHOW
 
@@ -2006,6 +2007,7 @@ enum JobStatus {
   ACTIVE
   PAUSED
   HIRED
+  ARCHIVED
 }
 
 // ============================================

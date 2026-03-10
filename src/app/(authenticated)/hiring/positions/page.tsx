@@ -16,6 +16,9 @@ import {
   Link as LinkIcon,
   Clipboard,
   ExternalLink,
+  MoreHorizontal,
+  Archive,
+  Trash2,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
@@ -30,6 +33,22 @@ import {
 import { cn } from '@/lib/utils'
 import { trpc } from '@/lib/trpc-client'
 import { PageActions } from '@/components/layout/page-actions'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 
 function getJobIcon(department?: string | null) {
   const dept = department?.toLowerCase() || ''
@@ -59,7 +78,7 @@ function getJobIconBg(department?: string | null) {
   return 'bg-indigo-600'
 }
 
-type FilterStatus = 'all' | 'ACTIVE' | 'DRAFT' | 'PAUSED' | 'HIRED'
+type FilterStatus = 'all' | 'ACTIVE' | 'DRAFT' | 'PAUSED' | 'HIRED' | 'ARCHIVED'
 
 const STATUS_LABELS: Record<string, string> = {
   all: 'All',
@@ -67,6 +86,7 @@ const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Draft',
   PAUSED: 'Paused',
   HIRED: 'Hired',
+  ARCHIVED: 'Archived',
 }
 
 const STATUS_BADGES: Record<string, string> = {
@@ -74,6 +94,7 @@ const STATUS_BADGES: Record<string, string> = {
   DRAFT: 'bg-yellow-100 text-yellow-700',
   PAUSED: 'bg-orange-100 text-orange-700',
   HIRED: 'bg-blue-100 text-blue-700',
+  ARCHIVED: 'bg-gray-100 text-gray-700',
 }
 
 // Priority badge styles
@@ -112,6 +133,23 @@ export default function PositionsPage() {
 
   const [filter, setFilter] = useState<FilterStatus>('all')
   const [department, setDepartment] = useState('all')
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+
+  const archiveJob = trpc.job.archive.useMutation({
+    onSuccess: () => {
+      toast.success('Job archived successfully')
+      refetch()
+    },
+  })
+
+  const deleteJob = trpc.job.delete.useMutation({
+    onSuccess: () => {
+      toast.success('Job deleted successfully')
+      setDeletingId(null)
+      refetch()
+    },
+  })
+
   const scoreDisplay = recruitingSettings?.jobScoreDisplay ?? 'average'
 
   const filteredJobs = (jobs || []).filter((job) => {
@@ -153,7 +191,7 @@ export default function PositionsPage() {
 
       {/* Filter Bar */}
       <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-4 sm:mb-6">
-        {(['all', 'ACTIVE', 'DRAFT', 'PAUSED', 'HIRED'] as FilterStatus[]).map((status) => (
+        {(['all', 'ACTIVE', 'DRAFT', 'PAUSED', 'HIRED', 'ARCHIVED'] as FilterStatus[]).map((status) => (
           <button
             key={status}
             onClick={() => setFilter(status)}
@@ -308,13 +346,56 @@ export default function PositionsPage() {
                   </div>
                 </div>
 
-                {/* Score Circle */}
-                <div className="hidden sm:flex flex-col items-end justify-start">
+                {/* Score Circle and Actions */}
+                <div className="hidden sm:flex flex-col items-end justify-between">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <MoreHorizontal className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      {job.status !== 'ARCHIVED' && (
+                        <DropdownMenuItem onClick={() => archiveJob.mutate({ id: job.id })}>
+                          <Archive className="h-4 w-4 mr-2" />
+                          Archive Job
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setDeletingId(job.id)}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete Job
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
                   <ScoreCircle score={scoreValue} label={scoreLabel} />
                 </div>
               </div>
             )
           })}
+
+          <AlertDialog open={!!deletingId} onOpenChange={(open) => !open && setDeletingId(null)}>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This action cannot be undone. This will permanently delete the job and all candidates associated with it.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => deletingId && deleteJob.mutate({ id: deletingId })}
+                >
+                  Delete
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
 
           {/* Empty State */}
           {filteredJobs.length === 0 && !isLoading && (

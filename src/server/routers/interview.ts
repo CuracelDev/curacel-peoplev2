@@ -484,8 +484,27 @@ export const interviewRouter = router({
               job: true,
             },
           },
+          interviewType: true,
         },
       })
+
+      // If status is CANCELLED and there is a calendar event, delete it
+      if (input.status === 'CANCELLED' && interview.calendarEventId) {
+        try {
+          const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
+          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+          if (connector) {
+            await connector.deleteCalendarEvent(interview.calendarEventId)
+            // Clear the event ID
+            await ctx.prisma.candidateInterview.update({
+              where: { id: interview.id },
+              data: { calendarEventId: null },
+            })
+          }
+        } catch (error) {
+          console.error('Failed to delete calendar event for cancelled status:', error)
+        }
+      }
 
       return {
         ...interview,
@@ -516,8 +535,55 @@ export const interviewRouter = router({
               job: true,
             },
           },
+          interviewType: true,
         },
       })
+
+      // If there is a calendar event, update it with new time
+      if (interview.calendarEventId) {
+        try {
+          const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
+          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+
+          if (connector) {
+            const currentInterviewers = (interview.interviewers as any[]) || []
+            const attendeeEmails = [
+              ...currentInterviewers.map((i: any) => i.email),
+              interview.candidate.email,
+            ].filter(Boolean) as string[]
+
+            const stageName = interview.interviewType?.name ||
+              stageDisplayNames[interview.stage] ||
+              interview.stageName ||
+              interview.stage
+
+            const description = [
+              `Interview Type: ${stageName}`,
+              `Candidate: ${interview.candidate.name}`,
+              `Position: ${interview.candidate.job?.title || 'N/A'}`,
+              `Department: ${interview.candidate.job?.department || 'N/A'}`,
+              '',
+              'Interviewers:',
+              ...currentInterviewers.map((i: any) => `- ${i.name} (${i.email})${i.role ? ` - ${i.role}` : ''}`),
+              '',
+              interview.feedback ? `Notes: ${interview.feedback}` : '',
+            ].filter(Boolean).join('\n')
+
+            const endTime = new Date(interview.scheduledAt!)
+            endTime.setMinutes(endTime.getMinutes() + (interview.duration || 60))
+
+            await connector.updateCalendarEvent(interview.calendarEventId, {
+              summary: `${stageName} Interview - ${interview.candidate.name}`,
+              description,
+              start: interview.scheduledAt!,
+              end: endTime,
+              attendees: attendeeEmails,
+            })
+          }
+        } catch (error) {
+          console.error('Failed to sync rescheduled interview to calendar:', error)
+        }
+      }
 
       return {
         ...interview,
@@ -548,6 +614,24 @@ export const interviewRouter = router({
           },
         },
       })
+
+      // If there is a calendar event, delete it
+      if (interview.calendarEventId) {
+        try {
+          const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
+          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+          if (connector) {
+            await connector.deleteCalendarEvent(interview.calendarEventId)
+            // Clear the event ID
+            await ctx.prisma.candidateInterview.update({
+              where: { id: interview.id },
+              data: { calendarEventId: null },
+            })
+          }
+        } catch (error) {
+          console.error('Failed to delete calendar event for cancelled interview:', error)
+        }
+      }
 
       return {
         ...interview,
@@ -624,6 +708,52 @@ export const interviewRouter = router({
               expiresAt: tokenExpiresAt,
             })),
           })
+        }
+      }
+
+      // If there is a calendar event, update it
+      if (interview.calendarEventId) {
+        try {
+          const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
+          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+
+          if (connector) {
+            const currentInterviewers = (interview.interviewers as any[]) || []
+            const attendeeEmails = [
+              ...currentInterviewers.map((i: any) => i.email),
+              interview.candidate.email,
+            ].filter(Boolean) as string[]
+
+            const stageName = interview.interviewType?.name ||
+              stageDisplayNames[interview.stage] ||
+              interview.stageName ||
+              interview.stage
+
+            const description = [
+              `Interview Type: ${stageName}`,
+              `Candidate: ${interview.candidate.name}`,
+              `Position: ${interview.candidate.job?.title || 'N/A'}`,
+              `Department: ${interview.candidate.job?.department || 'N/A'}`,
+              '',
+              'Interviewers:',
+              ...currentInterviewers.map((i: any) => `- ${i.name} (${i.email})${i.role ? ` - ${i.role}` : ''}`),
+              '',
+              interview.feedback ? `Notes: ${interview.feedback}` : '',
+            ].filter(Boolean).join('\n')
+
+            const endTime = new Date(interview.scheduledAt!)
+            endTime.setMinutes(endTime.getMinutes() + (interview.duration || 60))
+
+            await connector.updateCalendarEvent(interview.calendarEventId, {
+              summary: `${stageName} Interview - ${interview.candidate.name}`,
+              description,
+              start: interview.scheduledAt!,
+              end: endTime,
+              attendees: attendeeEmails,
+            })
+          }
+        } catch (error) {
+          console.error('Failed to sync updated interview to calendar:', error)
         }
       }
 
@@ -735,8 +865,51 @@ export const interviewRouter = router({
               job: true,
             },
           },
+          interviewType: true,
         },
       })
+
+      // If the interview has a calendar event, update it to include the new interviewer
+      if (updatedInterview.calendarEventId) {
+        try {
+          const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
+          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+
+          if (connector) {
+            const currentInterviewers = (updatedInterview.interviewers as any[]) || []
+            const attendeeEmails = [
+              ...currentInterviewers.map((i: any) => i.email),
+              updatedInterview.candidate.email,
+            ].filter(Boolean) as string[]
+
+            // Regenerate description to include the new interviewer
+            const stageName = updatedInterview.interviewType?.name ||
+              stageDisplayNames[updatedInterview.stage] ||
+              updatedInterview.stageName ||
+              updatedInterview.stage
+
+            const description = [
+              `Interview Type: ${stageName}`,
+              `Candidate: ${updatedInterview.candidate.name}`,
+              `Position: ${updatedInterview.candidate.job?.title || 'N/A'}`,
+              `Department: ${updatedInterview.candidate.job?.department || 'N/A'}`,
+              '',
+              'Interviewers:',
+              ...currentInterviewers.map((i: any) => `- ${i.name} (${i.email})${i.role ? ` - ${i.role}` : ''}`),
+              '',
+              updatedInterview.feedback ? `Notes: ${updatedInterview.feedback}` : '',
+            ].filter(Boolean).join('\n')
+
+            await connector.updateCalendarEvent(updatedInterview.calendarEventId, {
+              attendees: attendeeEmails,
+              description,
+            })
+          }
+        } catch (error) {
+          console.error('Failed to update calendar event with new interviewer:', error)
+          // Don't throw error to the user since the DB record was already updated
+        }
+      }
 
       // Create token if requested
       let token = null
@@ -809,8 +982,50 @@ export const interviewRouter = router({
               job: true,
             },
           },
+          interviewType: true,
         },
       })
+
+      // If the interview has a calendar event, update it to remove the interviewer
+      if (updatedInterview.calendarEventId) {
+        try {
+          const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
+          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+
+          if (connector) {
+            const currentInterviewers = (updatedInterview.interviewers as any[]) || []
+            const attendeeEmails = [
+              ...currentInterviewers.map((i: any) => i.email),
+              updatedInterview.candidate.email,
+            ].filter(Boolean) as string[]
+
+            // Regenerate description
+            const stageName = updatedInterview.interviewType?.name ||
+              stageDisplayNames[updatedInterview.stage] ||
+              updatedInterview.stageName ||
+              updatedInterview.stage
+
+            const description = [
+              `Interview Type: ${stageName}`,
+              `Candidate: ${updatedInterview.candidate.name}`,
+              `Position: ${updatedInterview.candidate.job?.title || 'N/A'}`,
+              `Department: ${updatedInterview.candidate.job?.department || 'N/A'}`,
+              '',
+              'Interviewers:',
+              ...currentInterviewers.map((i: any) => `- ${i.name} (${i.email})${i.role ? ` - ${i.role}` : ''}`),
+              '',
+              updatedInterview.feedback ? `Notes: ${updatedInterview.feedback}` : '',
+            ].filter(Boolean).join('\n')
+
+            await connector.updateCalendarEvent(updatedInterview.calendarEventId, {
+              attendees: attendeeEmails,
+              description,
+            })
+          }
+        } catch (error) {
+          console.error('Failed to update calendar event after removing interviewer:', error)
+        }
+      }
 
       // Revoke any tokens for this interviewer
       await ctx.prisma.interviewerToken.updateMany({
@@ -2175,7 +2390,7 @@ export const interviewRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-      const connector = await getGoogleWorkspaceConnector()
+      const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
 
       if (!connector) {
         throw new TRPCError({
@@ -2263,6 +2478,7 @@ export const interviewRouter = router({
         data: {
           // If we got a meet link and no existing meeting link, use it
           meetingLink: event.meetLink || interview.meetingLink,
+          calendarEventId: event.eventId,
         },
         include: {
           candidate: {
@@ -2308,9 +2524,62 @@ export const interviewRouter = router({
           message: 'Interview not found',
         })
       }
+
+      if (!interview.calendarEventId) {
+        return {
+          success: false,
+          message: 'No calendar event linked to this interview.',
+        }
+      }
+
+      const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
+      const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+
+      if (!connector) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'Google Workspace integration is not configured',
+        })
+      }
+
+      // Build description and other details
+      const interviewers = (interview.interviewers as any[]) || []
+      const attendeeEmails = [
+        ...interviewers.map(i => i.email),
+        interview.candidate.email,
+      ].filter(Boolean) as string[]
+
+      const stageName = interview.interviewType?.name ||
+        stageDisplayNames[interview.stage] ||
+        interview.stageName ||
+        interview.stage
+
+      const description = [
+        `Interview Type: ${stageName}`,
+        `Candidate: ${interview.candidate.name}`,
+        `Position: ${interview.candidate.job?.title || 'N/A'}`,
+        `Department: ${interview.candidate.job?.department || 'N/A'}`,
+        '',
+        'Interviewers:',
+        ...interviewers.map(i => `- ${i.name} (${i.email})${i.role ? ` - ${i.role}` : ''}`),
+        '',
+        interview.feedback ? `Notes: ${interview.feedback}` : '',
+      ].filter(Boolean).join('\n')
+
+      const endTime = new Date(interview.scheduledAt!)
+      endTime.setMinutes(endTime.getMinutes() + (interview.duration || 60))
+
+      await connector.updateCalendarEvent(interview.calendarEventId, {
+        summary: `${stageName} Interview - ${interview.candidate.name}`,
+        description,
+        start: interview.scheduledAt!,
+        end: endTime,
+        attendees: attendeeEmails,
+      })
+
       return {
-        success: false,
-        message: 'Calendar event tracking is not configured for interviews.',
+        success: true,
+        message: 'Calendar event updated successfully.',
       }
     }),
 
@@ -2332,6 +2601,28 @@ export const interviewRouter = router({
           message: 'Interview not found',
         })
       }
+
+      if (interview.calendarEventId) {
+        const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
+        const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+
+        if (connector) {
+          try {
+            await connector.deleteCalendarEvent(interview.calendarEventId)
+          } catch (error) {
+            console.error('Failed to delete Google Calendar event:', error)
+          }
+        }
+
+        // Remove ID from DB
+        await ctx.prisma.candidateInterview.update({
+          where: { id: input.interviewId },
+          data: { calendarEventId: null },
+        })
+
+        return { success: true, message: 'Calendar event deleted.' }
+      }
+
       return { success: true, message: 'No calendar event linked.' }
     }),
 
@@ -2676,7 +2967,7 @@ Respond ONLY with valid JSON, no additional text.`
       }
 
       const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-      const connector = await getGoogleWorkspaceConnector()
+      const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
 
       if (!connector) {
         throw new TRPCError({
@@ -2731,6 +3022,7 @@ Respond ONLY with valid JSON, no additional text.`
         where: { id: input.interviewId },
         data: {
           meetingLink: event.meetLink || fullInterview.meetingLink,
+          calendarEventId: event.eventId,
         },
       })
 

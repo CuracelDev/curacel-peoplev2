@@ -10,7 +10,7 @@ const InboundChannelEnum = z.enum(['YC', 'PEOPLEOS', 'COMPANY_SITE', 'OTHER'])
 const OutboundChannelEnum = z.enum(['LINKEDIN', 'JOB_BOARDS', 'GITHUB', 'TWITTER', 'OTHER'])
 const CandidateSourceEnum = z.enum(['INBOUND', 'OUTBOUND', 'RECRUITER', 'EXCELLER'])
 
-const JobStatusEnum = z.enum(['DRAFT', 'ACTIVE', 'PAUSED', 'HIRED'])
+const JobStatusEnum = z.enum(['DRAFT', 'ACTIVE', 'PAUSED', 'HIRED', 'ARCHIVED'])
 type JobStatusType = z.infer<typeof JobStatusEnum>
 
 const JobCandidateStageEnum = z.enum([
@@ -764,17 +764,34 @@ export const jobRouter = router({
       return job
     }),
 
+  // Archive a job
+  archive: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const existing = await ctx.prisma.job.findUnique({ where: { id: input.id } })
+      const job = await ctx.prisma.job.update({
+        where: { id: input.id },
+        data: { status: 'ARCHIVED' },
+      })
+      // Trigger Webflow sync for status change
+      if (existing && existing.status !== 'ARCHIVED') {
+        onJobStatusChange(input.id, existing.status, 'ARCHIVED').catch(console.error)
+      }
+      return job
+    }),
+
   // Get job counts by status
   getCounts: protectedProcedure.query(async ({ ctx }) => {
-    const [all, active, draft, paused, hired] = await Promise.all([
+    const [all, active, draft, paused, hired, archived] = await Promise.all([
       ctx.prisma.job.count(),
       ctx.prisma.job.count({ where: { status: 'ACTIVE' } }),
       ctx.prisma.job.count({ where: { status: 'DRAFT' } }),
       ctx.prisma.job.count({ where: { status: 'PAUSED' } }),
       ctx.prisma.job.count({ where: { status: 'HIRED' } }),
+      ctx.prisma.job.count({ where: { status: 'ARCHIVED' } }),
     ])
 
-    return { all, active, draft, paused, hired }
+    return { all, active, draft, paused, hired, archived }
   }),
 
   // List candidates for a job

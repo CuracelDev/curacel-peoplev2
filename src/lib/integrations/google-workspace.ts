@@ -662,12 +662,18 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
       }
     }
 
-    const response = await calendar.events.insert({
-      calendarId: 'primary',
-      requestBody,
-      conferenceDataVersion: event.createMeet ? 1 : 0,
-      sendUpdates: 'all', // Send email invites to attendees
-    })
+    let response;
+    try {
+      response = await calendar.events.insert({
+        calendarId: 'primary',
+        requestBody,
+        conferenceDataVersion: event.createMeet ? 1 : 0,
+        sendUpdates: 'all', // Send email invites to attendees
+      })
+    } catch (error: any) {
+      console.error('Google Calendar Error:', error?.response?.data || error.message || error)
+      throw new Error(`Failed to create Google Calendar event: ${error?.response?.data?.error?.message || error.message}`)
+    }
 
     return {
       eventId: response.data.id || '',
@@ -775,11 +781,11 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
   }
 }
 
-export function createGoogleWorkspaceConnector(): GoogleWorkspaceConnector | null {
+export function createGoogleWorkspaceConnector(organizerEmail?: string): GoogleWorkspaceConnector | null {
   const domain = process.env.GOOGLE_WORKSPACE_DOMAIN
   const adminEmail = process.env.GOOGLE_WORKSPACE_ADMIN_EMAIL
   const serviceAccountKey = process.env.GOOGLE_SERVICE_ACCOUNT_KEY
-  const calendarOrganizerEmail = process.env.GOOGLE_CALENDAR_ORGANIZER_EMAIL
+  const calendarOrganizerEmail = organizerEmail || process.env.GOOGLE_CALENDAR_ORGANIZER_EMAIL
 
   if (!domain || !adminEmail || !serviceAccountKey) {
     console.warn('Google Workspace integration not configured via environment variables')
@@ -795,9 +801,9 @@ export function createGoogleWorkspaceConnector(): GoogleWorkspaceConnector | nul
 }
 
 // Get Google Workspace connector from database AppConnection
-export async function getGoogleWorkspaceConnector(): Promise<GoogleWorkspaceConnector | null> {
+export async function getGoogleWorkspaceConnector(organizerEmail?: string): Promise<GoogleWorkspaceConnector | null> {
   // First try environment variables (for backwards compatibility)
-  const envConnector = createGoogleWorkspaceConnector()
+  const envConnector = createGoogleWorkspaceConnector(organizerEmail)
   if (envConnector) {
     return envConnector
   }
@@ -842,7 +848,7 @@ export async function getGoogleWorkspaceConnector(): Promise<GoogleWorkspaceConn
     const domain = typeof config.domain === 'string' ? config.domain : ''
     const adminEmail = typeof config.adminEmail === 'string' ? config.adminEmail : ''
     const serviceAccountKey = typeof config.serviceAccountKey === 'string' ? config.serviceAccountKey : ''
-    const calendarOrganizerEmail = typeof config.calendarOrganizerEmail === 'string' ? config.calendarOrganizerEmail : undefined
+    const calendarOrganizerEmail = organizerEmail || (typeof config.calendarOrganizerEmail === 'string' ? config.calendarOrganizerEmail : undefined)
 
     if (!domain || !adminEmail || !serviceAccountKey) {
       console.warn('Google Workspace connection is missing required configuration')
