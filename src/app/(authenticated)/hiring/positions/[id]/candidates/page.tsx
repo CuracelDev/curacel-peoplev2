@@ -324,9 +324,9 @@ export default function CandidatesListPage() {
       { id: 'all', label: 'All Candidates', count: activeCount }
     ]
 
-    // Add actual stages with candidates
+    // Add actual stages with candidates, excluding terminal stages to keep pipeline focused on active ones
     stageInfo.forEach((s) => {
-      if (s.count > 0) {
+      if (s.count > 0 && !['ARCHIVED', 'REJECTED', 'WITHDRAWN', 'HIRED'].includes(s.stage)) {
         allStages.push({
           id: s.stage,
           label: s.displayName,

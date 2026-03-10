@@ -86,6 +86,10 @@ type EditEmployeeFormData = {
   emergencyContactRelation: string
   emergencyContactPhone: string
   emergencyContactEmail: string
+  gender: string
+  maritalStatus: string
+  dateOfBirth: string
+  taxId: string
   profileImageUrl: string
   probationGoals: string
   probationGoalsUrl: string
@@ -174,6 +178,10 @@ export default function EmployeeDetailPage() {
       emergencyContactRelation: '',
       emergencyContactPhone: '',
       emergencyContactEmail: '',
+      gender: '',
+      maritalStatus: '',
+      dateOfBirth: '',
+      taxId: '',
       profileImageUrl: '',
       probationGoals: '',
       probationGoalsUrl: '',
@@ -237,6 +245,10 @@ export default function EmployeeDetailPage() {
       emergencyContactRelation: employee.emergencyContactRelation || '',
       emergencyContactPhone: employee.emergencyContactPhone || '',
       emergencyContactEmail: employee.emergencyContactEmail || '',
+      gender: employee.gender || '',
+      maritalStatus: employee.maritalStatus || '',
+      dateOfBirth: toDateInputValue(employee.dateOfBirth),
+      taxId: employee.taxId || '',
       profileImageUrl: employee.profileImageUrl || '',
       probationGoals: (employee.meta as any)?.probationGoals || '',
       probationGoalsUrl: (employee.meta as any)?.probationGoalsUrl || '',
@@ -336,6 +348,10 @@ export default function EmployeeDetailPage() {
       emergencyContactRelation: emptyToNull(values.emergencyContactRelation),
       emergencyContactPhone: emptyToNull(values.emergencyContactPhone),
       emergencyContactEmail: emptyToNull(values.emergencyContactEmail),
+      gender: emptyToNull(values.gender),
+      maritalStatus: emptyToNull(values.maritalStatus),
+      dateOfBirth: values.dateOfBirth || null,
+      taxId: emptyToNull(values.taxId),
       profileImageUrl: profileImageValue || null,
       meta: {
         ...((employee.meta as Record<string, unknown>) || {}),
@@ -1683,6 +1699,44 @@ export default function EmployeeDetailPage() {
                         ) : null}
                       </div>
                     </div>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="gender">Gender</Label>
+                    <Select value={watch('gender') || 'none'} onValueChange={(value) => setValue('gender', value === 'none' ? '' : value)}>
+                      <SelectTrigger id="gender">
+                        <SelectValue placeholder="Select gender" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Not specified</SelectItem>
+                        <SelectItem value="MALE">Male</SelectItem>
+                        <SelectItem value="FEMALE">Female</SelectItem>
+                        <SelectItem value="OTHER">Other</SelectItem>
+                        <SelectItem value="PREFER_NOT_TO_SAY">Prefer not to say</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="maritalStatus">Marital Status</Label>
+                    <Select value={watch('maritalStatus') || 'none'} onValueChange={(value) => setValue('maritalStatus', value === 'none' ? '' : value)}>
+                      <SelectTrigger id="maritalStatus">
+                        <SelectValue placeholder="Select marital status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Not specified</SelectItem>
+                        <SelectItem value="SINGLE">Single</SelectItem>
+                        <SelectItem value="MARRIED">Married</SelectItem>
+                        <SelectItem value="DIVORCED">Divorced</SelectItem>
+                        <SelectItem value="WIDOWED">Widowed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="dateOfBirth">Date of Birth</Label>
+                    <Input id="dateOfBirth" type="date" {...register('dateOfBirth')} />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="taxId">Tax ID / SSN</Label>
+                    <Input id="taxId" {...register('taxId')} />
                   </div>
                 </div>
               </div>

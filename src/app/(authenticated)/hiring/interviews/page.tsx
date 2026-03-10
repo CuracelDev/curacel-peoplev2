@@ -102,7 +102,9 @@ export default function InterviewsPage() {
 
   // Dialog states
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false)
+  const [deleteCandidateDialogOpen, setDeleteCandidateDialogOpen] = useState(false)
   const [selectedInterviewId, setSelectedInterviewId] = useState<string | null>(null)
+  const [selectedCandidate, setSelectedCandidate] = useState<{ id: string; name: string } | null>(null)
   const [viewQuestionsOpen, setViewQuestionsOpen] = useState(false)
   const [editDialogOpen, setEditDialogOpen] = useState(false)
   const [rescheduleDialogOpen, setRescheduleDialogOpen] = useState(false)
@@ -130,6 +132,19 @@ export default function InterviewsPage() {
     },
     onError: (error) => {
       toast.error(error.message || 'Failed to cancel interview')
+    },
+  })
+
+  const deleteCandidateMutation = trpc.interview.deleteCandidate.useMutation({
+    onSuccess: () => {
+      utils.interview.list.invalidate()
+      utils.interview.getCounts.invalidate()
+      setDeleteCandidateDialogOpen(false)
+      setSelectedCandidate(null)
+      toast.success('Candidate deleted successfully')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete candidate')
     },
   })
 
@@ -414,6 +429,18 @@ export default function InterviewsPage() {
                                 </DropdownMenuItem>
                               </>
                             )}
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-destructive font-medium"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                setSelectedCandidate({ id: interview.candidate.id, name: interview.candidate.name })
+                                setDeleteCandidateDialogOpen(true)
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Candidate
+                            </DropdownMenuItem>
                             {interview.status === 'COMPLETED' && (
                               <>
                                 <DropdownMenuItem
@@ -480,6 +507,39 @@ export default function InterviewsPage() {
                 </>
               ) : (
                 'Cancel Interview'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Candidate Confirmation Dialog */}
+      <AlertDialog open={deleteCandidateDialogOpen} onOpenChange={setDeleteCandidateDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Candidate</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to completely delete {selectedCandidate?.name}? This action cannot be undone and will remove all their data, including interviews and test results.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedCandidate) {
+                  deleteCandidateMutation.mutate({ id: selectedCandidate.id })
+                }
+              }}
+              className="bg-destructive hover:bg-destructive/90"
+              disabled={deleteCandidateMutation.isPending}
+            >
+              {deleteCandidateMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Candidate'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

@@ -1553,26 +1553,9 @@ export const jobRouter = router({
         }
       })
 
-      // Queue auto-email for the initial 'APPLIED' stage
-      try {
-        const { queueStageEmail } = await import('@/lib/jobs/stage-email')
-        const { getWorker } = await import('@/lib/jobs/worker')
-        const boss = getWorker()
-        if (boss && ctx.user) {
-          await queueStageEmail(boss, {
-            candidateId: candidate.id,
-            fromStage: null,
-            toStage: 'APPLIED',
-            recruiterId: ctx.user.id,
-            recruiterEmail: ctx.user.email || '',
-            recruiterName: ctx.user.name || undefined,
-            skipAutoEmail: false,
-          })
-          console.log('[createCandidate] Queued initial stage email for candidate:', candidate.id)
-        }
-      } catch (error) {
-        console.error('[createCandidate] Failed to queue initial stage email:', error)
-      }
+      // We explicitly DO NOT queue auto-emails here because when a recruiter 
+      // adds a candidate manually, it shouldn't send an automatic "Thanks for applying" email.
+      // Confirmation emails should only go out when a candidate applies via submitApplication.
 
       // Create employee record with status CANDIDATE
       try {

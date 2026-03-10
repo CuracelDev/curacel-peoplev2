@@ -48,6 +48,10 @@ const employeeUpdateSchema = z.object({
   emergencyContactRelation: z.string().nullable().optional(),
   emergencyContactPhone: z.string().nullable().optional(),
   emergencyContactEmail: z.string().nullable().optional(),
+  gender: z.string().nullable().optional(),
+  maritalStatus: z.string().nullable().optional(),
+  dateOfBirth: z.string().nullable().optional(),
+  taxId: z.string().nullable().optional(),
   meta: z.record(z.unknown()).optional(),
   profileImageUrl: z.string().nullable().optional(),
 })
@@ -481,10 +485,13 @@ export const employeeRouter = router({
       if (data.endDate !== undefined) {
         updateData.endDate = data.endDate ? new Date(data.endDate) : null
       }
+      if (data.dateOfBirth !== undefined) {
+        updateData.dateOfBirth = data.dateOfBirth ? new Date(data.dateOfBirth) : null
+      }
 
       // Copy other fields
       Object.entries(data).forEach(([key, value]) => {
-        if (key !== 'startDate' && key !== 'endDate' && value !== undefined) {
+        if (key !== 'startDate' && key !== 'endDate' && key !== 'dateOfBirth' && value !== undefined) {
           updateData[key] = value
         }
       })
