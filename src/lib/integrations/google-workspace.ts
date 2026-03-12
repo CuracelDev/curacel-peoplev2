@@ -449,6 +449,8 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
       this.resolveUserIdFromEmail(newOwner),
     ])
 
+    console.log(`[GoogleWorkspace] Transferring data: oldOwnerUserId=${oldOwnerUserId}, newOwnerUserId=${newOwnerUserId}`)
+
     const dataTransfer = await this.getDataTransferClient()
     const response = await dataTransfer.applications.list({ customerId: 'my_customer' })
     const availableApps = response.data.applications || []

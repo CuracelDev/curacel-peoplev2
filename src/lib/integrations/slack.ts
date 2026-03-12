@@ -284,7 +284,23 @@ export class SlackConnector implements IntegrationConnector {
     _options?: DeprovisionOptions
   ): Promise<DeprovisionResult> {
     try {
-      const slackUserId = account.externalUserId
+      let slackUserId = account.externalUserId
+
+      if (!slackUserId) {
+        // Try to lookup by email if ID is missing
+        const email = account.externalEmail || employee.workEmail || employee.personalEmail
+        if (email) {
+          try {
+            const userLookup = await this.botClient.users.lookupByEmail({ email })
+            if (userLookup.ok && userLookup.user?.id) {
+              slackUserId = userLookup.user.id
+            }
+          } catch (e) {
+            console.warn(`Slack lookupByEmail failed for ${email}:`, e)
+          }
+        }
+      }
+
       if (!slackUserId) {
         return { success: false, error: 'No Slack user ID found' }
       }

@@ -797,7 +797,7 @@ export const offboardingRouter = router({
     }),
 })
 
-async function runOffboardingTask(
+export async function runOffboardingTask(
   prisma: typeof import('@/lib/prisma').default,
   taskId: string,
   actorId: string,
@@ -919,7 +919,7 @@ async function runOffboardingTask(
   }
 }
 
-async function checkAndCompleteOffboarding(prisma: typeof import('@/lib/prisma').default, workflowId: string) {
+export async function checkAndCompleteOffboarding(prisma: typeof import('@/lib/prisma').default, workflowId: string) {
   const workflow = await prisma.offboardingWorkflow.findUnique({
     where: { id: workflowId },
     include: { tasks: true },
