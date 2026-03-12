@@ -889,8 +889,11 @@ export async function runOffboardingTask(
       },
     })
 
+    const isSystemActor = actorId === 'system'
+
     await createAuditLog({
-      actorId,
+      actorId: isSystemActor ? undefined : actorId,
+      actorType: isSystemActor ? 'system' : 'user',
       action: 'OFFBOARDING_TASK_COMPLETED',
       resourceType: 'offboarding_task',
       resourceId: taskId,
