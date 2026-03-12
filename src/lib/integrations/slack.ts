@@ -302,7 +302,7 @@ export class SlackConnector implements IntegrationConnector {
       }
 
       if (!slackUserId) {
-        return { success: false, error: 'No Slack user ID found' }
+        return { success: true, error: 'No Slack user ID found - assuming already deprovisioned' }
       }
 
       // Deactivate user

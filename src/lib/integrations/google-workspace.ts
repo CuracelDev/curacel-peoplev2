@@ -419,11 +419,15 @@ export class GoogleWorkspaceConnector implements IntegrationConnector {
           aliasTarget: aliasToEmail,
         }
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Google Workspace deprovisioning error:', error)
+      const message = error instanceof Error ? error.message : String(error)
+      if (message.includes('Not Found') || message.includes('404') || error.code === 404) {
+        return { success: true, error: `User not found in Google Workspace - assuming already deprovisioned: ${message}` }
+      }
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Failed to deprovision Google Workspace account',
+        error: message,
       }
     }
   }
