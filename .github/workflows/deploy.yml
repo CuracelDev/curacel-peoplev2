@@ -98,9 +98,9 @@ jobs:
             docker compose -f docker-compose.deploy.yml up -d postgres redis
             sleep 10
             
-#            # Migrations (db push)
-#            echo "[2.5/3] Running migrations..."
-#            docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push --accept-data-loss --skip-generate < /dev/null
+            # Migrations (db push) - Temporarily disabled due to DifficultyLevel conflict
+            # echo "[2.5/3] Running migrations..."
+            # docker compose -f docker-compose.deploy.yml run --rm -T app prisma db push --accept-data-loss --skip-generate < /dev/null
             
             # Init pg-boss schema
             echo "[2.6/3] Initializing pg-boss schema..."
