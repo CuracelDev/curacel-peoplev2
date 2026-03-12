@@ -16,11 +16,12 @@ interface AuditLogParams {
 }
 
 export async function createAuditLog(params: AuditLogParams): Promise<void> {
+  const isSystem = params.actorId === 'system' || params.actorType === 'system'
   const log = await prisma.auditLog.create({
     data: {
-      actorId: params.actorId,
+      actorId: isSystem ? undefined : params.actorId,
       actorEmail: params.actorEmail,
-      actorType: params.actorType || 'user',
+      actorType: isSystem ? 'system' : (params.actorType || 'user'),
       action: params.action,
       resourceType: params.resourceType,
       resourceId: params.resourceId,
