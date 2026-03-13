@@ -33,6 +33,18 @@ const stageDisplayNames: Record<string, string> = {
   'TRIAL': 'Work Trial',
 }
 
+function buildCalendarAttendees(baseEmails: Array<string | null | undefined>, actingUserEmail?: string | null) {
+  const attendees = baseEmails
+    .map((email) => email?.trim().toLowerCase())
+    .filter((email): email is string => Boolean(email))
+
+  if (actingUserEmail?.trim().toLowerCase().endsWith('@curacel.ai')) {
+    attendees.push(actingUserEmail.trim().toLowerCase())
+  }
+
+  return Array.from(new Set(attendees))
+}
+
 export const interviewRouter = router({
   // List all interviews across candidates
   list: protectedProcedure
@@ -560,11 +572,13 @@ export const interviewRouter = router({
 
           if (connector) {
             const currentInterviewers = (interview.interviewers as any[]) || []
-            const attendeeEmails = Array.from(new Set([
-              ...currentInterviewers.map((i: any) => i.email),
-              interview.candidate.email,
-              ctx.session?.user?.email,
-            ].filter(Boolean) as string[]))
+            const attendeeEmails = buildCalendarAttendees(
+              [
+                ...currentInterviewers.map((i: any) => i.email),
+                interview.candidate.email,
+              ],
+              ctx.session?.user?.email
+            )
 
             const stageName = interview.interviewType?.name ||
               stageDisplayNames[interview.stage] ||
@@ -734,11 +748,13 @@ export const interviewRouter = router({
 
           if (connector) {
             const currentInterviewers = (interview.interviewers as any[]) || []
-            const attendeeEmails = Array.from(new Set([
-              ...currentInterviewers.map((i: any) => i.email),
-              interview.candidate.email,
-              ctx.session?.user?.email,
-            ].filter(Boolean) as string[]))
+            const attendeeEmails = buildCalendarAttendees(
+              [
+                ...currentInterviewers.map((i: any) => i.email),
+                interview.candidate.email,
+              ],
+              ctx.session?.user?.email
+            )
 
             const stageName = interview.interviewType?.name ||
               stageDisplayNames[interview.stage] ||
@@ -893,11 +909,13 @@ export const interviewRouter = router({
 
           if (connector) {
             const currentInterviewers = (updatedInterview.interviewers as any[]) || []
-            const attendeeEmails = Array.from(new Set([
-              ...currentInterviewers.map((i: any) => i.email),
-              updatedInterview.candidate.email,
-              ctx.session?.user?.email,
-            ].filter(Boolean) as string[]))
+            const attendeeEmails = buildCalendarAttendees(
+              [
+                ...currentInterviewers.map((i: any) => i.email),
+                updatedInterview.candidate.email,
+              ],
+              ctx.session?.user?.email
+            )
 
             // Regenerate description to include the new interviewer
             const stageName = updatedInterview.interviewType?.name ||
@@ -1011,11 +1029,13 @@ export const interviewRouter = router({
 
           if (connector) {
             const currentInterviewers = (updatedInterview.interviewers as any[]) || []
-            const attendeeEmails = Array.from(new Set([
-              ...currentInterviewers.map((i: any) => i.email),
-              updatedInterview.candidate.email,
-              ctx.session?.user?.email,
-            ].filter(Boolean) as string[]))
+            const attendeeEmails = buildCalendarAttendees(
+              [
+                ...currentInterviewers.map((i: any) => i.email),
+                updatedInterview.candidate.email,
+              ],
+              ctx.session?.user?.email
+            )
 
             // Regenerate description
             const stageName = updatedInterview.interviewType?.name ||
@@ -2452,11 +2472,13 @@ export const interviewRouter = router({
         role?: string
       }>) || []
 
-      const attendeeEmails = Array.from(new Set([
-        ...interviewers.map(i => i.email),
-        interview.candidate.email,
-        ctx.session?.user?.email,
-      ].filter(Boolean) as string[]))
+      const attendeeEmails = buildCalendarAttendees(
+        [
+          ...interviewers.map(i => i.email),
+          interview.candidate.email,
+        ],
+        ctx.session?.user?.email
+      )
 
       // Build event title and description
       const stageName = interview.interviewType?.name ||
@@ -2563,11 +2585,13 @@ export const interviewRouter = router({
 
       // Build description and other details
       const interviewers = (interview.interviewers as any[]) || []
-      const attendeeEmails = Array.from(new Set([
-        ...interviewers.map(i => i.email),
-        interview.candidate.email,
-        ctx.session?.user?.email,
-      ].filter(Boolean) as string[]))
+      const attendeeEmails = buildCalendarAttendees(
+        [
+          ...interviewers.map(i => i.email),
+          interview.candidate.email,
+        ],
+        ctx.session?.user?.email
+      )
 
       const stageName = interview.interviewType?.name ||
         stageDisplayNames[interview.stage] ||
@@ -3003,11 +3027,13 @@ Respond ONLY with valid JSON, no additional text.`
         role?: string
       }>) || []
 
-      const attendeeEmails = Array.from(new Set([
-        ...interviewers.map(i => i.email),
-        fullInterview.candidate.email,
-        ctx.session?.user?.email,
-      ].filter(Boolean) as string[]))
+      const attendeeEmails = buildCalendarAttendees(
+        [
+          ...interviewers.map(i => i.email),
+          fullInterview.candidate.email,
+        ],
+        ctx.session?.user?.email
+      )
 
       const stageName = fullInterview.interviewType?.name ||
         stageDisplayNames[fullInterview.stage] ||

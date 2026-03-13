@@ -16,7 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Fixed
 - Application auto-emails now respect the "Auto-send on Application" setting, only send for inbound applicants, and ignore any mismatched stage template configuration.
-- Interview calendar sync now adds the acting recruiter as an attendee so newly scheduled and rescheduled interviews are visible immediately in calendar workflows.
+- Interview calendar sync now adds the acting recruiter as an attendee only when they have a workspace mailbox, preventing Google Calendar invite failures while preserving organizer visibility.
 - Contracts can now be created for trial-stage candidates with any active template, including NDA templates, without forcing offer-only status handling.
 - Interview calendar sync now uses the shared organizer account so scheduling and rescheduling updates reach the actual invite regardless of which recruiter made the change.
 - Hiring assessments and onboarding workflows can now be deleted from the app, and draft contracts can now be deleted directly from the contract detail view.
