@@ -14,6 +14,7 @@ import { hireFlowHandler, HIRE_FLOW_JOB_NAME } from './hire-flow'
 import { initResumeProcessJob, RESUME_PROCESS_JOB_NAME } from './resume-process'
 import { initAutoActivateJob, scheduleAutoActivate } from './auto-activate'
 import { initWorkEmailSyncJob, scheduleWorkEmailSync, WORK_EMAIL_SYNC_JOB_NAME } from './work-email-sync'
+import { initOffboardingJob, scheduleOffboarding, OFFBOARDING_JOB_NAME } from './offboarding'
 
 // No global SSL bypass - use local config instead
 
@@ -115,6 +116,10 @@ export async function initializeWorker(): Promise<PgBoss> {
       await initWorkEmailSyncJob(boss)
       await scheduleWorkEmailSync(boss)
 
+      // Initialize offboarding (processes scheduled offboarding workflows)
+      await initOffboardingJob(boss)
+      await scheduleOffboarding(boss)
+
       console.log('[Worker] All job handlers registered and scheduled')
 
       return boss
@@ -173,6 +178,7 @@ export async function getQueueStats(): Promise<{
   hireFlow: { pending: number; failed: number }
   resumeProcess: { pending: number; failed: number }
   workEmailSync: { pending: number; failed: number }
+  offboarding: { pending: number; failed: number }
 } | null> {
   if (!boss) return null
 
@@ -187,6 +193,8 @@ export async function getQueueStats(): Promise<{
     resumeProcessFailed,
     workEmailSyncPending,
     workEmailSyncFailed,
+    offboardingPending,
+    offboardingFailed,
   ] = await Promise.all([
     boss.getQueueSize(STAGE_EMAIL_JOB_NAME, { state: 'created' }),
     boss.getQueueSize(STAGE_EMAIL_JOB_NAME, { state: 'failed' }),
@@ -198,6 +206,8 @@ export async function getQueueStats(): Promise<{
     boss.getQueueSize(RESUME_PROCESS_JOB_NAME, { state: 'failed' }),
     boss.getQueueSize(WORK_EMAIL_SYNC_JOB_NAME, { state: 'created' }),
     boss.getQueueSize(WORK_EMAIL_SYNC_JOB_NAME, { state: 'failed' }),
+    boss.getQueueSize(OFFBOARDING_JOB_NAME, { state: 'created' }),
+    boss.getQueueSize(OFFBOARDING_JOB_NAME, { state: 'failed' }),
   ])
 
   return {
@@ -207,5 +217,6 @@ export async function getQueueStats(): Promise<{
     hireFlow: { pending: hireFlowPending, failed: hireFlowFailed },
     resumeProcess: { pending: resumeProcessPending, failed: resumeProcessFailed },
     workEmailSync: { pending: workEmailSyncPending, failed: workEmailSyncFailed },
+    offboarding: { pending: offboardingPending, failed: offboardingFailed },
   }
 }

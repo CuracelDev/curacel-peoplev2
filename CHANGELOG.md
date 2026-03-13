@@ -28,6 +28,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Bitbucket pipeline: Use local Prisma version instead of npx to prevent version conflicts
 - Job candidates stage cards now filter correctly without being reset by URL stage params.
 - Bulk candidate upload now supports Excel files.
+- **Offboarding & Provisioning Fixes**
+  - Resolved `Foreign key constraint failed` in audit logging for system-generated actions by correctly handling the 'system' actor.
+  - Improved offboarding robustness: Slack and Google Workspace deprovisioning now handle "user not found" gracefully without blocking the workflow.
+  - Fixed an issue where the offboarding background job was not being correctly registered in production.
+  - Added support for data transfer to `admin@curacel.ai` as a fallback in Google Workspace deprovisioning.
 
 ### Removed
 - Legacy Role Competencies settings page and old job competency selection UI (superseded by the competency framework).
