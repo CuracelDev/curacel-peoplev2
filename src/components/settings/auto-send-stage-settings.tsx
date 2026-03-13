@@ -242,11 +242,13 @@ export function AutoSendStageSettings() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="default">Use default for stage</SelectItem>
-                            {templates?.map((template) => (
+                            {templates
+                              ?.filter((template) => !template.stage || template.stage === stage.value)
+                              .map((template) => (
                               <SelectItem key={template.id} value={template.id}>
                                 {template.name}
                               </SelectItem>
-                            ))}
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>

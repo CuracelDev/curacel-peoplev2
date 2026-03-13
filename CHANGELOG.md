@@ -15,6 +15,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - WORK_EMAIL_SYNCED audit action for tracking changes
 
 ### Fixed
+- Application auto-emails now respect the "Auto-send on Application" setting, only send for inbound applicants, and ignore any mismatched stage template configuration.
+- Interview calendar sync now adds the acting recruiter as an attendee so newly scheduled and rescheduled interviews are visible immediately in calendar workflows.
+- Contracts can now be created for trial-stage candidates with any active template, including NDA templates, without forcing offer-only status handling.
+- Interview calendar sync now uses the shared organizer account so scheduling and rescheduling updates reach the actual invite regardless of which recruiter made the change.
+- Hiring assessments and onboarding workflows can now be deleted from the app, and draft contracts can now be deleted directly from the contract detail view.
+- Assessment views now preserve clearer completion state by passing through explicit reschedule notes and exposing deletion and status handling improvements in the UI.
 - Resume processing now runs synchronously when application is submitted, instead of relying on background job queue (pg-boss) which was unreliable in production
 - Improved error handling on job application form - Zod validation errors now show user-friendly messages instead of raw JSON
 - Added client-side validation for cover letter minimum length

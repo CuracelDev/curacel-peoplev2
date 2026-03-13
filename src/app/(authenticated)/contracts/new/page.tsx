@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { trpc } from '@/lib/trpc-client'
 import { Button } from '@/components/ui/button'
@@ -80,12 +80,13 @@ export default function NewContractPage() {
   const [showAddCandidate, setShowAddCandidate] = useState(false)
   const [showAddSignatureBlock, setShowAddSignatureBlock] = useState(false)
   const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null)
+  const [selectedTemplateId, setSelectedTemplateId] = useState('')
   const [selectedSource, setSelectedSource] = useState<'candidates' | 'employees'>('candidates')
   const [employeeOpen, setEmployeeOpen] = useState(false)
   const [employeeSearch, setEmployeeSearch] = useState('')
   const { data: hiringSettings } = trpc.hiringSettings.get.useQuery()
 
-  // Get candidates in OFFER stage
+  // Get candidates in contract-ready stages
   const { data: offerCandidates } = trpc.offer.getCandidatesInOfferStage.useQuery()
 
   // Get existing employees
@@ -129,6 +130,13 @@ export default function NewContractPage() {
   const watchedStartDate = watch('anticipatedStartDate')
   const watchedEmploymentType = watch('employmentType')
 
+  const { data: allTemplates } = trpc.offerTemplate.list.useQuery(
+    { includeInactive: false },
+    {
+      enabled: true,
+    }
+  )
+
   // Get templates filtered by employment type
   const employmentType = watch('employmentType')
   const { data: templates } = trpc.offerTemplate.list.useQuery(
@@ -138,16 +146,30 @@ export default function NewContractPage() {
     }
   )
 
+  const availableTemplates = useMemo(() => allTemplates || templates || [], [allTemplates, templates])
+
   // Auto-select template when employment type changes
   useEffect(() => {
-    if (employmentType && templates && templates.length > 0) {
-      const matchingTemplate = templates.find(t => t.employmentType === employmentType)
-      if (matchingTemplate) {
-        // Template is automatically selected based on employment type
-        // The template will be used in onSubmit
-      }
+    if (!availableTemplates.length) return
+
+    const selectedTemplate = availableTemplates.find((template) => template.id === selectedTemplateId)
+    if (selectedTemplate) return
+
+    const matchingTemplate = employmentType
+      ? availableTemplates.find((template) => template.employmentType === employmentType)
+      : undefined
+
+    setSelectedTemplateId((matchingTemplate || availableTemplates[0]).id)
+  }, [availableTemplates, employmentType, selectedTemplateId])
+
+  useEffect(() => {
+    if (!selectedTemplateId) return
+
+    const selectedTemplate = availableTemplates.find((template) => template.id === selectedTemplateId)
+    if (selectedTemplate?.employmentType && selectedTemplate.employmentType !== employmentType) {
+      setValue('employmentType', selectedTemplate.employmentType as 'FULL_TIME' | 'PART_TIME' | 'CONTRACTOR' | 'INTERN')
     }
-  }, [employmentType, templates])
+  }, [availableTemplates, employmentType, selectedTemplateId, setValue])
 
   // Set default signature block when data loads
   useEffect(() => {
@@ -230,11 +252,10 @@ export default function NewContractPage() {
       ? `${selectedSignatureBlock.signatoryName}, ${selectedSignatureBlock.signatoryTitle}`
       : data.signatureBlock
 
-    // Find the appropriate template based on employment type
-    const selectedTemplate = templates?.find(t => t.employmentType === data.employmentType) || templates?.[0]
+    const selectedTemplate = availableTemplates.find((template) => template.id === selectedTemplateId)
 
     if (!selectedTemplate) {
-      alert('No template found for this employment type. Please create a template first.')
+      alert('No contract template selected. Please choose a template first.')
       return
     }
 
@@ -326,7 +347,7 @@ export default function NewContractPage() {
                     : 'border-transparent text-muted-foreground hover:text-foreground'
                     }`}
                 >
-                  Candidates in Offer Stage {offerCandidates?.length ? `(${offerCandidates.length})` : ''}
+                  Candidates in Offer or Trial Stage {offerCandidates?.length ? `(${offerCandidates.length})` : ''}
                 </button>
                 <button
                   type="button"
@@ -380,7 +401,7 @@ export default function NewContractPage() {
                     </div>
                   ) : (
                     <p className="text-sm text-muted-foreground italic p-4 border border-dashed border-border rounded-lg">
-                      No candidates in OFFER stage. Move candidates to OFFER stage to create offers for them.
+                      No candidates in OFFER or TRIAL stage. Move candidates to one of those stages to create contracts for them.
                     </p>
                   )}
                 </div>
@@ -495,6 +516,24 @@ export default function NewContractPage() {
               {selectedSource === 'candidates' && !selectedCandidateId && (
                 <p className="text-sm text-destructive mt-1">Please select a candidate</p>
               )}
+            </div>
+
+            <div>
+              <Label htmlFor="templateId" className="text-sm font-medium">
+                Contract template <span className="text-destructive">*</span>
+              </Label>
+              <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                <SelectTrigger className="ring-border focus:ring-indigo-600 mt-1">
+                  <SelectValue placeholder="Select contract template" />
+                </SelectTrigger>
+                <SelectContent side="bottom" sideOffset={4} avoidCollisions={false}>
+                  {availableTemplates.map((template) => (
+                    <SelectItem key={template.id} value={template.id}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Employment Type */}
@@ -953,7 +992,7 @@ export default function NewContractPage() {
           </Button>
           <Button
             type="submit"
-            disabled={createOffer.isPending}
+            disabled={createOffer.isPending || !selectedTemplateId}
             className="bg-primary hover:bg-primary/90"
           >
             {createOffer.isPending ? 'Creating...' : 'Create Contract'}

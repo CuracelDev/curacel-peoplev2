@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import { ArrowLeft, Send, X, ExternalLink, FileText, Clock, Pencil, RotateCcw } from 'lucide-react'
+import { ArrowLeft, Send, X, ExternalLink, FileText, Clock, Pencil, RotateCcw, Trash2 } from 'lucide-react'
 import { contractStatusLabels, contractStatusColors, formatDate, formatDateTime } from '@/lib/utils'
 import { RichTextEditor } from '@/components/ui/rich-text-editor'
 
@@ -97,6 +97,16 @@ export default function ContractDetailPage() {
     onError: (err) => {
       console.error('Failed to restore contract', err)
       alert(err.message || 'Failed to restore contract')
+    },
+  })
+
+  const deleteDraft = trpc.offer.deleteDraft.useMutation({
+    onSuccess: () => {
+      router.push('/contracts')
+    },
+    onError: (err) => {
+      console.error('Failed to delete draft contract', err)
+      alert(err.message || 'Failed to delete draft contract')
     },
   })
 
@@ -207,6 +217,7 @@ export default function ContractDetailPage() {
   ].filter(Boolean) as { label: string; value: string }[]
 
   const canSend = contract.status === 'DRAFT'
+  const canDeleteDraft = contract.status === 'DRAFT'
   const canResend = ['SENT', 'VIEWED'].includes(contract.status)
   const canCancel = ['DRAFT', 'SENT', 'VIEWED'].includes(contract.status)
   const canEdit = !['SIGNED', 'DECLINED', 'EXPIRED', 'CANCELLED'].includes(contract.status)
@@ -290,6 +301,20 @@ export default function ContractDetailPage() {
             >
               <X className="mr-2 h-4 w-4" />
               {cancelContract.isPending ? 'Cancelling...' : 'Cancel'}
+            </Button>
+          )}
+          {canDeleteDraft && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (!confirm('Delete this draft contract? This cannot be undone.')) return
+                deleteDraft.mutate(contract.id)
+              }}
+              disabled={deleteDraft.isPending}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              {deleteDraft.isPending ? 'Deleting...' : 'Delete Draft'}
             </Button>
           )}
           {contract.status === 'CANCELLED' && (

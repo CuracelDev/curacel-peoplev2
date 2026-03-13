@@ -337,6 +337,7 @@ const docSectionsV2: DocSection[] = [
           'Open a candidate profile.',
           'Select the assessment and send it.',
           'Review results in the candidate timeline once completed.',
+          'Delete draft or incorrect assessment records from the Assessments list or detail page when cleanup is needed.',
         ],
       },
     ],
@@ -351,6 +352,8 @@ const docSectionsV2: DocSection[] = [
         ordered: true,
         items: [
           'Open Contracts and click New employment contract.',
+          'Select a candidate in Offer or Trial stage, or choose an existing employee.',
+          'Pick any active contract template, including NDA templates.',
           'Select the candidate and employment type.',
           'Fill compensation details and start date.',
           'Pick the legal entity and signature block.',
@@ -371,6 +374,7 @@ const docSectionsV2: DocSection[] = [
         items: [
           'Settings > Contract templates stores template bodies.',
           'Settings > Signature blocks stores signing profiles.',
+          'Use the NDA template for trial-stage agreements that still need e-signature tracking in Contracts.',
         ],
       },
     ],
@@ -410,6 +414,7 @@ const docSectionsV2: DocSection[] = [
         items: [
           'Settings > On/Offboarding controls default tasks.',
           'Settings > Onboarding Flow lets you reorder or add steps.',
+          'Delete obsolete onboarding workflows directly from the workflow detail page.',
         ],
       },
     ],
@@ -1448,6 +1453,7 @@ const docSectionsV1: DocSection[] = [
           'Set default CC and tracking preferences for candidate emails.',
           'Enable or disable auto-send on application.',
           'Configure auto-send behavior by stage.',
+          'Stage auto-send now keeps template selection aligned to the same hiring stage to avoid sending the wrong message.',
         ],
       },
       {

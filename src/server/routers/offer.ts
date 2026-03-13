@@ -33,6 +33,14 @@ const offerUpdateSchema = z.object({
 
 const ALLOWED_RESEND_STATUSES = ['DRAFT', 'SENT', 'VIEWED']
 
+function isGeneralAgreementTemplate(template: { id: string; name: string; employmentType: string | null | undefined }) {
+  return !template.employmentType || template.id === 'nda-template' || /nda/i.test(template.name)
+}
+
+function getAgreementLabel(template: { id: string; name: string; employmentType: string | null | undefined }) {
+  return isGeneralAgreementTemplate(template) ? 'Agreement' : 'Offer'
+}
+
 function ensureSendableStatus(status: string, allowResend = false) {
   if (allowResend) {
     if (!ALLOWED_RESEND_STATUSES.includes(status)) {
@@ -127,7 +135,7 @@ export const offerRouter = router({
     .query(async ({ ctx }) => {
       const candidates = await ctx.prisma.jobCandidate.findMany({
         where: {
-          stage: 'OFFER',
+          stage: { in: ['OFFER', 'TRIAL'] },
         },
         include: {
           job: {
@@ -407,10 +415,12 @@ export const offerRouter = router({
             baseUrl: process.env.NEXTAUTH_URL,
           })
 
+          const documentLabel = getAgreementLabel(offer.template)
+
           const result = await docusign.sendEnvelope({
             signerEmail: offer.candidateEmail,
             signerName: offer.candidateName,
-            subject: `Offer from ${organization.name} - ${offer.candidateName}`,
+            subject: `${documentLabel} from ${organization.name} - ${offer.candidateName}`,
             documentHtml,
             callbackUrl: `${process.env.NEXTAUTH_URL}/api/webhooks/docusign`,
           })
@@ -456,10 +466,12 @@ export const offerRouter = router({
       }
 
       // Update employee status
-      await ctx.prisma.employee.update({
-        where: { id: offer.employeeId },
-        data: { status: 'OFFER_SENT' },
-      })
+      if (!isGeneralAgreementTemplate(offer.template)) {
+        await ctx.prisma.employee.update({
+          where: { id: offer.employeeId },
+          data: { status: 'OFFER_SENT' },
+        })
+      }
 
       // Create event
       await ctx.prisma.offerEvent.create({
@@ -503,10 +515,12 @@ export const offerRouter = router({
             baseUrl: process.env.NEXTAUTH_URL,
           })
 
+          const documentLabel = getAgreementLabel(offer.template)
+
           const result = await docusign.sendEnvelope({
             signerEmail: offer.candidateEmail,
             signerName: offer.candidateName,
-            subject: `Offer from ${organization.name} - ${offer.candidateName}`,
+            subject: `${documentLabel} from ${organization.name} - ${offer.candidateName}`,
             documentHtml,
             callbackUrl: `${process.env.NEXTAUTH_URL}/api/webhooks/docusign`,
           })
@@ -551,7 +565,7 @@ export const offerRouter = router({
         })
       }
 
-      if (offer.employeeId) {
+      if (offer.employeeId && !isGeneralAgreementTemplate(offer.template)) {
         await ctx.prisma.employee.update({
           where: { id: offer.employeeId },
           data: { status: 'OFFER_SENT' },
@@ -689,6 +703,32 @@ export const offerRouter = router({
       })
 
       return updated
+    }),
+
+  deleteDraft: hrAdminProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input: offerId }) => {
+      const offer = await ctx.prisma.offer.findUnique({
+        where: { id: offerId },
+      })
+
+      if (!offer) {
+        throw new TRPCError({ code: 'NOT_FOUND' })
+      }
+
+      if (offer.status !== 'DRAFT') {
+        throw new TRPCError({ code: 'BAD_REQUEST', message: 'Only draft offers can be deleted' })
+      }
+
+      await ctx.prisma.offerEvent.deleteMany({
+        where: { offerId },
+      })
+
+      await ctx.prisma.offer.delete({
+        where: { id: offerId },
+      })
+
+      return { success: true }
     }),
 
   // Public endpoint for candidates to view their offer

@@ -603,6 +603,28 @@ export const assessmentRouter = router({
       }
     }),
 
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const assessment = await ctx.prisma.candidateAssessment.findUnique({
+        where: { id: input.id },
+        select: { id: true },
+      })
+
+      if (!assessment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Assessment not found',
+        })
+      }
+
+      await ctx.prisma.candidateAssessment.delete({
+        where: { id: input.id },
+      })
+
+      return { success: true }
+    }),
+
   // Get candidates eligible for a specific assessment (e.g. at TECHNICAL stage)
   getEligibleCandidates: protectedProcedure
     .input(z.object({

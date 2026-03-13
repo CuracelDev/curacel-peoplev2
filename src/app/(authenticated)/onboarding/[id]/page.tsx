@@ -33,6 +33,7 @@ import {
   FileText,
   Video,
   ClipboardList,
+  Trash2,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useMemo, type ReactNode } from 'react'
@@ -202,6 +203,12 @@ export default function OnboardingDetailPage() {
       setSkipReason('')
       setSendByodAgreement(false)
       refetch()
+    },
+  })
+
+  const deleteWorkflow = trpc.onboarding.deleteWorkflow.useMutation({
+    onSuccess: () => {
+      router.push('/onboarding')
     },
   })
 
@@ -578,14 +585,28 @@ export default function OnboardingDetailPage() {
             {workflow.employee.jobTitle} • {workflow.employee.department}
           </p>
         </div>
-        <Badge className={
-          workflow.status === 'COMPLETED' ? 'bg-success/10 text-success' :
-            workflow.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
-              workflow.status === 'FAILED' ? 'bg-destructive/10 text-destructive-foreground' :
-                'bg-muted text-foreground'
-        }>
-          {workflow.status.replace('_', ' ')}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (!confirm('Delete this onboarding workflow? This cannot be undone.')) return
+              deleteWorkflow.mutate(workflowId)
+            }}
+            disabled={deleteWorkflow.isPending}
+          >
+            <Trash2 className="mr-2 h-4 w-4" />
+            {deleteWorkflow.isPending ? 'Deleting...' : 'Delete Workflow'}
+          </Button>
+          <Badge className={
+            workflow.status === 'COMPLETED' ? 'bg-success/10 text-success' :
+              workflow.status === 'IN_PROGRESS' ? 'bg-blue-100 text-blue-800' :
+                workflow.status === 'FAILED' ? 'bg-destructive/10 text-destructive-foreground' :
+                  'bg-muted text-foreground'
+          }>
+            {workflow.status.replace('_', ' ')}
+          </Badge>
+        </div>
       </div>
 
       {/* Progress Card */}

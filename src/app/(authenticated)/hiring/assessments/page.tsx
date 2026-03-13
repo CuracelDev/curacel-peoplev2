@@ -55,6 +55,7 @@ import {
   Briefcase,
   Plus,
   Copy,
+  Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -213,6 +214,17 @@ export default function AssessmentsPage() {
     },
   })
 
+  const deleteAssessment = trpc.assessment.delete.useMutation({
+    onSuccess: () => {
+      toast.success('Assessment deleted')
+      utils.assessment.list.invalidate()
+      utils.assessment.getCounts.invalidate()
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete assessment')
+    },
+  })
+
   const handleSendAssessment = () => {
     if (!selectedCandidateId || !selectedTemplateId) {
       toast.error('Please select a candidate and assessment template')
@@ -230,6 +242,11 @@ export default function AssessmentsPage() {
 
   const handleCopyLink = (assessmentId: string) => {
     copyLink.mutate({ id: assessmentId })
+  }
+
+  const handleDeleteAssessment = (assessmentId: string) => {
+    if (!confirm('Delete this assessment? This cannot be undone.')) return
+    deleteAssessment.mutate({ id: assessmentId })
   }
 
   // Filter types for display
@@ -470,6 +487,16 @@ export default function AssessmentsPage() {
                                 Sync Dashboard
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleDeleteAssessment(assessment.id)
+                              }}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Assessment
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

@@ -511,6 +511,34 @@ export const onboardingRouter = router({
       return synced || workflow
     }),
 
+  deleteWorkflow: hrAdminProcedure
+    .input(z.string())
+    .mutation(async ({ ctx, input: workflowId }) => {
+      const workflow = await ctx.prisma.onboardingWorkflow.findUnique({
+        where: { id: workflowId },
+        select: {
+          id: true,
+          employeeId: true,
+        },
+      })
+
+      if (!workflow) {
+        throw new TRPCError({ code: 'NOT_FOUND', message: 'Onboarding workflow not found' })
+      }
+
+      await ctx.prisma.$transaction(async (tx) => {
+        await tx.onboardingTask.deleteMany({
+          where: { workflowId },
+        })
+
+        await tx.onboardingWorkflow.delete({
+          where: { id: workflowId },
+        })
+      })
+
+      return { success: true }
+    }),
+
   getByEmployee: protectedProcedure
     .input(z.string())
     .query(async ({ ctx, input: employeeId }) => {

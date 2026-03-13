@@ -36,6 +36,7 @@ import {
   Minus,
   Webhook,
   RefreshCw,
+  Trash2,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { format } from 'date-fns'
@@ -117,6 +118,16 @@ export default function AssessmentDetailPage() {
     },
   })
 
+  const deleteAssessment = trpc.assessment.delete.useMutation({
+    onSuccess: () => {
+      toast.success('Assessment deleted')
+      router.push('/hiring/assessments')
+    },
+    onError: (error) => {
+      toast.error(error.message || 'Failed to delete assessment')
+    },
+  })
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -189,9 +200,23 @@ export default function AssessmentDetailPage() {
             </div>
           </div>
         </div>
-        <Badge className={cn('font-normal', status.color)}>
-          {status.label}
-        </Badge>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (!confirm('Delete this assessment? This cannot be undone.')) return
+              deleteAssessment.mutate({ id })
+            }}
+            disabled={deleteAssessment.isPending}
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            {deleteAssessment.isPending ? 'Deleting...' : 'Delete'}
+          </Button>
+          <Badge className={cn('font-normal', status.color)}>
+            {status.label}
+          </Badge>
+        </div>
       </div>
 
       {/* Assessment Info Card */}
@@ -250,6 +275,17 @@ export default function AssessmentDetailPage() {
                     <div className="text-sm text-success dark:text-success">Completed</div>
                     <div className="font-medium text-success-foreground dark:text-green-200">
                       {format(new Date(assessment.completedAt), "MMM d, yyyy 'at' h:mm a")}
+                    </div>
+                  </div>
+                </div>
+              )}
+              {assessment.status === 'COMPLETED' && !assessment.completedAt && (
+                <div className="flex items-center gap-3 p-3 bg-success/10 dark:bg-green-900/20 rounded-lg">
+                  <CheckCircle className="h-4 w-4 text-success dark:text-success" />
+                  <div className="flex-1">
+                    <div className="text-sm text-success dark:text-success">Completed</div>
+                    <div className="font-medium text-success-foreground dark:text-green-200">
+                      Completion date unavailable
                     </div>
                   </div>
                 </div>

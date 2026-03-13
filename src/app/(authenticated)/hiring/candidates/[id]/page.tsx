@@ -131,7 +131,7 @@ export default function CandidateProfilePage() {
       toast.success('Candidate deleted successfully')
       router.push('/hiring/candidates')
     },
-    onError: (error: Error) => {
+    onError: (error) => {
       toast.error(error.message || 'Failed to delete candidate')
     },
   })
@@ -1595,6 +1595,12 @@ export default function CandidateProfilePage() {
                         <span className="font-medium text-foreground">
                           {format(new Date(assessment.completedAt), 'MMM d, yyyy')}
                         </span>
+                      </div>
+                    )}
+                    {assessment.status === 'COMPLETED' && !assessment.completedAt && (
+                      <div className="flex items-center justify-between">
+                        <span>Completed</span>
+                        <span className="font-medium text-foreground">Yes</span>
                       </div>
                     )}
                     {assessment.summary && (

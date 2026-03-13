@@ -109,6 +109,7 @@ export function RescheduleDialog({
       id: interviewId,
       scheduledAt: scheduledAt.toISOString(),
       duration,
+      reason: reason.trim() || undefined,
     })
   }
 

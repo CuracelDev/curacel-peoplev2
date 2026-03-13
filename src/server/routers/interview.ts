@@ -504,7 +504,7 @@ export const interviewRouter = router({
       if (input.status === 'CANCELLED' && interview.calendarEventId) {
         try {
           const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+          const connector = await getGoogleWorkspaceConnector()
           if (connector) {
             await connector.deleteCalendarEvent(interview.calendarEventId)
             // Clear the event ID
@@ -531,6 +531,7 @@ export const interviewRouter = router({
         id: z.string(),
         scheduledAt: z.string(),
         duration: z.number().optional(),
+        reason: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -555,14 +556,15 @@ export const interviewRouter = router({
       if (interview.calendarEventId) {
         try {
           const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+          const connector = await getGoogleWorkspaceConnector()
 
           if (connector) {
             const currentInterviewers = (interview.interviewers as any[]) || []
-            const attendeeEmails = [
+            const attendeeEmails = Array.from(new Set([
               ...currentInterviewers.map((i: any) => i.email),
               interview.candidate.email,
-            ].filter(Boolean) as string[]
+              ctx.session?.user?.email,
+            ].filter(Boolean) as string[]))
 
             const stageName = interview.interviewType?.name ||
               stageDisplayNames[interview.stage] ||
@@ -578,6 +580,7 @@ export const interviewRouter = router({
               'Interviewers:',
               ...currentInterviewers.map((i: any) => `- ${i.name} (${i.email})${i.role ? ` - ${i.role}` : ''}`),
               '',
+              input.reason ? `Reschedule note: ${input.reason}` : '',
               interview.feedback ? `Notes: ${interview.feedback}` : '',
             ].filter(Boolean).join('\n')
 
@@ -631,7 +634,7 @@ export const interviewRouter = router({
       if (interview.calendarEventId) {
         try {
           const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+          const connector = await getGoogleWorkspaceConnector()
           if (connector) {
             await connector.deleteCalendarEvent(interview.calendarEventId)
             // Clear the event ID
@@ -727,14 +730,15 @@ export const interviewRouter = router({
       if (interview.calendarEventId) {
         try {
           const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+          const connector = await getGoogleWorkspaceConnector()
 
           if (connector) {
             const currentInterviewers = (interview.interviewers as any[]) || []
-            const attendeeEmails = [
+            const attendeeEmails = Array.from(new Set([
               ...currentInterviewers.map((i: any) => i.email),
               interview.candidate.email,
-            ].filter(Boolean) as string[]
+              ctx.session?.user?.email,
+            ].filter(Boolean) as string[]))
 
             const stageName = interview.interviewType?.name ||
               stageDisplayNames[interview.stage] ||
@@ -885,14 +889,15 @@ export const interviewRouter = router({
       if (updatedInterview.calendarEventId) {
         try {
           const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+          const connector = await getGoogleWorkspaceConnector()
 
           if (connector) {
             const currentInterviewers = (updatedInterview.interviewers as any[]) || []
-            const attendeeEmails = [
+            const attendeeEmails = Array.from(new Set([
               ...currentInterviewers.map((i: any) => i.email),
               updatedInterview.candidate.email,
-            ].filter(Boolean) as string[]
+              ctx.session?.user?.email,
+            ].filter(Boolean) as string[]))
 
             // Regenerate description to include the new interviewer
             const stageName = updatedInterview.interviewType?.name ||
@@ -1002,14 +1007,15 @@ export const interviewRouter = router({
       if (updatedInterview.calendarEventId) {
         try {
           const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-          const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+          const connector = await getGoogleWorkspaceConnector()
 
           if (connector) {
             const currentInterviewers = (updatedInterview.interviewers as any[]) || []
-            const attendeeEmails = [
+            const attendeeEmails = Array.from(new Set([
               ...currentInterviewers.map((i: any) => i.email),
               updatedInterview.candidate.email,
-            ].filter(Boolean) as string[]
+              ctx.session?.user?.email,
+            ].filter(Boolean) as string[]))
 
             // Regenerate description
             const stageName = updatedInterview.interviewType?.name ||
@@ -2402,7 +2408,7 @@ export const interviewRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-      const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+      const connector = await getGoogleWorkspaceConnector()
 
       if (!connector) {
         throw new TRPCError({
@@ -2446,10 +2452,11 @@ export const interviewRouter = router({
         role?: string
       }>) || []
 
-      const attendeeEmails = [
+      const attendeeEmails = Array.from(new Set([
         ...interviewers.map(i => i.email),
         interview.candidate.email,
-      ].filter(Boolean) as string[]
+        ctx.session?.user?.email,
+      ].filter(Boolean) as string[]))
 
       // Build event title and description
       const stageName = interview.interviewType?.name ||
@@ -2545,7 +2552,7 @@ export const interviewRouter = router({
       }
 
       const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-      const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+      const connector = await getGoogleWorkspaceConnector()
 
       if (!connector) {
         throw new TRPCError({
@@ -2556,10 +2563,11 @@ export const interviewRouter = router({
 
       // Build description and other details
       const interviewers = (interview.interviewers as any[]) || []
-      const attendeeEmails = [
+      const attendeeEmails = Array.from(new Set([
         ...interviewers.map(i => i.email),
         interview.candidate.email,
-      ].filter(Boolean) as string[]
+        ctx.session?.user?.email,
+      ].filter(Boolean) as string[]))
 
       const stageName = interview.interviewType?.name ||
         stageDisplayNames[interview.stage] ||
@@ -2616,7 +2624,7 @@ export const interviewRouter = router({
 
       if (interview.calendarEventId) {
         const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-        const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+        const connector = await getGoogleWorkspaceConnector()
 
         if (connector) {
           try {
@@ -2979,7 +2987,7 @@ Respond ONLY with valid JSON, no additional text.`
       }
 
       const { getGoogleWorkspaceConnector } = await import('@/lib/integrations/google-workspace')
-      const connector = await getGoogleWorkspaceConnector(ctx.session?.user?.email ?? undefined)
+      const connector = await getGoogleWorkspaceConnector()
 
       if (!connector) {
         throw new TRPCError({
@@ -2995,10 +3003,11 @@ Respond ONLY with valid JSON, no additional text.`
         role?: string
       }>) || []
 
-      const attendeeEmails = [
+      const attendeeEmails = Array.from(new Set([
         ...interviewers.map(i => i.email),
         fullInterview.candidate.email,
-      ].filter(Boolean) as string[]
+        ctx.session?.user?.email,
+      ].filter(Boolean) as string[]))
 
       const stageName = fullInterview.interviewType?.name ||
         stageDisplayNames[fullInterview.stage] ||

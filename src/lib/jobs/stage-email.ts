@@ -76,9 +76,14 @@ export async function stageEmailHandler(job: any): Promise<void> {
 
   try {
     // Get template for stage
-    const template = queuedEmail.templateId
+    const explicitTemplate = queuedEmail.templateId
       ? await prisma.emailTemplate.findUnique({ where: { id: queuedEmail.templateId } })
-      : await getTemplateForStage(queuedEmail.toStage, queuedEmail.candidate.jobId)
+      : null
+
+    const template =
+      explicitTemplate && (!explicitTemplate.stage || explicitTemplate.stage === queuedEmail.toStage)
+        ? explicitTemplate
+        : await getTemplateForStage(queuedEmail.toStage, queuedEmail.candidate.jobId)
 
     if (!template) {
       console.log('[StageEmail] No template configured for stage:', queuedEmail.toStage, '- marking as SKIPPED')
@@ -224,6 +229,18 @@ export async function queueStageEmail(
     skipAutoEmail?: boolean
   }
 ): Promise<string | null> {
+  const candidate = await prisma.jobCandidate.findUnique({
+    where: { id: data.candidateId },
+    select: {
+      source: true,
+    },
+  })
+
+  if (!candidate) {
+    console.warn('[StageEmail] Candidate not found. Skipping auto-email queue.')
+    return null
+  }
+
   // If user explicitly skipped, still create record for tracking but mark as skipped
   if (data.skipAutoEmail) {
     await prisma.queuedStageEmail.create({
@@ -256,8 +273,38 @@ export async function queueStageEmail(
   const autoSendStages = emailSettings.autoSendStages as unknown as Record<string, AutoSendStageConfig> | null
   const stageConfig = autoSendStages?.[data.toStage]
 
+  if (data.toStage === 'APPLIED') {
+    if (!emailSettings.autoSendOnApplication) {
+      console.log('[StageEmail] Application confirmation email disabled in settings.')
+      return null
+    }
+
+    if (candidate.source !== 'INBOUND') {
+      console.log(`[StageEmail] Skipping APPLIED auto-email for non-inbound candidate source: ${candidate.source}`)
+      return null
+    }
+  }
+
+  let resolvedTemplateId = data.templateId || stageConfig?.templateId
+
+  if (resolvedTemplateId) {
+    const template = await prisma.emailTemplate.findUnique({
+      where: { id: resolvedTemplateId },
+      select: { id: true, stage: true },
+    })
+
+    if (!template) {
+      resolvedTemplateId = undefined
+    } else if (template.stage && template.stage !== data.toStage) {
+      console.warn(
+        `[StageEmail] Ignoring mismatched template ${template.id} for stage ${data.toStage}; template is for ${template.stage}`
+      )
+      resolvedTemplateId = undefined
+    }
+  }
+
   // Check if auto-send is enabled for this stage, OR if a specific template was requested manually
-  const isEnabled = stageConfig?.enabled || !!data.templateId
+  const isEnabled = stageConfig?.enabled || !!resolvedTemplateId
 
   if (!isEnabled) {
     // console.log(`[StageEmail] Auto-send disabled for stage: ${data.toStage}. Check email settings.`)
@@ -277,7 +324,7 @@ export async function queueStageEmail(
       recruiterId: data.recruiterId,
       recruiterEmail: data.recruiterEmail,
       recruiterName: data.recruiterName,
-      templateId: data.templateId || stageConfig?.templateId,
+      templateId: resolvedTemplateId,
       scheduledFor,
       skipAutoEmail: false,
     },
